@@ -1,0 +1,49 @@
+package com.podmix.data.local.dao
+
+import androidx.room.Dao
+import androidx.room.Insert
+import androidx.room.OnConflictStrategy
+import androidx.room.Query
+import androidx.room.Update
+import com.podmix.data.local.entity.EpisodeEntity
+import kotlinx.coroutines.flow.Flow
+
+@Dao
+interface EpisodeDao {
+
+    @Query("SELECT * FROM episodes WHERE podcastId = :podcastId ORDER BY datePublished DESC")
+    fun getByPodcastId(podcastId: Int): Flow<List<EpisodeEntity>>
+
+    @Query("SELECT * FROM episodes WHERE podcastId = :podcastId ORDER BY datePublished DESC")
+    suspend fun getByPodcastIdSuspend(podcastId: Int): List<EpisodeEntity>
+
+    @Query("SELECT * FROM episodes WHERE id = :id")
+    suspend fun getById(id: Int): EpisodeEntity?
+
+    @Query("SELECT * FROM episodes WHERE guid = :guid AND podcastId = :podcastId LIMIT 1")
+    suspend fun getByGuid(guid: String, podcastId: Int): EpisodeEntity?
+
+    @Query("SELECT * FROM episodes WHERE youtubeVideoId = :videoId AND podcastId = :podcastId LIMIT 1")
+    suspend fun getByYoutubeVideoId(videoId: String, podcastId: Int): EpisodeEntity?
+
+    @Query("SELECT * FROM episodes WHERE mixcloudKey = :key AND podcastId = :podcastId LIMIT 1")
+    suspend fun getByMixcloudKey(key: String, podcastId: Int): EpisodeEntity?
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insert(episode: EpisodeEntity): Long
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertAll(episodes: List<EpisodeEntity>)
+
+    @Update
+    suspend fun update(episode: EpisodeEntity)
+
+    @Query("DELETE FROM episodes WHERE id = :id")
+    suspend fun delete(id: Int)
+
+    @Query("UPDATE episodes SET progressSeconds = :seconds WHERE id = :id")
+    suspend fun updateProgress(id: Int, seconds: Int)
+
+    @Query("UPDATE episodes SET isListened = NOT isListened WHERE id = :id")
+    suspend fun toggleListened(id: Int)
+}

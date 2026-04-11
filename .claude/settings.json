@@ -1,0 +1,35 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(\"/c/Users/Emmanuel_PC/AppData/Local/Android/Sdk/platform-tools/adb.exe\" shell:*)",
+      "Bash(C:/Users/Emmanuel_PC/AppData/Local/Android/Sdk/platform-tools/adb.exe shell:*)",
+      "Bash(curl -s -H \"Authorization: Bearer changeme\" \"http://192.168.10.109/api/episodes/\")",
+      "Bash(python3 -c \"import sys,json; eps=json.load\\(sys.stdin\\); print\\(json.dumps\\(eps[:2], indent=2\\)\\)\")",
+      "Bash(curl -s -H 'Authorization: Bearer changeme' http://192.168.10.109/api/episodes/)",
+      "Bash(python3 -c \":*)",
+      "Bash(curl -sv -H \"Authorization: Bearer changeme\" \"http://192.168.10.109/api/episodes/\")",
+      "Bash(curl -s -H \"Authorization: Bearer changeme\" \"http://192.168.10.109/api/podcasts/\")",
+      "Bash(curl -sL -H 'Authorization: Bearer changeme' http://192.168.10.109/api/podcasts)",
+      "Bash(curl -sL -H 'Authorization: Bearer changeme' http://192.168.10.109/api/episodes?podcast_id=2)",
+      "Bash(curl -sL -H \"Authorization: Bearer changeme\" \"http://192.168.10.109/api/episodes/37/tracks\")",
+      "Bash(\"C:/Users/Emmanuel_PC/AppData/Local/Android/Sdk/platform-tools/adb.exe\" logcat:*)"
+    ]
+  },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Grep|Glob|Regex",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/vexp-guard.sh",
+            "timeout": 3000
+          }
+        ]
+      }
+    ]
+  },
+  "enabledPlugins": {
+    "superpowers@claude-plugins-official": true
+  }
+}

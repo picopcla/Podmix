@@ -1,0 +1,17 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "Frontend Dev (Vite/Vue)",
+      "runtimeExecutable": "node",
+      "runtimeArgs": ["OLD_PWA/podcast-app/frontend/node_modules/.bin/vite", "--config", "OLD_PWA/podcast-app/frontend/vite.config.js", "--root", "OLD_PWA/podcast-app/frontend"],
+      "port": 3000
+    },
+    {
+      "name": "Docker Stack (API + Redis + Nginx)",
+      "runtimeExecutable": "docker",
+      "runtimeArgs": ["compose", "up"],
+      "port": 80
+    }
+  ]
+}

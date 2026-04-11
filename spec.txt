@@ -1,0 +1,72 @@
+SPEC TECHNIQUE — PODMIX (2026-04-09)
+1. ÉTAT ACTUEL DE L'APP
+Stack Android : Kotlin + Jetpack Compose + ExoPlayer (media3 1.4.1) + Hilt + Room + NewPipe Extractor.
+
+L'app fonctionne partiellement :
+
+Podcasts RSS → stream OK
+Livesets YouTube/Mixcloud → stream instable, timestamps faux ou absents
+Tracklist détection → broken (tous les scrapers retournent vide)
+2. BUGS CONFIRMÉS
+#	Fichier	Problème
+B1	PlayerController.kt:107	onPlayerError retry avec la même URL expirée — ne re-résout pas
+B2	TracklistService.kt:186	Jsoup scrape 1001TL avec sélecteurs CSS morts (div.tlpItem, span.cueValueField)
+B3	audio_timestamp_server.py:/analyze	Endpoint stub — retourne "status: processing" sans rien faire
+B4	TracklistService.kt:63	Fallback timestamps = durée iTunes ÷ nb tracks — fondamentalement faux pour un DJ mix
+B5	Tout le pipeline 1001TL	Site protégé Cloudflare Turnstile + contenu AJAX → inutilisable
+3. DÉCISIONS D'ARCHITECTURE
+Lecture audio
+Podcasts RSS  →  stream direct CDN  →  ExoPlayer  →  seek byte-range instantané
+Livesets YT   →  download yt-dlp    →  fichier MP3 local  →  ExoPlayer  →  seek local 0ms
+
+Pourquoi : URLs YouTube expirent en 4-6h. Byte-range seek non garanti sur streams YouTube. Les podcasts RSS sont sur CDN stables — pas besoin de download.
+
+Timestamps — sources validées par test
+Priorité 1 : YouTube chapters  (yt-dlp info['chapters'])      → secondes exactes
+Priorité 2 : YouTube description (yt-dlp info['description']) → parser MM:SS
+Priorité 3 : MixesDB API MediaWiki                            → [H:MM:SS] ou [MM]
+Priorité 4 : YouTube comments  (yt-dlp info['comments'])      → [MM:SS] dans texte
+Priorité 5 : ShazamIO sur fichier local                       → lent, dernier recours
+MORT       : 1001Tracklists → Cloudflare Turnstile + AJAX
+MORT       : Mixcloud API sections → OAuth requis
+
+4. PLAN DE DÉVELOPPEMENT — SÉQUENTIEL
+Phase 1 — Pipeline timestamps Python (backend local)
+Input : URL YouTube d'un liveset
+Process :
+
+yt-dlp.extract_info(url)
+  → chapters?      → parse direct → List[{start_sec, artist, title}]
+  → description?   → regex MM:SS  → List[{start_sec, artist, title}]
+  → MixesDB API    → search(titre+artiste) → wikitext → parse [H:MM:SS]
+  → comments?      → top comment avec ≥5 lignes timestampées → parse
+
+Output : JSON [{"start": 847, "artist": "Alignment", "title": "Blade"}]
+Fichier : audio_timestamp_server.py — remplacer le stub /analyze
+
+Phase 2 — Download livesets via yt-dlp
+Input : Episode avec youtubeVideoId ou mixcloudKey
+Process : yt-dlp -x --audio-format mp3 --write-info-json → dossier local Android
+Output : liveset_ID.mp3 + liveset_ID.info.json (timestamps inclus dans info.json)
+Fichier : nouveau service Android LivesetDownloadService.kt
+
+Phase 3 — Fix PlayerController URL expirée
+Input : PlaybackException.ERROR_CODE_IO_BAD_HTTP_STATUS sur stream YouTube
+Process : invalider cache → rappeler YouTubeStreamResolver.resolve() → rejouer
+Fichier : PlayerController.kt:104-116
+
+Phase 4 — Intégration Android → timestamps du backend
+Input : JSON timestamps du backend Python
+Process : TrackRepository.detectAndSaveTracks() appelle le backend via AudioAnalysisService → parse réponse → save TrackEntity avec source="yt_chapters" ou source="mixesdb"
+Supprimer : fallback iTunes-duration, fallback uniform, Jsoup 1001TL
+
+5. CE QUI NE CHANGE PAS
+Architecture Room/SQLite pour les tracks → OK
+syncTrackByTime() dans PlayerController → OK (seek local = instantané)
+parseTimestamped() dans TracklistService → réutilisable pour parser les descriptions
+ExoPlayer config buffer 2min-10min → OK pour podcasts stream
+6. DÉPENDANCES PYTHON REQUISES
+yt-dlp          ✅ installé (2026.03.17)
+scrapling       ✅ installé (0.4.5) — inutile finalement
+requests        ✅ disponible
+ShazamIO        ⏳ à installer si Phase 5

@@ -1,0 +1,67 @@
+<h2>Modèle de lecture audio — quelle approche ?</h2>
+<p class="subtitle">Tension : fluidité des transitions DJ ↔ navigation claire par track</p>
+
+<div class="options">
+
+  <div class="option" data-choice="A" onclick="toggleSelect(this)">
+    <div class="letter">A</div>
+    <div class="content">
+      <h3>Fichier unique + seekTo(ms) <span style="font-size:12px;color:#888">— actuel</span></h3>
+      <div style="margin:10px 0;font-family:monospace;font-size:12px;background:#1a1a2e;color:#e0e0e0;padding:10px;border-radius:6px;line-height:1.8">
+        <span style="color:#64b5f6">liveset.mp3</span> ──────────────────────────────<br>
+        <span style="color:#aaa">00:00</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span style="color:#aaa">07:23</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span style="color:#aaa">14:51</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span style="color:#aaa">22:04</span><br>
+        <span style="color:#81c784">▲Track1</span>&nbsp;&nbsp;<span style="color:#81c784">▲Track2</span>&nbsp;&nbsp;<span style="color:#81c784">▲Track3</span>&nbsp;&nbsp;<span style="color:#81c784">▲Track4</span><br>
+        <span style="color:#555;font-size:11px">seekTo(443000) → continue lecture naturellement</span>
+      </div>
+      <div class="pros-cons">
+        <div class="pros"><h4>Pour</h4><ul><li>Transitions intactes</li><li>Simple</li><li>Seek local = 0ms lag</li></ul></div>
+        <div class="cons"><h4>Contre</h4><ul><li>Cliquer "Track 3" = démarrage à froid dans le mix</li><li>Pas d'aperçu isolé d'un track</li></ul></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="option" data-choice="B" onclick="toggleSelect(this)">
+    <div class="letter">B</div>
+    <div class="content">
+      <h3>Pre-roll seek — <em>"Soft Entry"</em> <span style="font-size:12px;color:#f9a825">★ Recommandé</span></h3>
+      <div style="margin:10px 0;font-family:monospace;font-size:12px;background:#1a1a2e;color:#e0e0e0;padding:10px;border-radius:6px;line-height:1.8">
+        <span style="color:#64b5f6">liveset.mp3</span> ──────────────────────────────<br>
+        <span style="color:#aaa">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;07:23</span><br>
+        <span style="color:#81c784">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;▲Track2</span><br>
+        <span style="color:#ef9a9a">User clique Track2&nbsp;&nbsp;</span><span style="color:#fff">→</span> <span style="color:#ffcc02">seek 06:53</span> <span style="color:#aaa">(30s avant)</span><br>
+        <span style="color:#aaa;font-size:11px">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;└─ entend la fin du mix-in de T1→T2 → T2 complet → T2→T3</span>
+      </div>
+      <div class="pros-cons">
+        <div class="pros"><h4>Pour</h4><ul><li>Transitions entendues</li><li>Contexte musical préservé</li><li>0 code supplémentaire côté ExoPlayer</li><li>pre_roll configurable (15s, 30s…)</li></ul></div>
+        <div class="cons"><h4>Contre</h4><ul><li>Le "début" du track inclut la fin du précédent</li></ul></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="option" data-choice="C" onclick="toggleSelect(this)">
+    <div class="letter">C</div>
+    <div class="content">
+      <h3>HLS local via ffmpeg — <em>"Virtual Tracks"</em></h3>
+      <div style="margin:10px 0;font-family:monospace;font-size:12px;background:#1a1a2e;color:#e0e0e0;padding:10px;border-radius:6px;line-height:1.8">
+        <span style="color:#64b5f6">liveset.mp3</span><br>
+        <span style="color:#fff">↓ ffmpeg</span> <span style="color:#aaa">(1x, offline, après download)</span><br>
+        <span style="color:#81c784">playlist.m3u8</span><br>
+        <span style="color:#aaa">segment_001.ts</span> <span style="color:#555">00:00→07:53</span> <span style="color:#ef9a9a">(+30s overlap)</span><br>
+        <span style="color:#aaa">segment_002.ts</span> <span style="color:#555">06:53→15:21</span> <span style="color:#ef9a9a">(±30s overlap)</span><br>
+        <span style="color:#aaa">segment_003.ts</span> <span style="color:#555">14:21→22:34</span> <span style="color:#ef9a9a">(±30s overlap)</span><br>
+        <span style="color:#555;font-size:11px">ExoPlayer joue HLS natif → transition seamless, seek par segment</span>
+      </div>
+      <div class="pros-cons">
+        <div class="pros"><h4>Pour</h4><ul><li>Chaque "track" est un segment discret</li><li>ExoPlayer HLS natif = gapless</li><li>Overlap = transition préservée</li></ul></div>
+        <div class="cons"><h4>Contre</h4><ul><li>ffmpeg à lancer sur VM après download</li><li>Stockage × 1.1 (overlaps)</li><li>Complexité pipeline</li></ul></div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<div style="margin-top:20px;padding:12px;background:#1e1e2e;border-left:3px solid #7c4dff;border-radius:4px;font-size:13px;color:#ccc">
+  <strong style="color:#b39ddb">Note sur les transitions DJ</strong><br>
+  Dans un mix technique, le "début" d'un track n'est pas un instant précis — c'est une zone de 20-90s où deux tracks coexistent.
+  L'option B préserve cette réalité sans infrastructure supplémentaire.
+</div>

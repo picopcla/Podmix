@@ -1,0 +1,16 @@
+# Images (déjà fait, c'est top)
+*.png
+*.jpg
+*.svg
+*.webp
+
+# Build & System (TRÈS important pour économiser)
+.gradle/
+build/
+app/build/
+*.bin
+*.out
+
+# Dossiers spécifiques aux IA
+.vexp/
+.claude/
