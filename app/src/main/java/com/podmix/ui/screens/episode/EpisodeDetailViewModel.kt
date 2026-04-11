@@ -9,13 +9,17 @@ import com.podmix.data.repository.PodcastRepository
 import com.podmix.data.repository.TrackRepository
 import com.podmix.domain.model.Episode
 import com.podmix.domain.model.Podcast
+import com.podmix.domain.model.SourceResult
+import com.podmix.domain.model.SourceStatus
 import com.podmix.domain.model.Track
 import com.podmix.service.PlayerController
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -41,6 +45,9 @@ class EpisodeDetailViewModel @Inject constructor(
 
     private val _detectStatus = MutableStateFlow("")
     val detectStatus: StateFlow<String> = _detectStatus
+
+    private val _sourceResults = MutableStateFlow<List<SourceResult>>(emptyList())
+    val sourceResults: StateFlow<List<SourceResult>> = _sourceResults.asStateFlow()
 
     val tracks: StateFlow<List<Track>> = trackRepository.getTracksForEpisode(episodeId)
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
@@ -86,6 +93,21 @@ class EpisodeDetailViewModel @Inject constructor(
 
         val onStatus: (String) -> Unit = { _detectStatus.value = it }
 
+        // Initialiser toutes les sources en PENDING
+        _sourceResults.value = listOf(
+            SourceResult("Description YouTube", SourceStatus.PENDING),
+            SourceResult("yt-dlp", SourceStatus.PENDING),
+            SourceResult("Mixcloud", SourceStatus.PENDING),
+            SourceResult("MixesDB", SourceStatus.PENDING),
+            SourceResult("Shazam/IA", SourceStatus.PENDING),
+        )
+
+        val onSourceResult: (SourceResult) -> Unit = { result ->
+            _sourceResults.update { list ->
+                list.map { if (it.source == result.source) result else it }
+            }
+        }
+
         try {
             // For YouTube episodes, fetch description via NewPipe
             val description = if (!ep.youtubeVideoId.isNullOrBlank() && ep.description.isNullOrBlank()) {
@@ -106,6 +128,7 @@ class EpisodeDetailViewModel @Inject constructor(
                 podcastName = _podcast.value?.name,
                 episodeDurationSec = ep.durationSeconds,
                 onStatus = onStatus,
+                onSourceResult = onSourceResult,
                 isLiveSet = ep.episodeType == "liveset",
                 youtubeVideoId = ep.youtubeVideoId,
                 audioUrl = ep.audioUrl.takeIf { it.isNotBlank() }
