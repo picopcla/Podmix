@@ -13,8 +13,8 @@ android {
         applicationId = "com.podmix"
         minSdk = 26
         targetSdk = 35
-        versionCode = 14  // Augmenter de 13 à 14
-        versionName = "1.2.3"  // Nouvelle version avec analyse YouTube
+        versionCode = 15
+        versionName = "1.3.0"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
