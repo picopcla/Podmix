@@ -370,9 +370,17 @@ class TrackRepository @Inject constructor(
 
     private suspend fun try1001TL(query: String): List<ParsedTrack>? {
         return try {
+            // Nettoyer le titre : supprimer les suffixes YouTube descriptifs après " / " ou " | "
+            // ex: "Korolova - Live @ Frozen Lake, Ukraine / 4K Melodic Techno & Progressive House Mix"
+            //  → "Korolova - Live @ Frozen Lake, Ukraine"
+            val cleanQuery = query
+                .replace(Regex("""\s*/\s*.+$"""), "")   // strip " / ..." suffix
+                .replace(Regex("""\s*\|\s*.+$"""), "")  // strip " | ..." suffix
+                .trim()
+
             // 1. Trouver l'URL via DuckDuckGo
             val searchUrl = "https://html.duckduckgo.com/html/?q=" +
-                URLEncoder.encode("site:1001tracklists.com $query", "UTF-8")
+                URLEncoder.encode("site:1001tracklists.com $cleanQuery", "UTF-8")
             Log.i("TrackRepo", "1001TL DDG search: $searchUrl")
             val ddgClient = okHttpClient.newBuilder()
                 .connectTimeout(8, TimeUnit.SECONDS)
