@@ -22,6 +22,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.podmix.domain.model.SourceStatus
 import com.podmix.ui.theme.*
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -37,7 +38,8 @@ fun AddDjScreen(
     val errorMessage by viewModel.errorMessage.collectAsState()
     val sortMode by viewModel.sortMode.collectAsState()
     val importProgress by viewModel.importProgress.collectAsState()
-    val selectedCount = viewModel.selectedCount()
+    val sourceResults by viewModel.sourceResults.collectAsState()
+    val selectedCount by viewModel.selectedCount.collectAsState()
 
     Box(modifier = Modifier.fillMaxSize()) {
         Scaffold(
@@ -50,31 +52,25 @@ fun AddDjScreen(
                             Icon(Icons.AutoMirrored.Filled.ArrowBack, "Back", tint = TextPrimary)
                         }
                     },
+                    actions = {
+                        if (sets.isNotEmpty()) {
+                            TextButton(
+                                onClick = { viewModel.importSelected { djId -> onDjAdded(djId) } },
+                                enabled = selectedCount > 0
+                            ) {
+                                Text(
+                                    if (selectedCount > 0) "Importer ($selectedCount)" else "Importer",
+                                    color = if (selectedCount > 0) AccentPrimary else TextSecondary,
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 14.sp
+                                )
+                            }
+                        }
+                    },
                     colors = TopAppBarDefaults.topAppBarColors(containerColor = Background)
                 )
             },
-            bottomBar = {
-                if (selectedCount > 0) {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .background(Background)
-                            .padding(12.dp)
-                    ) {
-                        Button(
-                            onClick = { viewModel.importSelected { djId -> onDjAdded(djId) } },
-                            modifier = Modifier.fillMaxWidth(),
-                            colors = ButtonDefaults.buttonColors(containerColor = AccentPrimary)
-                        ) {
-                            Text(
-                                "Importer ($selectedCount)",
-                                color = Color.White,
-                                fontWeight = FontWeight.Bold
-                            )
-                        }
-                    }
-                }
-            }
+            bottomBar = {}
         ) { padding ->
             Column(
                 modifier = Modifier
@@ -114,22 +110,31 @@ fun AddDjScreen(
                     Text(it, color = Color(0xFFFF6B6B), fontSize = 12.sp)
                 }
 
-                // Sort toggle
+                // Sort toggle + select all
                 if (sets.isNotEmpty()) {
                     Spacer(Modifier.height(10.dp))
                     Row(
                         modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
-                        SortChip(
-                            label = "Most Viewed",
-                            selected = sortMode == SortMode.MOST_VIEWED,
-                            onClick = { viewModel.setSortMode(SortMode.MOST_VIEWED) }
-                        )
-                        SortChip(
-                            label = "Most Recent",
-                            selected = sortMode == SortMode.MOST_RECENT,
-                            onClick = { viewModel.setSortMode(SortMode.MOST_RECENT) }
+                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            SortChip(
+                                label = "Most Viewed",
+                                selected = sortMode == SortMode.MOST_VIEWED,
+                                onClick = { viewModel.setSortMode(SortMode.MOST_VIEWED) }
+                            )
+                            SortChip(
+                                label = "Most Recent",
+                                selected = sortMode == SortMode.MOST_RECENT,
+                                onClick = { viewModel.setSortMode(SortMode.MOST_RECENT) }
+                            )
+                        }
+                        Text(
+                            text = if (selectedCount == sets.size) "Tout désélect." else "Tout sélect.",
+                            color = AccentPrimary,
+                            fontSize = 12.sp,
+                            modifier = Modifier.clickable { viewModel.toggleSelectAll() }
                         )
                     }
                     Spacer(Modifier.height(4.dp))
@@ -137,10 +142,10 @@ fun AddDjScreen(
 
                 // Set list
                 LazyColumn(modifier = Modifier.fillMaxSize()) {
-                    items(sets, key = { it.set.tracklistUrl }) { item ->
+                    items(sets, key = { it.set.id }) { item ->
                         SetRow(
                             item = item,
-                            onClick = { viewModel.toggleSelection(item.set.tracklistUrl) }
+                            onClick = { viewModel.toggleSelection(item.set.id) }
                         )
                     }
                     item { Spacer(Modifier.height(160.dp)) }
@@ -148,28 +153,36 @@ fun AddDjScreen(
             }
         }
 
-        // Import progress overlay
+        // Import progress overlay avec sources inline
         importProgress?.let { progress ->
             Box(
                 modifier = Modifier
                     .fillMaxSize()
-                    .background(Color.Black.copy(alpha = 0.7f)),
+                    .background(Color.Black.copy(alpha = 0.75f)),
                 contentAlignment = Alignment.Center
             ) {
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally,
                     modifier = Modifier
+                        .fillMaxWidth(0.9f)
                         .background(SurfaceCard, RoundedCornerShape(12.dp))
-                        .padding(24.dp)
+                        .padding(20.dp)
                 ) {
-                    CircularProgressIndicator(color = AccentPrimary)
-                    Spacer(Modifier.height(12.dp))
-                    Text(
-                        "Import ${progress.current}/${progress.total}",
-                        color = TextPrimary,
-                        fontWeight = FontWeight.Bold
-                    )
-                    Spacer(Modifier.height(4.dp))
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(18.dp),
+                            strokeWidth = 2.dp,
+                            color = AccentPrimary
+                        )
+                        Spacer(Modifier.width(10.dp))
+                        Text(
+                            "Import ${progress.current}/${progress.total}",
+                            color = TextPrimary,
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 14.sp
+                        )
+                    }
+                    Spacer(Modifier.height(6.dp))
                     Text(
                         progress.currentTitle,
                         color = TextSecondary,
@@ -177,6 +190,33 @@ fun AddDjScreen(
                         maxLines = 2,
                         overflow = TextOverflow.Ellipsis
                     )
+                    if (sourceResults.isNotEmpty()) {
+                        Spacer(Modifier.height(12.dp))
+                        HorizontalDivider(color = SurfaceSecondary, thickness = 0.5.dp)
+                        Spacer(Modifier.height(8.dp))
+                        sourceResults.forEach { result ->
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(vertical = 3.dp),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text(
+                                    result.source,
+                                    color = TextSecondary,
+                                    fontSize = 11.sp
+                                )
+                                val (statusText, statusColor) = when (result.status) {
+                                    SourceStatus.PENDING, SourceStatus.RUNNING -> "..." to AccentPrimary
+                                    SourceStatus.SUCCESS -> "✓ ${result.trackCount}" to Color(0xFF4CAF50)
+                                    SourceStatus.FAILED -> "✗" to Color(0xFFFF6B6B)
+                                    SourceStatus.SKIPPED -> "—" to TextSecondary
+                                }
+                                Text(statusText, color = statusColor, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                            }
+                        }
+                    }
                 }
             }
         }
@@ -205,7 +245,7 @@ private fun SortChip(label: String, selected: Boolean, onClick: () -> Unit) {
 }
 
 @Composable
-private fun SetRow(item: ArtistSetUiItem, onClick: () -> Unit) {
+private fun SetRow(item: DiscoveredSetUiItem, onClick: () -> Unit) {
     val alpha = if (item.isAlreadyImported) 0.4f else 1f
     Row(
         modifier = Modifier
@@ -243,6 +283,15 @@ private fun SetRow(item: ArtistSetUiItem, onClick: () -> Unit) {
                 if (item.set.viewCount > 0) {
                     Text("${item.set.viewCount} views", color = TextSecondary.copy(alpha = alpha), fontSize = 11.sp)
                 }
+                Text(
+                    text = item.sourceLabel,
+                    color = when (item.sourceLabel) {
+                        "SC+TL", "SC" -> androidx.compose.ui.graphics.Color(0xFFFF5500).copy(alpha = alpha)
+                        else -> AccentPrimary.copy(alpha = alpha)
+                    },
+                    fontSize = 10.sp,
+                    fontWeight = FontWeight.Bold
+                )
                 if (item.isAlreadyImported) {
                     Text("✓ importé", color = AccentPrimary.copy(alpha = 0.5f), fontSize = 11.sp)
                 }
