@@ -11,16 +11,19 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.ui.graphics.Color
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -42,6 +45,7 @@ import com.podmix.ui.theme.TextSecondary
 fun DjDetailScreen(
     onEpisodeClick: (Int, Int) -> Unit,
     onBack: () -> Unit,
+    onAddMore: (Int) -> Unit = {},
     viewModel: DjDetailViewModel = hiltViewModel()
 ) {
     val dj by viewModel.dj.collectAsState()
@@ -52,6 +56,15 @@ fun DjDetailScreen(
 
     Scaffold(
         containerColor = Background,
+        floatingActionButton = {
+            FloatingActionButton(
+                onClick = { onAddMore(viewModel.djId) },
+                containerColor = AccentPrimary,
+                contentColor = Color.White
+            ) {
+                Icon(Icons.Default.Add, contentDescription = "Ajouter des sets")
+            }
+        },
         topBar = {
             TopAppBar(
                 title = {

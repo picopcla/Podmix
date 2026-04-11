@@ -35,7 +35,7 @@ class DjDetailViewModel @Inject constructor(
         .map { it.toSet() }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptySet())
 
-    private val djId: Int = savedStateHandle["djId"] ?: 0
+    val djId: Int = savedStateHandle["djId"] ?: 0
 
     private val _dj = MutableStateFlow<Podcast?>(null)
     val dj: StateFlow<Podcast?> = _dj

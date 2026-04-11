@@ -31,6 +31,9 @@ sealed class Screen(val route: String) {
     object DjDetail : Screen("dj_detail/{djId}") {
         fun createRoute(id: Int) = "dj_detail/$id"
     }
+    object AddSets : Screen("add_sets/{djId}") {
+        fun createRoute(djId: Int) = "add_sets/$djId"
+    }
     object EpisodeDetail : Screen("episode_detail/{podcastId}/{episodeId}") {
         fun createRoute(podcastId: Int, episodeId: Int) = "episode_detail/$podcastId/$episodeId"
     }
@@ -88,7 +91,18 @@ fun NavGraph(navController: NavHostController, modifier: Modifier = Modifier) {
         ) {
             DjDetailScreen(
                 onEpisodeClick = { djId, eid -> navController.navigate(Screen.EpisodeDetail.createRoute(djId, eid)) },
-                onBack = { navController.popBackStack() }
+                onBack = { navController.popBackStack() },
+                onAddMore = { djId -> navController.navigate(Screen.AddSets.createRoute(djId)) }
+            )
+        }
+
+        composable(
+            Screen.AddSets.route,
+            arguments = listOf(navArgument("djId") { type = NavType.IntType })
+        ) {
+            AddDjScreen(
+                onBack = { navController.popBackStack() },
+                onDjAdded = { navController.popBackStack() }
             )
         }
 

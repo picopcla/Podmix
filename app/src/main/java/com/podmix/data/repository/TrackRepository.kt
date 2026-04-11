@@ -560,6 +560,10 @@ class TrackRepository @Inject constructor(
 
     // ── Helpers ────────────────────────────────────────────────────────────────
 
+    suspend fun saveTracksForEpisode(episodeId: Int, tracks: List<ParsedTrack>, hasTimestamps: Boolean) {
+        saveTracks(episodeId, tracks, hasTimestamps, 0, "1001tl")
+    }
+
     private suspend fun saveTracks(
         episodeId: Int, tracks: List<ParsedTrack>,
         hasTimestamps: Boolean, durationSec: Int, source: String
