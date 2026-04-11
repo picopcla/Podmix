@@ -53,6 +53,7 @@ fun EpisodeDetailScreen(
     val episode by viewModel.episode.collectAsState()
     val tracks by viewModel.tracks.collectAsState()
     val detectStatus by viewModel.detectStatus.collectAsState()
+    val sourceResults by viewModel.sourceResults.collectAsState()
     val playerState by viewModel.playerState.collectAsState()
     val isThisEpisode = playerState.currentEpisode?.id == episode?.id
     val isDetecting = detectStatus.isNotBlank()
@@ -101,6 +102,16 @@ fun EpisodeDetailScreen(
                     }
                 }
                 Spacer(Modifier.height(8.dp))
+            }
+
+            // Diagnostic banner
+            if (sourceResults.isNotEmpty()) {
+                item {
+                    TracklistDiagnosticBanner(
+                        results = sourceResults,
+                        modifier = Modifier.padding(vertical = 4.dp)
+                    )
+                }
             }
 
             // Tracklist section
