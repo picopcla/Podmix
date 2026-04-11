@@ -11,8 +11,15 @@ import urllib.parse
 import subprocess
 import sys
 import os
+import re
 from pathlib import Path
 import logging
+
+try:
+    import yt_dlp
+    YT_DLP_AVAILABLE = True
+except ImportError:
+    YT_DLP_AVAILABLE = False
 
 # Configuration
 PORT = 8099
@@ -92,9 +99,103 @@ class AudioTimestampHandler(http.server.BaseHTTPRequestHandler):
                 logger.error(f"Error searching 1001TL: {e}")
                 self.send_error(500, f"Internal server error: {e}")
                 
+        elif path == "/chapters":
+            query_params = urllib.parse.parse_qs(parsed.query)
+            video_id = query_params.get("video_id", [""])[0]
+            if not video_id:
+                self.send_error(400, "Missing 'video_id' parameter")
+                return
+            try:
+                tracks = []
+                if YT_DLP_AVAILABLE:
+                    ydl_opts = {
+                        'quiet': True,
+                        'skip_download': True,
+                        'no_warnings': True,
+                    }
+                    with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+                        info = ydl.extract_info(
+                            f"https://www.youtube.com/watch?v={video_id}",
+                            download=False
+                        )
+                        chapters = info.get('chapters') or []
+                        tracks = [
+                            {"title": c.get("title", ""), "startTimeSec": int(c.get("start_time", 0))}
+                            for c in chapters
+                        ]
+                self.send_response(200)
+                self.send_header("Content-type", "application/json")
+                self.end_headers()
+                self.wfile.write(json.dumps({"tracks": tracks}).encode())
+            except Exception as e:
+                logger.error(f"Error fetching chapters: {e}")
+                self.send_response(200)
+                self.send_header("Content-type", "application/json")
+                self.end_headers()
+                self.wfile.write(json.dumps({"tracks": []}).encode())
+
+        elif path == "/mixesdb":
+            query_params = urllib.parse.parse_qs(parsed.query)
+            q = query_params.get("q", [""])[0]
+            if not q:
+                self.send_error(400, "Missing 'q' parameter")
+                return
+            try:
+                import urllib.request
+                tracks = []
+
+                # 1. Search for the page
+                search_url = (
+                    "https://www.mixesdb.com/api.php?action=query&list=search"
+                    f"&srsearch={urllib.parse.quote(q)}&format=json&srlimit=1"
+                )
+                with urllib.request.urlopen(search_url, timeout=5) as resp:
+                    search_data = json.loads(resp.read().decode())
+                results = search_data.get("query", {}).get("search", [])
+                if not results:
+                    raise ValueError("No MixesDB page found")
+
+                page_id = results[0]["pageid"]
+
+                # 2. Fetch wikitext
+                parse_url = (
+                    f"https://www.mixesdb.com/api.php?action=parse&pageid={page_id}"
+                    "&prop=wikitext&format=json"
+                )
+                with urllib.request.urlopen(parse_url, timeout=5) as resp:
+                    parse_data = json.loads(resp.read().decode())
+                wikitext = parse_data.get("parse", {}).get("wikitext", {}).get("*", "")
+
+                # 3. Parse tracklist rows (defensive — format not officially documented)
+                for line in wikitext.splitlines():
+                    line = line.strip()
+                    cells = [c.strip() for c in line.split("||")]
+                    if len(cells) >= 3:
+                        artist = re.sub(r'\[\[([^|]+\|)?([^\]]+)\]\]', r'\2', cells[1])
+                        title = re.sub(r'\[\[([^|]+\|)?([^\]]+)\]\]', r'\2', cells[2])
+                        if artist and title:
+                            tracks.append({"artist": artist, "title": title, "startTimeSec": 0})
+                    elif len(cells) == 2 and " - " in cells[1]:
+                        parts = cells[1].split(" - ", 1)
+                        artist = re.sub(r'\[\[([^|]+\|)?([^\]]+)\]\]', r'\2', parts[0])
+                        title = re.sub(r'\[\[([^|]+\|)?([^\]]+)\]\]', r'\2', parts[1])
+                        if artist and title:
+                            tracks.append({"artist": artist, "title": title, "startTimeSec": 0})
+
+                self.send_response(200)
+                self.send_header("Content-type", "application/json")
+                self.end_headers()
+                self.wfile.write(json.dumps({"tracks": tracks}).encode())
+            except Exception as e:
+                logger.warning(f"MixesDB: {e}")
+                self.send_response(200)
+                self.send_header("Content-type", "application/json")
+                self.end_headers()
+                self.wfile.write(json.dumps({"tracks": []}).encode())
+
         else:
             self.send_error(404, f"Endpoint not found: {path}")
-    
+
     def do_POST(self):
         """Gère les requêtes POST."""
         if self.path == "/analyze":
@@ -149,6 +250,8 @@ def main():
         logger.info(f"  GET  http://{HOST}:{PORT}/health - Health check")
         logger.info(f"  GET  http://{HOST}:{PORT}/tracklist?q=QUERY - Search 1001TL")
         logger.info(f"  POST http://{HOST}:{PORT}/analyze - Analyze audio URL")
+        logger.info(f"  GET  http://{HOST}:{PORT}/chapters?video_id=ID - YouTube chapters via yt-dlp")
+        logger.info(f"  GET  http://{HOST}:{PORT}/mixesdb?q=QUERY - MixesDB tracklist")
         
         try:
             httpd.serve_forever()
