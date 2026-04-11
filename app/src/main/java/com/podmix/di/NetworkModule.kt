@@ -57,7 +57,7 @@ object NetworkModule {
             .readTimeout(600, java.util.concurrent.TimeUnit.SECONDS)
             .build()
         return Retrofit.Builder()
-            .baseUrl("http://192.168.10.116:8099/")
+            .baseUrl("http://192.168.10.5:8099/")
             .client(client)
             .addConverterFactory(GsonConverterFactory.create())
             .build()
@@ -103,9 +103,10 @@ object NetworkModule {
     @Singleton
     fun provideYouTubeCommentsService(
         youTubeStreamResolver: com.podmix.service.YouTubeStreamResolver,
-        tracklistService: com.podmix.service.TracklistService
+        tracklistService: com.podmix.service.TracklistService,
+        geminiParser: com.podmix.service.GeminiTracklistParser
     ): com.podmix.service.YouTubeCommentsService =
-        com.podmix.service.YouTubeCommentsService(youTubeStreamResolver, tracklistService)
+        com.podmix.service.YouTubeCommentsService(youTubeStreamResolver, tracklistService, geminiParser)
     
     @Provides
     @Singleton

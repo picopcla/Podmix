@@ -16,7 +16,8 @@ import javax.inject.Singleton
 @Singleton
 class YouTubeCommentsService @Inject constructor(
     private val youTubeStreamResolver: YouTubeStreamResolver,
-    private val tracklistService: TracklistService
+    private val tracklistService: TracklistService,
+    private val geminiParser: GeminiTracklistParser
 ) {
     
     private val TAG = "YouTubeCommentsService"
@@ -27,115 +28,98 @@ class YouTubeCommentsService @Inject constructor(
      * @param maxComments Nombre maximum de commentaires à analyser (par défaut 100)
      * @return Liste des pistes trouvées dans les commentaires avec leurs timestamps
      */
-    suspend fun extractTracklistFromComments(videoId: String, maxComments: Int = 100): List<ParsedTrack> = withContext(Dispatchers.IO) {
+    suspend fun extractTracklistFromComments(videoId: String, maxComments: Int = 200): List<ParsedTrack> = withContext(Dispatchers.IO) {
         try {
-            Log.d(TAG, "Extraction des commentaires pour la vidéo: $videoId")
-            
-            // Récupérer les commentaires
-            val comments = getComments(videoId, maxComments)
-            if (comments.isEmpty()) {
-                Log.d(TAG, "Aucun commentaire trouvé pour la vidéo: $videoId")
-                return@withContext emptyList()
-            }
-            
-            Log.d(TAG, "Analysage de ${comments.size} commentaires pour des tracklists...")
-            
-            // Analyser chaque commentaire pour trouver des tracklists
-            val allTracks = mutableListOf<ParsedTrack>()
-            
-            for (comment in comments) {
-                val tracks = analyzeCommentForTracklist(comment)
-                if (tracks.isNotEmpty()) {
-                    Log.d(TAG, "Trouvé ${tracks.size} pistes dans un commentaire")
-                    allTracks.addAll(tracks)
-                    
-                    // Si on trouve une tracklist complète (au moins 5 pistes), on s'arrête
-                    if (tracks.size >= 5) {
-                        Log.d(TAG, "Tracklist complète trouvée (${tracks.size} pistes)")
-                        break
+            Log.d(TAG, "Extraction des commentaires pour la vidéo: $videoId (max=$maxComments)")
+
+            youTubeStreamResolver.ensureInitialized()
+            val url = "https://www.youtube.com/watch?v=$videoId"
+            val commentsInfo = CommentsInfo.getInfo(url)
+
+            var bestTracks = emptyList<ParsedTrack>()
+            var scanned = 0
+
+            suspend fun processPage(items: List<*>) {
+                for (item in items) {
+                    if (item !is CommentsInfoItem) continue
+                    val text = item.commentText?.content ?: continue
+                    scanned++
+                    val tracks = analyzeCommentForTracklist(text)
+                    if (tracks.size > bestTracks.size) {
+                        bestTracks = tracks
+                        Log.d(TAG, "Nouveau meilleur commentaire: ${tracks.size} tracks (commentaire #$scanned)")
+                        if (tracks.size >= 5) return // early exit — tracklist complète
                     }
                 }
             }
-            
-            // Trier par timestamp
-            val sortedTracks = allTracks.sortedBy { it.startTimeSec }
-            
-            Log.d(TAG, "Total de ${sortedTracks.size} pistes trouvées dans les commentaires")
-            return@withContext sortedTracks
+
+            processPage(commentsInfo.relatedItems)
+
+            var nextPage = commentsInfo.nextPage
+            while (nextPage != null && scanned < maxComments && bestTracks.size < 5) {
+                val page = CommentsInfo.getMoreItems(commentsInfo, nextPage)
+                processPage(page.items)
+                nextPage = page.nextPage
+            }
+
+            Log.d(TAG, "Résultat: ${bestTracks.size} tracks après scan de $scanned commentaires")
+            return@withContext bestTracks.sortedBy { it.startTimeSec }
         } catch (e: Exception) {
-            Log.e(TAG, "Erreur lors de l'extraction des commentaires: ${e.message}", e)
+            Log.e(TAG, "Erreur extraction commentaires: ${e.message}", e)
             return@withContext emptyList()
         }
     }
     
     /**
-     * Récupère les commentaires d'une vidéo YouTube.
+     * Heuristic: does this comment structurally look like a tracklist?
+     * Used to decide whether to spend an API call on Gemini.
      */
-    private suspend fun getComments(videoId: String, maxComments: Int): List<String> = withContext(Dispatchers.IO) {
-        try {
-            // YouTubeStreamResolver s'initialise automatiquement
-            val url = "https://www.youtube.com/watch?v=$videoId"
-            
-            // Récupérer les informations de commentaires
-            val commentsInfo = CommentsInfo.getInfo(url)
-            val items = commentsInfo.relatedItems
-            
-            // Extraire le texte des commentaires
-            val comments = mutableListOf<String>()
-            var count = 0
-            
-            for (item in items) {
-                if (item is CommentsInfoItem) {
-                    val commentText = item.commentText?.content ?: continue
-                    comments.add(commentText)
-                    count++
-                    
-                    if (count >= maxComments) {
-                        break
-                    }
-                }
-            }
-            
-            Log.d(TAG, "Récupéré ${comments.size} commentaires")
-            return@withContext comments
-        } catch (e: Exception) {
-            Log.e(TAG, "Erreur lors de la récupération des commentaires: ${e.message}")
-            return@withContext emptyList()
-        }
+    private fun looksLikeTracklist(text: String): Boolean {
+        if (text.length < 100) return false
+        val lines = text.lines()
+        val timestampLines = lines.count { Regex("""\d{1,2}:\d{2}""").containsMatchIn(it) }
+        if (timestampLines >= 2) return true
+        val numberedLines = lines.count { Regex("""^\d{1,3}[.)]\s""").containsMatchIn(it.trim()) }
+        if (numberedLines >= 4) return true
+        val dashLines = lines.count { it.contains(" - ") }
+        if (dashLines >= 6) return true
+        return false
     }
-    
+
     /**
      * Analyse un commentaire pour trouver une tracklist avec timestamps.
-     * Détecte plusieurs formats courants dans les commentaires YouTube.
+     * Essaie les parsers regex d'abord, puis Gemini AI en dernier recours.
      */
-    private fun analyzeCommentForTracklist(commentText: String): List<ParsedTrack> {
-        val tracks = mutableListOf<ParsedTrack>()
-        
-        // Format 1: Lignes avec timestamps (00:00 Artist - Title)
-        val timestampedTracks = tracklistService.parseTimestamped(commentText)
-        if (timestampedTracks.isNotEmpty()) {
-            tracks.addAll(timestampedTracks)
+    private suspend fun analyzeCommentForTracklist(commentText: String): List<ParsedTrack> {
+        val clean = commentText
+            .replace("&nbsp;", " ")
+            .replace("\u00A0", " ")
+            .replace(Regex("""https?://\S+"""), "")
+            .trim()
+
+        // Priorité 1 : lignes timestampées
+        val timestamped = tracklistService.parseTimestamped(clean)
+        if (timestamped.size >= 3) return timestamped
+
+        // Priorité 2 : liste numérotée
+        val numbered = tracklistService.parseNumberedList(clean)
+        if (numbered.size >= 3) return numbered
+
+        // Priorité 3 : lignes "Artist - Title"
+        val plain = tracklistService.parsePlainLines(clean)
+        if (plain.size >= 5) return plain
+
+        // Priorité 4 : Gemini AI — uniquement si le commentaire ressemble à une tracklist
+        if (looksLikeTracklist(clean)) {
+            Log.d(TAG, "Regex failed, trying Gemini AI fallback...")
+            val fromGemini = geminiParser.parseComment(clean)
+            if (fromGemini != null) {
+                Log.i(TAG, "Gemini extracted ${fromGemini.size} tracks")
+                return fromGemini
+            }
         }
-        
-        // Format 2: Liste numérotée (1. Artist - Title)
-        val numberedTracks = tracklistService.parseNumberedList(commentText)
-        if (numberedTracks.isNotEmpty()) {
-            tracks.addAll(numberedTracks)
-        }
-        
-        // Format 3: Lignes simples (Artist - Title)
-        val plainTracks = tracklistService.parsePlainLines(commentText)
-        if (plainTracks.isNotEmpty()) {
-            tracks.addAll(plainTracks)
-        }
-        
-        // Format spécifique aux commentaires YouTube: "Tracklist:" suivi de timestamps
-        if (commentText.contains("tracklist", ignoreCase = true) && tracks.isEmpty()) {
-            val customTracks = parseCustomTracklistFormat(commentText)
-            tracks.addAll(customTracks)
-        }
-        
-        return tracks.distinctBy { "${it.artist} - ${it.title}" }
+
+        return emptyList()
     }
     
     /**
@@ -335,13 +319,7 @@ class YouTubeCommentsService @Inject constructor(
                 return@withContext true
             }
             
-            // Vérifier rapidement les premiers commentaires
-            val comments = getComments(videoId, 10)
-            val commentText = comments.joinToString(" ").lowercase()
-            
-            return@withContext tracklistKeywords.any { keyword -> 
-                commentText.contains(keyword, ignoreCase = true) 
-            }
+            return@withContext false
         } catch (e: Exception) {
             Log.e(TAG, "Erreur lors de la vérification de tracklist: ${e.message}")
             return@withContext false
