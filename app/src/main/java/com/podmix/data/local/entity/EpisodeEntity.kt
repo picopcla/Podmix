@@ -32,5 +32,6 @@ data class EpisodeEntity(
     val mixcloudKey: String? = null,
     val localAudioPath: String? = null,
     val soundcloudTrackUrl: String? = null,
-    val tracklistPageUrl: String? = null   // NEW
+    val tracklistPageUrl: String? = null,
+    val enrichedAt: Long? = null
 )
