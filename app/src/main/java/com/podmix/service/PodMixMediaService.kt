@@ -4,6 +4,8 @@ import android.content.Intent
 import android.net.Uri
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
+import androidx.media3.common.Player
+import androidx.media3.common.ForwardingPlayer
 import androidx.media3.session.LibraryResult
 import androidx.media3.session.MediaLibraryService
 import androidx.media3.session.MediaSession
@@ -49,9 +51,35 @@ class PodMixMediaService : MediaLibraryService() {
 
     override fun onCreate() {
         super.onCreate()
+        // Wrap ExoPlayer so Android Auto skip-next/prev commands navigate tracks, not episodes
+        val trackAwarePlayer = object : ForwardingPlayer(playerController.exoPlayer) {
+            override fun seekToNextMediaItem() { playerController.nextTrack() }
+            override fun seekToPreviousMediaItem() { playerController.prevTrack() }
+            override fun seekToNext() { playerController.nextTrack() }
+            override fun seekToPrevious() { playerController.prevTrack() }
+
+            override fun getAvailableCommands(): Player.Commands =
+                super.getAvailableCommands().buildUpon()
+                    .add(Player.COMMAND_SEEK_TO_NEXT_MEDIA_ITEM)
+                    .add(Player.COMMAND_SEEK_TO_PREVIOUS_MEDIA_ITEM)
+                    .add(Player.COMMAND_SEEK_TO_NEXT)
+                    .add(Player.COMMAND_SEEK_TO_PREVIOUS)
+                    .build()
+
+            override fun isCommandAvailable(command: Int): Boolean {
+                val hasTracks = playerController.playerState.value.currentTracks.isNotEmpty()
+                return when (command) {
+                    Player.COMMAND_SEEK_TO_NEXT_MEDIA_ITEM,
+                    Player.COMMAND_SEEK_TO_NEXT -> hasTracks
+                    Player.COMMAND_SEEK_TO_PREVIOUS_MEDIA_ITEM,
+                    Player.COMMAND_SEEK_TO_PREVIOUS -> hasTracks
+                    else -> super.isCommandAvailable(command)
+                }
+            }
+        }
         mediaLibrarySession = MediaLibrarySession.Builder(
             this,
-            playerController.exoPlayer,
+            trackAwarePlayer,
             LibrarySessionCallback()
         ).build()
     }
@@ -156,8 +184,52 @@ class PodMixMediaService : MediaLibraryService() {
                         else -> null
                     }
                 }.toMutableList()
+
+                // Sync PlayerController so progress saving & resume work for Android Auto
+                val firstMediaId = mediaItems.firstOrNull()?.mediaId
+                val firstEpisodeId = when {
+                    firstMediaId?.startsWith(EPISODE_PREFIX) == true ->
+                        firstMediaId.removePrefix(EPISODE_PREFIX).toIntOrNull()
+                    firstMediaId?.startsWith(FAVORITE_PREFIX) == true ->
+                        firstMediaId.removePrefix(FAVORITE_PREFIX).split("/").firstOrNull()?.toIntOrNull()
+                    else -> null
+                }
+                if (firstEpisodeId != null) loadAndNotifyExternalPlay(firstEpisodeId)
+
                 resolved
             }
+        }
+
+        private suspend fun loadAndNotifyExternalPlay(episodeId: Int) {
+            val epEntity = episodeDao.getById(episodeId) ?: return
+            val podEntity = podcastDao.getById(epEntity.podcastId) ?: return
+            val episode = Episode(
+                id = epEntity.id,
+                podcastId = epEntity.podcastId,
+                title = epEntity.title,
+                audioUrl = epEntity.audioUrl,
+                datePublished = epEntity.datePublished,
+                durationSeconds = epEntity.durationSeconds,
+                progressSeconds = epEntity.progressSeconds,
+                isListened = epEntity.isListened,
+                artworkUrl = epEntity.artworkUrl,
+                episodeType = epEntity.episodeType,
+                youtubeVideoId = epEntity.youtubeVideoId,
+                description = epEntity.description,
+                mixcloudKey = epEntity.mixcloudKey,
+                localAudioPath = epEntity.localAudioPath,
+                soundcloudTrackUrl = epEntity.soundcloudTrackUrl
+            )
+            val podcast = Podcast(
+                id = podEntity.id,
+                name = podEntity.name,
+                logoUrl = podEntity.logoUrl,
+                description = podEntity.description,
+                rssFeedUrl = podEntity.rssFeedUrl,
+                type = podEntity.type,
+                episodeCount = 0
+            )
+            playerController.notifyExternalPlay(episode, podcast)
         }
 
         private fun getRootChildren(): List<MediaItem> = listOf(
@@ -273,7 +345,9 @@ class PodMixMediaService : MediaLibraryService() {
                 episodeType = episodeEntity.episodeType,
                 youtubeVideoId = episodeEntity.youtubeVideoId,
                 description = episodeEntity.description,
-                mixcloudKey = episodeEntity.mixcloudKey
+                mixcloudKey = episodeEntity.mixcloudKey,
+                localAudioPath = episodeEntity.localAudioPath,
+                soundcloudTrackUrl = episodeEntity.soundcloudTrackUrl
             )
 
             val podcast = Podcast(

@@ -21,7 +21,7 @@ object DatabaseModule {
     @Singleton
     fun provideDatabase(@ApplicationContext context: Context): PodMixDatabase =
         Room.databaseBuilder(context, PodMixDatabase::class.java, "podmix.db")
-            .addMigrations(PodMixDatabase.MIGRATION_3_4, PodMixDatabase.MIGRATION_4_5, PodMixDatabase.MIGRATION_5_6, PodMixDatabase.MIGRATION_6_7)
+            .addMigrations(PodMixDatabase.MIGRATION_3_4, PodMixDatabase.MIGRATION_4_5, PodMixDatabase.MIGRATION_5_6, PodMixDatabase.MIGRATION_6_7, PodMixDatabase.MIGRATION_7_8)
             .fallbackToDestructiveMigration()
             .build()
 

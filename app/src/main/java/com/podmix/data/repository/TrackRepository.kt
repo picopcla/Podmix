@@ -663,6 +663,7 @@ class TrackRepository @Inject constructor(
                 startTimeSec = startSec, source = source
             )
         }
+        trackDao.deleteByEpisode(episodeId)
         trackDao.insertAll(entities)
     }
 

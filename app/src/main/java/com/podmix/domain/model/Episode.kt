@@ -13,5 +13,7 @@ data class Episode(
     val episodeType: String,
     val youtubeVideoId: String?,
     val description: String?,
-    val mixcloudKey: String? = null
+    val mixcloudKey: String? = null,
+    val localAudioPath: String? = null,
+    val soundcloudTrackUrl: String? = null
 )

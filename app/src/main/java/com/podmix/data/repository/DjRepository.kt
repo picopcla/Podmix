@@ -89,6 +89,16 @@ class DjRepository @Inject constructor(
         return null
     }
 
+    suspend fun refreshDjPhoto(djId: Int) {
+        var dj = podcastDao.getById(djId) ?: return
+        if (dj.logoUrl.isNullOrBlank()) {
+            val photo = findDjPhoto(dj.name)
+            if (photo != null) {
+                podcastDao.update(dj.copy(logoUrl = photo))
+            }
+        }
+    }
+
     suspend fun refreshDj(djId: Int) {
         var dj = podcastDao.getById(djId) ?: return
 

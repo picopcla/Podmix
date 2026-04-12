@@ -26,6 +26,12 @@ interface EpisodeDao {
     @Query("SELECT * FROM episodes WHERE youtubeVideoId = :videoId AND podcastId = :podcastId LIMIT 1")
     suspend fun getByYoutubeVideoId(videoId: String, podcastId: Int): EpisodeEntity?
 
+    @Query("SELECT * FROM episodes WHERE title = :title AND podcastId = :podcastId LIMIT 1")
+    suspend fun getByTitleAndPodcastId(title: String, podcastId: Int): EpisodeEntity?
+
+    @Query("DELETE FROM episodes WHERE id NOT IN (SELECT MIN(id) FROM episodes GROUP BY title, podcastId)")
+    suspend fun deleteDuplicatesByTitle()
+
     @Query("SELECT * FROM episodes WHERE mixcloudKey = :key AND podcastId = :podcastId LIMIT 1")
     suspend fun getByMixcloudKey(key: String, podcastId: Int): EpisodeEntity?
 
@@ -46,4 +52,10 @@ interface EpisodeDao {
 
     @Query("UPDATE episodes SET isListened = NOT isListened WHERE id = :id")
     suspend fun toggleListened(id: Int)
+
+    @Query("UPDATE episodes SET localAudioPath = :path WHERE id = :id")
+    suspend fun updateLocalAudioPath(id: Int, path: String)
+
+    @Query("UPDATE episodes SET localAudioPath = NULL WHERE id = :id")
+    suspend fun clearLocalAudioPath(id: Int)
 }

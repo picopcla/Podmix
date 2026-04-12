@@ -113,6 +113,9 @@ fun PodcastDetailScreen(
                     episode = episode,
                     isPlaying = playerState.currentEpisode?.id == episode.id && playerState.isPlaying,
                     hasTracklist = episode.id in episodeIdsWithTracks,
+                    downloadState = if (episode.localAudioPath != null)
+                        com.podmix.service.DownloadState.Downloaded(episode.localAudioPath)
+                    else com.podmix.service.DownloadState.Idle,
                     onClick = { onEpisodeClick(episode.podcastId, episode.id) }
                 )
             }

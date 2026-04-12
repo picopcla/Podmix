@@ -181,7 +181,7 @@ class TracklistService @Inject constructor(
     }
 
     /**
-     * Strategy 4: Scrape 1001Tracklists
+     * Strategy 4: Scrape 1001Tracklists (search then scrape)
      */
     fun scrapeFrom1001Tracklists(query: String): List<ParsedTrack> {
         return try {
@@ -202,7 +202,20 @@ class TracklistService @Inject constructor(
                 "https://www.1001tracklists.com${firstLink.attr("href")}"
             }
 
-            val tracklistDoc = Jsoup.connect(tracklistUrl)
+            scrapeTracklistPage(tracklistUrl)
+        } catch (e: Exception) {
+            Log.w(TAG, "1001Tracklists scrape failed: ${e.message}")
+            emptyList()
+        }
+    }
+
+    /**
+     * Scrape a 1001TL tracklist page directly by URL (Jsoup, pas de WebView).
+     * Extrait les tracks avec leurs timestamps (span.cueValueField).
+     */
+    fun scrapeTracklistPage(url: String): List<ParsedTrack> {
+        return try {
+            val tracklistDoc = Jsoup.connect(url)
                 .userAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36")
                 .timeout(10_000)
                 .get()
@@ -210,7 +223,7 @@ class TracklistService @Inject constructor(
             val trackElements = tracklistDoc.select("div.tlpItem, div.tlpTog")
             val tracks = mutableListOf<ParsedTrack>()
 
-            for ((index, el) in trackElements.withIndex()) {
+            for (el in trackElements) {
                 try {
                     val trackValue = el.select("span.trackValue").text().ifBlank {
                         el.select("meta[itemprop=name]").attr("content").ifBlank {
@@ -220,7 +233,9 @@ class TracklistService @Inject constructor(
                     if (trackValue.isBlank()) continue
 
                     val timeText = el.select("span.cueValueField").text().ifBlank {
-                        el.select("span.timing").text()
+                        el.select("span.cueVal").text().ifBlank {
+                            el.select("span.timing").text()
+                        }
                     }
                     val timeSec = parseTimestampText(timeText)
 
@@ -230,9 +245,10 @@ class TracklistService @Inject constructor(
                     }
                 } catch (_: Exception) {}
             }
+            Log.i(TAG, "scrapeTracklistPage: ${tracks.size} tracks, ${tracks.count { it.startTimeSec > 0f }} avec timestamps")
             tracks
         } catch (e: Exception) {
-            Log.w(TAG, "1001Tracklists scrape failed: ${e.message}")
+            Log.w(TAG, "scrapeTracklistPage failed: ${e.message}")
             emptyList()
         }
     }
@@ -252,6 +268,8 @@ class TracklistService @Inject constructor(
             .replace("&gt;", ">")
             .replace("&#39;", "'")
             .replace("&quot;", "\"")
+            .replace("&nbsp;", " ")
+            .replace("\u00A0", " ") // non-breaking space unicode
     }
 
     /** Split "Artist - Title" or "Artist – Title" */

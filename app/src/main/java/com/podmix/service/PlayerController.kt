@@ -10,7 +10,10 @@ import androidx.media3.common.C
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
 import androidx.media3.common.Player
+import androidx.media3.datasource.DefaultDataSource
+import androidx.media3.datasource.okhttp.OkHttpDataSource
 import androidx.media3.exoplayer.ExoPlayer
+import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
 import com.podmix.data.local.dao.EpisodeDao
 import com.podmix.domain.model.Episode
 import com.podmix.domain.model.Podcast
@@ -24,6 +27,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
+import okhttp3.OkHttpClient
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -54,7 +58,8 @@ class PlayerController @Inject constructor(
     @ApplicationContext private val context: Context,
     private val episodeDao: EpisodeDao,
     private val youTubeStreamResolver: YouTubeStreamResolver,
-    private val mixcloudStreamResolver: MixcloudStreamResolver
+    private val mixcloudStreamResolver: MixcloudStreamResolver,
+    private val okHttpClient: OkHttpClient
 ) {
     private val mainHandler = Handler(Looper.getMainLooper())
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
@@ -70,17 +75,40 @@ class PlayerController @Inject constructor(
     var onTrackEnded: (() -> Unit)? = null
 
     val exoPlayer: ExoPlayer by lazy {
-        // Large buffer: 2min min, 10min max, 30s before playback starts, 5s after rebuffer
         val loadControl = androidx.media3.exoplayer.DefaultLoadControl.Builder()
             .setBufferDurationsMs(
-                2 * 60 * 1000,   // minBufferMs: 2 minutes
-                10 * 60 * 1000,  // maxBufferMs: 10 minutes
+                60 * 1000,       // minBufferMs: 1 minute
+                8 * 60 * 1000,   // maxBufferMs: 8 minutes
                 5_000,           // bufferForPlaybackMs: 5s before starting
                 10_000           // bufferForPlaybackAfterRebufferMs: 10s after rebuffer
             )
             .build()
 
+        // OkHttpDataSource with YouTube-compatible headers to prevent 403/throttle cuts
+        val ytOkHttpClient = okHttpClient.newBuilder()
+            .addInterceptor { chain ->
+                val req = chain.request()
+                val isYouTube = req.url.host.contains("googlevideo.com") ||
+                    req.url.host.contains("youtube.com")
+                val newReq = if (isYouTube) {
+                    req.newBuilder()
+                        .header("User-Agent", "Mozilla/5.0 (Linux; Android 12) AppleWebKit/537.36 Chrome/112.0.0.0 Mobile Safari/537.36")
+                        .header("Origin", "https://www.youtube.com")
+                        .header("Referer", "https://www.youtube.com/")
+                        .build()
+                } else req
+                chain.proceed(newReq)
+            }
+            .build()
+
+        // OkHttp pour HTTP/HTTPS, DefaultDataSource wraps pour file:// et content://
+        val httpDataSourceFactory = OkHttpDataSource.Factory(ytOkHttpClient)
+        val dataSourceFactory = DefaultDataSource.Factory(context, httpDataSourceFactory)
+        val mediaSourceFactory = DefaultMediaSourceFactory(context)
+            .setDataSourceFactory(dataSourceFactory)
+
         ExoPlayer.Builder(context)
+            .setMediaSourceFactory(mediaSourceFactory)
             .setLoadControl(loadControl)
             .setSeekBackIncrementMs(30_000)
             .setSeekForwardIncrementMs(30_000)
@@ -103,16 +131,42 @@ class PlayerController @Inject constructor(
 
                     override fun onPlayerError(error: androidx.media3.common.PlaybackException) {
                         Log.e("PodMix", "Player error: ${error.errorCode} - ${error.message}")
-                        // Auto-retry on network errors
-                        if (error.errorCode == androidx.media3.common.PlaybackException.ERROR_CODE_IO_NETWORK_CONNECTION_FAILED
-                            || error.errorCode == androidx.media3.common.PlaybackException.ERROR_CODE_IO_NETWORK_CONNECTION_TIMEOUT
-                            || error.errorCode == androidx.media3.common.PlaybackException.ERROR_CODE_IO_BAD_HTTP_STATUS) {
-                            val pos = exoPlayer.currentPosition
-                            mainHandler.postDelayed({
-                                exoPlayer.prepare()
-                                exoPlayer.seekTo(pos)
-                                exoPlayer.play()
-                            }, 2000)
+                        val episode = _playerState.value.currentEpisode
+                        val podcast = _playerState.value.currentPodcast
+                        val pos = exoPlayer.currentPosition
+
+                        when (error.errorCode) {
+                            // Re-resolve on 403 / expired URL
+                            androidx.media3.common.PlaybackException.ERROR_CODE_IO_BAD_HTTP_STATUS -> {
+                                if (episode != null && podcast != null) {
+                                    when {
+                                        !episode.soundcloudTrackUrl.isNullOrBlank() -> {
+                                            Log.w("PodMix", "HLS expired, re-resolving SoundCloud ${episode.soundcloudTrackUrl}")
+                                            scope.launch {
+                                                val newUrl = youTubeStreamResolver.resolveSoundCloudTrack(episode.soundcloudTrackUrl)
+                                                if (newUrl != null) mainHandler.post { pendingSeekMs = pos; playMedia(episode.copy(audioUrl = newUrl), podcast) }
+                                            }
+                                        }
+                                        episode.youtubeVideoId != null -> {
+                                            Log.w("PodMix", "HTTP error, re-resolving YouTube URL for ${episode.youtubeVideoId}")
+                                            youTubeStreamResolver.invalidateCache(episode.youtubeVideoId)
+                                            scope.launch {
+                                                val newUrl = youTubeStreamResolver.resolve(episode.youtubeVideoId)
+                                                if (newUrl != null) mainHandler.post { pendingSeekMs = pos; playMedia(episode.copy(audioUrl = newUrl), podcast) }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                            // Retry on transient network errors
+                            androidx.media3.common.PlaybackException.ERROR_CODE_IO_NETWORK_CONNECTION_FAILED,
+                            androidx.media3.common.PlaybackException.ERROR_CODE_IO_NETWORK_CONNECTION_TIMEOUT -> {
+                                mainHandler.postDelayed({
+                                    exoPlayer.prepare()
+                                    exoPlayer.seekTo(pos)
+                                    exoPlayer.play()
+                                }, 3000)
+                            }
                         }
                     }
 
@@ -146,7 +200,33 @@ class PlayerController @Inject constructor(
             currentPodcast = podcast
         )
 
-        if (episode.mixcloudKey != null) {
+        // Fichier local disponible → lecture directe, pas de résolution réseau
+        val localPath = episode.localAudioPath
+        if (localPath != null && java.io.File(localPath).exists()) {
+            Log.i("PodMix", "Playing from local file: $localPath")
+            playMedia(episode.copy(audioUrl = android.net.Uri.fromFile(java.io.File(localPath)).toString()), podcast)
+            return
+        }
+
+        if (!episode.soundcloudTrackUrl.isNullOrBlank()) {
+            // SoundCloud — HLS stream, no throttle, re-resolve on expiry
+            scope.launch {
+                Log.i("PodMix", "Resolving SoundCloud HLS for ${episode.soundcloudTrackUrl}...")
+                val hlsUrl = youTubeStreamResolver.resolveSoundCloudTrack(episode.soundcloudTrackUrl)
+                if (hlsUrl != null) {
+                    Log.i("PodMix", "SoundCloud HLS OK, streaming...")
+                    playMedia(episode.copy(audioUrl = hlsUrl), podcast)
+                } else if (!episode.youtubeVideoId.isNullOrBlank()) {
+                    Log.w("PodMix", "SoundCloud failed, falling back to YouTube ${episode.youtubeVideoId}")
+                    val ytUrl = youTubeStreamResolver.resolve(episode.youtubeVideoId)
+                    if (ytUrl != null) playMedia(episode.copy(audioUrl = ytUrl), podcast)
+                    else { Log.e("PodMix", "All resolution failed"); pendingSeekMs = null }
+                } else {
+                    Log.e("PodMix", "SoundCloud resolution failed, no fallback")
+                    pendingSeekMs = null
+                }
+            }
+        } else if (episode.mixcloudKey != null) {
             // Mixcloud primary, YouTube fallback
             scope.launch {
                 Log.i("PodMix", "Resolving Mixcloud audio for ${episode.mixcloudKey}...")
@@ -210,14 +290,44 @@ class PlayerController @Inject constructor(
             exoPlayer.play()
             _playerState.value = _playerState.value.copy(
                 currentEpisode = episode,
-                currentPodcast = podcast,
-                currentTrackIndex = -1
+                currentPodcast = podcast
             )
         }
     }
 
+    /** True si ExoPlayer a un media chargé et peut reprendre la lecture. */
+    val isPlayerReady: Boolean
+        get() = exoPlayer.playbackState == Player.STATE_READY ||
+                exoPlayer.playbackState == Player.STATE_BUFFERING
+
     fun pause() = mainHandler.post { exoPlayer.pause() }
     fun resume() = mainHandler.post { exoPlayer.play() }
+
+    /**
+     * Called by PodMixMediaService when Android Auto (or another external controller)
+     * starts an episode outside of [playEpisode]. Syncs playerState so progress
+     * saving works, and resumes from the last saved position.
+     */
+    fun notifyExternalPlay(episode: Episode, podcast: Podcast) {
+        mainHandler.post {
+            listenedMarked = false
+            _playerState.value = _playerState.value.copy(
+                currentEpisode = episode,
+                currentPodcast = podcast,
+                currentTracks = emptyList(),
+                favoritesMode = false
+            )
+            if (episode.progressSeconds > 60) {
+                val seekMs = episode.progressSeconds * 1000L
+                if (exoPlayer.playbackState == Player.STATE_READY ||
+                    exoPlayer.playbackState == Player.STATE_BUFFERING) {
+                    exoPlayer.seekTo(seekMs)
+                } else {
+                    pendingSeekMs = seekMs
+                }
+            }
+        }
+    }
 
     fun seekTo(ms: Long) = mainHandler.post {
         exoPlayer.seekTo(ms)
@@ -229,12 +339,11 @@ class PlayerController @Inject constructor(
     fun seekForward() = mainHandler.post { exoPlayer.seekForward() }
 
     fun seekToTrack(track: Track, episodeType: String) = mainHandler.post {
-        val preRollMs = when (episodeType) {
-            "liveset" -> 30_000L
-            else      -> 10_000L
+        val seekMs = (track.startTimeSec * 1000).toLong()
+        val trackIdx = _playerState.value.currentTracks.indexOfFirst { it.id == track.id }
+        if (trackIdx >= 0) {
+            _playerState.value = _playerState.value.copy(currentTrackIndex = trackIdx)
         }
-        val rawMs = (track.startTimeSec * 1000).toLong()
-        val seekMs = (rawMs - preRollMs).coerceAtLeast(0L)
         exoPlayer.seekTo(seekMs)
         if (!exoPlayer.isPlaying) exoPlayer.play()
     }
@@ -246,6 +355,10 @@ class PlayerController @Inject constructor(
 
     fun updateTracksKeepIndex(tracks: List<Track>) {
         _playerState.value = _playerState.value.copy(currentTracks = tracks)
+    }
+
+    fun setCurrentTrackIndex(idx: Int) {
+        _playerState.value = _playerState.value.copy(currentTrackIndex = idx)
     }
 
     fun toggleLoop() {
@@ -328,6 +441,29 @@ class PlayerController @Inject constructor(
                     if (!exoPlayer.isPlaying) exoPlayer.play()
                 }
                 _playerState.value = _playerState.value.copy(currentTrackIndex = oldIdx)
+            }
+
+            // Update ExoPlayer MediaMetadata with current track name (for Android Auto / notification)
+            if (newIdx >= 0) {
+                val track = tracks[newIdx]
+                val episode = state.currentEpisode
+                val podcast = state.currentPodcast
+                mainHandler.post {
+                    val currentItem = exoPlayer.currentMediaItem ?: return@post
+                    val trackTitle = if (track.artist.isNotBlank())
+                        "${track.artist} — ${track.title}" else track.title
+                    val newMeta = currentItem.mediaMetadata.buildUpon()
+                        .setTitle(trackTitle)
+                        .setArtist(podcast?.name)
+                        .setSubtitle(episode?.title)
+                        .setArtworkUri(episode?.artworkUrl?.let { android.net.Uri.parse(it) }
+                            ?: podcast?.logoUrl?.let { android.net.Uri.parse(it) })
+                        .build()
+                    val idx = exoPlayer.currentMediaItemIndex
+                    if (idx >= 0) {
+                        exoPlayer.replaceMediaItem(idx, currentItem.buildUpon().setMediaMetadata(newMeta).build())
+                    }
+                }
             }
         }
     }

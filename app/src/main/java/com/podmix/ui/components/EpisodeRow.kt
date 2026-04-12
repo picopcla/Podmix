@@ -12,6 +12,9 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -23,6 +26,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.podmix.domain.model.Episode
+import com.podmix.service.DownloadState
 import com.podmix.ui.theme.AccentPrimary
 import com.podmix.ui.theme.SurfaceSecondary
 import com.podmix.ui.theme.TextPrimary
@@ -36,8 +40,14 @@ fun EpisodeRow(
     episode: Episode,
     isPlaying: Boolean = false,
     hasTracklist: Boolean = false,
+    downloadState: DownloadState = DownloadState.Idle,
     onClick: () -> Unit
 ) {
+    val hasAudio = episode.audioUrl.isNotBlank()
+        || !episode.youtubeVideoId.isNullOrBlank()
+        || episode.mixcloudKey != null
+        || !episode.soundcloudTrackUrl.isNullOrBlank()
+        || episode.localAudioPath != null
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -48,14 +58,16 @@ fun EpisodeRow(
             modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // Tracklist indicator dot
+            // Dot : rouge=pas d'audio, orange=audio sans TL, vert=audio+TL
+            val dotColor = when {
+                !hasAudio -> Color(0xFFFF4444)
+                !hasTracklist -> Color(0xFFFF9800)
+                else -> Color(0xFF4CAF50)
+            }
             Box(
                 modifier = Modifier
-                    .size(6.dp)
-                    .background(
-                        if (hasTracklist) Color(0xFF4ADE80) else Color(0xFF555555),
-                        CircleShape
-                    )
+                    .size(8.dp)
+                    .background(dotColor, CircleShape)
             )
 
             val dateStr = episode.datePublished?.let {
@@ -80,6 +92,14 @@ fun EpisodeRow(
                 overflow = TextOverflow.Ellipsis,
                 modifier = Modifier.weight(1f).padding(start = 8.dp)
             )
+            if (downloadState is DownloadState.Downloaded) {
+                Icon(
+                    Icons.Default.CheckCircle,
+                    contentDescription = "Téléchargé",
+                    tint = AccentPrimary,
+                    modifier = Modifier.size(14.dp).padding(start = 4.dp)
+                )
+            }
             if (durStr.isNotEmpty()) {
                 Text(
                     text = durStr,
@@ -88,6 +108,27 @@ fun EpisodeRow(
                     modifier = Modifier.padding(start = 8.dp)
                 )
             }
+        }
+
+        // Download indicator
+        when (downloadState) {
+            is DownloadState.Downloading -> {
+                Spacer(Modifier.height(2.dp))
+                LinearProgressIndicator(
+                    progress = { downloadState.progress },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(2.dp)
+                        .padding(start = 14.dp)
+                        .clip(RoundedCornerShape(1.dp)),
+                    color = Color(0xFFFFA726),
+                    trackColor = SurfaceSecondary
+                )
+            }
+            is DownloadState.Downloaded -> {
+                // small green dot already handled by hasTracklist dot above; nothing extra needed
+            }
+            else -> {}
         }
 
         // Progress bar

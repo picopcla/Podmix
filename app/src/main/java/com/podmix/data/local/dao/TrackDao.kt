@@ -34,6 +34,9 @@ interface TrackDao {
     @Query("SELECT DISTINCT episodeId FROM tracks")
     fun getEpisodeIdsWithTracks(): Flow<List<Int>>
 
+    @Query("SELECT DISTINCT episodeId FROM tracks")
+    suspend fun getEpisodeIdsWithTracksSuspend(): List<Int>
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertAll(tracks: List<TrackEntity>)
 

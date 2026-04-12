@@ -60,7 +60,9 @@ class FavoritesViewModel @Inject constructor(
             episodeType = episodeEntity.episodeType,
             youtubeVideoId = episodeEntity.youtubeVideoId,
             description = episodeEntity.description,
-            mixcloudKey = episodeEntity.mixcloudKey
+            mixcloudKey = episodeEntity.mixcloudKey,
+            localAudioPath = episodeEntity.localAudioPath,
+            soundcloudTrackUrl = episodeEntity.soundcloudTrackUrl
         )
         val podcast = Podcast(
             id = podcastEntity.id,

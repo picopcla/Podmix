@@ -44,6 +44,9 @@ interface TracklistApi {
     @GET("analyze")
     suspend fun analyzeByUrl(@Query("url") url: String): TracklistResponse
 
+    @GET("comments")
+    suspend fun getComments(@Query("video_id") videoId: String): MixesDbResponse
+
     @GET("chapters")
     suspend fun getChapters(@Query("video_id") videoId: String): ChaptersResponse
 

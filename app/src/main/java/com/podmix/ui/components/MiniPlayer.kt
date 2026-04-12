@@ -1,7 +1,9 @@
 package com.podmix.ui.components
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -12,11 +14,13 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Fullscreen
+import androidx.compose.material.icons.filled.MusicNote
 import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Repeat
 import androidx.compose.material.icons.filled.SkipNext
 import androidx.compose.material.icons.filled.SkipPrevious
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Slider
@@ -31,7 +35,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -45,6 +51,7 @@ import com.podmix.ui.theme.TextSecondary
 @Composable
 fun MiniPlayer(
     onExpand: () -> Unit = {},
+    onNavigateToEpisode: () -> Unit = {},
     viewModel: PlayerViewModel = hiltViewModel()
 ) {
     val state by viewModel.playerState.collectAsState()
@@ -52,8 +59,55 @@ fun MiniPlayer(
     val duration = state.duration.coerceAtLeast(1L)
     val position = state.currentPosition
     var isSeeking by remember { mutableFloatStateOf(-1f) }
+    val currentTrack = state.currentTracks.getOrNull(state.currentTrackIndex)
 
-    // Seek bar + controls only, no track name
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(SurfaceCard)
+    ) {
+        // Now-playing info strip — tap to open episode detail
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clickable(onClick = onNavigateToEpisode)
+                .padding(horizontal = 12.dp, vertical = 6.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Icon(
+                Icons.Default.MusicNote,
+                contentDescription = null,
+                tint = AccentPrimary,
+                modifier = Modifier.size(14.dp)
+            )
+            Spacer(Modifier.width(6.dp))
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = episode.title,
+                    color = TextPrimary,
+                    fontSize = 12.sp,
+                    fontWeight = FontWeight.Medium,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+                if (currentTrack != null) {
+                    val trackLabel = if (currentTrack.artist.isNotBlank())
+                        "${currentTrack.artist} — ${currentTrack.title}"
+                    else currentTrack.title
+                    Text(
+                        text = trackLabel,
+                        color = AccentPrimary,
+                        fontSize = 11.sp,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                }
+            }
+        }
+        HorizontalDivider(color = SurfaceSecondary, thickness = 0.5.dp)
+    }
+
+    // Seek bar + controls
     Row(
         modifier = Modifier
             .fillMaxWidth()

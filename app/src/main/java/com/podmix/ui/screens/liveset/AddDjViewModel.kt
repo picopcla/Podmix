@@ -98,7 +98,7 @@ class AddDjViewModel @Inject constructor(
     private val _sets = MutableStateFlow<List<DiscoveredSetUiItem>>(emptyList())
     val sets: StateFlow<List<DiscoveredSetUiItem>> = _sets.asStateFlow()
 
-    private val _sortMode = MutableStateFlow(SortMode.MOST_VIEWED)
+    private val _sortMode = MutableStateFlow(SortMode.MOST_RECENT)
     val sortMode: StateFlow<SortMode> = _sortMode.asStateFlow()
 
     val selectedCount: StateFlow<Int> = _sets
@@ -227,8 +227,24 @@ class AddDjViewModel @Inject constructor(
     private fun applySortAndEmit() {
         _sets.value = when (_sortMode.value) {
             SortMode.MOST_VIEWED -> rawSets.sortedByDescending { it.set.viewCount }
-            SortMode.MOST_RECENT -> rawSets.sortedByDescending { it.set.date }
+            SortMode.MOST_RECENT -> rawSets.sortedByDescending { parseDateToEpoch(it.set.date) }
         }
+    }
+
+    /** Parse les formats de date courants de 1001TL et retourne un epoch pour le tri.
+     *  Formats supportés : "2021-02-26", "26 Feb 2021", "Feb 26, 2021", "26.02.2021"
+     *  Retourne 0 si non parseable (mis en fin de liste). */
+    private fun parseDateToEpoch(date: String): Long {
+        if (date.isBlank()) return 0L
+        val formats = listOf("yyyy-MM-dd", "dd MMM yyyy", "MMM dd, yyyy", "dd.MM.yyyy", "MM/dd/yyyy")
+        for (fmt in formats) {
+            try {
+                val sdf = java.text.SimpleDateFormat(fmt, java.util.Locale.ENGLISH)
+                sdf.isLenient = false
+                return sdf.parse(date)?.time ?: continue
+            } catch (_: Exception) { }
+        }
+        return 0L
     }
 
     fun toggleSelectAll() {

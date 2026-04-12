@@ -10,15 +10,20 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.layout.Box
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Done
+import androidx.compose.material.icons.filled.Download
+import androidx.compose.material.icons.filled.ErrorOutline
 import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -37,6 +42,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.podmix.service.DownloadState
 import com.podmix.ui.components.TrackRow
 import com.podmix.ui.theme.AccentPrimary
 import com.podmix.ui.theme.Background
@@ -55,6 +61,7 @@ fun EpisodeDetailScreen(
     val detectStatus by viewModel.detectStatus.collectAsState()
     val sourceResults by viewModel.sourceResults.collectAsState()
     val playerState by viewModel.playerState.collectAsState()
+    val downloadState by viewModel.downloadState.collectAsState()
     val isThisEpisode = playerState.currentEpisode?.id == episode?.id
     val isDetecting = detectStatus.isNotBlank()
 
@@ -74,6 +81,44 @@ fun EpisodeDetailScreen(
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, "Back", tint = TextPrimary)
+                    }
+                },
+                actions = {
+                    // Bouton Play/Pause — toujours visible en haut
+                    IconButton(onClick = { viewModel.play() }) {
+                        Icon(
+                            imageVector = if (isThisEpisode && playerState.isPlaying) Icons.Default.Pause else Icons.Default.PlayArrow,
+                            contentDescription = if (isThisEpisode && playerState.isPlaying) "Pause" else "Lecture",
+                            tint = AccentPrimary
+                        )
+                    }
+                    // Bouton téléchargement
+                    when (val dl = downloadState) {
+                        is DownloadState.Idle -> IconButton(onClick = { viewModel.startDownload() }) {
+                            Icon(Icons.Default.Download, "Télécharger", tint = TextPrimary)
+                        }
+                        is DownloadState.Downloading -> Box(
+                            modifier = Modifier.size(48.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            CircularProgressIndicator(
+                                progress = { dl.progress },
+                                modifier = Modifier.size(28.dp),
+                                color = AccentPrimary,
+                                strokeWidth = 2.dp
+                            )
+                            IconButton(onClick = { viewModel.cancelDownload() }) {
+                                Icon(Icons.Default.Close, "Annuler", tint = TextPrimary,
+                                    modifier = Modifier.size(14.dp))
+                            }
+                        }
+                        is DownloadState.Downloaded -> IconButton(onClick = { viewModel.deleteDownload() }) {
+                            Icon(Icons.Default.Done, "Téléchargé — appuyer pour supprimer",
+                                tint = AccentPrimary)
+                        }
+                        is DownloadState.Error -> IconButton(onClick = { viewModel.startDownload() }) {
+                            Icon(Icons.Default.ErrorOutline, "Erreur — réessayer", tint = Color.Red)
+                        }
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = Background)
@@ -151,20 +196,6 @@ fun EpisodeDetailScreen(
                             modifier = Modifier.weight(1f)
                         )
                         IconButton(
-                            onClick = { viewModel.play() },
-                            modifier = Modifier
-                                .size(32.dp)
-                                .background(AccentPrimary, CircleShape)
-                        ) {
-                            Icon(
-                                imageVector = if (isThisEpisode && playerState.isPlaying) Icons.Default.Pause else Icons.Default.PlayArrow,
-                                contentDescription = "Play",
-                                tint = Color.White,
-                                modifier = Modifier.size(20.dp)
-                            )
-                        }
-                        Spacer(Modifier.width(8.dp))
-                        IconButton(
                             onClick = { viewModel.redetectTracks() },
                             modifier = Modifier.size(32.dp)
                         ) {
@@ -194,22 +225,7 @@ fun EpisodeDetailScreen(
                             .padding(12.dp),
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
-                        // Play button even without tracklist
                         Spacer(Modifier.height(16.dp))
-                        IconButton(
-                            onClick = { viewModel.play() },
-                            modifier = Modifier
-                                .size(56.dp)
-                                .background(AccentPrimary, CircleShape)
-                        ) {
-                            Icon(
-                                imageVector = if (isThisEpisode && playerState.isPlaying) Icons.Default.Pause else Icons.Default.PlayArrow,
-                                contentDescription = "Play",
-                                tint = Color.White,
-                                modifier = Modifier.size(32.dp)
-                            )
-                        }
-                        Spacer(Modifier.height(12.dp))
                         Text(
                             text = "Aucune tracklist trouvée",
                             color = TextSecondary,

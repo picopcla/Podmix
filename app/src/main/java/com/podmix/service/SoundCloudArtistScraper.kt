@@ -33,13 +33,26 @@ class SoundCloudArtistScraper @Inject constructor(
     private val EXTRACT_JS = """
         (function tryExtract(attempt) {
             var links = document.querySelectorAll('a[href]');
+            var scLinks = [];
+            links.forEach(function(a) {
+                var h = a.href || '';
+                if (h.includes('soundcloud.com')) scLinks.push(h);
+            });
+            if (attempt === 0 || attempt === 5 || attempt === 10) {
+                Android.onDebug('attempt=' + attempt + ' total_links=' + links.length + ' sc_links=' + scLinks.length + ' url=' + document.location.href);
+                if (scLinks.length > 0) Android.onDebug('SC sample: ' + scLinks.slice(0,3).join(' | '));
+            }
             var tracks = [];
             var seen = {};
             links.forEach(function(a) {
                 var h = a.href || '';
                 var m = h.match(/soundcloud\.com\/([^/?#]+)\/([^/?#]+)(?:${'$'}|[?#])/);
                 if (!m) return;
+                var slug1 = m[1];
                 var slug2 = m[2];
+                // Exclude known SoundCloud utility/footer paths (not artist pages)
+                var nonArtist1 = ['pages','legal','press','imprint','blog','jobs','charts','mobile','discover','you','notifications','stream','messages','settings','upload','feed','sc-player','ubo'];
+                if (nonArtist1.indexOf(slug1) >= 0) return;
                 if (['sets','reposts','likes','following','followers','tracks','albums','popular-tracks'].indexOf(slug2) >= 0) return;
                 if (seen[h]) return;
                 seen[h] = true;
@@ -51,6 +64,7 @@ class SoundCloudArtistScraper @Inject constructor(
                 setTimeout(function() { tryExtract(attempt + 1); }, 500);
                 return;
             }
+            Android.onDebug('final: ' + tracks.length + ' tracks found');
             Android.onTracksExtracted(JSON.stringify(tracks));
         })(0);
     """.trimIndent()
@@ -75,11 +89,21 @@ class SoundCloudArtistScraper @Inject constructor(
                 .header("Accept", "text/html")
                 .build()
             val html = client.newCall(req).execute().use { it.body?.string() } ?: return@withContext null
-            val match = Regex("""uddg=([^&"]+)""").find(html) ?: return@withContext null
+            Log.d(TAG, "DDG response size=${html.length}")
+            val match = Regex("""uddg=([^&"]+)""").find(html)
+            if (match == null) {
+                Log.w(TAG, "DDG: no uddg link found")
+                return@withContext null
+            }
             val url = URLDecoder.decode(match.groupValues[1], "UTF-8")
-            // Valider page artiste : exactement 1 segment de path (soundcloud.com/slug)
-            val isArtistPage = Regex("""soundcloud\.com/[^/?#]+/?$""").containsMatchIn(url)
-            if (isArtistPage) url else null
+            Log.i(TAG, "DDG first result: $url")
+            // Extraire le slug artiste — que ce soit une page artiste ou un track
+            val scMatch = Regex("""soundcloud\.com/([^/?#]+)""").find(url)
+            val artistSlug = scMatch?.groupValues?.get(1)
+            if (artistSlug.isNullOrBlank()) return@withContext null
+            val artistPageUrl = "https://soundcloud.com/$artistSlug"
+            Log.i(TAG, "SC artist page resolved: $artistPageUrl")
+            artistPageUrl
         } catch (e: Exception) {
             Log.w(TAG, "DDG SC search failed: ${e.message}")
             null
@@ -113,6 +137,10 @@ class SoundCloudArtistScraper @Inject constructor(
                     val tracks = parseTracksJson(json)
                     Log.i(TAG, "Extracted ${tracks?.size ?: 0} SC tracks")
                     resume(tracks)
+                }
+                @JavascriptInterface
+                fun onDebug(msg: String) {
+                    Log.d(TAG, "JS: $msg")
                 }
             }, "Android")
 

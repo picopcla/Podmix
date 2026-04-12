@@ -163,8 +163,15 @@ class EpisodeDetailViewModel @Inject constructor(
 
         // Toggle play/pause si c'est déjà l'épisode actif
         if (playerController.playerState.value.currentEpisode?.id == ep.id) {
-            if (playerController.playerState.value.isPlaying) playerController.pause()
-            else playerController.resume()
+            when {
+                playerController.playerState.value.isPlaying -> playerController.pause()
+                playerController.isPlayerReady -> playerController.resume()
+                else -> {
+                    // ExoPlayer IDLE (ex: retour background, service tué) → relancer
+                    playerController.playEpisode(ep, pod)
+                    playerController.updateTracks(tracks.value)
+                }
+            }
             return
         }
 
@@ -191,7 +198,7 @@ class EpisodeDetailViewModel @Inject constructor(
         val pod = _podcast.value ?: return
         val rawMs = (track.startTimeSec * 1000).toLong()
         val pState = playerController.playerState.value
-        val isLoaded = pState.currentEpisode?.id == ep.id && pState.duration > 0L
+        val isLoaded = pState.currentEpisode?.id == ep.id && playerController.isPlayerReady
 
         android.util.Log.i("EpisodeVM", "seekToTrack() track=${track.title} isLoaded=$isLoaded ytId=${ep.youtubeVideoId}")
 

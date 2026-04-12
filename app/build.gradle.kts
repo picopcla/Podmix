@@ -20,8 +20,8 @@ android {
         applicationId = "com.podmix"
         minSdk = 26
         targetSdk = 35
-        versionCode = 18
-        versionName = "1.6.0"
+        versionCode = 19
+        versionName = "1.7.0"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
         buildConfigField(
@@ -110,6 +110,8 @@ dependencies {
     implementation(libs.media3.session)
     implementation(libs.media3.ui)
     implementation(libs.media3.cast)
+    implementation(libs.media3.datasource.okhttp)
+    implementation(libs.media3.exoplayer.hls)
 
     // Coroutines-Guava (for MediaLibraryService callbacks)
     implementation(libs.coroutines.guava)
