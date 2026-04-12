@@ -1,5 +1,7 @@
 package com.podmix.ui.screens.liveset
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -13,20 +15,21 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.Refresh
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SwipeToDismissBox
+import androidx.compose.material3.SwipeToDismissBoxValue
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.ui.graphics.Color
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
@@ -50,21 +53,12 @@ fun DjDetailScreen(
 ) {
     val dj by viewModel.dj.collectAsState()
     val sets by viewModel.sets.collectAsState()
-    val isRefreshing by viewModel.isRefreshing.collectAsState()
     val playerState by viewModel.playerState.collectAsState()
     val episodeIdsWithTracks by viewModel.episodeIdsWithTracks.collectAsState()
+    val downloadStates by viewModel.downloadStates.collectAsState()
 
     Scaffold(
         containerColor = Background,
-        floatingActionButton = {
-            FloatingActionButton(
-                onClick = { onAddMore(viewModel.djId) },
-                containerColor = AccentPrimary,
-                contentColor = Color.White
-            ) {
-                Icon(Icons.Default.Add, contentDescription = "Ajouter des sets")
-            }
-        },
         topBar = {
             TopAppBar(
                 title = {
@@ -81,18 +75,11 @@ fun DjDetailScreen(
                     }
                 },
                 actions = {
+                    IconButton(onClick = { onAddMore(viewModel.djId) }) {
+                        Icon(Icons.Default.Add, contentDescription = "Ajouter des sets", tint = AccentPrimary)
+                    }
                     IconButton(onClick = { viewModel.delete(onBack) }) {
                         Icon(Icons.Default.Delete, "Supprimer", tint = TextPrimary)
-                    }
-                    if (isRefreshing) {
-                        CircularProgressIndicator(
-                            color = AccentPrimary,
-                            modifier = Modifier.size(20.dp).padding(end = 8.dp)
-                        )
-                    } else {
-                        IconButton(onClick = { viewModel.refresh() }) {
-                            Icon(Icons.Default.Refresh, "Refresh", tint = AccentPrimary)
-                        }
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = Background)
@@ -131,14 +118,44 @@ fun DjDetailScreen(
                 }
             }
 
-            // Sets list
+            // Sets list — swipe left to delete
             items(sets, key = { it.id }) { episode ->
-                EpisodeRow(
-                    episode = episode,
-                    isPlaying = playerState.currentEpisode?.id == episode.id && playerState.isPlaying,
-                    hasTracklist = episode.id in episodeIdsWithTracks,
-                    onClick = { onEpisodeClick(episode.podcastId, episode.id) }
+                val dismissState = rememberSwipeToDismissBoxState(
+                    confirmValueChange = { value ->
+                        if (value == SwipeToDismissBoxValue.EndToStart) {
+                            viewModel.deleteEpisode(episode.id)
+                            true
+                        } else false
+                    }
                 )
+                SwipeToDismissBox(
+                    state = dismissState,
+                    enableDismissFromStartToEnd = false,
+                    backgroundContent = {
+                        val color = if (dismissState.dismissDirection == SwipeToDismissBoxValue.EndToStart)
+                            Color(0xFFB00020) else Background
+                        Box(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .background(color)
+                                .padding(end = 20.dp),
+                            contentAlignment = Alignment.CenterEnd
+                        ) {
+                            if (dismissState.dismissDirection == SwipeToDismissBoxValue.EndToStart) {
+                                Icon(Icons.Default.Delete, contentDescription = "Supprimer", tint = Color.White)
+                            }
+                        }
+                    }
+                ) {
+                    EpisodeRow(
+                        episode = episode,
+                        isPlaying = playerState.currentEpisode?.id == episode.id && playerState.isPlaying,
+                        hasTracklist = episode.id in episodeIdsWithTracks,
+                        downloadState = downloadStates[episode.id]
+                            ?: if (episode.localAudioPath != null) com.podmix.service.DownloadState.Downloaded(episode.localAudioPath) else com.podmix.service.DownloadState.Idle,
+                        onClick = { onEpisodeClick(episode.podcastId, episode.id) }
+                    )
+                }
             }
 
             // Bottom spacing
