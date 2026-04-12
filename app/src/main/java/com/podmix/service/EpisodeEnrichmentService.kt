@@ -19,7 +19,10 @@ class EpisodeEnrichmentService @Inject constructor(
     private val youTubeStreamResolver: YouTubeStreamResolver
 ) {
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
-    private val TAG = "EnrichmentService"
+
+    companion object {
+        private const val TAG = "EnrichmentService"
+    }
 
     /** Lance l'enrichissement audio + tracklist en arrière-plan. Non-bloquant. */
     fun enrich(episodeId: Int, djName: String) {
@@ -47,10 +50,14 @@ class EpisodeEnrichmentService @Inject constructor(
                     tracklistPageUrl = latest.tracklistPageUrl
                 )
 
-                // Marquer comme enrichi
+                // Marquer comme enrichi (re-read fresh entity to avoid stomping concurrent updates)
                 val final = episodeDao.getById(episodeId) ?: return@launch
-                episodeDao.update(final.copy(enrichedAt = System.currentTimeMillis()))
-                Log.i(TAG, "Enrichment complete for '${final.title}'")
+                try {
+                    episodeDao.update(final.copy(enrichedAt = System.currentTimeMillis()))
+                    Log.i(TAG, "Enrichment complete for '${final.title}'")
+                } catch (e: Exception) {
+                    Log.w(TAG, "Failed to stamp enrichedAt for $episodeId: ${e.message}")
+                }
 
             } catch (e: Exception) {
                 Log.w(TAG, "Enrichment failed for $episodeId: ${e.message}")
