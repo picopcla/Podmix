@@ -7,8 +7,8 @@ import androidx.lifecycle.viewModelScope
 import com.podmix.data.local.dao.EpisodeDao
 import com.podmix.data.local.entity.EpisodeEntity
 import com.podmix.data.repository.DjRepository
-import com.podmix.data.repository.TrackRepository
 import com.podmix.service.ArtistPageScraper
+import com.podmix.service.EpisodeEnrichmentService
 import com.podmix.service.SetMatcher
 import com.podmix.service.SoundCloudArtistScraper
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -77,8 +77,7 @@ class AddDjViewModel @Inject constructor(
     private val soundCloudArtistScraper: SoundCloudArtistScraper,
     private val episodeDao: EpisodeDao,
     private val djRepository: DjRepository,
-    private val trackRepository: TrackRepository,
-    private val youTubeStreamResolver: com.podmix.service.YouTubeStreamResolver,
+    private val enrichmentService: EpisodeEnrichmentService,
     private val okHttpClient: OkHttpClient
 ) : ViewModel() {
 
@@ -299,7 +298,8 @@ class AddDjViewModel @Inject constructor(
             soundcloudTrackUrl = set.soundcloudUrl,
             tracklistPageUrl = set.tracklistUrl
         )
-        episodeDao.insert(episode)
+        val episodeId = episodeDao.insert(episode).toInt()
+        enrichmentService.enrich(episodeId, _query.value.trim())
 
         // Update local dedup tracking
         if (set.youtubeVideoId != null) alreadyImportedVideoIds = alreadyImportedVideoIds + set.youtubeVideoId
