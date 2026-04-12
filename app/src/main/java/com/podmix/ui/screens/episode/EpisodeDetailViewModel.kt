@@ -12,15 +12,20 @@ import com.podmix.domain.model.Podcast
 import com.podmix.domain.model.SourceResult
 import com.podmix.domain.model.SourceStatus
 import com.podmix.domain.model.Track
+import com.podmix.service.DownloadState
+import com.podmix.service.EpisodeDownloadManager
 import com.podmix.service.PlayerController
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import kotlinx.coroutines.Dispatchers
 import javax.inject.Inject
 
 @HiltViewModel
@@ -31,7 +36,8 @@ class EpisodeDetailViewModel @Inject constructor(
     private val djRepository: DjRepository,
     private val trackRepository: TrackRepository,
     private val playerController: PlayerController,
-    private val youTubeStreamResolver: com.podmix.service.YouTubeStreamResolver
+    private val youTubeStreamResolver: com.podmix.service.YouTubeStreamResolver,
+    private val downloadManager: EpisodeDownloadManager
 ) : ViewModel() {
 
     private val podcastId: Int = savedStateHandle["podcastId"] ?: 0
@@ -54,11 +60,15 @@ class EpisodeDetailViewModel @Inject constructor(
 
     val playerState = playerController.playerState
 
+    val downloadState: StateFlow<DownloadState> = downloadManager.states
+        .map { it[episodeId] ?: DownloadState.Idle }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), DownloadState.Idle)
+
     init {
         viewModelScope.launch {
             val e = episodeDao.getById(episodeId)
             if (e != null) {
-                _episode.value = Episode(
+                val episode = Episode(
                     id = e.id,
                     podcastId = e.podcastId,
                     title = e.title,
@@ -71,8 +81,12 @@ class EpisodeDetailViewModel @Inject constructor(
                     episodeType = e.episodeType,
                     youtubeVideoId = e.youtubeVideoId,
                     description = e.description,
-                    mixcloudKey = e.mixcloudKey
+                    mixcloudKey = e.mixcloudKey,
+                    localAudioPath = e.localAudioPath,
+                    soundcloudTrackUrl = e.soundcloudTrackUrl
                 )
+                _episode.value = episode
+                downloadManager.initState(episode)
             }
             _podcast.value = repository.getPodcastById(podcastId)
                 ?: djRepository.getDjById(podcastId)
@@ -81,7 +95,8 @@ class EpisodeDetailViewModel @Inject constructor(
             val podType = _podcast.value?.type
             if (podType != "emission" && podType != "radio") {
                 val existingTracks = trackRepository.getTracksCountForEpisode(episodeId)
-                if (existingTracks == 0) {
+                // Ne pas relancer si déjà enrichi (enrichedAt != null) OU si des tracks existent déjà
+                if (existingTracks == 0 && e?.enrichedAt == null) {
                     detectTracks()
                 }
             }
@@ -93,12 +108,14 @@ class EpisodeDetailViewModel @Inject constructor(
 
         val onStatus: (String) -> Unit = { _detectStatus.value = it }
 
-        // Initialiser toutes les sources en PENDING
+        // Initialiser toutes les sources en PENDING (ordre du pipeline)
         _sourceResults.value = listOf(
+            SourceResult("1001Tracklists", SourceStatus.PENDING),
             SourceResult("Description YouTube", SourceStatus.PENDING),
-            SourceResult("yt-dlp", SourceStatus.PENDING),
+            SourceResult("Commentaires YouTube", SourceStatus.PENDING),
             SourceResult("Mixcloud", SourceStatus.PENDING),
             SourceResult("MixesDB", SourceStatus.PENDING),
+            SourceResult("yt-dlp", SourceStatus.PENDING),
             SourceResult("Shazam/IA", SourceStatus.PENDING),
         )
 
@@ -143,30 +160,64 @@ class EpisodeDetailViewModel @Inject constructor(
         val pod = _podcast.value
         android.util.Log.i("EpisodeVM", "play() ep=${ep?.title}, pod=${pod?.name}, videoId=${ep?.youtubeVideoId}")
         if (ep == null || pod == null) return
-        // If already this episode, just toggle play/pause
+
+        // Toggle play/pause si c'est déjà l'épisode actif
         if (playerController.playerState.value.currentEpisode?.id == ep.id) {
-            if (playerController.playerState.value.isPlaying) {
-                playerController.pause()
-            } else {
-                playerController.resume()
-            }
-        } else {
-            playerController.playEpisode(ep, pod)
-            playerController.updateTracks(tracks.value)
+            if (playerController.playerState.value.isPlaying) playerController.pause()
+            else playerController.resume()
+            return
         }
+
+        // Pas de source audio → pas de lecture possible
+        val hasSource = !ep.youtubeVideoId.isNullOrBlank()
+            || ep.audioUrl.isNotBlank()
+            || ep.mixcloudKey != null
+            || !ep.soundcloudTrackUrl.isNullOrBlank()
+        if (!hasSource) {
+            _detectStatus.value = "❌ Aucune source audio"
+            viewModelScope.launch {
+                kotlinx.coroutines.delay(3000)
+                _detectStatus.value = ""
+            }
+            return
+        }
+
+        playerController.playEpisode(ep, pod)
+        playerController.updateTracks(tracks.value)
     }
 
     fun seekToTrack(track: Track) {
         val ep = _episode.value ?: return
         val pod = _podcast.value ?: return
-        val episodeType = pod.type.takeIf { !it.isNullOrBlank() } ?: ep.episodeType
-        android.util.Log.i("EpisodeVM", "seekToTrack() ep=${ep.title}, pod=${pod.name}, track=${track.title}, type=$episodeType")
-        if (playerController.playerState.value.currentEpisode?.id == ep.id) {
-            playerController.seekToTrack(track, episodeType)
+        val rawMs = (track.startTimeSec * 1000).toLong()
+        val pState = playerController.playerState.value
+        val isLoaded = pState.currentEpisode?.id == ep.id && pState.duration > 0L
+
+        android.util.Log.i("EpisodeVM", "seekToTrack() track=${track.title} isLoaded=$isLoaded ytId=${ep.youtubeVideoId}")
+
+        if (isLoaded) {
+            playerController.seekToTrack(track, ep.episodeType)
+            return
+        }
+
+        // Pas encore chargé — même logique que play() mais avec seekToMs
+        val hasSource = !ep.youtubeVideoId.isNullOrBlank()
+            || ep.audioUrl.isNotBlank()
+            || ep.mixcloudKey != null
+            || !ep.soundcloudTrackUrl.isNullOrBlank()
+
+        if (!hasSource) {
+            _detectStatus.value = "❌ Aucune source audio"
+            viewModelScope.launch {
+                kotlinx.coroutines.delay(3000)
+                _detectStatus.value = ""
+            }
         } else {
-            val rawMs = (track.startTimeSec * 1000).toLong()
-            playerController.playEpisode(ep, pod, seekToMs = rawMs)
+            // Highlight the track immediately (optimistic), before YouTube resolves
+            val trackIdx = tracks.value.indexOfFirst { it.id == track.id }
             playerController.updateTracks(tracks.value)
+            if (trackIdx >= 0) playerController.setCurrentTrackIndex(trackIdx)
+            playerController.playEpisode(ep, pod, seekToMs = rawMs)
         }
     }
 
@@ -181,5 +232,18 @@ class EpisodeDetailViewModel @Inject constructor(
         viewModelScope.launch {
             trackRepository.toggleFavorite(trackId)
         }
+    }
+
+    fun startDownload() {
+        val ep = _episode.value ?: return
+        downloadManager.startDownload(ep)
+    }
+
+    fun cancelDownload() {
+        downloadManager.cancelDownload(episodeId)
+    }
+
+    fun deleteDownload() {
+        downloadManager.deleteDownload(episodeId)
     }
 }
