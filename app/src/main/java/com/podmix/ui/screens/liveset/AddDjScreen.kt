@@ -22,7 +22,6 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.podmix.domain.model.SourceStatus
 import com.podmix.ui.theme.*
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -37,187 +36,111 @@ fun AddDjScreen(
     val isLoading by viewModel.isLoading.collectAsState()
     val errorMessage by viewModel.errorMessage.collectAsState()
     val sortMode by viewModel.sortMode.collectAsState()
-    val importProgress by viewModel.importProgress.collectAsState()
-    val sourceResults by viewModel.sourceResults.collectAsState()
     val selectedCount by viewModel.selectedCount.collectAsState()
 
-    Box(modifier = Modifier.fillMaxSize()) {
-        Scaffold(
-            containerColor = Background,
-            topBar = {
-                TopAppBar(
-                    title = { Text("Ajouter des live sets", color = TextPrimary, fontSize = 16.sp) },
-                    navigationIcon = {
-                        IconButton(onClick = onBack) {
-                            Icon(Icons.AutoMirrored.Filled.ArrowBack, "Back", tint = TextPrimary)
-                        }
-                    },
-                    actions = {
-                        if (sets.isNotEmpty()) {
-                            TextButton(
-                                onClick = { viewModel.importSelected { djId -> onDjAdded(djId) } },
-                                enabled = selectedCount > 0
-                            ) {
-                                Text(
-                                    if (selectedCount > 0) "Importer ($selectedCount)" else "Importer",
-                                    color = if (selectedCount > 0) AccentPrimary else TextSecondary,
-                                    fontWeight = FontWeight.Bold,
-                                    fontSize = 14.sp
-                                )
-                            }
-                        }
-                    },
-                    colors = TopAppBarDefaults.topAppBarColors(containerColor = Background)
-                )
-            },
-            bottomBar = {}
-        ) { padding ->
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(padding)
-                    .padding(horizontal = 12.dp)
-            ) {
-                Spacer(Modifier.height(4.dp))
-
-                // Search field
-                OutlinedTextField(
-                    value = query,
-                    onValueChange = { viewModel.setQuery(it) },
-                    label = { Text("Nom de l'artiste ou festival", color = TextSecondary) },
-                    leadingIcon = {
-                        if (isLoading)
-                            CircularProgressIndicator(modifier = Modifier.size(20.dp), strokeWidth = 2.dp, color = AccentPrimary)
-                        else
-                            Icon(Icons.Default.Search, null, tint = TextSecondary)
-                    },
-                    singleLine = true,
-                    colors = OutlinedTextFieldDefaults.colors(
-                        focusedTextColor = TextPrimary,
-                        unfocusedTextColor = TextPrimary,
-                        cursorColor = AccentPrimary,
-                        focusedBorderColor = AccentPrimary,
-                        unfocusedBorderColor = SurfaceCard,
-                        focusedContainerColor = SurfaceCard,
-                        unfocusedContainerColor = SurfaceCard
-                    ),
-                    modifier = Modifier.fillMaxWidth()
-                )
-
-                // Error message
-                errorMessage?.let {
-                    Spacer(Modifier.height(8.dp))
-                    Text(it, color = Color(0xFFFF6B6B), fontSize = 12.sp)
-                }
-
-                // Sort toggle + select all
-                if (sets.isNotEmpty()) {
-                    Spacer(Modifier.height(10.dp))
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                            SortChip(
-                                label = "Most Viewed",
-                                selected = sortMode == SortMode.MOST_VIEWED,
-                                onClick = { viewModel.setSortMode(SortMode.MOST_VIEWED) }
-                            )
-                            SortChip(
-                                label = "Most Recent",
-                                selected = sortMode == SortMode.MOST_RECENT,
-                                onClick = { viewModel.setSortMode(SortMode.MOST_RECENT) }
+    Scaffold(
+        containerColor = Background,
+        topBar = {
+            TopAppBar(
+                title = { Text("Ajouter des live sets", color = TextPrimary, fontSize = 16.sp) },
+                navigationIcon = {
+                    IconButton(onClick = onBack) {
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, "Back", tint = TextPrimary)
+                    }
+                },
+                actions = {
+                    if (sets.isNotEmpty()) {
+                        TextButton(
+                            onClick = { viewModel.importSelected { djId -> onDjAdded(djId) } },
+                            enabled = selectedCount > 0
+                        ) {
+                            Text(
+                                if (selectedCount > 0) "Importer ($selectedCount)" else "Importer",
+                                color = if (selectedCount > 0) AccentPrimary else TextSecondary,
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 14.sp
                             )
                         }
-                        Text(
-                            text = if (selectedCount == sets.size) "Tout désélect." else "Tout sélect.",
-                            color = AccentPrimary,
-                            fontSize = 12.sp,
-                            modifier = Modifier.clickable { viewModel.toggleSelectAll() }
-                        )
                     }
-                    Spacer(Modifier.height(4.dp))
-                }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = Background)
+            )
+        },
+        bottomBar = {}
+    ) { padding ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(padding)
+                .padding(horizontal = 12.dp)
+        ) {
+            Spacer(Modifier.height(4.dp))
 
-                // Set list
-                LazyColumn(modifier = Modifier.fillMaxSize()) {
-                    items(sets, key = { it.set.id }) { item ->
-                        SetRow(
-                            item = item,
-                            onClick = { viewModel.toggleSelection(item.set.id) }
-                        )
-                    }
-                    item { Spacer(Modifier.height(160.dp)) }
-                }
+            OutlinedTextField(
+                value = query,
+                onValueChange = { viewModel.setQuery(it) },
+                label = { Text("Nom de l'artiste ou festival", color = TextSecondary) },
+                leadingIcon = {
+                    if (isLoading)
+                        CircularProgressIndicator(modifier = Modifier.size(20.dp), strokeWidth = 2.dp, color = AccentPrimary)
+                    else
+                        Icon(Icons.Default.Search, null, tint = TextSecondary)
+                },
+                singleLine = true,
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedTextColor = TextPrimary,
+                    unfocusedTextColor = TextPrimary,
+                    cursorColor = AccentPrimary,
+                    focusedBorderColor = AccentPrimary,
+                    unfocusedBorderColor = SurfaceCard,
+                    focusedContainerColor = SurfaceCard,
+                    unfocusedContainerColor = SurfaceCard
+                ),
+                modifier = Modifier.fillMaxWidth()
+            )
+
+            errorMessage?.let {
+                Spacer(Modifier.height(8.dp))
+                Text(it, color = Color(0xFFFF6B6B), fontSize = 12.sp)
             }
-        }
 
-        // Import progress overlay avec sources inline
-        importProgress?.let { progress ->
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(Color.Black.copy(alpha = 0.75f)),
-                contentAlignment = Alignment.Center
-            ) {
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    modifier = Modifier
-                        .fillMaxWidth(0.9f)
-                        .background(SurfaceCard, RoundedCornerShape(12.dp))
-                        .padding(20.dp)
+            if (sets.isNotEmpty()) {
+                Spacer(Modifier.height(10.dp))
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        CircularProgressIndicator(
-                            modifier = Modifier.size(18.dp),
-                            strokeWidth = 2.dp,
-                            color = AccentPrimary
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        SortChip(
+                            label = "Most Viewed",
+                            selected = sortMode == SortMode.MOST_VIEWED,
+                            onClick = { viewModel.setSortMode(SortMode.MOST_VIEWED) }
                         )
-                        Spacer(Modifier.width(10.dp))
-                        Text(
-                            "Import ${progress.current}/${progress.total}",
-                            color = TextPrimary,
-                            fontWeight = FontWeight.Bold,
-                            fontSize = 14.sp
+                        SortChip(
+                            label = "Most Recent",
+                            selected = sortMode == SortMode.MOST_RECENT,
+                            onClick = { viewModel.setSortMode(SortMode.MOST_RECENT) }
                         )
                     }
-                    Spacer(Modifier.height(6.dp))
                     Text(
-                        progress.currentTitle,
-                        color = TextSecondary,
+                        text = if (selectedCount == sets.size) "Tout désélect." else "Tout sélect.",
+                        color = AccentPrimary,
                         fontSize = 12.sp,
-                        maxLines = 2,
-                        overflow = TextOverflow.Ellipsis
+                        modifier = Modifier.clickable { viewModel.toggleSelectAll() }
                     )
-                    if (sourceResults.isNotEmpty()) {
-                        Spacer(Modifier.height(12.dp))
-                        HorizontalDivider(color = SurfaceSecondary, thickness = 0.5.dp)
-                        Spacer(Modifier.height(8.dp))
-                        sourceResults.forEach { result ->
-                            Row(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(vertical = 3.dp),
-                                horizontalArrangement = Arrangement.SpaceBetween,
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Text(
-                                    result.source,
-                                    color = TextSecondary,
-                                    fontSize = 11.sp
-                                )
-                                val (statusText, statusColor) = when (result.status) {
-                                    SourceStatus.PENDING, SourceStatus.RUNNING -> "..." to AccentPrimary
-                                    SourceStatus.SUCCESS -> "✓ ${result.trackCount}" to Color(0xFF4CAF50)
-                                    SourceStatus.FAILED -> "✗" to Color(0xFFFF6B6B)
-                                    SourceStatus.SKIPPED -> "—" to TextSecondary
-                                }
-                                Text(statusText, color = statusColor, fontSize = 11.sp, fontWeight = FontWeight.Bold)
-                            }
-                        }
-                    }
                 }
+                Spacer(Modifier.height(4.dp))
+            }
+
+            LazyColumn(modifier = Modifier.fillMaxSize()) {
+                items(sets, key = { it.set.id }) { item ->
+                    SetRow(
+                        item = item,
+                        onClick = { if (!item.isAlreadyImported) viewModel.toggleSelection(item.set.id) }
+                    )
+                }
+                item { Spacer(Modifier.height(80.dp)) }
             }
         }
     }
@@ -247,6 +170,7 @@ private fun SortChip(label: String, selected: Boolean, onClick: () -> Unit) {
 @Composable
 private fun SetRow(item: DiscoveredSetUiItem, onClick: () -> Unit) {
     val alpha = if (item.isAlreadyImported) 0.4f else 1f
+
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -254,6 +178,7 @@ private fun SetRow(item: DiscoveredSetUiItem, onClick: () -> Unit) {
             .padding(vertical = 10.dp, horizontal = 4.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
+        // Checkbox
         Icon(
             imageVector = if (item.isSelected || item.isAlreadyImported)
                 Icons.Default.CheckCircle else Icons.Default.RadioButtonUnchecked,
@@ -265,7 +190,8 @@ private fun SetRow(item: DiscoveredSetUiItem, onClick: () -> Unit) {
             },
             modifier = Modifier.size(22.dp)
         )
-        Spacer(Modifier.width(12.dp))
+        Spacer(Modifier.width(10.dp))
+
         Column(modifier = Modifier.weight(1f)) {
             Text(
                 text = item.set.title,
@@ -286,7 +212,7 @@ private fun SetRow(item: DiscoveredSetUiItem, onClick: () -> Unit) {
                 Text(
                     text = item.sourceLabel,
                     color = when (item.sourceLabel) {
-                        "SC+TL", "SC" -> androidx.compose.ui.graphics.Color(0xFFFF5500).copy(alpha = alpha)
+                        "SC+TL", "SC" -> Color(0xFFFF5500).copy(alpha = alpha)
                         else -> AccentPrimary.copy(alpha = alpha)
                     },
                     fontSize = 10.sp,
