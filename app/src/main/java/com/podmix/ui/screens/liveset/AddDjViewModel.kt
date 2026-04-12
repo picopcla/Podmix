@@ -8,16 +8,12 @@ import com.podmix.data.local.dao.EpisodeDao
 import com.podmix.data.local.entity.EpisodeEntity
 import com.podmix.data.repository.DjRepository
 import com.podmix.data.repository.TrackRepository
-import com.podmix.domain.model.SourceResult
-import com.podmix.domain.model.SourceStatus
 import com.podmix.service.ArtistPageScraper
-import com.podmix.service.EpisodeDownloadManager
 import com.podmix.service.SetMatcher
 import com.podmix.service.SoundCloudArtistScraper
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
-import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -26,6 +22,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.supervisorScope
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.Dispatchers
 import okhttp3.OkHttpClient
@@ -67,9 +64,11 @@ data class DiscoveredSetUiItem(
         set.soundcloudUrl != null -> "SC"
         else -> "1001TL"
     }
-}
 
-data class ImportProgress(val current: Int, val total: Int, val currentTitle: String)
+    /** Vert = audio + tracklist, Orange = audio sans tracklist, Rouge = pas d'audio */
+    val hasAudio: Boolean get() = set.soundcloudUrl != null || set.youtubeVideoId != null
+    val hasTracklist: Boolean get() = set.tracklistUrl != null
+}
 
 @HiltViewModel
 class AddDjViewModel @Inject constructor(
@@ -80,7 +79,6 @@ class AddDjViewModel @Inject constructor(
     private val djRepository: DjRepository,
     private val trackRepository: TrackRepository,
     private val youTubeStreamResolver: com.podmix.service.YouTubeStreamResolver,
-    private val downloadManager: EpisodeDownloadManager,
     private val okHttpClient: OkHttpClient
 ) : ViewModel() {
 
@@ -104,12 +102,6 @@ class AddDjViewModel @Inject constructor(
     private val _sortMode = MutableStateFlow(SortMode.MOST_VIEWED)
     val sortMode: StateFlow<SortMode> = _sortMode.asStateFlow()
 
-    private val _importProgress = MutableStateFlow<ImportProgress?>(null)
-    val importProgress: StateFlow<ImportProgress?> = _importProgress.asStateFlow()
-
-    private val _sourceResults = MutableStateFlow<List<SourceResult>>(emptyList())
-    val sourceResults: StateFlow<List<SourceResult>> = _sourceResults.asStateFlow()
-
     val selectedCount: StateFlow<Int> = _sets
         .map { list -> list.count { it.isSelected } }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0)
@@ -119,12 +111,23 @@ class AddDjViewModel @Inject constructor(
     private var importJob: Job? = null
 
     private var alreadyImportedVideoIds: Set<String> = emptySet()
+    private var alreadyImportedScUrls: Set<String> = emptySet()
+    private var alreadyImportedTitles: Set<String> = emptySet()
 
     init {
         if (existingDjId != null) {
             viewModelScope.launch {
+                // 1. Charger les épisodes déjà importés
                 val episodes = episodeDao.getByPodcastIdSuspend(existingDjId)
                 alreadyImportedVideoIds = episodes.mapNotNull { it.youtubeVideoId }.toSet()
+                alreadyImportedScUrls = episodes.mapNotNull { it.soundcloudTrackUrl }.toSet()
+                alreadyImportedTitles = episodes.map { it.title }.toSet()
+                // 2. Auto-search — même coroutine, séquentiel, pas de conflit
+                val djName = djRepository.getDjById(existingDjId)?.name
+                if (!djName.isNullOrBlank()) {
+                    _query.value = djName
+                    search(djName)
+                }
             }
         }
     }
@@ -144,8 +147,8 @@ class AddDjViewModel @Inject constructor(
         _errorMessage.value = null
         _sets.value = emptyList()
         try {
-            // Lancer 1001TL et SoundCloud en parallèle
-            val (tlSets, scSets) = coroutineScope {
+            // Lancer 1001TL et SoundCloud en parallèle — supervisorScope pour que l'échec d'un n'annule pas l'autre
+            val (tlSets, scSets) = supervisorScope {
                 val tlDeferred = async {
                     try {
                         val artistPageUrl = findArtistPage(q) ?: return@async null
@@ -181,7 +184,9 @@ class AddDjViewModel @Inject constructor(
             rawSets = merged.map { set ->
                 DiscoveredSetUiItem(
                     set = set,
-                    isAlreadyImported = set.youtubeVideoId != null && set.youtubeVideoId in alreadyImportedVideoIds
+                    isAlreadyImported = (set.youtubeVideoId != null && set.youtubeVideoId in alreadyImportedVideoIds)
+                        || (set.soundcloudUrl != null && set.soundcloudUrl in alreadyImportedScUrls)
+                        || set.title in alreadyImportedTitles
                 )
             }
             applySortAndEmit()
@@ -247,7 +252,6 @@ class AddDjViewModel @Inject constructor(
 
     fun importSelected(onComplete: (djId: Int) -> Unit) {
         if (importJob?.isActive == true) return
-        Log.i(TAG, "importSelected: ${rawSets.count { it.isSelected }} sets")
         val selected = rawSets.filter { it.isSelected }
         if (selected.isEmpty()) return
 
@@ -259,9 +263,7 @@ class AddDjViewModel @Inject constructor(
             }
             val djId = currentDjId!!
 
-            selected.forEachIndexed { index, item ->
-                _importProgress.value = ImportProgress(index + 1, selected.size, item.set.title)
-                _sourceResults.value = emptyList()
+            selected.forEach { item ->
                 try {
                     importSet(djId, item.set)
                 } catch (e: Exception) {
@@ -269,64 +271,19 @@ class AddDjViewModel @Inject constructor(
                 }
             }
 
-            // Queue background downloads — SC (HLS) ne nécessite pas de download
-            selected.forEach { item ->
-                val ep = episodeDao.getByTitleAndPodcastId(item.set.title, djId) ?: return@forEach
-                if (ep.soundcloudTrackUrl != null) return@forEach
-                if (ep.localAudioPath != null && java.io.File(ep.localAudioPath).exists()) return@forEach
-                downloadManager.startDownload(com.podmix.domain.model.Episode(
-                    id = ep.id, podcastId = ep.podcastId, title = ep.title,
-                    audioUrl = ep.audioUrl ?: "", datePublished = ep.datePublished,
-                    durationSeconds = ep.durationSeconds, progressSeconds = ep.progressSeconds,
-                    isListened = ep.isListened, artworkUrl = ep.artworkUrl,
-                    episodeType = ep.episodeType, youtubeVideoId = ep.youtubeVideoId,
-                    description = ep.description, mixcloudKey = ep.mixcloudKey,
-                    localAudioPath = ep.localAudioPath, soundcloudTrackUrl = ep.soundcloudTrackUrl
-                ))
-            }
-
-            _importProgress.value = null
             onComplete(djId)
         }
     }
 
     private suspend fun importSet(djId: Int, set: DiscoveredSet) {
-        // Résolution audio — priorité : SC (page artiste SC) → YT (1001TL) → probe tracklist → DDG SC → skip
-        var ytId = set.youtubeVideoId
-        var scTrackUrl = set.soundcloudUrl  // URL canonique SC depuis SoundCloudArtistScraper
-        var mcKey: String? = null
-
-        // Si pas de source directe mais tracklistUrl connu → probe la page 1001TL
-        if (ytId == null && scTrackUrl == null && set.tracklistUrl != null) {
-            Log.i(TAG, "Probing tracklist page for '${set.title}'...")
-            val src = artistPageScraper.getMediaSourceFromTracklistPage(set.tracklistUrl)
-            Log.i(TAG, "Tracklist probe: YT=${src?.youtubeVideoId} SC=${src?.soundcloudTrackUrl} MC=${src?.mixcloudKey}")
-            ytId = src?.youtubeVideoId
-            scTrackUrl = src?.soundcloudTrackUrl
-            mcKey = src?.mixcloudKey
-        }
-
-        // Fallback DDG SoundCloud si toujours rien
-        if (ytId == null && scTrackUrl == null && mcKey == null) {
-            val scQuery = buildSoundCloudQuery(_query.value.trim(), set.title)
-            Log.i(TAG, "DDG SC fallback: '$scQuery'")
-            scTrackUrl = youTubeStreamResolver.searchFirstSoundCloudUrl(scQuery)
-            Log.i(TAG, "DDG SC result: $scTrackUrl")
-        }
-
-        // Toujours rien → skip
-        if (ytId == null && scTrackUrl == null && mcKey == null) {
-            Log.i(TAG, "No media source for '${set.title}', skipping")
-            return
-        }
-
-        // Dedup
-        if (ytId != null && episodeDao.getByYoutubeVideoId(ytId, djId) != null) {
-            Log.i(TAG, "Skipping duplicate (ytId): ${set.title}")
-            return
-        }
+        // Dedup by title
         if (episodeDao.getByTitleAndPodcastId(set.title, djId) != null) {
             Log.i(TAG, "Skipping duplicate (title): ${set.title}")
+            return
+        }
+        // Dedup by YouTube video ID
+        if (set.youtubeVideoId != null && episodeDao.getByYoutubeVideoId(set.youtubeVideoId, djId) != null) {
+            Log.i(TAG, "Skipping duplicate (ytId): ${set.title}")
             return
         }
 
@@ -338,44 +295,20 @@ class AddDjViewModel @Inject constructor(
             durationSeconds = 0,
             artworkUrl = null,
             episodeType = "liveset",
-            youtubeVideoId = ytId,
-            mixcloudKey = mcKey,
-            soundcloudTrackUrl = scTrackUrl
+            youtubeVideoId = set.youtubeVideoId,
+            soundcloudTrackUrl = set.soundcloudUrl,
+            tracklistPageUrl = set.tracklistUrl
         )
-        val episodeId = episodeDao.insert(episode).toInt()
+        episodeDao.insert(episode)
 
-        trackRepository.detectAndSaveTracks(
-            episodeId = episodeId,
-            description = null,
-            episodeTitle = set.title,
-            podcastName = null,
-            episodeDurationSec = 0,
-            isLiveSet = true,
-            youtubeVideoId = ytId,
-            onSourceResult = { result ->
-                _sourceResults.value = _sourceResults.value
-                    .filter { it.source != result.source } + result
-            }
-        )
-
-        alreadyImportedVideoIds = alreadyImportedVideoIds + (ytId ?: "")
+        // Update local dedup tracking
+        if (set.youtubeVideoId != null) alreadyImportedVideoIds = alreadyImportedVideoIds + set.youtubeVideoId
+        if (set.soundcloudUrl != null) alreadyImportedScUrls = alreadyImportedScUrls + set.soundcloudUrl
+        alreadyImportedTitles = alreadyImportedTitles + set.title
         rawSets = rawSets.map { item ->
-            if (item.set.id == set.id)
-                item.copy(isAlreadyImported = true, isSelected = false)
-            else item
+            if (item.set.id == set.id) item.copy(isAlreadyImported = true, isSelected = false) else item
         }
         applySortAndEmit()
-    }
-
-    private fun buildSoundCloudQuery(djName: String, title: String): String {
-        val titleWithoutDj = title.replace(Regex("(?i)${Regex.escape(djName)}\\s*[@-]?\\s*"), "").trim()
-        val cleaned = titleWithoutDj
-            .replace(Regex("""[@,()|\-/]"""), " ")
-            .replace(Regex("""\b(live|set|mix|dj|radio|show|episode|festival|presents?|records?)\b""", RegexOption.IGNORE_CASE), "")
-            .replace(Regex("""\s{2,}"""), " ")
-            .trim()
-        val keywords = cleaned.split(" ").filter { it.length > 2 }.take(3).joinToString(" ")
-        return if (keywords.isNotBlank()) "$djName $keywords" else djName
     }
 
     private fun parseDate(dateStr: String): Long {
