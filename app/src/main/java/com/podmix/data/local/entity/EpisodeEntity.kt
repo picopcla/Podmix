@@ -29,5 +29,8 @@ data class EpisodeEntity(
     val youtubeVideoId: String? = null,
     val guid: String? = null,
     val description: String? = null,
-    val mixcloudKey: String? = null
+    val mixcloudKey: String? = null,
+    val localAudioPath: String? = null,
+    val soundcloudTrackUrl: String? = null,
+    val tracklistPageUrl: String? = null   // NEW
 )
