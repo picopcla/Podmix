@@ -13,7 +13,6 @@ import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
 import com.podmix.MainActivity
 import com.podmix.R
-import com.podmix.data.api.MixcloudApi
 import com.podmix.data.api.TracklistApi
 import com.podmix.data.local.PodMixDatabase
 import com.podmix.data.local.entity.EpisodeEntity
@@ -41,7 +40,7 @@ class RefreshWorker(
 
         val db = Room.databaseBuilder(
             applicationContext, PodMixDatabase::class.java, "podmix.db"
-        ).fallbackToDestructiveMigration().build()
+        ).addMigrations(PodMixDatabase.MIGRATION_3_4).fallbackToDestructiveMigration().build()
 
         val podcastDao = db.podcastDao()
         val episodeDao = db.episodeDao()
@@ -50,7 +49,6 @@ class RefreshWorker(
 
         // Create Retrofit instances for APIs
         val tracklistApi = createTracklistApi()
-        val mixcloudApi = createMixcloudApi()
         val tracklistService = TracklistService(createItunesApi())
 
         var newEpisodeCount = 0
@@ -108,53 +106,6 @@ class RefreshWorker(
             }
         } catch (e: Exception) {
             Log.e(TAG, "Failed to load podcasts: ${e.message}")
-        }
-
-        // --- Refresh DJs (Mixcloud primary) ---
-        try {
-            val djs = podcastDao.getByTypeSuspend("dj")
-            for (dj in djs) {
-                try {
-                    val response = mixcloudApi.search(dj.name, "cloudcast")
-                    val sets = (response.data ?: emptyList())
-                        .filter { mc ->
-                            (mc.slug?.length ?: 0) > 0 &&
-                            (mc.audioLength ?: 0) > 1200
-                        }
-                        .take(10)
-
-                    for (mc in sets) {
-                        val existing = episodeDao.getByMixcloudKey(mc.key, dj.id)
-                        if (existing != null) continue
-
-                        val dateMs = try {
-                            mc.createdTime?.let {
-                                val sdf = java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ", java.util.Locale.US)
-                                sdf.parse(it.replace("Z", "+0000"))?.time
-                            }
-                        } catch (_: Exception) { null } ?: System.currentTimeMillis()
-
-                        val episode = EpisodeEntity(
-                            podcastId = dj.id,
-                            title = mc.name,
-                            audioUrl = "",
-                            datePublished = dateMs,
-                            durationSeconds = mc.audioLength ?: 0,
-                            artworkUrl = dj.logoUrl,
-                            episodeType = "liveset",
-                            mixcloudKey = mc.key
-                        )
-                        episodeDao.insert(episode)
-                        newEpisodeCount++
-                        newEpisodeTitles.add(mc.name)
-                    }
-                    podcastDao.update(dj.copy(lastCheckedAt = System.currentTimeMillis()))
-                } catch (e: Exception) {
-                    Log.e(TAG, "Failed to refresh DJ ${dj.name}: ${e.message}")
-                }
-            }
-        } catch (e: Exception) {
-            Log.e(TAG, "Failed to load DJs: ${e.message}")
         }
 
         // Show notification if new content found
@@ -270,24 +221,11 @@ class RefreshWorker(
             .readTimeout(120, TimeUnit.SECONDS)
             .build()
         return Retrofit.Builder()
-            .baseUrl("http://192.168.10.116:8099/")
+            .baseUrl("http://192.168.10.5:8099/")
             .client(client)
             .addConverterFactory(GsonConverterFactory.create())
             .build()
             .create(TracklistApi::class.java)
-    }
-
-    private fun createMixcloudApi(): MixcloudApi {
-        val client = OkHttpClient.Builder()
-            .connectTimeout(10, TimeUnit.SECONDS)
-            .readTimeout(30, TimeUnit.SECONDS)
-            .build()
-        return Retrofit.Builder()
-            .baseUrl("https://api.mixcloud.com/")
-            .client(client)
-            .addConverterFactory(GsonConverterFactory.create())
-            .build()
-            .create(MixcloudApi::class.java)
     }
 
     private fun createItunesApi(): com.podmix.data.api.ItunesApi {
