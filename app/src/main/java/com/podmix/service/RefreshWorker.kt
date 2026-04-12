@@ -40,7 +40,12 @@ class RefreshWorker(
 
         val db = Room.databaseBuilder(
             applicationContext, PodMixDatabase::class.java, "podmix.db"
-        ).addMigrations(PodMixDatabase.MIGRATION_3_4).fallbackToDestructiveMigration().build()
+        ).addMigrations(
+            PodMixDatabase.MIGRATION_3_4,
+            PodMixDatabase.MIGRATION_4_5,
+            PodMixDatabase.MIGRATION_5_6,
+            PodMixDatabase.MIGRATION_6_7
+        ).fallbackToDestructiveMigration().build()
 
         val podcastDao = db.podcastDao()
         val episodeDao = db.episodeDao()
