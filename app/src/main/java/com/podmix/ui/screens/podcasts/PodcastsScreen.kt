@@ -97,7 +97,7 @@ fun PodcastsScreen(
                 },
                 actions = {
                     Text(
-                        text = "v${com.podmix.BuildConfig.VERSION_NAME} (b${com.podmix.BuildConfig.VERSION_CODE})",
+                        text = "v${com.podmix.BuildConfig.VERSION_NAME}",
                         color = TextSecondary,
                         fontSize = 10.sp,
                         modifier = Modifier.padding(end = 12.dp)
