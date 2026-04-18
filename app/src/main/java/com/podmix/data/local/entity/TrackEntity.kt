@@ -25,5 +25,6 @@ data class TrackEntity(
     val endTimeSec: Float? = null,
     val isFavorite: Boolean = false,
     val source: String? = null, // "youtube_description", "1001tracklists", "manual"
-    val spotifyUrl: String? = null
+    val spotifyUrl: String? = null,
+    val deezerUrl: String? = null
 )

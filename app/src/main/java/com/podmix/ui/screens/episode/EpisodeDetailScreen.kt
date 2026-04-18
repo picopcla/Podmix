@@ -1,5 +1,11 @@
 package com.podmix.ui.screens.episode
 
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -13,6 +19,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Close
@@ -37,7 +44,10 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -62,6 +72,8 @@ fun EpisodeDetailScreen(
     val sourceResults by viewModel.sourceResults.collectAsState()
     val playerState by viewModel.playerState.collectAsState()
     val downloadState by viewModel.downloadState.collectAsState()
+    val isAudioAnalyzing by viewModel.isAudioAnalyzing.collectAsState()
+    val audioAnalysisStatus by viewModel.audioAnalysisStatus.collectAsState()
     val isThisEpisode = playerState.currentEpisode?.id == episode?.id
     val isDetecting = detectStatus.isNotBlank()
 
@@ -192,9 +204,31 @@ fun EpisodeDetailScreen(
                         Text(
                             text = "Tracklist (${tracks.size})",
                             color = TextPrimary,
-                            fontSize = 14.sp,
-                            modifier = Modifier.weight(1f)
+                            fontSize = 14.sp
                         )
+                        // Badge source — traduit les codes internes en labels lisibles
+                        val sourceLabel = when (tracks.firstOrNull()?.source) {
+                            "1001tl"      -> "1001TL"
+                            "mixcloud"    -> "Mixcloud"
+                            "comments"    -> "YouTube comments"
+                            "ytdlp"       -> "yt-dlp"
+                            "shazam"      -> "Shazam"
+                            "mixesdb"     -> "MixesDB"
+                            "timestamped" -> "description"
+                            "uniform"     -> "description (estimé)"
+                            "mixcloud_sections" -> "Mixcloud sections"
+                            else          -> tracks.firstOrNull()?.source ?: ""
+                        }
+                        if (sourceLabel.isNotBlank()) {
+                            Text(
+                                text = "· $sourceLabel",
+                                color = AccentPrimary,
+                                fontSize = 11.sp,
+                                modifier = androidx.compose.ui.Modifier.padding(start = 6.dp).weight(1f)
+                            )
+                        } else {
+                            Spacer(modifier = androidx.compose.ui.Modifier.weight(1f))
+                        }
                         IconButton(
                             onClick = { viewModel.redetectTracks() },
                             modifier = Modifier.size(32.dp)
@@ -216,6 +250,11 @@ fun EpisodeDetailScreen(
                         onClick = { viewModel.seekToTrack(track) },
                         onToggleFavorite = { viewModel.toggleFavorite(track.id) }
                     )
+                }
+            } else if (isAudioAnalyzing) {
+                // ── Analyse audio on-device en cours : wig wag orange (2 LEDs) ──
+                item {
+                    WigWagAnalyzing(status = audioAnalysisStatus)
                 }
             } else {
                 item {
@@ -244,6 +283,86 @@ fun EpisodeDetailScreen(
 
             // Bottom spacing for MiniPlayer + NavBar
             item { Spacer(Modifier.height(180.dp)) }
+        }
+    }
+}
+
+/**
+ * Indicateur wig wag orange (2 LEDs alternées) affiché pendant l'analyse audio on-device.
+ * Les deux cercles oranges clignotent en opposition de phase pour simuler un feu wig wag.
+ */
+@Composable
+private fun WigWagAnalyzing(status: String) {
+    val orangeColor = Color(0xFFFF8C00)
+
+    val transition = rememberInfiniteTransition(label = "wigwag")
+
+    // LED 1 : commence allumée, s'éteint, se rallume...
+    val scale1 by transition.animateFloat(
+        initialValue = 1f,
+        targetValue = 0.35f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(420, easing = LinearEasing),
+            repeatMode = RepeatMode.Reverse
+        ),
+        label = "led1_scale"
+    )
+
+    // LED 2 : opposition de phase — commence éteinte
+    val scale2 by transition.animateFloat(
+        initialValue = 0.35f,
+        targetValue = 1f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(420, easing = LinearEasing),
+            repeatMode = RepeatMode.Reverse
+        ),
+        label = "led2_scale"
+    )
+
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 24.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        // Les deux LEDs en wig wag
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(24.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(22.dp)
+                    .scale(scale1)
+                    .clip(CircleShape)
+                    .background(orangeColor)
+            )
+            Box(
+                modifier = Modifier
+                    .size(22.dp)
+                    .scale(scale2)
+                    .clip(CircleShape)
+                    .background(orangeColor)
+            )
+        }
+
+        Spacer(Modifier.height(14.dp))
+
+        Text(
+            text = "Analyse audio en cours...",
+            color = orangeColor,
+            fontSize = 12.sp
+        )
+
+        if (status.isNotBlank()) {
+            Spacer(Modifier.height(4.dp))
+            Text(
+                text = status,
+                color = TextSecondary,
+                fontSize = 11.sp,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.fillMaxWidth()
+            )
         }
     }
 }

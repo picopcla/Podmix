@@ -11,10 +11,13 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -22,6 +25,8 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SwipeToDismissBox
 import androidx.compose.material3.SwipeToDismissBoxValue
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextField
+import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberSwipeToDismissBoxState
@@ -33,6 +38,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -40,6 +46,7 @@ import coil3.compose.AsyncImage
 import com.podmix.ui.components.EpisodeRow
 import com.podmix.ui.theme.AccentPrimary
 import com.podmix.ui.theme.Background
+import com.podmix.ui.theme.SurfaceSecondary
 import com.podmix.ui.theme.TextPrimary
 import com.podmix.ui.theme.TextSecondary
 
@@ -53,6 +60,7 @@ fun DjDetailScreen(
 ) {
     val dj by viewModel.dj.collectAsState()
     val sets by viewModel.sets.collectAsState()
+    val searchQuery by viewModel.searchQuery.collectAsState()
     val playerState by viewModel.playerState.collectAsState()
     val episodeIdsWithTracks by viewModel.episodeIdsWithTracks.collectAsState()
     val downloadStates by viewModel.downloadStates.collectAsState()
@@ -105,6 +113,12 @@ fun DjDetailScreen(
                     )
                 }
                 Spacer(Modifier.height(8.dp))
+                // ── Barre de recherche live ──
+                SearchBar(
+                    query = searchQuery,
+                    onQueryChange = { viewModel.search(it) },
+                    placeholder = "Rechercher un set..."
+                )
             }
 
             if (sets.isEmpty()) {
@@ -162,4 +176,40 @@ fun DjDetailScreen(
             item { Spacer(Modifier.height(80.dp)) }
         }
     }
+}
+
+@Composable
+private fun SearchBar(
+    query: String,
+    onQueryChange: (String) -> Unit,
+    placeholder: String = "Rechercher..."
+) {
+    TextField(
+        value = query,
+        onValueChange = onQueryChange,
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 12.dp, vertical = 6.dp)
+            .clip(RoundedCornerShape(10.dp)),
+        placeholder = { Text(placeholder, color = TextSecondary, fontSize = 13.sp) },
+        leadingIcon = { Icon(Icons.Default.Search, null, tint = TextSecondary) },
+        trailingIcon = {
+            if (query.isNotEmpty()) {
+                IconButton(onClick = { onQueryChange("") }) {
+                    Icon(Icons.Default.Clear, "Effacer", tint = TextSecondary)
+                }
+            }
+        },
+        singleLine = true,
+        keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
+        colors = TextFieldDefaults.colors(
+            focusedContainerColor = SurfaceSecondary,
+            unfocusedContainerColor = SurfaceSecondary,
+            focusedTextColor = TextPrimary,
+            unfocusedTextColor = TextPrimary,
+            cursorColor = AccentPrimary,
+            focusedIndicatorColor = Color.Transparent,
+            unfocusedIndicatorColor = Color.Transparent
+        )
+    )
 }

@@ -124,7 +124,10 @@ class PodcastRepository @Inject constructor(
 
         val channel = rssParser.getRssChannel(feedUrl)
 
-        val limit = if (podcast.type == "podcast") 40 else 10
+        val limit = when (podcast.type) {
+            "emission" -> 300   // feeds comme Legend ont 600+ épisodes
+            else       -> 100   // podcasts standard
+        }
         for (item in channel.items.take(limit)) {
             val guid = item.guid ?: item.link ?: item.title ?: continue
             val audioUrl = item.audio ?: continue

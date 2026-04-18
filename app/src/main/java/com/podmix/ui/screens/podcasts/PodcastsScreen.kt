@@ -38,6 +38,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
+import androidx.compose.foundation.Image
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -78,10 +79,25 @@ fun PodcastsScreen(
         containerColor = Background,
         topBar = {
             TopAppBar(
-                title = {},
+                title = {
+                    Column(verticalArrangement = Arrangement.spacedBy(1.dp)) {
+                        Image(
+                            painter = painterResource(R.drawable.titre_podmix),
+                            contentDescription = "Podmix",
+                            modifier = Modifier.height(22.dp)
+                        )
+                        Text(
+                            text = "Your best podcast app for EDM",
+                            color = androidx.compose.ui.graphics.Color.White,
+                            fontSize = 9.sp,
+                            fontWeight = FontWeight.SemiBold,
+                            letterSpacing = 0.2.sp
+                        )
+                    }
+                },
                 actions = {
                     Text(
-                        text = "v${com.podmix.BuildConfig.VERSION_NAME}",
+                        text = "v${com.podmix.BuildConfig.VERSION_NAME} (b${com.podmix.BuildConfig.VERSION_CODE})",
                         color = TextSecondary,
                         fontSize = 10.sp,
                         modifier = Modifier.padding(end = 12.dp)

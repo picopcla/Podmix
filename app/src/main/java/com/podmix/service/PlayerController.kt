@@ -443,28 +443,9 @@ class PlayerController @Inject constructor(
                 _playerState.value = _playerState.value.copy(currentTrackIndex = oldIdx)
             }
 
-            // Update ExoPlayer MediaMetadata with current track name (for Android Auto / notification)
-            if (newIdx >= 0) {
-                val track = tracks[newIdx]
-                val episode = state.currentEpisode
-                val podcast = state.currentPodcast
-                mainHandler.post {
-                    val currentItem = exoPlayer.currentMediaItem ?: return@post
-                    val trackTitle = if (track.artist.isNotBlank())
-                        "${track.artist} — ${track.title}" else track.title
-                    val newMeta = currentItem.mediaMetadata.buildUpon()
-                        .setTitle(trackTitle)
-                        .setArtist(podcast?.name)
-                        .setSubtitle(episode?.title)
-                        .setArtworkUri(episode?.artworkUrl?.let { android.net.Uri.parse(it) }
-                            ?: podcast?.logoUrl?.let { android.net.Uri.parse(it) })
-                        .build()
-                    val idx = exoPlayer.currentMediaItemIndex
-                    if (idx >= 0) {
-                        exoPlayer.replaceMediaItem(idx, currentItem.buildUpon().setMediaMetadata(newMeta).build())
-                    }
-                }
-            }
+            // NOTE: replaceMediaItem intentionnellement retiré — causait un reset du buffer
+            // (~4 tracks en arrière) à chaque changement de track. Le playerState.currentTrackIndex
+            // est suffisant pour l'UI. La notification Android Auto affiche le titre de l'épisode.
         }
     }
 

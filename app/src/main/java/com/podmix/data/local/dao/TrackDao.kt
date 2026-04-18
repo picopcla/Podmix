@@ -19,6 +19,7 @@ data class FavoriteWithInfo(
     val podcastLogoUrl: String?,
     val episodeTitle: String,
     val spotifyUrl: String? = null,
+    val deezerUrl: String? = null,
     val podcastType: String = "podcast"
 )
 
@@ -46,13 +47,16 @@ interface TrackDao {
     @Query("UPDATE tracks SET spotifyUrl = :url WHERE id = :id")
     suspend fun updateSpotifyUrl(id: Int, url: String?)
 
+    @Query("UPDATE tracks SET deezerUrl = :url WHERE id = :id")
+    suspend fun updateDeezerUrl(id: Int, url: String?)
+
     @Query("DELETE FROM tracks WHERE episodeId = :episodeId")
     suspend fun deleteByEpisode(episodeId: Int)
 
     @Query("""
         SELECT t.id, t.episodeId, t.title, t.artist, t.startTimeSec, t.endTimeSec,
                p.id AS podcastId, p.name AS podcastName, p.logoUrl AS podcastLogoUrl,
-               e.title AS episodeTitle, t.spotifyUrl, p.type AS podcastType
+               e.title AS episodeTitle, t.spotifyUrl, t.deezerUrl, p.type AS podcastType
         FROM tracks t
         INNER JOIN episodes e ON t.episodeId = e.id
         INNER JOIN podcasts p ON e.podcastId = p.id
@@ -64,7 +68,7 @@ interface TrackDao {
     @Query("""
         SELECT t.id, t.episodeId, t.title, t.artist, t.startTimeSec, t.endTimeSec,
                p.id AS podcastId, p.name AS podcastName, p.logoUrl AS podcastLogoUrl,
-               e.title AS episodeTitle, t.spotifyUrl, p.type AS podcastType
+               e.title AS episodeTitle, t.spotifyUrl, t.deezerUrl, p.type AS podcastType
         FROM tracks t
         INNER JOIN episodes e ON t.episodeId = e.id
         INNER JOIN podcasts p ON e.podcastId = p.id

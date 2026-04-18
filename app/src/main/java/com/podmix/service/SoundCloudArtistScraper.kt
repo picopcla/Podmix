@@ -31,87 +31,286 @@ class SoundCloudArtistScraper @Inject constructor(
     private val TAG = "SCscraper"
 
     private val EXTRACT_JS = """
-        (function tryExtract(attempt) {
-            var links = document.querySelectorAll('a[href]');
-            var scLinks = [];
-            links.forEach(function(a) {
-                var h = a.href || '';
-                if (h.includes('soundcloud.com')) scLinks.push(h);
-            });
-            if (attempt === 0 || attempt === 5 || attempt === 10) {
-                Android.onDebug('attempt=' + attempt + ' total_links=' + links.length + ' sc_links=' + scLinks.length + ' url=' + document.location.href);
-                if (scLinks.length > 0) Android.onDebug('SC sample: ' + scLinks.slice(0,3).join(' | '));
+        (function() {
+            var nonArtist1 = ['pages','legal','press','imprint','blog','jobs','charts','mobile',
+                'discover','you','notifications','stream','messages','settings','upload',
+                'feed','sc-player','ubo','search','tags'];
+            var nonArtist2 = ['sets','reposts','likes','following','followers','tracks',
+                'albums','popular-tracks'];
+
+            function collectTracks() {
+                var links = document.querySelectorAll('a[href]');
+                var tracks = [];
+                var seen = {};
+                links.forEach(function(a) {
+                    var h = a.href || '';
+                    var m = h.match(/soundcloud\.com\/([^/?#]+)\/([^/?#]+)(?:${'$'}|[?#])/);
+                    if (!m) return;
+                    var slug1 = m[1]; var slug2 = m[2];
+                    if (nonArtist1.indexOf(slug1) >= 0) return;
+                    if (nonArtist2.indexOf(slug2) >= 0) return;
+                    if (seen[h]) return;
+                    seen[h] = true;
+                    var title = a.innerText.trim() || a.getAttribute('aria-label') || '';
+                    if (!title || title.length < 3) return;
+                    // Date
+                    var container = a.closest('li, article, div.soundList__item, div.trackItem, div.userStreamItem, div.sound__body, div[class*="Sound"], div[class*="soundItem"]');
+                    var date = '';
+                    if (container) {
+                        var timeEl = container.querySelector('time[datetime], time[pubdate], time[title]');
+                        if (timeEl) date = timeEl.getAttribute('datetime') || timeEl.getAttribute('pubdate') || timeEl.getAttribute('title') || '';
+                    }
+                    if (!date) {
+                        var par = a.parentElement;
+                        for (var p = 0; p < 8 && par; p++) {
+                            var t = par.querySelector('time[datetime], time[pubdate]');
+                            if (t) { date = t.getAttribute('datetime') || t.getAttribute('pubdate') || ''; break; }
+                            par = par.parentElement;
+                        }
+                    }
+                    if (date.length > 10) date = date.substring(0, 10);
+                    // Durée
+                    var duration = '';
+                    if (container) {
+                        var els = container.querySelectorAll('span, abbr, time');
+                        for (var ei = 0; ei < els.length; ei++) {
+                            var txt = (els[ei].innerText || els[ei].textContent || '').trim();
+                            if (/^\d{1,2}:\d{2}(:\d{2})?${'$'}/.test(txt)) { duration = txt; break; }
+                        }
+                    }
+                    tracks.push({ title: title, url: 'https://soundcloud.com/' + m[1] + '/' + m[2], date: date, duration: duration });
+                });
+                return tracks;
             }
-            var tracks = [];
+
+            var lastCount = 0;
+            var stableRounds = 0;
+            var totalAttempts = 0;
+            var MAX_ATTEMPTS = 45;    // 45 × 700ms ≈ 31s max
+            var STABLE_STOP = 10;     // 10 rounds stables × 700ms = 7s sans nouveau contenu → stop
+
+            function tryExtract() {
+                totalAttempts++;
+                // Aider le scroll natif Kotlin avec un scroll JS complémentaire
+                window.scrollTo(0, document.body.scrollHeight);
+                document.documentElement.scrollTop = 999999;
+                var tracks = collectTracks();
+                if (totalAttempts % 5 === 0) {
+                    Android.onDebug('attempt=' + totalAttempts + ' tracks=' + tracks.length + ' stable=' + stableRounds);
+                }
+                if (tracks.length > lastCount) {
+                    stableRounds = 0;
+                    lastCount = tracks.length;
+                } else if (tracks.length > 0) {
+                    stableRounds++;
+                }
+                if ((stableRounds >= STABLE_STOP && tracks.length > 0) || tracks.length >= 300 || totalAttempts >= MAX_ATTEMPTS) {
+                    Android.onDebug('DONE: ' + tracks.length + ' tracks after ' + totalAttempts + ' attempts');
+                    Android.onTracksExtracted(JSON.stringify(tracks));
+                    return;
+                }
+                setTimeout(tryExtract, 700);
+            }
+            tryExtract();
+        })();
+    """.trimIndent()
+
+    // JS pour extraire les slugs utilisateurs de la page de recherche SC (/search/people)
+    private val SEARCH_USERS_JS = """
+        (function trySearch(attempt) {
+            // SC charge les résultats de manière asynchrone — on attend jusqu'à 6s
+            var links = document.querySelectorAll('a[href]');
+            var slugs = [];
             var seen = {};
+            var sys = ['search','pages','legal','press','imprint','blog','jobs','charts',
+                       'mobile','discover','you','notifications','stream','messages',
+                       'settings','upload','feed','presse','societe','contact',
+                       'help','terms','privacy','about','login','register',
+                       'likes','reposts','following','followers','tracks','albums'];
             links.forEach(function(a) {
-                var h = a.href || '';
-                var m = h.match(/soundcloud\.com\/([^/?#]+)\/([^/?#]+)(?:${'$'}|[?#])/);
+                var href = a.href || '';
+                var m = href.match(/soundcloud\.com\/([^/?#]+)(?:${'$'}|[?#])/);
                 if (!m) return;
-                var slug1 = m[1];
-                var slug2 = m[2];
-                // Exclude known SoundCloud utility/footer paths (not artist pages)
-                var nonArtist1 = ['pages','legal','press','imprint','blog','jobs','charts','mobile','discover','you','notifications','stream','messages','settings','upload','feed','sc-player','ubo'];
-                if (nonArtist1.indexOf(slug1) >= 0) return;
-                if (['sets','reposts','likes','following','followers','tracks','albums','popular-tracks'].indexOf(slug2) >= 0) return;
-                if (seen[h]) return;
-                seen[h] = true;
-                var title = a.innerText.trim() || a.getAttribute('aria-label') || '';
-                if (!title || title.length < 3) return;
-                tracks.push({ title: title, url: 'https://soundcloud.com/' + m[1] + '/' + m[2] });
+                var slug = m[1].toLowerCase();
+                if (sys.indexOf(slug) >= 0) return;
+                if (seen[slug]) return;
+                // Exclure les liens qui ressemblent à des tracks (contiennent un 2e segment)
+                var path = href.replace(/^https?:\/\/soundcloud\.com\//, '');
+                if (path.indexOf('/') >= 0) return; // page artiste = 1 seul segment
+                seen[slug] = true;
+                slugs.push(slug);
             });
-            if (tracks.length === 0 && attempt < 20) {
-                setTimeout(function() { tryExtract(attempt + 1); }, 500);
+            if (slugs.length === 0 && attempt < 12) {
+                setTimeout(function() { trySearch(attempt + 1); }, 500);
                 return;
             }
-            Android.onDebug('final: ' + tracks.length + ' tracks found');
-            Android.onTracksExtracted(JSON.stringify(tracks));
+            Android.onDebug('search/people: ' + slugs.length + ' users after ' + attempt + ' attempts');
+            Android.onUsersExtracted(JSON.stringify(slugs.slice(0, 10)));
         })(0);
     """.trimIndent()
 
-    /** Trouve la page artiste SC via DDG puis scrape ses tracks. Retourne null si échec. */
+    /** Trouve la page artiste SC (search native → fallback DDG), scrape ses tracks. */
     suspend fun findAndScrape(artistName: String): List<ScSet>? {
-        val artistPageUrl = findArtistPage(artistName) ?: return null
-        Log.i(TAG, "SC artist page: $artistPageUrl")
-        return scrapeArtistPage(artistPageUrl)
+        // 1. Recherche SC native — supporte le préfixe partiel
+        var artistPageUrl = findArtistPageViaSCSearch(artistName)
+        // 2. Fallback DDG si SC search échoue (page ne charge pas, bot-block, etc.)
+        if (artistPageUrl == null) {
+            Log.w(TAG, "SC native search failed for '$artistName', trying DDG fallback")
+            artistPageUrl = findArtistPageViaDDG(artistName)
+        }
+        if (artistPageUrl == null) return null
+        // /tracks = liste complète des uploads (vs page principale = seulement Popular Tracks ~10)
+        val tracksPageUrl = artistPageUrl.trimEnd('/') + "/tracks"
+        Log.i(TAG, "SC tracks page: $tracksPageUrl")
+        val raw = scrapeArtistPage(tracksPageUrl) ?: return null
+        return filterSets(raw)  // synchrone — durée capturée dans le DOM
     }
 
-    private suspend fun findArtistPage(artistName: String): String? = withContext(Dispatchers.IO) {
+    /**
+     * Utilise soundcloud.com/search/people?q=[query] pour trouver le bon artiste.
+     * Supporte la recherche partielle ("otta" → "giuseppeottaviani").
+     * Score chaque slug retourné contre la requête, retourne le meilleur.
+     */
+    private suspend fun findArtistPageViaSCSearch(artistName: String): String? {
+        val encoded = URLEncoder.encode(artistName, "UTF-8")
+        val searchUrl = "https://soundcloud.com/search/people?q=$encoded"
+        Log.i(TAG, "SC search/people: $searchUrl")
+
+        val slugs = withTimeoutOrNull(10_000) {
+            withContext(Dispatchers.Main) {
+                scrapeUsersOnMainThread(searchUrl)
+            }
+        }
+
+        if (slugs.isNullOrEmpty()) {
+            Log.w(TAG, "SC search/people: aucun résultat pour '$artistName'")
+            return null
+        }
+
+        // Scorer chaque slug contre la requête
+        val queryTokens = artistName.lowercase()
+            .replace(Regex("[^a-z0-9 ]"), " ")
+            .trim().split(Regex("\\s+"))
+            .filter { it.length >= 2 }
+
+        data class Scored(val slug: String, val score: Int)
+        val scored = slugs.map { slug ->
+            val s = slug.lowercase()
+            val score = queryTokens.sumOf { token -> if (s.contains(token)) token.length else 0 }
+            Scored(slug, score)
+        }.sortedByDescending { it.score }
+
+        Log.i(TAG, "SC slugs scorés: ${scored.take(5).map { "${it.slug}(${it.score})" }}")
+
+        val best = scored.firstOrNull()
+        return if (best != null && best.score > 0) {
+            Log.i(TAG, "SC artiste retenu: ${best.slug} (score=${best.score})")
+            "https://soundcloud.com/${best.slug}"
+        } else if (slugs.isNotEmpty()) {
+            // Aucun token ne matche (requête trop courte?) → on prend quand même le premier résultat SC
+            Log.w(TAG, "SC: score=0, fallback premier résultat: ${slugs.first()}")
+            "https://soundcloud.com/${slugs.first()}"
+        } else null
+    }
+
+    /** Fallback : DDG site:soundcloud.com [query] avec scoring multi-candidats. */
+    private suspend fun findArtistPageViaDDG(artistName: String): String? = withContext(Dispatchers.IO) {
         try {
             val encoded = URLEncoder.encode("site:soundcloud.com $artistName", "UTF-8")
             val client = okHttpClient.newBuilder()
-                .connectTimeout(8, TimeUnit.SECONDS)
-                .readTimeout(8, TimeUnit.SECONDS)
-                .build()
-            val req = Request.Builder()
-                .url("https://html.duckduckgo.com/html/?q=$encoded")
-                .header("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64)")
-                .header("Accept", "text/html")
-                .build()
-            val html = client.newCall(req).execute().use { it.body?.string() } ?: return@withContext null
-            Log.d(TAG, "DDG response size=${html.length}")
-            val match = Regex("""uddg=([^&"]+)""").find(html)
-            if (match == null) {
-                Log.w(TAG, "DDG: no uddg link found")
+                .connectTimeout(8, TimeUnit.SECONDS).readTimeout(8, TimeUnit.SECONDS).build()
+            val html = client.newCall(
+                Request.Builder()
+                    .url("https://html.duckduckgo.com/html/?q=$encoded")
+                    .header("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64)")
+                    .header("Accept", "text/html").build()
+            ).execute().use { it.body?.string() } ?: return@withContext null
+
+            val systemSlugs = setOf("pages","legal","press","imprint","blog","jobs","charts",
+                "mobile","discover","you","notifications","stream","messages","settings",
+                "upload","feed","presse","societe","contact","help","terms","privacy",
+                "about","login","register","search","tags")
+            val queryTokens = artistName.lowercase().replace(Regex("[^a-z0-9 ]")," ")
+                .trim().split(Regex("\\s+")).filter { it.length >= 2 }
+
+            data class Scored(val slug: String, val score: Int)
+            val scored = Regex("""uddg=([^&"]+)""").findAll(html)
+                .map { URLDecoder.decode(it.groupValues[1], "UTF-8") }
+                .filter { it.contains("soundcloud.com") }
+                .take(8)
+                .mapNotNull { url ->
+                    val slug = Regex("""soundcloud\.com/([^/?#]+)""").find(url)
+                        ?.groupValues?.get(1)?.lowercase() ?: return@mapNotNull null
+                    if (slug in systemSlugs) return@mapNotNull null
+                    val score = queryTokens.sumOf { t -> if (slug.contains(t)) t.length else 0 }
+                    Scored(slug, score)
+                }
+                .sortedByDescending { it.score }
+                .toList()
+
+            val best = scored.firstOrNull()
+            if (best == null || best.score == 0) {
+                Log.w(TAG, "DDG fallback: aucun slug pertinent pour '$artistName'")
                 return@withContext null
             }
-            val url = URLDecoder.decode(match.groupValues[1], "UTF-8")
-            Log.i(TAG, "DDG first result: $url")
-            // Extraire le slug artiste — que ce soit une page artiste ou un track
-            val scMatch = Regex("""soundcloud\.com/([^/?#]+)""").find(url)
-            val artistSlug = scMatch?.groupValues?.get(1)
-            if (artistSlug.isNullOrBlank()) return@withContext null
-            val artistPageUrl = "https://soundcloud.com/$artistSlug"
-            Log.i(TAG, "SC artist page resolved: $artistPageUrl")
-            artistPageUrl
+            Log.i(TAG, "DDG fallback: ${best.slug} (score=${best.score})")
+            "https://soundcloud.com/${best.slug}"
         } catch (e: Exception) {
-            Log.w(TAG, "DDG SC search failed: ${e.message}")
+            Log.w(TAG, "DDG fallback failed: ${e.message}")
             null
         }
     }
 
+    private suspend fun scrapeUsersOnMainThread(url: String): List<String>? =
+        suspendCancellableCoroutine { cont ->
+            val webView = WebView(context)
+            var resumed = false
+
+            fun resume(result: List<String>?) {
+                if (!resumed) {
+                    resumed = true
+                    android.os.Handler(android.os.Looper.getMainLooper()).post { webView.destroy() }
+                    cont.resume(result)
+                }
+            }
+
+            webView.addJavascriptInterface(object {
+                @JavascriptInterface
+                fun onUsersExtracted(json: String) {
+                    try {
+                        val arr = org.json.JSONArray(json)
+                        val slugs = (0 until arr.length()).map { arr.getString(it) }
+                        Log.i(TAG, "SC search users: $slugs")
+                        resume(slugs)
+                    } catch (e: Exception) {
+                        Log.e(TAG, "onUsersExtracted parse error: ${e.message}")
+                        resume(null)
+                    }
+                }
+                @JavascriptInterface
+                fun onDebug(msg: String) { Log.d(TAG, "JS_SEARCH: $msg") }
+            }, "Android")
+
+            webView.settings.apply {
+                javaScriptEnabled = true
+                domStorageEnabled = true
+                userAgentString = "Mozilla/5.0 (Linux; Android 16; Pixel 8) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Mobile Safari/537.36"
+            }
+            webView.webViewClient = object : WebViewClient() {
+                override fun onPageFinished(view: WebView, url: String) {
+                    Log.d(TAG, "SC search page finished: $url")
+                    view.evaluateJavascript(SEARCH_USERS_JS, null)
+                }
+                override fun onReceivedError(view: WebView, request: WebResourceRequest, error: WebResourceError) {
+                    if (request.isForMainFrame) resume(null)
+                }
+            }
+            cont.invokeOnCancellation { resume(null) }
+            webView.loadUrl(url)
+        }
+
     private suspend fun scrapeArtistPage(url: String): List<ScSet>? {
-        return withTimeoutOrNull(15_000) {
+        return withTimeoutOrNull(30_000) {
             withContext(Dispatchers.Main) {
                 scrapeOnMainThread(url)
             }
@@ -121,12 +320,13 @@ class SoundCloudArtistScraper @Inject constructor(
     private suspend fun scrapeOnMainThread(url: String): List<ScSet>? =
         suspendCancellableCoroutine { cont ->
             val webView = WebView(context)
+            val handler = android.os.Handler(android.os.Looper.getMainLooper())
             var resumed = false
 
             fun resume(result: List<ScSet>?) {
                 if (!resumed) {
                     resumed = true
-                    android.os.Handler(android.os.Looper.getMainLooper()).post { webView.destroy() }
+                    handler.post { webView.destroy() }
                     cont.resume(result)
                 }
             }
@@ -144,15 +344,36 @@ class SoundCloudArtistScraper @Inject constructor(
                 }
             }, "Android")
 
+            // Grande fenêtre visible = SC charge plus de contenu initialement
             webView.settings.apply {
                 javaScriptEnabled = true
                 domStorageEnabled = true
+                loadWithOverviewMode = true
+                useWideViewPort = true
                 userAgentString = "Mozilla/5.0 (Linux; Android 16; Pixel 8) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Mobile Safari/537.36"
             }
+            // Forcer une grande taille de layout pour que l'IntersectionObserver SC voie plus d'items
+            webView.layout(0, 0, 1080, 8000)
 
             webView.webViewClient = object : WebViewClient() {
                 override fun onPageFinished(view: WebView, url: String) {
+                    Log.d(TAG, "Page finished, injecting EXTRACT_JS")
                     view.evaluateJavascript(EXTRACT_JS, null)
+
+                    // Fling natif toutes les 1.5s pour déclencher l'infinite scroll SC
+                    // (window.scrollTo en JS ne suffit pas — SC utilise IntersectionObserver)
+                    var flingCount = 0
+                    val flingRunnable = object : Runnable {
+                        override fun run() {
+                            if (resumed || flingCount >= 18) return
+                            view.scrollBy(0, 2000)
+                            view.flingScroll(0, 4000)
+                            flingCount++
+                            Log.d(TAG, "fling #$flingCount, scrollY=${view.scrollY}")
+                            handler.postDelayed(this, 1500)
+                        }
+                    }
+                    handler.postDelayed(flingRunnable, 1500) // 1ère impulsion après 1.5s
                 }
                 override fun onReceivedError(view: WebView, request: WebResourceRequest, error: WebResourceError) {
                     if (request.isForMainFrame) resume(null)
@@ -172,8 +393,11 @@ class SoundCloudArtistScraper @Inject constructor(
                 val obj = arr.getJSONObject(i)
                 val title = obj.getString("title").trim()
                 val url = obj.getString("url").trim()
+                val date = obj.optString("date", "").trim()
+                val durationStr = obj.optString("duration", "").trim()
+                val durationSec = parseDurationStr(durationStr)
                 if (title.isNotBlank() && url.isNotBlank()) {
-                    tracks.add(ScSet(title = title, url = url, date = ""))
+                    tracks.add(ScSet(title = title, url = url, date = date, durationSec = durationSec))
                 }
             }
             if (tracks.isNotEmpty()) tracks else null
@@ -181,5 +405,188 @@ class SoundCloudArtistScraper @Inject constructor(
             Log.e(TAG, "JSON parse error: ${e.message}")
             null
         }
+    }
+
+    /** Parse "H:MM:SS" ou "MM:SS" → secondes. Retourne 0 si non parseable. */
+    private fun parseDurationStr(s: String): Int {
+        if (s.isBlank()) return 0
+        val parts = s.trim().split(":")
+        return try {
+            when (parts.size) {
+                3 -> parts[0].toInt() * 3600 + parts[1].toInt() * 60 + parts[2].toInt()
+                2 -> parts[0].toInt() * 60 + parts[1].toInt()
+                else -> 0
+            }
+        } catch (_: NumberFormatException) { 0 }
+    }
+
+    // ── Filtrage qualité ─────────────────────────────────────────────────────────
+
+    /**
+     * Niveau 0 — Titre clairement bogus : liens de navigation SC (Société, Service presse…)
+     * ou titre trop court pour être un vrai set.
+     */
+    fun isBogusTitle(title: String): Boolean {
+        val t = title.trim()
+        if (t.length < 5) return true
+        val knownNoise = setOf(
+            "société", "service presse", "presse", "imprint", "legal",
+            "contact", "company", "about us", "terms", "privacy", "blog",
+            "jobs", "help center", "cookies", "copyright", "community",
+            "soundcloud", "tracks", "likes", "reposts", "following", "followers"
+        )
+        return knownNoise.contains(t.lowercase())
+    }
+
+    /**
+     * Niveau 1 — Détection podcast/single par le titre (instant, zero network).
+     *
+     * Détecte :
+     * - "Episode 123", "Ep.45", "#12", "Vol. 3"  → série radio/podcast
+     * - Mots-clés radio explicites : podcast, weekly, monthly, sessions, radio show...
+     * - Titres = [Mots] + [entier > 19] sans contexte live/venue (ex: "Captive Soul 47")
+     * - Mots-clés single : "Original Mix", "Extended Mix", "Remix", "Radio Edit", etc.
+     */
+    fun isPodcastTitle(title: String): Boolean {
+        val t = title.lowercase()
+
+        // Mots-clés single audio (pas un set)
+        val singleKeywords = listOf(
+            "original mix", "extended mix", "radio edit", "club mix",
+            "vip mix", "dub mix", "rework", "remaster",
+            " feat.", " ft.", " featuring "
+        )
+        if (singleKeywords.any { t.contains(it) }) return true
+
+        // Mots-clés radio explicites
+        val radioKeywords = listOf(
+            "podcast", "radio show", "radio mix", "weekly", "monthly",
+            "sessions ep", "radio episode", "radio #",
+            "presents go on air", "go on air"
+        )
+        if (radioKeywords.any { t.contains(it) }) return true
+
+        // Patterns épisode numérotés : "Episode 123", "Ep.45", "Ep 12", "#45", "Vol. 3"
+        val episodePattern = Regex(
+            """\b(episode|ep\.?|vol\.?)\s*\d+\b|#\s*\d{2,}""",
+            RegexOption.IGNORE_CASE
+        )
+        if (episodePattern.containsMatchIn(title)) return true
+
+        // Heuristique série : titre se termine par un entier > 19 SANS contexte live/venue
+        // EXCEPTION : les années (1900-2099) ne sont PAS des numéros de série
+        val liveContext = listOf("live", "at", "@", "festival", "stage", "club", "arena",
+            "techno", "trance", "set", "mix", "boiler", "cercle")
+        val hasLiveContext = liveContext.any { t.contains(it) }
+        if (!hasLiveContext) {
+            val seriesPattern = Regex("""\b([2-9]\d{1,3}|[1-9]\d{2,})\s*$""")
+            val yearPattern   = Regex("""\b(19|20)\d{2}\s*$""")   // 1900-2099 = année, pas un épisode
+            if (seriesPattern.containsMatchIn(title.trim()) && !yearPattern.containsMatchIn(title.trim())) return true
+        }
+
+        return false
+    }
+
+    /**
+     * Niveau 2 — Durée de la piste SC via la page HTML.
+     * Essaie dans l'ordre :
+     *  1. window.__sc_hydration JSON (data.duration en ms) — le plus fiable
+     *  2. <meta property="music:duration" content="..."> (en secondes)
+     * Retourne la durée en secondes, ou 0 si non disponible.
+     */
+    private suspend fun fetchTrackDurationSec(trackUrl: String): Int = withContext(Dispatchers.IO) {
+        try {
+            val client = okHttpClient.newBuilder()
+                .connectTimeout(8, TimeUnit.SECONDS)
+                .readTimeout(10, TimeUnit.SECONDS)
+                .followRedirects(true)
+                .build()
+            val html = client.newCall(
+                Request.Builder()
+                    .url(trackUrl)
+                    .header("User-Agent", "Mozilla/5.0 (Linux; Android 14; Pixel 8) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Mobile Safari/537.36")
+                    .header("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8")
+                    .header("Accept-Language", "en-US,en;q=0.5")
+                    .header("Referer", "https://soundcloud.com/")
+                    .build()
+            ).execute().use { resp ->
+                val body = resp.body ?: return@use ""
+                val source = body.source()
+                val sb = StringBuilder()
+                val buf = okio.Buffer()
+                // Lire jusqu'à __sc_hydration ou 64 KB max (hydration est dans le body)
+                while (sb.length < 65_536) {
+                    if (source.exhausted()) break
+                    source.read(buf, 4096)
+                    val chunk = buf.readUtf8()
+                    sb.append(chunk)
+                    if (sb.contains("__sc_hydration", ignoreCase = false)) break
+                }
+                sb.toString()
+            }
+
+            // 1. Essai window.__sc_hydration — "duration" en millisecondes
+            val hydrationMs = Regex(""""duration"\s*:\s*(\d{4,})""").find(html)
+                ?.groupValues?.get(1)?.toLongOrNull()
+            if (hydrationMs != null && hydrationMs > 0) {
+                val sec = (hydrationMs / 1000).toInt()
+                Log.d(TAG, "duration(hydration) $trackUrl → ${sec}s")
+                return@withContext sec
+            }
+
+            // 2. Fallback <meta property="music:duration"> — en secondes
+            val metaRegex = Regex(
+                """<meta[^>]*(?:property="music:duration"[^>]*content="(\d+)"|content="(\d+)"[^>]*property="music:duration")""",
+                RegexOption.IGNORE_CASE
+            )
+            val metaMatch = metaRegex.find(html)
+            val metaSec = metaMatch?.groupValues?.get(1)?.toIntOrNull()
+                ?: metaMatch?.groupValues?.get(2)?.toIntOrNull()
+            if (metaSec != null && metaSec > 0) {
+                Log.d(TAG, "duration(meta) $trackUrl → ${metaSec}s")
+                return@withContext metaSec
+            }
+
+            Log.d(TAG, "no duration found for $trackUrl (html=${html.length}B)")
+            0
+        } catch (e: Exception) {
+            Log.d(TAG, "fetchDuration failed for $trackUrl: ${e.message}")
+            0
+        }
+    }
+
+    /**
+     * Filtre qualité sur une liste de ScSet (3 niveaux, tout en mémoire — pas de réseau) :
+     * 0. Titre bogus (nav SC, trop court)
+     * 1. Titre podcast/single (mots-clés + pattern épisode numéroté)
+     * 2. Durée < 45 min capturée depuis le DOM (0 = inconnue → conservé par défaut)
+     */
+    fun filterSets(sets: List<ScSet>): List<ScSet> {
+        val MIN_DURATION_SEC = 45 * 60
+
+        // Niveau 0 : bogus
+        val afterBogus = sets.filter { set ->
+            val bogus = isBogusTitle(set.title)
+            if (bogus) Log.i(TAG, "Excluded bogus: '${set.title}'")
+            !bogus
+        }
+        Log.i(TAG, "After bogus: ${afterBogus.size}/${sets.size}")
+
+        // Niveau 1 : podcast/single
+        val afterTitle = afterBogus.filter { set ->
+            val excl = isPodcastTitle(set.title)
+            if (excl) Log.i(TAG, "Excluded podcast: '${set.title}'")
+            !excl
+        }
+        Log.i(TAG, "After title: ${afterTitle.size}/${afterBogus.size}")
+
+        // Niveau 2 : durée (capturée dans le DOM)
+        val afterDur = afterTitle.filter { set ->
+            val keep = set.durationSec == 0 || set.durationSec >= MIN_DURATION_SEC
+            if (!keep) Log.i(TAG, "Excluded short (${set.durationSec}s): '${set.title}'")
+            keep
+        }
+        Log.i(TAG, "After duration: ${afterDur.size}/${afterTitle.size}")
+        return afterDur
     }
 }

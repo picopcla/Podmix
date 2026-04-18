@@ -9,15 +9,20 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.TextField
+import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
@@ -33,9 +38,12 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import coil3.compose.AsyncImage
 import com.podmix.ui.components.EpisodeRow
+import androidx.compose.ui.text.input.ImeAction
 import com.podmix.ui.theme.AccentPrimary
 import com.podmix.ui.theme.Background
+import com.podmix.ui.theme.SurfaceSecondary
 import com.podmix.ui.theme.TextPrimary
+import com.podmix.ui.theme.TextSecondary
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -46,6 +54,7 @@ fun PodcastDetailScreen(
 ) {
     val podcast by viewModel.podcast.collectAsState()
     val episodes by viewModel.episodes.collectAsState()
+    val searchQuery by viewModel.searchQuery.collectAsState()
     val isRefreshing by viewModel.isRefreshing.collectAsState()
     val playerState by viewModel.playerState.collectAsState()
     val episodeIdsWithTracks by viewModel.episodeIdsWithTracks.collectAsState()
@@ -105,6 +114,11 @@ fun PodcastDetailScreen(
                     )
                 }
                 Spacer(Modifier.height(8.dp))
+                // ── Barre de recherche live ──
+                PodcastSearchBar(
+                    query = searchQuery,
+                    onQueryChange = { viewModel.search(it) }
+                )
             }
 
             // Episode list
@@ -124,4 +138,39 @@ fun PodcastDetailScreen(
             item { Spacer(Modifier.height(80.dp)) }
         }
     }
+}
+
+@Composable
+private fun PodcastSearchBar(
+    query: String,
+    onQueryChange: (String) -> Unit
+) {
+    TextField(
+        value = query,
+        onValueChange = onQueryChange,
+        modifier = androidx.compose.ui.Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 12.dp, vertical = 6.dp)
+            .clip(RoundedCornerShape(10.dp)),
+        placeholder = { Text("Rechercher un épisode...", color = TextSecondary, fontSize = 13.sp) },
+        leadingIcon = { Icon(Icons.Default.Search, null, tint = TextSecondary) },
+        trailingIcon = {
+            if (query.isNotEmpty()) {
+                IconButton(onClick = { onQueryChange("") }) {
+                    Icon(Icons.Default.Clear, "Effacer", tint = TextSecondary)
+                }
+            }
+        },
+        singleLine = true,
+        keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
+        colors = TextFieldDefaults.colors(
+            focusedContainerColor = SurfaceSecondary,
+            unfocusedContainerColor = SurfaceSecondary,
+            focusedTextColor = TextPrimary,
+            unfocusedTextColor = TextPrimary,
+            cursorColor = AccentPrimary,
+            focusedIndicatorColor = androidx.compose.ui.graphics.Color.Transparent,
+            unfocusedIndicatorColor = androidx.compose.ui.graphics.Color.Transparent
+        )
+    )
 }

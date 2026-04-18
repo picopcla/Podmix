@@ -8,6 +8,7 @@ import com.podmix.data.local.dao.PodcastDao
 import com.podmix.data.local.dao.TrackDao
 import com.podmix.domain.model.Episode
 import com.podmix.domain.model.Podcast
+import com.podmix.service.DeezerService
 import com.podmix.service.FavoritePlayItem
 import com.podmix.service.PlayerController
 import com.podmix.service.SpotifyService
@@ -24,7 +25,8 @@ class FavoritesViewModel @Inject constructor(
     private val episodeDao: EpisodeDao,
     private val podcastDao: PodcastDao,
     private val playerController: PlayerController,
-    private val spotifyService: SpotifyService
+    private val spotifyService: SpotifyService,
+    private val deezerService: DeezerService
 ) : ViewModel() {
 
     val favorites: StateFlow<List<FavoriteWithInfo>> = trackDao.getAllFavorites()
@@ -34,6 +36,7 @@ class FavoritesViewModel @Inject constructor(
 
     init {
         backfillSpotify()
+        backfillDeezer()
 
         playerController.onTrackEnded = {
             viewModelScope.launch {
@@ -78,7 +81,8 @@ class FavoritesViewModel @Inject constructor(
                 id = t.id, episodeId = t.episodeId, position = t.position,
                 title = t.title, artist = t.artist,
                 startTimeSec = t.startTimeSec, endTimeSec = t.endTimeSec,
-                isFavorite = t.isFavorite, spotifyUrl = t.spotifyUrl
+                isFavorite = t.isFavorite, spotifyUrl = t.spotifyUrl,
+                deezerUrl = t.deezerUrl
             )
         }
         val seekMs = (item.startTimeSec * 1000).toLong()
@@ -126,6 +130,26 @@ class FavoritesViewModel @Inject constructor(
             val allFavs = trackDao.getAllFavoritesSuspend()
             allFavs.filter { it.spotifyUrl == null }.forEach { fav ->
                 spotifyService.searchAndSave(fav.id, fav.artist, fav.title)
+            }
+        }
+    }
+
+    fun backfillDeezer() {
+        viewModelScope.launch {
+            val allFavs = trackDao.getAllFavoritesSuspend()
+            allFavs.filter { it.deezerUrl == null }.forEach { fav ->
+                deezerService.searchAndSave(fav.id, fav.artist, fav.title)
+            }
+        }
+    }
+
+    /** Force la re-détection Deezer pour TOUS les favoris, même ceux déjà traités. */
+    fun forceRefreshDeezer() {
+        viewModelScope.launch {
+            val allFavs = trackDao.getAllFavoritesSuspend()
+            android.util.Log.i("FavoritesVM", "Force Deezer refresh for ${allFavs.size} favorites")
+            allFavs.forEach { fav ->
+                deezerService.searchAndSave(fav.id, fav.artist, fav.title)
             }
         }
     }

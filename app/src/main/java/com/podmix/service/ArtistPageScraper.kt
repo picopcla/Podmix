@@ -62,8 +62,18 @@ class ArtistPageScraper @Inject constructor(
                     var title = link.innerText.trim() || link.title || '';
                     if (!title || !href) return;
 
-                    var dateEl = row.querySelector('span.date, .tlpDateTimeLabel, time, .cTlDate');
-                    var date = dateEl ? dateEl.innerText.trim() : '';
+                    var dateEl = row.querySelector(
+                        'span.date, .tlpDateTimeLabel, time, .cTlDate, ' +
+                        '.tlpDate, [class*="date"], [class*="Date"], ' +
+                        'span[class*="time"], .tlpDateTime, .eventDate'
+                    );
+                    var date = dateEl ? (dateEl.getAttribute('datetime') || dateEl.innerText || '').trim() : '';
+                    if (!date) {
+                        // Fallback: chercher n'importe quel texte ressemblant à une date dans la row
+                        var allText = row.innerText || '';
+                        var dm = allText.match(/\b(\d{1,2}[\.\-\/]\d{1,2}[\.\-\/]\d{2,4}|\d{1,2}\s+[A-Za-z]{3,}\s+\d{4}|[A-Za-z]{3,}\s+\d{1,2},?\s+\d{4})\b/);
+                        if (dm) date = dm[1];
+                    }
 
                     var viewEl = row.querySelector('.tlpViewCnt, .viewCount, span[class*="view"], .cTlViewCnt');
                     var views = 0;
@@ -90,8 +100,12 @@ class ArtistPageScraper @Inject constructor(
                         var date = '';
                         var views = 0;
                         if (parent) {
-                            var dateEl = parent.querySelector('span.date, time, [class*="date"]');
-                            if (dateEl) date = dateEl.innerText.trim();
+                            var dateEl = parent.querySelector('span.date, time, [class*="date"], [class*="Date"], .tlpDate, .tlpDateTimeLabel');
+                            if (dateEl) date = (dateEl.getAttribute('datetime') || dateEl.innerText || '').trim();
+                            if (!date) {
+                                var dm2 = (parent.innerText || '').match(/\b(\d{1,2}[\.\-\/]\d{1,2}[\.\-\/]\d{2,4}|\d{1,2}\s+[A-Za-z]{3,}\s+\d{4}|[A-Za-z]{3,}\s+\d{1,2},?\s+\d{4})\b/);
+                                if (dm2) date = dm2[1];
+                            }
                             var viewEl = parent.querySelector('[class*="view"], [class*="cnt"]');
                             if (viewEl) views = parseInt(viewEl.innerText.replace(/[^0-9]/g, '')) || 0;
                         }

@@ -13,6 +13,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.launch
+import java.net.URI
 import javax.inject.Inject
 
 @HiltViewModel
@@ -40,7 +41,7 @@ class AddRadioViewModel @Inject constructor(
         viewModelScope.launch {
             searchTrigger
                 .debounce(400)
-                .filter { it.length >= 2 }
+                .filter { it.length >= 2 && !isStreamUrl(it) }
                 .collect { term ->
                     _isLoading.value = true
                     try {
@@ -59,6 +60,17 @@ class AddRadioViewModel @Inject constructor(
             searchTrigger.tryEmit(newQuery)
         } else {
             _results.value = emptyList()
+        }
+    }
+
+    fun isStreamUrl(text: String): Boolean =
+        text.trimStart().startsWith("http", ignoreCase = true)
+
+    fun addByStreamUrl(url: String) {
+        val name = try { URI(url).host ?: url } catch (_: Exception) { url }
+        viewModelScope.launch {
+            repository.addRadio(name = name, streamUrl = url.trim(), logoUrl = null)
+            _addedEvent.emit(Unit)
         }
     }
 

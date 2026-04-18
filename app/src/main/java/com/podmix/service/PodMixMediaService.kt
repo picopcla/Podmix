@@ -158,6 +158,27 @@ class PodMixMediaService : MediaLibraryService() {
             }
         }
 
+        override fun onPlaybackResumption(
+            mediaSession: MediaSession,
+            controller: MediaSession.ControllerInfo
+        ): ListenableFuture<MediaSession.MediaItemsWithStartPosition> {
+            return serviceScope.future {
+                val episode = playerController.playerState.value.currentEpisode
+                val podcast  = playerController.playerState.value.currentPodcast
+                if (episode != null && podcast != null) {
+                    val item = resolveEpisodeToPlayable(episode.id)
+                    if (item != null) {
+                        val posMs = (episode.progressSeconds * 1000L).coerceAtLeast(0L)
+                        MediaSession.MediaItemsWithStartPosition(listOf(item), 0, posMs)
+                    } else {
+                        throw RuntimeException("Cannot resolve episode ${episode.id}")
+                    }
+                } else {
+                    throw RuntimeException("No current episode to resume")
+                }
+            }
+        }
+
         override fun onAddMediaItems(
             mediaSession: MediaSession,
             controller: MediaSession.ControllerInfo,
@@ -320,6 +341,28 @@ class PodMixMediaService : MediaLibraryService() {
                                 .setIsBrowsable(false)
                                 .setIsPlayable(true)
                                 .setMediaType(MediaMetadata.MEDIA_TYPE_PODCAST_EPISODE)
+                                .build()
+                        )
+                        .build()
+                }
+                mediaId.startsWith(FAVORITE_PREFIX) -> {
+                    val parts = mediaId.removePrefix(FAVORITE_PREFIX).split("/")
+                    if (parts.size != 2) return null
+                    val episodeId = parts[0].toIntOrNull() ?: return null
+                    val episode = episodeDao.getById(episodeId) ?: return null
+                    val podcast = podcastDao.getById(episode.podcastId)
+                    MediaItem.Builder()
+                        .setMediaId(mediaId)
+                        .setMediaMetadata(
+                            MediaMetadata.Builder()
+                                .setTitle(episode.title)
+                                .setArtist(podcast?.name)
+                                .setArtworkUri(
+                                    (episode.artworkUrl ?: podcast?.logoUrl)?.let { Uri.parse(it) }
+                                )
+                                .setIsBrowsable(false)
+                                .setIsPlayable(true)
+                                .setMediaType(MediaMetadata.MEDIA_TYPE_MUSIC)
                                 .build()
                         )
                         .build()

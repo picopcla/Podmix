@@ -14,6 +14,7 @@ import com.podmix.domain.model.SourceStatus
 import com.podmix.domain.model.Track
 import com.podmix.service.DownloadState
 import com.podmix.service.EpisodeDownloadManager
+import com.podmix.service.OnDeviceAudioSplitService
 import com.podmix.service.PlayerController
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -37,7 +38,8 @@ class EpisodeDetailViewModel @Inject constructor(
     private val trackRepository: TrackRepository,
     private val playerController: PlayerController,
     private val youTubeStreamResolver: com.podmix.service.YouTubeStreamResolver,
-    private val downloadManager: EpisodeDownloadManager
+    private val downloadManager: EpisodeDownloadManager,
+    private val onDeviceAudioSplitService: OnDeviceAudioSplitService
 ) : ViewModel() {
 
     private val podcastId: Int = savedStateHandle["podcastId"] ?: 0
@@ -54,6 +56,14 @@ class EpisodeDetailViewModel @Inject constructor(
 
     private val _sourceResults = MutableStateFlow<List<SourceResult>>(emptyList())
     val sourceResults: StateFlow<List<SourceResult>> = _sourceResults.asStateFlow()
+
+    /** true quand l'analyse audio on-device est en cours (wig wag orange) */
+    private val _isAudioAnalyzing = MutableStateFlow(false)
+    val isAudioAnalyzing: StateFlow<Boolean> = _isAudioAnalyzing.asStateFlow()
+
+    /** Message de progression de l'analyse on-device */
+    private val _audioAnalysisStatus = MutableStateFlow("")
+    val audioAnalysisStatus: StateFlow<String> = _audioAnalysisStatus.asStateFlow()
 
     val tracks: StateFlow<List<Track>> = trackRepository.getTracksForEpisode(episodeId)
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
@@ -117,6 +127,7 @@ class EpisodeDetailViewModel @Inject constructor(
             SourceResult("MixesDB", SourceStatus.PENDING),
             SourceResult("yt-dlp", SourceStatus.PENDING),
             SourceResult("Shazam/IA", SourceStatus.PENDING),
+            SourceResult("Analyse Audio", SourceStatus.PENDING),
         )
 
         val onSourceResult: (SourceResult) -> Unit = { result ->
@@ -138,7 +149,7 @@ class EpisodeDetailViewModel @Inject constructor(
                 ep.description
             }
 
-            trackRepository.detectAndSaveTracks(
+            val found = trackRepository.detectAndSaveTracks(
                 episodeId = ep.id,
                 description = description,
                 episodeTitle = ep.title,
@@ -148,10 +159,85 @@ class EpisodeDetailViewModel @Inject constructor(
                 onSourceResult = onSourceResult,
                 isLiveSet = ep.episodeType == "liveset",
                 youtubeVideoId = ep.youtubeVideoId,
-                audioUrl = ep.audioUrl.takeIf { it.isNotBlank() }
+                audioUrl = ep.audioUrl.takeIf { it.isNotBlank() },
+                mixcloudKey = ep.mixcloudKey
             )
+
+            // ── Analyse on-device si aucune source n'a trouvé de tracklist ──
+            if (!found) {
+                runOnDeviceAudioSplit(ep, onSourceResult)
+            } else {
+                // Marquer la source "Analyse Audio" comme skippée (pas nécessaire)
+                onSourceResult(SourceResult("Analyse Audio", SourceStatus.SKIPPED,
+                    reason = "tracklist trouvée par autre source"))
+            }
         } finally {
             _detectStatus.value = ""
+            _isAudioAnalyzing.value = false
+            _audioAnalysisStatus.value = ""
+        }
+    }
+
+    /**
+     * Analyse audio on-device : résout l'URL audio puis lance [OnDeviceAudioSplitService].
+     * Affiche le wig wag orange durant l'analyse.
+     */
+    private suspend fun runOnDeviceAudioSplit(
+        ep: com.podmix.domain.model.Episode,
+        onSourceResult: (SourceResult) -> Unit
+    ) {
+        // Résoudre l'URL audio
+        val audioUrl: String? = when {
+            !ep.localAudioPath.isNullOrBlank() -> "file://${ep.localAudioPath}"
+            ep.audioUrl.isNotBlank() -> ep.audioUrl
+            !ep.youtubeVideoId.isNullOrBlank() -> {
+                _detectStatus.value = "🔗 Résolution URL YouTube..."
+                try {
+                    youTubeStreamResolver.resolve(ep.youtubeVideoId)
+                } catch (e: Exception) {
+                    android.util.Log.w("EpisodeVM", "resolveAudioUrl failed: ${e.message}")
+                    null
+                }
+            }
+            else -> null
+        }
+
+        if (audioUrl.isNullOrBlank()) {
+            onSourceResult(SourceResult("Analyse Audio", SourceStatus.SKIPPED,
+                reason = "aucune source audio résolvable"))
+            return
+        }
+
+        val tStart = System.currentTimeMillis()
+        onSourceResult(SourceResult("Analyse Audio", SourceStatus.RUNNING))
+        _isAudioAnalyzing.value = true
+
+        try {
+            val tracks = onDeviceAudioSplitService.analyze(
+                audioUrl = audioUrl,
+                durationSec = ep.durationSeconds,
+                onProgress = { pct, msg ->
+                    _detectStatus.value = "🎵 On-device $pct% — $msg"
+                    _audioAnalysisStatus.value = msg
+                }
+            )
+
+            val elapsed = System.currentTimeMillis() - tStart
+            if (tracks.size >= 2) {
+                trackRepository.saveTracksForEpisode(ep.id, tracks, hasTimestamps = true)
+                onSourceResult(SourceResult("Analyse Audio", SourceStatus.SUCCESS,
+                    trackCount = tracks.size, elapsedMs = elapsed))
+            } else {
+                onSourceResult(SourceResult("Analyse Audio", SourceStatus.FAILED,
+                    elapsedMs = elapsed, reason = "transitions insuffisantes (${tracks.size})"))
+            }
+        } catch (e: Exception) {
+            android.util.Log.e("EpisodeVM", "On-device analysis error: ${e.message}", e)
+            onSourceResult(SourceResult("Analyse Audio", SourceStatus.FAILED,
+                reason = e.message ?: "erreur inconnue"))
+        } finally {
+            _isAudioAnalyzing.value = false
+            _audioAnalysisStatus.value = ""
         }
     }
 

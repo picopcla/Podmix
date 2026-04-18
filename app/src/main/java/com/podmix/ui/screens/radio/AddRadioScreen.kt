@@ -17,6 +17,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Radio
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -102,7 +104,24 @@ fun AddRadioScreen(
 
             Spacer(Modifier.height(8.dp))
 
-            if (isLoading) {
+            if (viewModel.isStreamUrl(query)) {
+                Button(
+                    onClick = { viewModel.addByStreamUrl(query.trim()) },
+                    enabled = !isLoading,
+                    colors = ButtonDefaults.buttonColors(containerColor = AccentPrimary),
+                    shape = RoundedCornerShape(8.dp),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    if (isLoading) {
+                        CircularProgressIndicator(color = Color.White, modifier = Modifier.size(16.dp), strokeWidth = 2.dp)
+                        Spacer(Modifier.width(8.dp))
+                    }
+                    Text("Ajouter ce flux", color = Color.White)
+                }
+                Spacer(Modifier.height(8.dp))
+            }
+
+            if (isLoading && !viewModel.isStreamUrl(query)) {
                 CircularProgressIndicator(
                     color = AccentPrimary,
                     modifier = Modifier

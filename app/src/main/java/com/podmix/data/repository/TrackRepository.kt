@@ -55,7 +55,8 @@ class TrackRepository @Inject constructor(
         isLiveSet: Boolean = false,
         youtubeVideoId: String? = null,
         audioUrl: String? = null,
-        tracklistPageUrl: String? = null
+        tracklistPageUrl: String? = null,
+        mixcloudKey: String? = null
     ): Boolean {
         val existing = trackDao.getByEpisodeId(episodeId)
         if (existing.isNotEmpty()) {
@@ -115,7 +116,9 @@ class TrackRepository @Inject constructor(
             status(5, "🌐 1001Tracklists WebView... ${elapsed()}")
             val from1001 = try1001TL(query, knownUrl = tracklistPageUrl)
             val elapsed1001 = System.currentTimeMillis() - t1001
-            val has1001Timestamps = from1001?.any { it.startTimeSec > 0f } == true
+            // ≥50% des tracks (hors 1er) ont un timestamp valide → mode timestampé
+            val has1001Timestamps = from1001 != null && from1001.size >= 3 &&
+                from1001.drop(1).count { it.startTimeSec > 0f } >= (from1001.size - 1) / 2
             if (from1001 != null && from1001.size >= 3 && has1001Timestamps) {
                 // 1001TL avec timestamps → résultat parfait, on s'arrête
                 trackDao.deleteByEpisode(episodeId)
@@ -195,11 +198,15 @@ class TrackRepository @Inject constructor(
                 onSourceResult?.invoke(SourceResult("Commentaires YouTube", SourceStatus.SKIPPED, reason = "pas de vidéo YouTube"))
             }
 
-            // ── 4. Mixcloud (Retrofit direct) ──
+            // ── 4. Mixcloud (clé directe > recherche par titre) ──
             val tM = System.currentTimeMillis()
             onSourceResult?.invoke(SourceResult("Mixcloud", SourceStatus.RUNNING))
-            status(60, "🔍 Mixcloud: $query ${elapsed()}")
-            val fromMixcloud = tryMixcloud(query)
+            status(60, "🔍 Mixcloud${if (!mixcloudKey.isNullOrBlank()) " (clé directe)" else ": $query"} ${elapsed()}")
+            val fromMixcloud = if (!mixcloudKey.isNullOrBlank()) {
+                tryMixcloudByKey(mixcloudKey)
+            } else {
+                tryMixcloud(query)
+            }
             val mixcloudElapsed = System.currentTimeMillis() - tM
             if (fromMixcloud != null && fromMixcloud.size >= 3) {
                 trackDao.deleteByEpisode(episodeId)
@@ -346,7 +353,7 @@ class TrackRepository @Inject constructor(
             val from1001 = try1001TL(query, knownUrl = null)
             val elapsed1001 = System.currentTimeMillis() - t1001
             if (from1001 != null && from1001.size >= 3) {
-                val has1001Timestamps = from1001.any { it.startTimeSec > 0f }
+                val has1001Timestamps = from1001.drop(1).count { it.startTimeSec > 0f } >= (from1001.size - 1) / 2
                 trackDao.deleteByEpisode(episodeId)
                 saveTracks(episodeId, from1001, has1001Timestamps, episodeDurationSec, "1001tl")
                 onSourceResult?.invoke(SourceResult("1001Tracklists", SourceStatus.SUCCESS,
@@ -455,11 +462,9 @@ class TrackRepository @Inject constructor(
                 Log.i("TrackRepo", "1001TL using known URL: $knownUrl")
                 tracklistUrl = knownUrl
             } else {
-                // Nettoyer le titre : supprimer les suffixes YouTube descriptifs après " / " ou " | "
-                val cleanQuery = query
-                    .replace(Regex("""\s*/\s*.+$"""), "")
-                    .replace(Regex("""\s*\|\s*.+$"""), "")
-                    .trim()
+                // Extraire les mots-clés pertinents (pas le titre complet — trop spécifique)
+                val cleanQuery = extractKeywords(query, maxWords = 5)
+                Log.i("TrackRepo", "1001TL keyword query: '$cleanQuery' (from: '$query')")
 
                 // Trouver l'URL via DuckDuckGo
                 val searchUrl = "https://html.duckduckgo.com/html/?q=" +
@@ -480,14 +485,20 @@ class TrackRepository @Inject constructor(
                 } ?: run { Log.w("TrackRepo", "1001TL: DDG empty response"); return null }
 
                 Log.i("TrackRepo", "1001TL DDG response size=${ddgHtml.length}")
-                val urlMatch = Regex("""uddg=([^&"]+)""").find(ddgHtml)
-                    ?: run { Log.w("TrackRepo", "1001TL: no uddg link in DDG response"); return null }
-                val candidate = java.net.URLDecoder.decode(urlMatch.groupValues[1], "UTF-8")
-                Log.i("TrackRepo", "1001TL candidate URL: $candidate")
-                if (!candidate.contains("1001tracklists.com/tracklist/")) {
-                    Log.w("TrackRepo", "1001TL: URL not a tracklist page")
+                // Parcourir TOUS les liens uddg= et prendre le premier qui pointe
+                // vers une page tracklist 1001TL (le premier lien DDG n'est pas forcément 1001TL)
+                val candidate = Regex("""uddg=([^&"]+)""").findAll(ddgHtml)
+                    .map { java.net.URLDecoder.decode(it.groupValues[1], "UTF-8") }
+                    .firstOrNull { it.contains("1001tracklists.com/tracklist/") }
+                if (candidate == null) {
+                    // Aucun lien vers une tracklist 1001TL → log tous les candidats pour debug
+                    val allLinks = Regex("""uddg=([^&"]+)""").findAll(ddgHtml)
+                        .map { java.net.URLDecoder.decode(it.groupValues[1], "UTF-8") }
+                        .take(5).toList()
+                    Log.w("TrackRepo", "1001TL: pas de tracklist dans DDG. Liens trouvés: $allLinks")
                     return null
                 }
+                Log.i("TrackRepo", "1001TL candidate URL: $candidate")
                 tracklistUrl = candidate
             }
 
@@ -509,17 +520,25 @@ class TrackRepository @Inject constructor(
                     .build()
                 val ua = "Mozilla/5.0 (Android; PodMix)"
 
-                // 1. Search page
+                // Recherche par mots-clés (pas le titre complet)
+                val keywords = extractKeywords(query, maxWords = 4)
+                Log.i("TrackRepo", "MixesDB keyword query: '$keywords' (from: '$query')")
+
+                // 1. Search page — srlimit=3 pour avoir des candidats en cas de mauvais premier résultat
                 val searchUrl = "https://www.mixesdb.com/api.php?action=query&list=search" +
-                    "&srsearch=${URLEncoder.encode(query, "UTF-8")}&format=json&srlimit=1"
+                    "&srsearch=${URLEncoder.encode(keywords, "UTF-8")}&format=json&srlimit=3"
                 val searchResp = client.newCall(
                     okhttp3.Request.Builder().url(searchUrl).header("User-Agent", ua).build()
                 ).execute()
                 val searchJson = searchResp.body?.string() ?: return@withContext null
                 val results = JSONObject(searchJson)
                     .getJSONObject("query").getJSONArray("search")
-                if (results.length() == 0) return@withContext null
+                if (results.length() == 0) {
+                    Log.w("TrackRepo", "MixesDB: aucun résultat pour '$keywords'")
+                    return@withContext null
+                }
 
+                // Prendre le premier résultat (meilleur score MediaWiki)
                 val pageId = results.getJSONObject(0).getInt("pageid")
 
                 // 2. Fetch wikitext
@@ -626,7 +645,16 @@ class TrackRepository @Inject constructor(
                 mixcloudApi.search(query, "cloudcast")
             }
             val first = response.data?.firstOrNull() ?: return null
-            val key = first.key
+            tryMixcloudByKey(first.key)
+        } catch (e: Exception) {
+            Log.d("TrackRepo", "Mixcloud search: ${e.message}")
+            null
+        }
+    }
+
+    /** Récupère directement la tracklist Mixcloud depuis une clé connue (ex: /KOROLOVA/live-at-...) */
+    private suspend fun tryMixcloudByKey(key: String): List<ParsedTrack>? {
+        return try {
             val sections = withContext(Dispatchers.IO) {
                 mixcloudApi.getSections(key)
             }
@@ -636,14 +664,49 @@ class TrackRepository @Inject constructor(
                 val artist = s.track?.artist?.name ?: s.artistName ?: "Unknown"
                 val title = s.track?.name ?: s.songName ?: "Track ${i + 1}"
                 ParsedTrack(artist, title, s.startTime.toFloat())
-            }
+            }.also { Log.i("TrackRepo", "Mixcloud key=$key → ${it.size} tracks") }
         } catch (e: Exception) {
-            Log.d("TrackRepo", "Mixcloud: ${e.message}")
+            Log.d("TrackRepo", "Mixcloud key=$key: ${e.message}")
             null
         }
     }
 
     // ── Helpers ────────────────────────────────────────────────────────────────
+
+    /**
+     * Extrait les mots-clés significatifs d'une query de recherche DJ/liveset.
+     *
+     * Stratégie :
+     * - Normalise les séparateurs (@, -, –, |, /, etc.)
+     * - Supprime les années (2020-2029) et les nombres isolés
+     * - Supprime les mots parasites (live, set, at, open, closing, etc.)
+     * - Garde les [maxWords] premiers tokens significatifs (longueur > 2)
+     *
+     * Exemples :
+     *   "KOROLOVA Live @ Cercle - Belvedere Vienna 2024" → "KOROLOVA Cercle Belvedere Vienna"
+     *   "Tale Of Us b2b Afterlife 042 2023"              → "Tale Afterlife"
+     *   "Ben Bohmer - Live at Tomorrowland Main Stage"   → "Ben Bohmer Tomorrowland Main"
+     */
+    private fun extractKeywords(query: String, maxWords: Int = 4): String {
+        val noiseWords = setOf(
+            "live", "set", "at", "the", "a", "in", "on", "by", "and", "or", "of",
+            "mixed", "mix", "radio", "show", "ep", "episode", "vol", "volume",
+            "ft", "feat", "with", "presents", "b2b", "vs", "open", "closing",
+            "warm", "up", "down", "stage", "main", "room", "floor", "night",
+            "day", "festival", "tour", "all", "for", "from", "to", "is", "this"
+        )
+        return query
+            .replace(Regex("""[@\-–—|/\[\](){}#]"""), " ")   // normalise séparateurs
+            .replace(Regex("""\b20\d{2}\b"""), "")             // supprime années 20xx
+            .replace(Regex("""\b\d+\b"""), "")                 // supprime nombres isolés
+            .replace(Regex("""\s+"""), " ")
+            .trim()
+            .split(" ")
+            .filter { it.length > 2 && it.lowercase() !in noiseWords }
+            .take(maxWords)
+            .joinToString(" ")
+            .ifBlank { query.take(40) }  // fallback si tout est filtré
+    }
 
     suspend fun saveTracksForEpisode(episodeId: Int, tracks: List<ParsedTrack>, hasTimestamps: Boolean) {
         saveTracks(episodeId, tracks, hasTimestamps, 0, "1001tl")
@@ -653,10 +716,14 @@ class TrackRepository @Inject constructor(
         episodeId: Int, tracks: List<ParsedTrack>,
         hasTimestamps: Boolean, durationSec: Int, source: String
     ) {
-        val effectiveDuration = if (durationSec > 0) durationSec else 5400 // 90 min par défaut pour les live sets
-        val entities = tracks.mapIndexed { index, p ->
+        val effectiveDuration = if (durationSec > 0) durationSec else 5400 // 90 min par défaut
+
+        // Si le mode timestampé est activé, nettoyer les 0f parasites au milieu de la liste
+        val finalTracks = if (hasTimestamps) fixZeroTimestamps(tracks, effectiveDuration) else tracks
+
+        val entities = finalTracks.mapIndexed { index, p ->
             val startSec = if (hasTimestamps) p.startTimeSec
-            else (effectiveDuration.toFloat() * index / tracks.size)
+            else (effectiveDuration.toFloat() * index / finalTracks.size)
             TrackEntity(
                 episodeId = episodeId, position = index,
                 title = p.title, artist = p.artist,
@@ -665,6 +732,57 @@ class TrackRepository @Inject constructor(
         }
         trackDao.deleteByEpisode(episodeId)
         trackDao.insertAll(entities)
+    }
+
+    /**
+     * Corrige les timestamps 0f parasites au milieu d'une liste timestampée.
+     *
+     * Stratégie :
+     * - Le premier track à 0:00 est correct (début du set) → intact
+     * - Un track i>0 avec startTimeSec=0f alors que son prédécesseur > 0 → valeur cassée
+     *   → interpolation linéaire entre le voisin précédent valide et le suivant valide
+     *   → ou extrapolation par durée moyenne si aucun successeur valide
+     *
+     * Aucun impact si tous les timestamps sont déjà corrects.
+     */
+    private fun fixZeroTimestamps(tracks: List<ParsedTrack>, fallbackDurationSec: Int): List<ParsedTrack> {
+        if (tracks.size < 2) return tracks
+        val n = tracks.size
+        val times = tracks.map { it.startTimeSec }.toMutableList()
+
+        // Calculer la durée moyenne d'un track à partir des segments connus
+        // (pour l'extrapolation en fin de liste)
+        fun avgTrackDuration(): Float {
+            val validPairs = (0 until n).filter { i -> i == 0 || times[i] > 0f }
+            return if (validPairs.size >= 2) {
+                val first = validPairs.first()
+                val last = validPairs.last()
+                (times[last] - times[first]) / (last - first).coerceAtLeast(1)
+            } else fallbackDurationSec.toFloat() / n.coerceAtLeast(1)
+        }
+
+        for (i in 1 until n) {
+            if (times[i] > 0f) continue // déjà valide
+
+            // Cherche le précédent valide (i=0 est toujours valide : 0:00 légit)
+            val prevIdx = (0 until i).lastOrNull { j -> j == 0 || times[j] > 0f } ?: continue
+            val prevTime = times[prevIdx]
+
+            // Cherche le prochain valide
+            val nextIdx = (i + 1 until n).firstOrNull { j -> times[j] > 0f }
+
+            times[i] = if (nextIdx != null) {
+                // Interpolation linéaire entre prev et next
+                val nextTime = times[nextIdx]
+                prevTime + (nextTime - prevTime) * (i - prevIdx).toFloat() / (nextIdx - prevIdx)
+            } else {
+                // Extrapolation : pas de successeur connu → durée moyenne
+                prevTime + avgTrackDuration() * (i - prevIdx)
+            }
+            Log.d("TrackRepo", "fixTimestamp[$i] '${tracks[i].artist} - ${tracks[i].title}': 0→${times[i].toInt()}s")
+        }
+
+        return tracks.mapIndexed { i, t -> t.copy(startTimeSec = times[i]) }
     }
 
     suspend fun getTracksCountForEpisode(episodeId: Int): Int {
@@ -683,6 +801,8 @@ class TrackRepository @Inject constructor(
         id = id, episodeId = episodeId, position = position,
         title = title, artist = artist,
         startTimeSec = startTimeSec, endTimeSec = endTimeSec,
-        isFavorite = isFavorite, spotifyUrl = spotifyUrl
+        isFavorite = isFavorite, spotifyUrl = spotifyUrl,
+        deezerUrl = deezerUrl,
+        source = source ?: ""
     )
 }

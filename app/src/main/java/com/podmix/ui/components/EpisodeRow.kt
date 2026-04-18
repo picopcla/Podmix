@@ -1,6 +1,8 @@
 package com.podmix.ui.components
 
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
+import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -35,6 +37,7 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun EpisodeRow(
     episode: Episode,
@@ -70,9 +73,10 @@ fun EpisodeRow(
                     .background(dotColor, CircleShape)
             )
 
-            val dateStr = episode.datePublished?.let {
-                SimpleDateFormat("yyyy-MM-dd", Locale.US).format(Date(it))
-            } ?: ""
+            val dateStr = episode.datePublished
+                ?.takeIf { it > 0L }
+                ?.let { SimpleDateFormat("MMM yyyy", Locale.ENGLISH).format(Date(it)) }
+                ?: ""
             val durStr = if (episode.durationSeconds > 0) {
                 val h = episode.durationSeconds / 3600
                 val m = (episode.durationSeconds % 3600) / 60
@@ -81,16 +85,25 @@ fun EpisodeRow(
                 else String.format("%d:%02d", m, s)
             } else ""
 
+            // Date fixe (ne défile pas)
+            if (dateStr.isNotEmpty()) {
+                Text(
+                    text = "$dateStr · ",
+                    color = TextSecondary,
+                    fontSize = 11.sp,
+                    maxLines = 1,
+                    modifier = Modifier.padding(start = 8.dp)
+                )
+            }
+            // Titre seul défile en marquee
             Text(
-                text = buildString {
-                    if (dateStr.isNotEmpty()) append("$dateStr · ")
-                    append(episode.title)
-                },
+                text = episode.title,
                 color = if (isPlaying) Color(0xFFC084FC) else TextPrimary,
                 fontSize = 12.sp,
                 maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-                modifier = Modifier.weight(1f).padding(start = 8.dp)
+                modifier = Modifier
+                    .weight(1f)
+                    .basicMarquee(iterations = Int.MAX_VALUE)
             )
             if (downloadState is DownloadState.Downloaded) {
                 Icon(

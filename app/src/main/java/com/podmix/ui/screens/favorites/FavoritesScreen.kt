@@ -19,6 +19,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -57,9 +58,10 @@ fun FavoritesScreen(viewModel: FavoritesViewModel = hiltViewModel()) {
     val currentPosSec = playerState.currentPosition / 1000f
     val uriHandler = LocalUriHandler.current
 
-    // Backfill Spotify URLs each time screen appears
-    androidx.compose.runtime.LaunchedEffect(Unit) {
+    // Backfill au premier affichage seulement (déjà appelé dans init, ici = filet de sécurité)
+    androidx.compose.runtime.LaunchedEffect(viewModel) {
         viewModel.backfillSpotify()
+        viewModel.backfillDeezer()
     }
 
     val podcastFavs = favorites.filter { it.podcastType == "podcast" }
@@ -74,6 +76,9 @@ fun FavoritesScreen(viewModel: FavoritesViewModel = hiltViewModel()) {
             title = { Text("Favoris", color = TextPrimary, fontSize = 18.sp) },
             actions = {
                 if (favorites.isNotEmpty()) {
+                    IconButton(onClick = { viewModel.forceRefreshDeezer() }) {
+                        Icon(Icons.Default.Refresh, "Rafraîchir Deezer", tint = Color(0xFFEF5466))
+                    }
                     IconButton(onClick = { viewModel.playAllFavorites() }) {
                         Icon(Icons.Default.PlayArrow, "Tout lire", tint = AccentPrimary)
                     }
@@ -240,6 +245,23 @@ private fun FavoriteTrackRow(
                 painter = painterResource(R.drawable.ic_spotify),
                 contentDescription = "Ouvrir sur Spotify",
                 tint = if (fav.spotifyUrl != null) Color.Unspecified
+                       else TextSecondary.copy(alpha = 0.3f),
+                modifier = Modifier.size(20.dp)
+            )
+        }
+        IconButton(
+            onClick = {
+                if (fav.deezerUrl != null) {
+                    uriHandler.openUri(fav.deezerUrl!!)
+                }
+            },
+            enabled = fav.deezerUrl != null,
+            modifier = Modifier.size(32.dp)
+        ) {
+            Icon(
+                painter = painterResource(R.drawable.ic_deezer),
+                contentDescription = "Ouvrir sur Deezer",
+                tint = if (fav.deezerUrl != null) Color.Unspecified
                        else TextSecondary.copy(alpha = 0.3f),
                 modifier = Modifier.size(20.dp)
             )

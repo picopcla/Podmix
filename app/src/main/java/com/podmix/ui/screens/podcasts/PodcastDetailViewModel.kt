@@ -14,6 +14,8 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -43,7 +45,10 @@ class PodcastDetailViewModel @Inject constructor(
 
     val playerState = playerController.playerState
 
-    val episodes: StateFlow<List<Episode>> = episodeDao.getByPodcastId(podcastId)
+    private val _searchQuery = MutableStateFlow("")
+    val searchQuery: StateFlow<String> = _searchQuery.asStateFlow()
+
+    private val allEpisodes = episodeDao.getByPodcastId(podcastId)
         .map { list ->
             list.map { e ->
                 Episode(
@@ -63,7 +68,21 @@ class PodcastDetailViewModel @Inject constructor(
                 )
             }
         }
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+    val episodes: StateFlow<List<Episode>> = combine(allEpisodes, _searchQuery) { list, query ->
+        if (query.isBlank()) list
+        else {
+            val tokens = query.trim().lowercase().split(Regex("\\s+"))
+            list.filter { ep ->
+                tokens.all { token ->
+                    ep.title.contains(token, ignoreCase = true) ||
+                    ep.description?.contains(token, ignoreCase = true) == true
+                }
+            }
+        }
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+    fun search(query: String) { _searchQuery.value = query }
 
     init {
         viewModelScope.launch {

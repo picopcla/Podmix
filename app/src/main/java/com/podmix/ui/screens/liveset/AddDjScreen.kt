@@ -1,6 +1,8 @@
 package com.podmix.ui.screens.liveset
 
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
+import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -167,15 +169,18 @@ private fun SortChip(label: String, selected: Boolean, onClick: () -> Unit) {
     }
 }
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 private fun SetRow(item: DiscoveredSetUiItem, onClick: () -> Unit) {
-    val alpha = if (item.isAlreadyImported) 0.4f else 1f
+    val alpha = if (item.isAlreadyImported) 0.38f else 1f
+    val scColor = Color(0xFFFF5500)
+    val tlColor = AccentPrimary
 
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .clickable(enabled = !item.isAlreadyImported, onClick = onClick)
-            .padding(vertical = 10.dp, horizontal = 4.dp),
+            .padding(vertical = 5.dp, horizontal = 4.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         // Checkbox
@@ -184,45 +189,67 @@ private fun SetRow(item: DiscoveredSetUiItem, onClick: () -> Unit) {
                 Icons.Default.CheckCircle else Icons.Default.RadioButtonUnchecked,
             contentDescription = null,
             tint = when {
-                item.isAlreadyImported -> TextSecondary.copy(alpha = 0.4f)
+                item.isAlreadyImported -> TextSecondary.copy(alpha = 0.35f)
                 item.isSelected -> AccentPrimary
                 else -> TextSecondary
             },
-            modifier = Modifier.size(22.dp)
+            modifier = Modifier.size(18.dp)
         )
-        Spacer(Modifier.width(10.dp))
+        Spacer(Modifier.width(7.dp))
 
-        Column(modifier = Modifier.weight(1f)) {
-            Text(
-                text = item.set.title,
-                color = TextPrimary.copy(alpha = alpha),
-                fontSize = 13.sp,
-                fontWeight = FontWeight.Medium,
-                maxLines = 2,
-                overflow = TextOverflow.Ellipsis
-            )
-            Spacer(Modifier.height(2.dp))
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                if (item.set.date.isNotBlank()) {
-                    Text(item.set.date, color = TextSecondary.copy(alpha = alpha), fontSize = 11.sp)
-                }
-                if (item.set.viewCount > 0) {
-                    Text("${item.set.viewCount} views", color = TextSecondary.copy(alpha = alpha), fontSize = 11.sp)
-                }
+        // Titre — marquee scrolling si le texte dépasse
+        Text(
+            text = item.set.title,
+            color = TextPrimary.copy(alpha = alpha),
+            fontSize = 11.sp,
+            maxLines = 1,
+            modifier = Modifier
+                .weight(1f)
+                .basicMarquee(iterations = Int.MAX_VALUE)
+        )
+
+        Spacer(Modifier.width(6.dp))
+
+        // Métadonnées à droite : date + source
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(4.dp)
+        ) {
+            val dateShort = formatDateShort(item.set.date)
+            if (dateShort.isNotBlank()) {
                 Text(
-                    text = item.sourceLabel,
-                    color = when (item.sourceLabel) {
-                        "SC+TL", "SC" -> Color(0xFFFF5500).copy(alpha = alpha)
-                        else -> AccentPrimary.copy(alpha = alpha)
-                    },
-                    fontSize = 10.sp,
-                    fontWeight = FontWeight.Bold
+                    text = dateShort,
+                    color = TextSecondary.copy(alpha = alpha),
+                    fontSize = 9.sp
                 )
-                if (item.isAlreadyImported) {
-                    Text("✓ importé", color = AccentPrimary.copy(alpha = 0.5f), fontSize = 11.sp)
-                }
             }
+            Text(
+                text = item.sourceLabel,
+                color = when (item.sourceLabel) {
+                    "SC+TL", "SC" -> scColor.copy(alpha = alpha)
+                    else -> tlColor.copy(alpha = alpha)
+                },
+                fontSize = 9.sp,
+                fontWeight = FontWeight.Bold
+            )
         }
     }
-    HorizontalDivider(color = SurfaceSecondary, thickness = 0.5.dp)
+    HorizontalDivider(color = SurfaceSecondary.copy(alpha = 0.4f), thickness = 0.5.dp)
+}
+
+/** Formate une date en "MMM YY" (ex: "Mar 23") pour l'affichage compact. */
+private fun formatDateShort(date: String): String {
+    if (date.isBlank()) return ""
+    val formats = listOf("yyyy-MM-dd", "dd MMM yyyy", "MMM dd, yyyy", "dd.MM.yyyy",
+        "MM/dd/yyyy", "dd/MM/yyyy", "MMMM dd, yyyy", "dd MMMM yyyy")
+    for (fmt in formats) {
+        try {
+            val sdf = java.text.SimpleDateFormat(fmt, java.util.Locale.ENGLISH)
+            sdf.isLenient = false
+            val parsed = sdf.parse(date) ?: continue
+            return java.text.SimpleDateFormat("MMM yy", java.util.Locale.ENGLISH).format(parsed)
+        } catch (_: Exception) { }
+    }
+    // Fallback : retourner les 7 premiers chars bruts si ça ressemble à une date
+    return if (date.length >= 7 && date.any { it.isDigit() }) date.take(7) else ""
 }

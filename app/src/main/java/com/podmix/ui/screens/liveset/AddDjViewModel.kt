@@ -37,8 +37,9 @@ enum class SortMode { MOST_VIEWED, MOST_RECENT }
 /** Set retourné par SoundCloudArtistScraper */
 data class ScSet(
     val title: String,
-    val url: String,   // "https://soundcloud.com/artist/track-slug"
-    val date: String   // peut être vide
+    val url: String,        // "https://soundcloud.com/artist/track-slug"
+    val date: String,       // peut être vide
+    val durationSec: Int = 0 // 0 = inconnu
 )
 
 /** Set fusionné SC + 1001TL — source de vérité dans le ViewModel */
@@ -177,8 +178,14 @@ class AddDjViewModel @Inject constructor(
 
             Log.i(TAG, "1001TL: ${tlSets?.size ?: 0} sets, SC: ${scSets?.size ?: 0} sets")
 
-            val merged = SetMatcher.merge(tlSets ?: emptyList(), scSets ?: emptyList())
-            Log.i(TAG, "Merged: ${merged.size} sets")
+            val mergedRaw = SetMatcher.merge(tlSets ?: emptyList(), scSets ?: emptyList())
+            // Filtre post-merge : exclut radios/podcasts numérotés (valable SC + 1001TL)
+            val merged = mergedRaw.filter { set ->
+                val podcast = soundCloudArtistScraper.isPodcastTitle(set.title)
+                if (podcast) Log.i(TAG, "Post-merge filter: '${set.title}'")
+                !podcast
+            }
+            Log.i(TAG, "Merged: ${mergedRaw.size} → ${merged.size} sets after podcast filter")
 
             rawSets = merged.map { set ->
                 DiscoveredSetUiItem(
@@ -328,10 +335,26 @@ class AddDjViewModel @Inject constructor(
     }
 
     private fun parseDate(dateStr: String): Long {
-        if (dateStr.isBlank()) return System.currentTimeMillis()
+        if (dateStr.isBlank()) return 0L   // 0L = date inconnue (pas la date du jour)
         return try {
-            val fmt = java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.US)
-            fmt.parse(dateStr)?.time ?: System.currentTimeMillis()
-        } catch (_: Exception) { System.currentTimeMillis() }
+            val formats = listOf(
+                "yyyy-MM-dd'T'HH:mm:ss'Z'",
+                "yyyy-MM-dd'T'HH:mm:ssZ",
+                "yyyy-MM-dd",
+                "dd MMM yyyy",
+                "MMM dd, yyyy",
+                "dd.MM.yyyy",
+                "MM/dd/yyyy"
+            )
+            for (fmt in formats) {
+                try {
+                    val sdf = java.text.SimpleDateFormat(fmt, java.util.Locale.ENGLISH)
+                    sdf.isLenient = false
+                    val parsed = sdf.parse(dateStr)
+                    if (parsed != null) return parsed.time
+                } catch (_: Exception) { }
+            }
+            0L  // format inconnu → pas de date fictive
+        } catch (_: Exception) { 0L }
     }
 }

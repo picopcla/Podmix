@@ -9,5 +9,7 @@ data class Track(
     val startTimeSec: Float,
     val endTimeSec: Float?,
     val isFavorite: Boolean,
-    val spotifyUrl: String? = null
+    val spotifyUrl: String? = null,
+    val deezerUrl: String? = null,
+    val source: String = ""
 )

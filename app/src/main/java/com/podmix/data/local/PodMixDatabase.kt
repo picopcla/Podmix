@@ -13,7 +13,7 @@ import com.podmix.data.local.entity.TrackEntity
 
 @Database(
     entities = [PodcastEntity::class, EpisodeEntity::class, TrackEntity::class],
-    version = 8,
+    version = 9,
     exportSchema = false
 )
 abstract class PodMixDatabase : RoomDatabase() {
@@ -50,6 +50,11 @@ abstract class PodMixDatabase : RoomDatabase() {
                         SELECT MIN(id) FROM tracks GROUP BY episodeId, position
                     )
                 """.trimIndent())
+            }
+        }
+        val MIGRATION_8_9 = object : Migration(8, 9) {
+            override fun migrate(database: SupportSQLiteDatabase) {
+                database.execSQL("ALTER TABLE tracks ADD COLUMN deezerUrl TEXT")
             }
         }
     }

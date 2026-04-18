@@ -44,7 +44,12 @@ class AddEmissionViewModel @Inject constructor(
                 .collect { term ->
                     _isLoading.value = true
                     try {
-                        val response = itunesApi.searchPodcasts(term)
+                        val response = itunesApi.searchPodcasts(
+                            term = term,
+                            media = "podcast",
+                            entity = "podcast",
+                            limit = 50
+                        )
                         _results.value = response.results
                     } catch (_: Exception) {
                         _results.value = emptyList()
