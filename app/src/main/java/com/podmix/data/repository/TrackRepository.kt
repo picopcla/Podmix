@@ -3,6 +3,7 @@ package com.podmix.data.repository
 import android.util.Log
 import com.podmix.data.api.MixcloudApi
 import com.podmix.data.api.TracklistApi
+import com.podmix.data.local.dao.EpisodeDao
 import com.podmix.data.local.dao.TrackDao
 import com.podmix.data.local.entity.TrackEntity
 import com.podmix.domain.model.SourceResult
@@ -14,8 +15,13 @@ import com.podmix.service.TracklistService
 import com.podmix.service.YouTubeCommentsService
 import com.podmix.service.YouTubeStreamResolver
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.sync.Semaphore
+import kotlinx.coroutines.sync.withPermit
 import kotlinx.coroutines.withContext
 import okhttp3.OkHttpClient
 import org.json.JSONObject
@@ -27,6 +33,7 @@ import javax.inject.Singleton
 @Singleton
 class TrackRepository @Inject constructor(
     private val trackDao: TrackDao,
+    private val episodeDao: EpisodeDao,
     private val tracklistService: TracklistService,
     private val tracklistApi: TracklistApi,
     private val mixcloudApi: MixcloudApi,
@@ -35,6 +42,9 @@ class TrackRepository @Inject constructor(
     private val okHttpClient: OkHttpClient,
     private val tracklistWebScraper: TracklistWebScraper
 ) {
+    // Limite les recherches DDG/1001TL concurrent à 1 — évite les bursts de 40+ requêtes identiques
+    // quand un podcast de 482 épisodes est ajouté/rafraîchi en parallel
+    private val ddgSemaphore = Semaphore(1)
 
     fun getTracksForEpisode(episodeId: Int): Flow<List<Track>> {
         return trackDao.getByEpisodeIdFlow(episodeId).map { list ->
@@ -114,7 +124,7 @@ class TrackRepository @Inject constructor(
             val t1001 = System.currentTimeMillis()
             onSourceResult?.invoke(SourceResult("1001Tracklists", SourceStatus.RUNNING))
             status(5, "🌐 1001Tracklists WebView... ${elapsed()}")
-            val from1001 = try1001TL(query, knownUrl = tracklistPageUrl)
+            val from1001 = try1001TL(query, knownUrl = tracklistPageUrl, description = description, isLiveSet = true)
             val elapsed1001 = System.currentTimeMillis() - t1001
             // ≥50% des tracks (hors 1er) ont un timestamp valide → mode timestampé
             val has1001Timestamps = from1001 != null && from1001.size >= 3 &&
@@ -305,52 +315,19 @@ class TrackRepository @Inject constructor(
 
         } else {
             // ── PODCASTS ────────────────────────────────────────────────────────
-            // Pipeline : Description RSS → 1001Tracklists (DDG) → Shazam
-            // Sources non applicables aux podcasts → SKIPPED immédiatement
+            // Pipeline SÉQUENTIEL : 1001TL → Description RSS → Shazam
+            // Chaque source lancée UNIQUEMENT si la précédente a échoué.
+            // Sources non applicables → SKIPPED immédiatement (pas de lancement)
 
             listOf("Commentaires YouTube", "Mixcloud", "MixesDB", "yt-dlp").forEach {
                 onSourceResult?.invoke(SourceResult(it, SourceStatus.SKIPPED, reason = "non applicable aux podcasts"))
             }
 
-            // ── 1. Description RSS ──
-            val tD = System.currentTimeMillis()
-            onSourceResult?.invoke(SourceResult("Description YouTube", SourceStatus.RUNNING))
-            status(10, "📄 Analyse description... ${elapsed()}")
-            val fromDesc = withContext(Dispatchers.IO) {
-                tracklistService.detect(description, podcastName, episodeTitle)
-            }
-            val descElapsed = System.currentTimeMillis() - tD
-            status(30, "Description: ${fromDesc.size} tracks trouvés ${elapsed()}")
-
-            val descHasTimestamps = fromDesc.any { it.startTimeSec > 0f }
-            if (fromDesc.size >= 3 && descHasTimestamps) {
-                // Description avec timestamps → parfait, terminé
-                saveTracks(episodeId, fromDesc, true, episodeDurationSec, "timestamped")
-                onSourceResult?.invoke(SourceResult("Description YouTube", SourceStatus.SUCCESS,
-                    trackCount = fromDesc.size, elapsedMs = descElapsed))
-                onSourceResult?.invoke(SourceResult("1001Tracklists", SourceStatus.SKIPPED,
-                    reason = "description RSS suffisante"))
-                onSourceResult?.invoke(SourceResult("Shazam/IA", SourceStatus.SKIPPED,
-                    reason = "description RSS suffisante"))
-                status(100, "✅ ${fromDesc.size} tracks — timestamps description ${elapsed()}")
-                return true
-            }
-
-            // Marquer la description (sans timestamps ou insuffisante)
-            if (fromDesc.size >= 3) {
-                onSourceResult?.invoke(SourceResult("Description YouTube", SourceStatus.SUCCESS,
-                    trackCount = fromDesc.size, elapsedMs = descElapsed, reason = "sans timestamps"))
-            } else {
-                onSourceResult?.invoke(SourceResult("Description YouTube", SourceStatus.FAILED,
-                    elapsedMs = descElapsed,
-                    reason = if (fromDesc.isEmpty()) "aucun track détecté" else "trop peu de tracks (${fromDesc.size})"))
-            }
-
-            // ── 2. 1001Tracklists via DDG ──
+            // ── 1. 1001Tracklists (source la plus fiable pour podcasts numérotés) ──
             val t1001 = System.currentTimeMillis()
             onSourceResult?.invoke(SourceResult("1001Tracklists", SourceStatus.RUNNING))
-            status(35, "🌐 1001Tracklists... ${elapsed()}")
-            val from1001 = try1001TL(query, knownUrl = null)
+            status(10, "🌐 1001Tracklists... ${elapsed()}")
+            val from1001 = try1001TL(query, knownUrl = null, description = description, isLiveSet = false)
             val elapsed1001 = System.currentTimeMillis() - t1001
             if (from1001 != null && from1001.size >= 3) {
                 val has1001Timestamps = from1001.drop(1).count { it.startTimeSec > 0f } >= (from1001.size - 1) / 2
@@ -358,75 +335,68 @@ class TrackRepository @Inject constructor(
                 saveTracks(episodeId, from1001, has1001Timestamps, episodeDurationSec, "1001tl")
                 onSourceResult?.invoke(SourceResult("1001Tracklists", SourceStatus.SUCCESS,
                     trackCount = from1001.size, elapsedMs = elapsed1001))
-                onSourceResult?.invoke(SourceResult("Shazam/IA", SourceStatus.SKIPPED,
-                    reason = "1001TL suffisant"))
+                onSourceResult?.invoke(SourceResult("Description YouTube", SourceStatus.SKIPPED, reason = "1001TL suffisant"))
+                onSourceResult?.invoke(SourceResult("Shazam/IA", SourceStatus.SKIPPED, reason = "1001TL suffisant"))
                 status(100, "✅ ${from1001.size} tracks — 1001Tracklists ${elapsed()}")
                 return true
             }
             onSourceResult?.invoke(SourceResult("1001Tracklists", SourceStatus.FAILED,
                 elapsedMs = elapsed1001, reason = "aucun résultat"))
-            status(50, "1001TL: rien trouvé ${elapsed()}")
+            status(30, "1001TL: rien trouvé ${elapsed()}")
 
-            // ── 3. Description sans timestamps + Shazam pour améliorer ──
-            if (fromDesc.size >= 3) {
-                // Afficher d'abord la version uniforme (feedback immédiat)
-                saveTracks(episodeId, fromDesc, false, episodeDurationSec, "uniform")
-                val shazamUrl = if (youtubeVideoId != null)
-                    "https://www.youtube.com/watch?v=$youtubeVideoId" else audioUrl
-                if (shazamUrl != null && shazamServerUp) {
-                    val tS = System.currentTimeMillis()
-                    onSourceResult?.invoke(SourceResult("Shazam/IA", SourceStatus.RUNNING))
-                    status(60, "🎵 Shazam pour timestamps précis... ${elapsed()}")
-                    val fromShazam = tryShazamAnalysisByUrl(shazamUrl)
-                    val shazamElapsed = System.currentTimeMillis() - tS
-                    if (fromShazam != null && fromShazam.size >= 3) {
-                        trackDao.deleteByEpisode(episodeId)
-                        saveTracks(episodeId, fromShazam, true, 0, "shazam")
-                        onSourceResult?.invoke(SourceResult("Shazam/IA", SourceStatus.SUCCESS,
-                            trackCount = fromShazam.size, elapsedMs = shazamElapsed))
-                        status(100, "✅ ${fromShazam.size} tracks — Shazam ${elapsed()}")
-                        return true
-                    }
-                    onSourceResult?.invoke(SourceResult("Shazam/IA", SourceStatus.FAILED,
-                        elapsedMs = shazamElapsed, reason = "pas de résultat"))
-                    status(90, "Shazam: pas de résultat — timestamps estimés ${elapsed()}")
-                } else {
-                    val reason = if (shazamUrl == null) "pas de source audio" else "serveur hors ligne"
-                    onSourceResult?.invoke(SourceResult("Shazam/IA", SourceStatus.SKIPPED, reason = reason))
-                }
-                status(100, "✅ ${fromDesc.size} tracks — estimé ${elapsed()}")
+            // ── 2. Description RSS (seulement si 1001TL a échoué) ──
+            val tD = System.currentTimeMillis()
+            onSourceResult?.invoke(SourceResult("Description YouTube", SourceStatus.RUNNING))
+            status(35, "📄 Analyse description RSS... ${elapsed()}")
+            val fromDesc = withContext(Dispatchers.IO) {
+                tracklistService.detect(description, podcastName, episodeTitle)
+            }
+            val descElapsed = System.currentTimeMillis() - tD
+            val descHasTimestamps = fromDesc.any { it.startTimeSec > 0f }
+
+            if (fromDesc.size >= 3 && descHasTimestamps) {
+                saveTracks(episodeId, fromDesc, true, episodeDurationSec, "timestamped")
+                onSourceResult?.invoke(SourceResult("Description YouTube", SourceStatus.SUCCESS,
+                    trackCount = fromDesc.size, elapsedMs = descElapsed))
+                onSourceResult?.invoke(SourceResult("Shazam/IA", SourceStatus.SKIPPED, reason = "description suffisante"))
+                status(100, "✅ ${fromDesc.size} tracks — description ${elapsed()}")
                 return true
             }
+            if (fromDesc.size >= 3) {
+                onSourceResult?.invoke(SourceResult("Description YouTube", SourceStatus.SUCCESS,
+                    trackCount = fromDesc.size, elapsedMs = descElapsed, reason = "sans timestamps"))
+            } else {
+                onSourceResult?.invoke(SourceResult("Description YouTube", SourceStatus.FAILED,
+                    elapsedMs = descElapsed,
+                    reason = if (fromDesc.isEmpty()) "aucun track détecté" else "trop peu (${fromDesc.size})"))
+            }
+            status(50, "Description: ${fromDesc.size} tracks ${elapsed()}")
 
-            // ── 4. Pas de description — Shazam direct ──
-            val shazamUrl2 = if (youtubeVideoId != null)
+            // ── 3. Shazam (seulement si 1001TL + description ont échoué) ──
+            val shazamUrl = if (youtubeVideoId != null)
                 "https://www.youtube.com/watch?v=$youtubeVideoId" else audioUrl
-            if (shazamUrl2 != null && shazamServerUp) {
-                val tS2 = System.currentTimeMillis()
+            if (shazamUrl != null && shazamServerUp) {
+                val tS = System.currentTimeMillis()
                 onSourceResult?.invoke(SourceResult("Shazam/IA", SourceStatus.RUNNING))
-                status(50, "🎵 Shazam direct (pas de description)... ${elapsed()}")
-                val fromShazam2 = tryShazamAnalysisByUrl(shazamUrl2)
-                val shazamElapsed2 = System.currentTimeMillis() - tS2
-                if (fromShazam2 != null && fromShazam2.size >= 3) {
+                status(60, "🎵 Shazam/IA... ${elapsed()}")
+                val fromShazam = tryShazamAnalysisByUrl(shazamUrl)
+                val shazamElapsed = System.currentTimeMillis() - tS
+                if (fromShazam != null && fromShazam.size >= 3) {
                     trackDao.deleteByEpisode(episodeId)
-                    saveTracks(episodeId, fromShazam2, true, 0, "shazam")
+                    saveTracks(episodeId, fromShazam, true, 0, "shazam")
                     onSourceResult?.invoke(SourceResult("Shazam/IA", SourceStatus.SUCCESS,
-                        trackCount = fromShazam2.size, elapsedMs = shazamElapsed2))
-                    status(100, "✅ ${fromShazam2.size} tracks — Shazam ${elapsed()}")
+                        trackCount = fromShazam.size, elapsedMs = shazamElapsed))
+                    status(100, "✅ ${fromShazam.size} tracks — Shazam ${elapsed()}")
                     return true
                 }
                 onSourceResult?.invoke(SourceResult("Shazam/IA", SourceStatus.FAILED,
-                    elapsedMs = shazamElapsed2, reason = "pas de résultat"))
-            } else if (shazamUrl2 != null) {
-                onSourceResult?.invoke(SourceResult("Shazam/IA", SourceStatus.SKIPPED,
-                    reason = "serveur hors ligne"))
-                status(50, "⚠️ Serveur hors ligne ${elapsed()}")
+                    elapsedMs = shazamElapsed, reason = "pas de résultat"))
             } else {
-                onSourceResult?.invoke(SourceResult("Shazam/IA", SourceStatus.SKIPPED,
-                    reason = "pas de source audio"))
+                val reason = if (shazamUrl == null) "pas de source audio" else "serveur hors ligne"
+                onSourceResult?.invoke(SourceResult("Shazam/IA", SourceStatus.SKIPPED, reason = reason))
             }
 
-            // Fallback : description uniforme si quelques tracks partiels
+            // Fallback : description uniforme si au moins quelques tracks
             if (fromDesc.isNotEmpty()) {
                 saveTracks(episodeId, fromDesc, false, episodeDurationSec, "uniform")
                 status(100, "✅ ${fromDesc.size} tracks — estimé ${elapsed()}")
@@ -453,7 +423,7 @@ class TrackRepository @Inject constructor(
         }
     }
 
-    private suspend fun try1001TL(query: String, knownUrl: String? = null): List<ParsedTrack>? {
+    private suspend fun try1001TL(query: String, knownUrl: String? = null, description: String? = null, isLiveSet: Boolean = true): List<ParsedTrack>? {
         return try {
             val tracklistUrl: String
 
@@ -462,26 +432,36 @@ class TrackRepository @Inject constructor(
                 Log.i("TrackRepo", "1001TL using known URL: $knownUrl")
                 tracklistUrl = knownUrl
             } else {
-                // Extraire les mots-clés pertinents (pas le titre complet — trop spécifique)
-                val cleanQuery = extractKeywords(query, maxWords = 5)
-                Log.i("TrackRepo", "1001TL keyword query: '$cleanQuery' (from: '$query')")
+                // Stratégie selon le type de contenu
+                val cleanQuery = if (!isLiveSet) {
+                    // PODCAST : résoudre depuis description (ex: ASOT/1273 → "A State Of Trance 1273")
+                    // puis extraire keywords en CONSERVANT les numéros d'épisode (3+ chiffres)
+                    val resolvedQuery = resolveQueryFromDescription(query, description)
+                    extractKeywordsPodcast(resolvedQuery)
+                } else {
+                    // LIVESET : extraire artiste + lieu, virer les numéros parasites
+                    extractKeywords(query, maxWords = 5)
+                }
+                Log.i("TrackRepo", "1001TL keyword query: '$cleanQuery' (isLiveSet=$isLiveSet, from: '$query')")
 
-                // Trouver l'URL via DuckDuckGo
+                // Trouver l'URL via DuckDuckGo — sérialisé (1 à la fois) pour éviter les bursts
                 val searchUrl = "https://html.duckduckgo.com/html/?q=" +
                     URLEncoder.encode("site:1001tracklists.com $cleanQuery", "UTF-8")
                 Log.i("TrackRepo", "1001TL DDG search: $searchUrl")
-                val ddgClient = okHttpClient.newBuilder()
-                    .connectTimeout(8, TimeUnit.SECONDS)
-                    .readTimeout(8, TimeUnit.SECONDS)
-                    .followRedirects(true)
-                    .build()
-                val ddgReq = okhttp3.Request.Builder()
-                    .url(searchUrl)
-                    .header("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64)")
-                    .header("Accept", "text/html")
-                    .build()
-                val ddgHtml = withContext(Dispatchers.IO) {
-                    ddgClient.newCall(ddgReq).execute().use { it.body?.string() }
+                val ddgHtml = ddgSemaphore.withPermit {
+                    val ddgClient = okHttpClient.newBuilder()
+                        .connectTimeout(8, TimeUnit.SECONDS)
+                        .readTimeout(8, TimeUnit.SECONDS)
+                        .followRedirects(true)
+                        .build()
+                    val ddgReq = okhttp3.Request.Builder()
+                        .url(searchUrl)
+                        .header("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64)")
+                        .header("Accept", "text/html")
+                        .build()
+                    withContext(Dispatchers.IO) {
+                        ddgClient.newCall(ddgReq).execute().use { it.body?.string() }
+                    }
                 } ?: run { Log.w("TrackRepo", "1001TL: DDG empty response"); return null }
 
                 Log.i("TrackRepo", "1001TL DDG response size=${ddgHtml.length}")
@@ -499,6 +479,18 @@ class TrackRepository @Inject constructor(
                     return null
                 }
                 Log.i("TrackRepo", "1001TL candidate URL: $candidate")
+
+                // Valider que le slug de l'URL contient au moins un mot-clé significatif
+                // Ex: cleanQuery="Miro PPB" → slug doit contenir "miro" ou "ppb"
+                // Évite les faux positifs (Jonas Steur matchant "Miro PPB" via DDG sémantique)
+                val slugPart = candidate.substringAfter("1001tracklists.com/tracklist/").lowercase()
+                val keywordTokens = cleanQuery.lowercase().split(" ").filter { it.length > 2 }
+                val slugValid = keywordTokens.any { slugPart.contains(it) }
+                if (!slugValid) {
+                    Log.w("TrackRepo", "1001TL: slug '$slugPart' ne contient aucun mot-clé de '$cleanQuery' → rejeté")
+                    return null
+                }
+
                 tracklistUrl = candidate
             }
 
@@ -687,6 +679,49 @@ class TrackRepository @Inject constructor(
      *   "Tale Of Us b2b Afterlife 042 2023"              → "Tale Afterlife"
      *   "Ben Bohmer - Live at Tomorrowland Main Stage"   → "Ben Bohmer Tomorrowland Main"
      */
+    /**
+     * Tente de déduire une meilleure requête de recherche depuis la description de l'épisode.
+     * Détecte les patterns d'URL courants qui révèlent la vraie émission :
+     *   miroppb.com/ASOT/1273    → "A State Of Trance 1273"
+     *   miroppb.com/ASOT/NNN     → "A State Of Trance NNN"
+     *   (extensible à d'autres patterns)
+     * Retourne la query originale si rien détecté.
+     */
+    /**
+     * Extraction keywords pour PODCASTS (règles différentes des livesets) :
+     * - Conserve les numéros d'épisode (3+ chiffres non-années) : "1273", "900", "500"
+     * - Supprime mots parasites génériques
+     * - Max 6 mots pour avoir assez de contexte
+     */
+    private fun extractKeywordsPodcast(query: String): String {
+        val noiseWords = setOf(
+            "the", "a", "an", "in", "on", "by", "and", "or", "of", "with",
+            "episode", "ep", "vol", "volume", "presents", "featuring", "feat", "ft"
+        )
+        return query
+            .replace(Regex("""[@\-–—|/\[\](){}#]"""), " ")
+            .replace(Regex("""\b(?:19|20)\d{2}\b"""), "")   // supprime années seulement
+            .replace(Regex("""\s+"""), " ").trim()
+            .split(" ")
+            .filter { it.length > 1 && it.lowercase() !in noiseWords }
+            .take(6)
+            .joinToString(" ")
+            .ifBlank { query.take(60) }
+    }
+
+    private fun resolveQueryFromDescription(query: String, description: String?): String {
+        if (description.isNullOrBlank()) return query
+        // Pattern miroppb.com/ASOT/NNN ou ASOT episode NNN
+        val asotMatch = Regex("""(?:miroppb\.com/ASOT/|ASOT[_\s#]*)(\d{3,4})""", RegexOption.IGNORE_CASE)
+            .find(description)
+        if (asotMatch != null) {
+            val epNum = asotMatch.groupValues[1]
+            Log.i("TrackRepo", "resolveQuery: detected ASOT $epNum from description")
+            return "A State Of Trance $epNum"
+        }
+        return query
+    }
+
     private fun extractKeywords(query: String, maxWords: Int = 4): String {
         val noiseWords = setOf(
             "live", "set", "at", "the", "a", "in", "on", "by", "and", "or", "of",
@@ -697,8 +732,8 @@ class TrackRepository @Inject constructor(
         )
         return query
             .replace(Regex("""[@\-–—|/\[\](){}#]"""), " ")   // normalise séparateurs
-            .replace(Regex("""\b20\d{2}\b"""), "")             // supprime années 20xx
-            .replace(Regex("""\b\d+\b"""), "")                 // supprime nombres isolés
+            .replace(Regex("""\b(?:19|20)\d{2}\b"""), "")        // supprime années (19xx/20xx)
+            .replace(Regex("""\b\d+\b"""), "")                 // supprime tous les nombres (numéros de série parasites)
             .replace(Regex("""\s+"""), " ")
             .trim()
             .split(" ")
@@ -721,17 +756,39 @@ class TrackRepository @Inject constructor(
         // Si le mode timestampé est activé, nettoyer les 0f parasites au milieu de la liste
         val finalTracks = if (hasTimestamps) fixZeroTimestamps(tracks, effectiveDuration) else tracks
 
+        // Sources sans vrais timestamps → suffixe "_est" pour que le label UI reste
+        // juste même après que le refinement soit terminé (status="done" ne suffit pas)
+        val effectiveSource = if (!hasTimestamps && source !in setOf("uniform", "shazam", "chroma_matched")) {
+            "${source}_est"
+        } else source
+
         val entities = finalTracks.mapIndexed { index, p ->
             val startSec = if (hasTimestamps) p.startTimeSec
             else (effectiveDuration.toFloat() * index / finalTracks.size)
             TrackEntity(
                 episodeId = episodeId, position = index,
                 title = p.title, artist = p.artist,
-                startTimeSec = startSec, source = source
+                startTimeSec = startSec, source = effectiveSource
             )
         }
         trackDao.deleteByEpisode(episodeId)
         trackDao.insertAll(entities)
+
+        // Status d'affinage :
+        //   hasTimestamps=true  → "done"          (timestamps réels, rien à faire)
+        //   liveset sans ts     → "chroma_pending" (ChromaTimestampRefiner après download)
+        //   podcast sans ts     → "pending"        (AudioTransitionDetector après download)
+        // chroma_pending = Deezer preview matching (correct pour tous les mixes)
+        // pending        = AudioTransitionDetector RMS (uniquement pour podcasts parlés)
+        // "_est" = tracks trouvés via source musicale (1001TL/MixesDB) sans timestamps
+        //          → très probablement un mix DJ, chroma refinement quelle que soit l'episodeType
+        val refinementStatus = when {
+            hasTimestamps                           -> "done"
+            effectiveSource.endsWith("_est")        -> "chroma_pending"
+            episodeDao.getById(episodeId)?.episodeType == "liveset" -> "chroma_pending"
+            else                                    -> "pending"
+        }
+        episodeDao.updateRefinementStatus(episodeId, refinementStatus)
     }
 
     /**

@@ -12,6 +12,7 @@ import com.podmix.domain.model.Podcast
 import com.podmix.domain.model.SourceResult
 import com.podmix.domain.model.SourceStatus
 import com.podmix.domain.model.Track
+import com.podmix.service.ChromaTimestampRefiner
 import com.podmix.service.DownloadState
 import com.podmix.service.EpisodeDownloadManager
 import com.podmix.service.OnDeviceAudioSplitService
@@ -23,6 +24,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -39,7 +41,8 @@ class EpisodeDetailViewModel @Inject constructor(
     private val playerController: PlayerController,
     private val youTubeStreamResolver: com.podmix.service.YouTubeStreamResolver,
     private val downloadManager: EpisodeDownloadManager,
-    private val onDeviceAudioSplitService: OnDeviceAudioSplitService
+    private val onDeviceAudioSplitService: OnDeviceAudioSplitService,
+    private val chromaTimestampRefiner: ChromaTimestampRefiner
 ) : ViewModel() {
 
     private val podcastId: Int = savedStateHandle["podcastId"] ?: 0
@@ -68,6 +71,11 @@ class EpisodeDetailViewModel @Inject constructor(
     val tracks: StateFlow<List<Track>> = trackRepository.getTracksForEpisode(episodeId)
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
+    /** Progression chroma refinement (0-100) ou null si pas en cours. */
+    val chromaRefinementPct: StateFlow<Int?> = chromaTimestampRefiner.progress
+        .map { it[episodeId] }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
+
     val playerState = playerController.playerState
 
     val downloadState: StateFlow<DownloadState> = downloadManager.states
@@ -75,7 +83,7 @@ class EpisodeDetailViewModel @Inject constructor(
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), DownloadState.Idle)
 
     init {
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.IO) {
             val e = episodeDao.getById(episodeId)
             if (e != null) {
                 val episode = Episode(
@@ -93,7 +101,9 @@ class EpisodeDetailViewModel @Inject constructor(
                     description = e.description,
                     mixcloudKey = e.mixcloudKey,
                     localAudioPath = e.localAudioPath,
-                    soundcloudTrackUrl = e.soundcloudTrackUrl
+                    soundcloudTrackUrl = e.soundcloudTrackUrl,
+                    trackRefinementStatus = e.trackRefinementStatus,
+                    isFavorite = e.isFavorite
                 )
                 _episode.value = episode
                 downloadManager.initState(episode)
@@ -107,7 +117,7 @@ class EpisodeDetailViewModel @Inject constructor(
                 val existingTracks = trackRepository.getTracksCountForEpisode(episodeId)
                 // Ne pas relancer si déjà enrichi (enrichedAt != null) OU si des tracks existent déjà
                 if (existingTracks == 0 && e?.enrichedAt == null) {
-                    detectTracks()
+                    withContext(Dispatchers.IO) { detectTracks() }
                 }
             }
         }
@@ -118,17 +128,28 @@ class EpisodeDetailViewModel @Inject constructor(
 
         val onStatus: (String) -> Unit = { _detectStatus.value = it }
 
-        // Initialiser toutes les sources en PENDING (ordre du pipeline)
-        _sourceResults.value = listOf(
-            SourceResult("1001Tracklists", SourceStatus.PENDING),
-            SourceResult("Description YouTube", SourceStatus.PENDING),
-            SourceResult("Commentaires YouTube", SourceStatus.PENDING),
-            SourceResult("Mixcloud", SourceStatus.PENDING),
-            SourceResult("MixesDB", SourceStatus.PENDING),
-            SourceResult("yt-dlp", SourceStatus.PENDING),
-            SourceResult("Shazam/IA", SourceStatus.PENDING),
-            SourceResult("Analyse Audio", SourceStatus.PENDING),
-        )
+        val isLiveSet = ep.episodeType == "liveset"
+
+        // Sources différentes selon type d'épisode — évite les SKIPPED immédiats parasites
+        _sourceResults.value = if (isLiveSet) {
+            listOf(
+                SourceResult("1001Tracklists", SourceStatus.PENDING),
+                SourceResult("Description YouTube", SourceStatus.PENDING),
+                SourceResult("Commentaires YouTube", SourceStatus.PENDING),
+                SourceResult("Mixcloud", SourceStatus.PENDING),
+                SourceResult("MixesDB", SourceStatus.PENDING),
+                SourceResult("yt-dlp", SourceStatus.PENDING),
+                SourceResult("Shazam/IA", SourceStatus.PENDING),
+                SourceResult("Analyse Audio", SourceStatus.PENDING),
+            )
+        } else {
+            // Podcasts : pipeline séquentiel 1001TL → Description RSS → Shazam seulement
+            listOf(
+                SourceResult("1001Tracklists", SourceStatus.PENDING),
+                SourceResult("Description YouTube", SourceStatus.PENDING),
+                SourceResult("Shazam/IA", SourceStatus.PENDING),
+            )
+        }
 
         val onSourceResult: (SourceResult) -> Unit = { result ->
             _sourceResults.update { list ->
@@ -315,9 +336,19 @@ class EpisodeDetailViewModel @Inject constructor(
     }
 
     fun redetectTracks() {
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.IO) {
             trackRepository.deleteTracksForEpisode(episodeId)
             detectTracks()
+            // Si liveset déjà téléchargé et pipeline n'a trouvé que des timestamps estimés
+            // → déclencher le chroma refinement immédiatement (pas besoin de re-télécharger)
+            // Si épisode déjà téléchargé et chroma_pending → lancer refinement
+            // (fire-and-forget dans son propre scope — survit à la navigation)
+            val ep = episodeDao.getById(episodeId)
+            if (ep?.trackRefinementStatus == "chroma_pending"
+                && !ep.localAudioPath.isNullOrBlank()
+            ) {
+                chromaTimestampRefiner.refine(episodeId)  // non-suspend, fire-and-forget
+            }
         }
     }
 

@@ -30,7 +30,9 @@ class EpisodeDownloadManager @Inject constructor(
     private val youTubeStreamResolver: YouTubeStreamResolver,
     private val mixcloudStreamResolver: MixcloudStreamResolver,
     private val okHttpClient: OkHttpClient,
-    private val episodeDao: EpisodeDao
+    private val episodeDao: EpisodeDao,
+    private val audioTransitionDetector: AudioTransitionDetector,
+    private val chromaTimestampRefiner: ChromaTimestampRefiner
 ) {
     private val _states = MutableStateFlow<Map<Int, DownloadState>>(emptyMap())
     val states: StateFlow<Map<Int, DownloadState>> = _states
@@ -66,20 +68,28 @@ class EpisodeDownloadManager @Inject constructor(
 
         return try {
             setState(episode.id, DownloadState.Downloading(0f))
+            com.podmix.AppLogger.download("START ep#${episode.id}", "'${episode.title.take(50)}'")
             val streamUrl = resolveUrl(episode)
                 ?: throw Exception("Impossible de résoudre l'URL audio")
             val file = getOutputFile(episode.id)
             Log.i("Download", "downloadSuspend → ${file.absolutePath}")
+            val t0 = System.currentTimeMillis()
             downloadToFile(streamUrl, file) { progress ->
                 onProgress(progress)
                 setState(episode.id, DownloadState.Downloading(progress))
             }
             episodeDao.updateLocalAudioPath(episode.id, file.absolutePath)
             setState(episode.id, DownloadState.Downloaded(file.absolutePath))
-            Log.i("Download", "Done: ${file.absolutePath} (${file.length() / 1_048_576}MB)")
+            val mb = file.length() / 1_048_576
+            val secs = (System.currentTimeMillis() - t0) / 1000
+            Log.i("Download", "Done: ${file.absolutePath} (${mb}MB)")
+            com.podmix.AppLogger.download("DONE ep#${episode.id} ${mb}MB ${secs}s", file.absolutePath)
+            // Auto-affinage TL si statut pending
+            triggerRefinementIfPending(episode.id, file.absolutePath)
             true
         } catch (e: Exception) {
             Log.e("Download", "Error for episode ${episode.id}: ${e.message}")
+            com.podmix.AppLogger.err("DOWNLOAD", "FAIL ep#${episode.id}", e.message ?: "")
             setState(episode.id, DownloadState.Error(e.message ?: "Erreur inconnue"))
             getOutputFile(episode.id).delete()
             false
@@ -114,6 +124,8 @@ class EpisodeDownloadManager @Inject constructor(
                 episodeDao.updateLocalAudioPath(episode.id, file.absolutePath)
                 setState(episode.id, DownloadState.Downloaded(file.absolutePath))
                 Log.i("Download", "Done: ${file.absolutePath} (${file.length() / 1_048_576}MB)")
+                // Auto-affinage TL si statut pending
+                triggerRefinementIfPending(episode.id, file.absolutePath)
 
             } catch (e: kotlinx.coroutines.CancellationException) {
                 setState(episode.id, DownloadState.Idle)
@@ -141,6 +153,49 @@ class EpisodeDownloadManager @Inject constructor(
             getOutputFile(episodeId).delete()
             episodeDao.clearLocalAudioPath(episodeId)
             setState(episodeId, DownloadState.Idle)
+        }
+    }
+
+    /**
+     * Déclenche l'affinage des timestamps si l'épisode a des tracks TTE (status "pending").
+     * Appelé automatiquement après chaque téléchargement réussi.
+     */
+    private fun triggerRefinementIfPending(episodeId: Int, localPath: String) {
+        scope.launch {
+            val ep = episodeDao.getById(episodeId) ?: return@launch
+            when {
+                ep.trackRefinementStatus == "pending" && ep.episodeType != "liveset" -> {
+                    Log.i("Download", "Audio refinement for episode $episodeId")
+                    audioTransitionDetector.refineTracklist(episodeId)
+                }
+                ep.trackRefinementStatus == "chroma_pending" -> {
+                    Log.i("Download", "Chroma refinement for liveset episode $episodeId")
+                    chromaTimestampRefiner.refine(episodeId)
+                }
+            }
+        }
+    }
+
+    /**
+     * À appeler au démarrage de l'app pour affiner les épisodes déjà téléchargés
+     * dont le statut est encore "pending" (ex: TL ajoutée après téléchargement).
+     */
+    fun checkAndRefinePendingOnStartup() {
+        scope.launch {
+            val pending = episodeDao.getPendingRefinementWithLocalAudio()
+            if (pending.isNotEmpty()) {
+                Log.i("Download", "Startup: ${pending.size} episodes pending refinement")
+                for (ep in pending) {
+                    audioTransitionDetector.refineTracklist(ep.id)
+                }
+                val chromaPending = episodeDao.getChromaPendingWithLocalAudio()
+                if (chromaPending.isNotEmpty()) {
+                    Log.i("Download", "Startup: ${chromaPending.size} livesets pending chroma refinement")
+                    for (ep in chromaPending) {
+                        chromaTimestampRefiner.refine(ep.id)
+                    }
+                }
+            }
         }
     }
 

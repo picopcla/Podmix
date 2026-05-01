@@ -4,6 +4,7 @@ import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
+import androidx.room.Update
 import com.podmix.data.local.entity.TrackEntity
 import kotlinx.coroutines.flow.Flow
 
@@ -40,6 +41,9 @@ interface TrackDao {
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertAll(tracks: List<TrackEntity>)
+
+    @Update
+    suspend fun update(track: TrackEntity)
 
     @Query("UPDATE tracks SET isFavorite = NOT isFavorite WHERE id = :id")
     suspend fun toggleFavorite(id: Int)

@@ -9,6 +9,8 @@ import com.podmix.data.local.dao.TrackDao
 import com.podmix.data.repository.DjRepository
 import com.podmix.domain.model.Episode
 import com.podmix.domain.model.Podcast
+import com.podmix.service.AudioTransitionDetector
+import com.podmix.service.ChromaTimestampRefiner
 import com.podmix.service.DownloadState
 import com.podmix.service.EpisodeDownloadManager
 import com.podmix.service.PlayerController
@@ -31,11 +33,18 @@ class DjDetailViewModel @Inject constructor(
     private val episodeDao: EpisodeDao,
     private val trackDao: TrackDao,
     playerController: PlayerController,
-    downloadManager: EpisodeDownloadManager
+    downloadManager: EpisodeDownloadManager,
+    audioTransitionDetector: AudioTransitionDetector,
+    chromaTimestampRefiner: ChromaTimestampRefiner
 ) : ViewModel() {
 
     val playerState = playerController.playerState
     val downloadStates: StateFlow<Map<Int, DownloadState>> = downloadManager.states
+    val refinementProgress: StateFlow<Map<Int, Int>> = combine(
+        audioTransitionDetector.progress,
+        chromaTimestampRefiner.progress
+    ) { rms, chroma -> rms + chroma }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyMap())
 
     val episodeIdsWithTracks: StateFlow<Set<Int>> = trackDao.getEpisodeIdsWithTracks()
         .map { it.toSet() }
@@ -67,7 +76,9 @@ class DjDetailViewModel @Inject constructor(
                     description = e.description,
                     mixcloudKey = e.mixcloudKey,
                     localAudioPath = e.localAudioPath,
-                    soundcloudTrackUrl = e.soundcloudTrackUrl
+                    soundcloudTrackUrl = e.soundcloudTrackUrl,
+                    trackRefinementStatus = e.trackRefinementStatus,
+                    isFavorite = e.isFavorite
                 )
             }
         }

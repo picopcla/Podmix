@@ -9,6 +9,8 @@ import com.podmix.data.local.dao.TrackDao
 import com.podmix.data.repository.PodcastRepository
 import com.podmix.domain.model.Episode
 import com.podmix.domain.model.Podcast
+import com.podmix.service.AudioTransitionDetector
+import com.podmix.service.ChromaTimestampRefiner
 import com.podmix.service.PlayerController
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -28,8 +30,17 @@ class PodcastDetailViewModel @Inject constructor(
     private val podcastDao: PodcastDao,
     private val episodeDao: EpisodeDao,
     private val trackDao: TrackDao,
-    private val playerController: PlayerController
+    private val playerController: PlayerController,
+    private val audioTransitionDetector: AudioTransitionDetector,
+    private val chromaTimestampRefiner: ChromaTimestampRefiner
 ) : ViewModel() {
+
+    // Progression affinage par épisodeId (0-100) — fusionne RMS et chroma refiners
+    val refinementProgress: StateFlow<Map<Int, Int>> = combine(
+        audioTransitionDetector.progress,
+        chromaTimestampRefiner.progress
+    ) { rms, chroma -> rms + chroma }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyMap())
 
     val episodeIdsWithTracks: StateFlow<Set<Int>> = trackDao.getEpisodeIdsWithTracks()
         .map { it.toSet() }
@@ -64,7 +75,11 @@ class PodcastDetailViewModel @Inject constructor(
                     episodeType = e.episodeType,
                     youtubeVideoId = e.youtubeVideoId,
                     description = e.description,
-                    mixcloudKey = e.mixcloudKey
+                    mixcloudKey = e.mixcloudKey,
+                    localAudioPath = e.localAudioPath,
+                    soundcloudTrackUrl = e.soundcloudTrackUrl,
+                    trackRefinementStatus = e.trackRefinementStatus,
+                    isFavorite = e.isFavorite
                 )
             }
         }

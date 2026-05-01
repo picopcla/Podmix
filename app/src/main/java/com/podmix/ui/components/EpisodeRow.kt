@@ -1,9 +1,16 @@
 package com.podmix.ui.components
 
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -12,6 +19,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -20,8 +28,10 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextOverflow
@@ -37,6 +47,32 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
+@Composable
+fun WigWagIndicator(modifier: Modifier = Modifier) {
+    val transition = rememberInfiniteTransition(label = "wigwag")
+    val phase by transition.animateFloat(
+        initialValue = 0f,
+        targetValue = 1f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(350, easing = LinearEasing),
+            repeatMode = RepeatMode.Reverse
+        ),
+        label = "wigwag_phase"
+    )
+    Row(modifier, horizontalArrangement = Arrangement.spacedBy(3.dp)) {
+        Box(
+            Modifier.size(5.dp).background(
+                Color(0xFFA855F7).copy(alpha = phase), CircleShape
+            )
+        )
+        Box(
+            Modifier.size(5.dp).background(
+                Color(0xFFA855F7).copy(alpha = 1f - phase), CircleShape
+            )
+        )
+    }
+}
+
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun EpisodeRow(
@@ -44,6 +80,7 @@ fun EpisodeRow(
     isPlaying: Boolean = false,
     hasTracklist: Boolean = false,
     downloadState: DownloadState = DownloadState.Idle,
+    refinementPct: Int? = null, // null=pas en cours, 0-100=progression
     onClick: () -> Unit
 ) {
     val hasAudio = episode.audioUrl.isNotBlank()
@@ -51,9 +88,12 @@ fun EpisodeRow(
         || episode.mixcloudKey != null
         || !episode.soundcloudTrackUrl.isNullOrBlank()
         || episode.localAudioPath != null
+    val listenedAlpha = if (episode.isListened) 0.45f else 1f
+
     Column(
         modifier = Modifier
             .fillMaxWidth()
+            .alpha(listenedAlpha)
             .clickable(onClick = onClick)
             .padding(horizontal = 12.dp, vertical = 4.dp)
     ) {
@@ -61,17 +101,31 @@ fun EpisodeRow(
             modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // Dot : rouge=pas d'audio, orange=audio sans TL, vert=audio+TL
-            val dotColor = when {
-                !hasAudio -> Color(0xFFFF4444)
-                !hasTracklist -> Color(0xFFFF9800)
-                else -> Color(0xFF4CAF50)
+            if (episode.trackRefinementStatus == "refining") {
+                // Affinage en cours → wig-wag + pourcentage
+                WigWagIndicator(Modifier.padding(end = 2.dp))
+                if (refinementPct != null) {
+                    Text(
+                        text = "$refinementPct%",
+                        color = Color(0xFFA855F7),
+                        fontSize = 9.sp,
+                        modifier = Modifier.padding(end = 4.dp)
+                    )
+                }
+            } else {
+                // Dot : rouge=pas d'audio, orange=audio sans TL ou TTE, vert=TL réelle affinée
+                val dotColor = when {
+                    !hasAudio -> Color(0xFFFF4444)
+                    !hasTracklist || episode.trackRefinementStatus == "pending"
+                        || episode.trackRefinementStatus == "chroma_pending" -> Color(0xFFFF9800)
+                    else -> Color(0xFF4CAF50)
+                }
+                Box(
+                    modifier = Modifier
+                        .size(8.dp)
+                        .background(dotColor, CircleShape)
+                )
             }
-            Box(
-                modifier = Modifier
-                    .size(8.dp)
-                    .background(dotColor, CircleShape)
-            )
 
             val dateStr = episode.datePublished
                 ?.takeIf { it > 0L }

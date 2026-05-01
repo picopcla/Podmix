@@ -74,8 +74,10 @@ fun EpisodeDetailScreen(
     val downloadState by viewModel.downloadState.collectAsState()
     val isAudioAnalyzing by viewModel.isAudioAnalyzing.collectAsState()
     val audioAnalysisStatus by viewModel.audioAnalysisStatus.collectAsState()
+    val chromaRefinementPct by viewModel.chromaRefinementPct.collectAsState()
     val isThisEpisode = playerState.currentEpisode?.id == episode?.id
     val isDetecting = detectStatus.isNotBlank()
+    val isChromaRefining = chromaRefinementPct != null
 
     Scaffold(
         containerColor = Background,
@@ -172,7 +174,7 @@ fun EpisodeDetailScreen(
             }
 
             // Tracklist section
-            if (isDetecting) {
+            if (isDetecting || isChromaRefining) {
                 item {
                     Column(
                         modifier = Modifier
@@ -180,20 +182,60 @@ fun EpisodeDetailScreen(
                             .padding(horizontal = 12.dp, vertical = 8.dp),
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
-                        LinearProgressIndicator(
-                            modifier = Modifier.fillMaxWidth(),
-                            color = AccentPrimary,
-                            trackColor = SurfaceSecondary
-                        )
-                        Spacer(Modifier.height(6.dp))
-                        Text(
-                            text = detectStatus,
-                            color = TextSecondary,
-                            fontSize = 12.sp
-                        )
+                        val chromaPct = chromaRefinementPct
+                        if (isChromaRefining && chromaPct != null) {
+                            LinearProgressIndicator(
+                                progress = { chromaPct / 100f },
+                                modifier = Modifier.fillMaxWidth(),
+                                color = androidx.compose.ui.graphics.Color(0xFF7C3AED),
+                                trackColor = SurfaceSecondary
+                            )
+                            Spacer(Modifier.height(6.dp))
+                            Text(
+                                text = "🎵 Chroma refinement $chromaPct%",
+                                color = TextSecondary,
+                                fontSize = 12.sp
+                            )
+                        } else {
+                            LinearProgressIndicator(
+                                modifier = Modifier.fillMaxWidth(),
+                                color = AccentPrimary,
+                                trackColor = SurfaceSecondary
+                            )
+                            Spacer(Modifier.height(6.dp))
+                            Text(
+                                text = detectStatus,
+                                color = TextSecondary,
+                                fontSize = 12.sp
+                            )
+                        }
                     }
                 }
             } else if (tracks.isNotEmpty()) {
+                // Message affinage si TTE + pas téléchargé
+                val needsDownloadForRefinement = (episode?.trackRefinementStatus == "pending"
+                    || episode?.trackRefinementStatus == "chroma_pending")
+                    && episode?.localAudioPath == null
+                if (needsDownloadForRefinement) {
+                    item {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 12.dp, vertical = 4.dp)
+                                .background(Color(0xFF2D1F00), androidx.compose.foundation.shape.RoundedCornerShape(8.dp))
+                                .padding(8.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            Text("🎯", fontSize = 14.sp)
+                            Text(
+                                text = "Timestamps estimés · Téléchargez l'épisode pour affiner la tracklist",
+                                color = Color(0xFFFF9800),
+                                fontSize = 11.sp
+                            )
+                        }
+                    }
+                }
                 item {
                     Row(
                         modifier = Modifier
@@ -207,17 +249,35 @@ fun EpisodeDetailScreen(
                             fontSize = 14.sp
                         )
                         // Badge source — traduit les codes internes en labels lisibles
-                        val sourceLabel = when (tracks.firstOrNull()?.source) {
-                            "1001tl"      -> "1001TL"
-                            "mixcloud"    -> "Mixcloud"
-                            "comments"    -> "YouTube comments"
-                            "ytdlp"       -> "yt-dlp"
-                            "shazam"      -> "Shazam"
-                            "mixesdb"     -> "MixesDB"
-                            "timestamped" -> "description"
-                            "uniform"     -> "description (estimé)"
+                        val refinementStatus = episode?.trackRefinementStatus
+                        val isEstimated = refinementStatus == "pending" || refinementStatus == "refining"
+                            || refinementStatus == "chroma_pending"
+                            || tracks.any { it.source == "chroma_suspect" }
+                        val isRefined   = refinementStatus == "done"
+                        val trackSource = tracks.firstOrNull()?.source
+                        val baseLabel = when (trackSource) {
+                            "1001tl"            -> "1001TL"
+                            "1001tl_est"        -> "1001TL (estimé)"
+                            "mixcloud"          -> "Mixcloud"
+                            "comments"          -> "YouTube comments"
+                            "ytdlp"             -> "yt-dlp"
+                            "ytdlp_est"         -> "yt-dlp (estimé)"
+                            "shazam"            -> "Shazam"
+                            "mixesdb"           -> "MixesDB"
+                            "mixesdb_est"       -> "MixesDB (estimé)"
+                            "timestamped"       -> if (isRefined) "description (affiné)" else "description"
+                            "uniform"           -> if (isRefined) "description (affiné)" else "description"
                             "mixcloud_sections" -> "Mixcloud sections"
-                            else          -> tracks.firstOrNull()?.source ?: ""
+                            "audio_refined"     -> "affiné ✓"
+                            "chroma_matched"    -> "affiné ✓"
+                            "chroma_suspect"    -> "estimé ⚠"
+                            else                -> trackSource ?: ""
+                        }
+                        val isSuspect = trackSource == "chroma_suspect"
+                        val sourceLabel = when {
+                            isSuspect           -> baseLabel  // label already says "estimé ⚠"
+                            isEstimated && baseLabel.isNotBlank() -> "$baseLabel (estimé)"
+                            else                -> baseLabel
                         }
                         if (sourceLabel.isNotBlank()) {
                             Text(
