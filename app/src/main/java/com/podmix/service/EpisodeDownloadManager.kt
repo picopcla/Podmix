@@ -9,11 +9,15 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import okhttp3.OkHttpClient
 import java.io.File
+import java.util.concurrent.atomic.AtomicLong
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -223,8 +227,107 @@ class EpisodeDownloadManager @Inject constructor(
         return File(dir, "$episodeId.m4a")
     }
 
-    private suspend fun downloadToFile(url: String, file: File, onProgress: (Float) -> Unit) = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
-        val isMixcloud = url.contains("mixcloud.com", ignoreCase = true)
+    private suspend fun downloadToFile(url: String, file: File, onProgress: (Float) -> Unit) {
+        val isMixcloud  = url.contains("mixcloud.com", ignoreCase = true)
+        val isYouTube   = url.contains("googlevideo.com", ignoreCase = true)
+
+        // Extract content length from URL params (YouTube embeds it as clen=NNN)
+        val clenFromUrl = Regex("[?&]clen=(\\d+)").find(url)?.groupValues?.get(1)?.toLongOrNull() ?: -1L
+
+        // Use parallel chunked download for YouTube (bypasses 1.5× playback-rate throttle)
+        // Mixcloud CDN doesn't support partial content reliably — use single stream
+        if (isYouTube && clenFromUrl > 0) {
+            downloadChunked(url, file, clenFromUrl, onProgress)
+            return
+        }
+
+        // Single-stream fallback (podcasts RSS, Mixcloud)
+        downloadSingleStream(url, file, isMixcloud, onProgress)
+    }
+
+    /**
+     * Parallel 8-chunk download using HTTP Range requests.
+     * YouTube CDN supports this and doesn't throttle per-connection bandwidth
+     * the same way it throttles a single progressive download.
+     *
+     * ~8× faster than single-stream for throttled YouTube audio.
+     */
+    private suspend fun downloadChunked(
+        url: String,
+        file: File,
+        contentLength: Long,
+        onProgress: (Float) -> Unit
+    ) = withContext(Dispatchers.IO) {
+        val CHUNKS = 8
+        val chunkSize = (contentLength + CHUNKS - 1) / CHUNKS
+        val tmpFiles = (0 until CHUNKS).map { i -> File(file.parent, "${file.name}.part$i") }
+        val downloaded = AtomicLong(0)
+
+        Log.i("Download", "Chunked: ${contentLength/1_048_576}MB in $CHUNKS parallel chunks")
+
+        val chunkClient = okHttpClient.newBuilder()
+            .readTimeout(5, java.util.concurrent.TimeUnit.MINUTES)
+            .build()
+
+        try {
+            file.parentFile?.mkdirs()
+
+            (0 until CHUNKS).map { i ->
+                val start = i * chunkSize
+                val end   = minOf(start + chunkSize - 1, contentLength - 1)
+                if (start >= contentLength) return@map async { /* skip */ }
+
+                async {
+                    val req = okhttp3.Request.Builder()
+                        .url(url)
+                        .header("Range", "bytes=$start-$end")
+                        .build()
+
+                    chunkClient.newCall(req).execute().use { resp ->
+                        if (resp.code !in listOf(200, 206)) {
+                            throw Exception("Chunk $i HTTP ${resp.code}")
+                        }
+                        val body = resp.body ?: throw Exception("Empty chunk $i")
+                        tmpFiles[i].outputStream().use { out ->
+                            body.byteStream().use { input ->
+                                val buf = ByteArray(256 * 1024)
+                                var bytes: Int
+                                while (input.read(buf).also { bytes = it } != -1) {
+                                    out.write(buf, 0, bytes)
+                                    val dl = downloaded.addAndGet(bytes.toLong())
+                                    onProgress(dl.toFloat() / contentLength)
+                                }
+                            }
+                        }
+                    }
+                }
+            }.awaitAll()
+
+            // Merge chunks in order
+            file.outputStream().buffered(512 * 1024).use { out ->
+                tmpFiles.forEachIndexed { i, tmp ->
+                    if (tmp.exists()) {
+                        Log.d("Download", "Merging chunk $i (${tmp.length()/1024}KB)")
+                        tmp.inputStream().use { it.copyTo(out, bufferSize = 512 * 1024) }
+                        tmp.delete()
+                    }
+                }
+            }
+            Log.i("Download", "Chunked merge done: ${file.length()/1_048_576}MB")
+
+        } catch (e: Exception) {
+            tmpFiles.forEach { it.delete() }
+            throw e
+        }
+    }
+
+    /** Single-connection streaming download (podcasts, Mixcloud). */
+    private suspend fun downloadSingleStream(
+        url: String,
+        file: File,
+        isMixcloud: Boolean,
+        onProgress: (Float) -> Unit
+    ) = withContext(Dispatchers.IO) {
         val requestBuilder = okhttp3.Request.Builder().url(url)
         if (isMixcloud) {
             requestBuilder
@@ -232,12 +335,11 @@ class EpisodeDownloadManager @Inject constructor(
                 .header("Referer", "https://www.mixcloud.com/")
                 .header("Origin", "https://www.mixcloud.com")
         }
-        val request = requestBuilder.build()
 
         okHttpClient.newBuilder()
             .readTimeout(15, java.util.concurrent.TimeUnit.MINUTES)
             .build()
-            .newCall(request).execute().use { response ->
+            .newCall(requestBuilder.build()).execute().use { response ->
                 if (!response.isSuccessful) throw Exception("HTTP ${response.code}")
                 val body = response.body ?: throw Exception("Réponse vide")
                 val contentLength = body.contentLength()
@@ -245,7 +347,6 @@ class EpisodeDownloadManager @Inject constructor(
                 file.parentFile?.mkdirs()
                 var downloaded = 0L
 
-                // 512KB buffer — much faster for large liveset files (vs 32KB)
                 file.outputStream().buffered(512 * 1024).use { out ->
                     body.byteStream().use { input ->
                         val buffer = ByteArray(512 * 1024)
