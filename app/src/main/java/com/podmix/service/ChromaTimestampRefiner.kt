@@ -95,6 +95,14 @@ class ChromaTimestampRefiner @Inject constructor(
                 if (title.isBlank()) return@forEachIndexed
 
                 val estimatedTs = track.startTimeSec
+
+                // Skip impossible timestamps (beyond episode duration)
+                val dur = episode.durationSeconds
+                if (dur > 0 && estimatedTs > dur.toFloat()) {
+                    Log.w(TAG, "[$idx/${tracks.size}] '$artist - $title' estimated ts ${estimatedTs.toInt()}s > duration ${dur}s → skip (impossible)")
+                    return@forEachIndexed
+                }
+
                 Log.i(TAG, "[$idx/${tracks.size}] '$artist - $title' ~${estimatedTs.toInt()}s")
 
                 // 1. Fetch Deezer preview (4-strategy cascade in DeezerPreviewFetcher)
@@ -147,8 +155,9 @@ class ChromaTimestampRefiner @Inject constructor(
             // ── Post-match consistency validation ──────────────────────────────
             // Checks inter-track gaps on chroma_matched tracks.
             // Gap < 30s or > 1200s = impossible → rollback to estimated + mark suspect.
+            // Also flags any track with ts > episode duration as suspect.
             setProgress(episodeId, 92)
-            validateConsistency(episodeId, originalTs)
+            validateConsistency(episodeId, originalTs, episode.durationSeconds)
 
         } catch (e: Exception) {
             Log.e(TAG, "Refinement error for episode $episodeId: ${e.message}", e)
@@ -160,19 +169,26 @@ class ChromaTimestampRefiner @Inject constructor(
     }
 
     /**
-     * Post-match consistency check: verifies inter-track gaps among chroma_matched tracks.
-     * Gap < 30s  → impossible (two tracks overlapping)
-     * Gap > 1200s → implausible (20min silence in a DJ mix)
-     * Suspects are rolled back to their original estimated timestamp and marked "chroma_suspect".
+     * Post-match consistency check:
+     * 1. Any track (matched or not) with ts > episode duration → chroma_suspect
+     * 2. Inter-track gap among chroma_matched: gap < 30s or > 1200s → rollback + suspect
      */
-    private suspend fun validateConsistency(episodeId: Int, originalTs: Map<Int, Float>) {
+    private suspend fun validateConsistency(episodeId: Int, originalTs: Map<Int, Float>, durationSec: Int) {
         val refined = trackDao.getByEpisodeId(episodeId).sortedBy { it.position }
         var suspects = 0
 
         refined.forEachIndexed { idx, track ->
+            // Rule 1: timestamp beyond episode duration → impossible
+            if (durationSec > 0 && track.startTimeSec > durationSec.toFloat()) {
+                trackDao.update(track.copy(source = "chroma_suspect"))
+                Log.w(TAG, "  ⚠ '${track.title}' ts=${track.startTimeSec.toInt()}s > duration=${durationSec}s → suspect")
+                suspects++
+                return@forEachIndexed
+            }
+
+            // Rule 2: gap check (chroma_matched only)
             if (track.source != "chroma_matched") return@forEachIndexed
 
-            // Find the nearest preceding chroma_matched track
             val prev = refined.take(idx).lastOrNull { it.source == "chroma_matched" }
                 ?: return@forEachIndexed
 
