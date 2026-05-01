@@ -6,6 +6,7 @@ import androidx.lifecycle.viewModelScope
 import com.podmix.data.local.dao.EpisodeDao
 import com.podmix.data.local.dao.PodcastDao
 import com.podmix.data.local.dao.TrackDao
+import com.podmix.data.prefs.AppPreferences
 import com.podmix.data.repository.DjRepository
 import com.podmix.domain.model.Episode
 import com.podmix.domain.model.Podcast
@@ -20,6 +21,8 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -35,7 +38,8 @@ class DjDetailViewModel @Inject constructor(
     playerController: PlayerController,
     downloadManager: EpisodeDownloadManager,
     audioTransitionDetector: AudioTransitionDetector,
-    chromaTimestampRefiner: ChromaTimestampRefiner
+    chromaTimestampRefiner: ChromaTimestampRefiner,
+    private val appPreferences: AppPreferences
 ) : ViewModel() {
 
     val playerState = playerController.playerState
@@ -58,8 +62,11 @@ class DjDetailViewModel @Inject constructor(
     private val _searchQuery = MutableStateFlow("")
     val searchQuery: StateFlow<String> = _searchQuery.asStateFlow()
 
-    private val allSets = episodeDao.getByPodcastId(djId)
-        .map { list ->
+    // Reactive display limit: updates when liveset setting changes
+    @OptIn(ExperimentalCoroutinesApi::class)
+    private val allSets = appPreferences.maxLivesetEpisodes.flatMapLatest { limit ->
+        episodeDao.getByPodcastIdLimited(djId, limit.coerceAtLeast(5))
+    }.map { list ->
             list.map { e ->
                 Episode(
                     id = e.id,

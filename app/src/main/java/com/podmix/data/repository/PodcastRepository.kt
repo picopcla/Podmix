@@ -5,14 +5,14 @@ import com.podmix.data.local.dao.EpisodeDao
 import com.podmix.data.local.dao.PodcastDao
 import com.podmix.data.local.entity.EpisodeEntity
 import com.podmix.data.local.entity.PodcastEntity
+import com.podmix.data.prefs.AppPreferences
 import com.podmix.domain.model.Podcast
 import com.prof18.rssparser.RssParser
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Locale
 import javax.inject.Inject
@@ -23,7 +23,9 @@ class PodcastRepository @Inject constructor(
     private val podcastDao: PodcastDao,
     private val episodeDao: EpisodeDao,
     private val rssParser: RssParser,
-    private val trackRepository: TrackRepository
+    private val trackRepository: TrackRepository,
+    private val applicationScope: CoroutineScope,
+    private val appPreferences: AppPreferences
 ) {
 
     fun getPodcasts(): Flow<List<Podcast>> =
@@ -125,8 +127,9 @@ class PodcastRepository @Inject constructor(
         val channel = rssParser.getRssChannel(feedUrl)
 
         val limit = when (podcast.type) {
-            "emission" -> 300   // feeds comme Legend ont 600+ épisodes
-            else       -> 100   // podcasts standard
+            "podcast"  -> appPreferences.maxPodcastEpisodes.first()
+            "emission" -> appPreferences.maxEmissionEpisodes.first()
+            else       -> appPreferences.maxLivesetEpisodes.first()
         }
         for (item in channel.items.take(limit)) {
             val guid = item.guid ?: item.link ?: item.title ?: continue
@@ -157,7 +160,7 @@ class PodcastRepository @Inject constructor(
                 val title = item.title ?: ""
                 val podName = podcast.name
                 val dur = parseDuration(item.itunesItemData?.duration)
-                CoroutineScope(SupervisorJob() + Dispatchers.IO).launch {
+                applicationScope.launch {
                     try {
                         trackRepository.detectAndSaveTracks(
                             episodeId = episodeId,
@@ -174,6 +177,15 @@ class PodcastRepository @Inject constructor(
         }
 
         podcastDao.update(podcast.copy(lastCheckedAt = System.currentTimeMillis()))
+
+        // Auto-clean : supprimer les épisodes écoutés (isListened=1, non favoris, non téléchargés)
+        // au-delà de la limite configurée dans les settings
+        val maxEpisodes = when (podcast.type) {
+            "podcast"  -> appPreferences.maxPodcastEpisodes.first()
+            "emission" -> appPreferences.maxEmissionEpisodes.first()
+            else       -> appPreferences.maxLivesetEpisodes.first()
+        }
+        episodeDao.deleteOldestListened(podcastId, maxEpisodes)
     }
 
     private fun parsePubDate(dateStr: String): Long? {

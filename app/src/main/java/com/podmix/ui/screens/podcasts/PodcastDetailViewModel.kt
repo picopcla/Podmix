@@ -6,6 +6,7 @@ import androidx.lifecycle.viewModelScope
 import com.podmix.data.local.dao.EpisodeDao
 import com.podmix.data.local.dao.PodcastDao
 import com.podmix.data.local.dao.TrackDao
+import com.podmix.data.prefs.AppPreferences
 import com.podmix.data.repository.PodcastRepository
 import com.podmix.domain.model.Episode
 import com.podmix.domain.model.Podcast
@@ -18,6 +19,8 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -32,7 +35,8 @@ class PodcastDetailViewModel @Inject constructor(
     private val trackDao: TrackDao,
     private val playerController: PlayerController,
     private val audioTransitionDetector: AudioTransitionDetector,
-    private val chromaTimestampRefiner: ChromaTimestampRefiner
+    private val chromaTimestampRefiner: ChromaTimestampRefiner,
+    private val appPreferences: AppPreferences
 ) : ViewModel() {
 
     // Progression affinage par épisodeId (0-100) — fusionne RMS et chroma refiners
@@ -59,8 +63,17 @@ class PodcastDetailViewModel @Inject constructor(
     private val _searchQuery = MutableStateFlow("")
     val searchQuery: StateFlow<String> = _searchQuery.asStateFlow()
 
-    private val allEpisodes = episodeDao.getByPodcastId(podcastId)
-        .map { list ->
+    // Reactive display limit: respects podcast/emission setting, updates on settings change
+    @OptIn(ExperimentalCoroutinesApi::class)
+    private val allEpisodes = combine(
+        appPreferences.maxPodcastEpisodes,
+        appPreferences.maxEmissionEpisodes,
+        _podcast
+    ) { maxP, maxE, podcast ->
+        if (podcast?.type == "emission") maxE else maxP
+    }.flatMapLatest { limit ->
+        episodeDao.getByPodcastIdLimited(podcastId, limit.coerceAtLeast(5))
+    }.map { list ->
             list.map { e ->
                 Episode(
                     id = e.id,

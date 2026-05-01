@@ -4,6 +4,7 @@ import android.util.Log
 import com.podmix.data.api.DuckDuckGoApi
 import com.podmix.data.api.MixcloudApi
 import com.podmix.data.api.YouTubeSearchApi
+import com.podmix.data.prefs.AppPreferences
 import com.podmix.service.YouTubeStreamResolver
 import com.podmix.data.local.dao.EpisodeDao
 import com.podmix.data.local.dao.PodcastDao
@@ -12,8 +13,8 @@ import com.podmix.data.local.entity.PodcastEntity
 import com.podmix.domain.model.Podcast
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import okhttp3.OkHttpClient
@@ -29,7 +30,9 @@ class DjRepository @Inject constructor(
     private val trackRepository: TrackRepository,
     private val okHttpClient: OkHttpClient,
     private val youTubeSearchApi: YouTubeSearchApi,
-    private val youTubeStreamResolver: YouTubeStreamResolver
+    private val youTubeStreamResolver: YouTubeStreamResolver,
+    private val applicationScope: CoroutineScope,
+    private val appPreferences: AppPreferences
 ) {
     companion object {
         private val EXCLUDE_KEYWORDS = listOf(
@@ -207,10 +210,11 @@ class DjRepository @Inject constructor(
             Log.w("DjRepo", "YouTube search failed: ${e.message}")
         }
 
-        // Sort by date, keep 10 most recent
+        // Sort by date, keep N most recent (configured in settings)
+        val maxLivesets = appPreferences.maxLivesetEpisodes.first()
         val topSets = allSets
             .sortedByDescending { it.datePublished }
-            .take(15)
+            .take(maxLivesets)
 
         var inserted = 0
         for (set in topSets) {
@@ -248,7 +252,7 @@ class DjRepository @Inject constructor(
             val dur = set.durationSeconds
             val desc = set.description
             val mcKey = set.mixcloudKey
-            CoroutineScope(SupervisorJob() + Dispatchers.IO).launch {
+            applicationScope.launch {
                 try {
                     // For Mixcloud sets, try to get sections tracklist directly
                     if (mcKey != null) {
@@ -263,6 +267,9 @@ class DjRepository @Inject constructor(
         }
 
         podcastDao.update(dj.copy(lastCheckedAt = System.currentTimeMillis()))
+
+        // Auto-clean: remove oldest listened sets beyond the configured limit
+        episodeDao.deleteOldestListened(djId, maxLivesets)
 
         if (inserted == 0 && topSets.isEmpty()) {
             Log.w("DjRepo", "No sets found for ${dj.name}")
