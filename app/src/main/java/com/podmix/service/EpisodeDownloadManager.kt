@@ -224,9 +224,18 @@ class EpisodeDownloadManager @Inject constructor(
     }
 
     private suspend fun downloadToFile(url: String, file: File, onProgress: (Float) -> Unit) = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
-        val request = okhttp3.Request.Builder().url(url).build()
+        val isMixcloud = url.contains("mixcloud.com", ignoreCase = true)
+        val requestBuilder = okhttp3.Request.Builder().url(url)
+        if (isMixcloud) {
+            requestBuilder
+                .header("User-Agent", "Mozilla/5.0 (Linux; Android 12) AppleWebKit/537.36 Chrome/120 Mobile Safari/537.36")
+                .header("Referer", "https://www.mixcloud.com/")
+                .header("Origin", "https://www.mixcloud.com")
+        }
+        val request = requestBuilder.build()
+
         okHttpClient.newBuilder()
-            .readTimeout(10, java.util.concurrent.TimeUnit.MINUTES)
+            .readTimeout(15, java.util.concurrent.TimeUnit.MINUTES)
             .build()
             .newCall(request).execute().use { response ->
                 if (!response.isSuccessful) throw Exception("HTTP ${response.code}")
@@ -236,9 +245,10 @@ class EpisodeDownloadManager @Inject constructor(
                 file.parentFile?.mkdirs()
                 var downloaded = 0L
 
-                file.outputStream().buffered().use { out ->
-                    body.byteStream().buffered().use { input ->
-                        val buffer = ByteArray(32 * 1024)
+                // 512KB buffer — much faster for large liveset files (vs 32KB)
+                file.outputStream().buffered(512 * 1024).use { out ->
+                    body.byteStream().use { input ->
+                        val buffer = ByteArray(512 * 1024)
                         var bytes: Int
                         while (input.read(buffer).also { bytes = it } != -1) {
                             out.write(buffer, 0, bytes)

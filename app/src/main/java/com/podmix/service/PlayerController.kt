@@ -74,29 +74,41 @@ class PlayerController @Inject constructor(
 
     var onTrackEnded: (() -> Unit)? = null
 
+    /** Compte les retries réseau pour l'URL courante — reset à chaque nouveau playMedia() */
+    private var networkRetryCount = 0
+    private val MAX_NETWORK_RETRIES = 3
+
     val exoPlayer: ExoPlayer by lazy {
         val loadControl = androidx.media3.exoplayer.DefaultLoadControl.Builder()
             .setBufferDurationsMs(
-                60 * 1000,       // minBufferMs: 1 minute
+                60 * 1000,       // minBufferMs: 1 minute (stabilité réseau)
                 8 * 60 * 1000,   // maxBufferMs: 8 minutes
-                5_000,           // bufferForPlaybackMs: 5s before starting
-                10_000           // bufferForPlaybackAfterRebufferMs: 10s after rebuffer
+                1_500,           // bufferForPlaybackMs: 1.5s — démarrage rapide (était 5s)
+                3_000            // bufferForPlaybackAfterRebufferMs: 3s après rebuffer (était 10s)
             )
             .build()
 
-        // OkHttpDataSource with YouTube-compatible headers to prevent 403/throttle cuts
+        // OkHttpDataSource with platform-specific headers to prevent 403/throttle cuts
         val ytOkHttpClient = okHttpClient.newBuilder()
             .addInterceptor { chain ->
                 val req = chain.request()
-                val isYouTube = req.url.host.contains("googlevideo.com") ||
-                    req.url.host.contains("youtube.com")
-                val newReq = if (isYouTube) {
-                    req.newBuilder()
-                        .header("User-Agent", "Mozilla/5.0 (Linux; Android 12) AppleWebKit/537.36 Chrome/112.0.0.0 Mobile Safari/537.36")
-                        .header("Origin", "https://www.youtube.com")
-                        .header("Referer", "https://www.youtube.com/")
-                        .build()
-                } else req
+                val host = req.url.host
+                val newReq = when {
+                    host.contains("googlevideo.com") || host.contains("youtube.com") ->
+                        req.newBuilder()
+                            .header("User-Agent", "Mozilla/5.0 (Linux; Android 12) AppleWebKit/537.36 Chrome/112.0.0.0 Mobile Safari/537.36")
+                            .header("Origin", "https://www.youtube.com")
+                            .header("Referer", "https://www.youtube.com/")
+                            .build()
+                    host.contains("mixcloud.com") || host.contains("audio4.mixcloud.com")
+                        || host.contains("stream.mixcloud.com") ->
+                        req.newBuilder()
+                            .header("User-Agent", "Mozilla/5.0 (Linux; Android 12) AppleWebKit/537.36 Chrome/120 Mobile Safari/537.36")
+                            .header("Origin", "https://www.mixcloud.com")
+                            .header("Referer", "https://www.mixcloud.com/")
+                            .build()
+                    else -> req
+                }
                 chain.proceed(newReq)
             }
             .build()
@@ -124,12 +136,18 @@ class PlayerController @Inject constructor(
             .build().also { player ->
                 player.addListener(object : Player.Listener {
                     override fun onIsPlayingChanged(isPlaying: Boolean) {
+                        val ep = _playerState.value.currentEpisode
+                        val epInfo = ep?.let { "'${it.title.take(50)}'" } ?: "?"
+                        com.podmix.AppLogger.player(if (isPlaying) "PLAYING" else "PAUSED", epInfo)
                         _playerState.value = _playerState.value.copy(isPlaying = isPlaying)
                         if (isPlaying) startProgressSync() else stopProgressSync()
                         startTrackSync()
                     }
 
                     override fun onPlayerError(error: androidx.media3.common.PlaybackException) {
+                        val ep = _playerState.value.currentEpisode
+                        val epInfo = ep?.let { "'${it.title.take(50)}'" } ?: "?"
+                        com.podmix.AppLogger.err("PLAYER", "ERROR code=${error.errorCode}", "$epInfo | ${error.message}")
                         Log.e("PodMix", "Player error: ${error.errorCode} - ${error.message}")
                         val episode = _playerState.value.currentEpisode
                         val podcast = _playerState.value.currentPodcast
@@ -140,8 +158,25 @@ class PlayerController @Inject constructor(
                             androidx.media3.common.PlaybackException.ERROR_CODE_IO_BAD_HTTP_STATUS -> {
                                 if (episode != null && podcast != null) {
                                     when {
+                                        episode.mixcloudKey != null -> {
+                                            Log.w("PodMix", "HTTP error, invalidating+re-resolving Mixcloud URL for ${episode.mixcloudKey}")
+                                            com.podmix.AppLogger.resolve("MC_REAUTH", "HTTP ${error.message ?: "?"} → invalidate+re-resolving ${episode.mixcloudKey}")
+                                            mixcloudStreamResolver.invalidateCache(episode.mixcloudKey)
+                                            scope.launch {
+                                                val newUrl = mixcloudStreamResolver.resolveForStreaming(episode.mixcloudKey)
+                                                if (newUrl != null) {
+                                                    mainHandler.post {
+                                                        pendingSeekMs = pos
+                                                        playMedia(episode.copy(audioUrl = newUrl), podcast)
+                                                    }
+                                                } else {
+                                                    com.podmix.AppLogger.err("RESOLVE", "MC_REAUTH_FAIL", episode.mixcloudKey)
+                                                }
+                                            }
+                                        }
                                         !episode.soundcloudTrackUrl.isNullOrBlank() -> {
                                             Log.w("PodMix", "HLS expired, re-resolving SoundCloud ${episode.soundcloudTrackUrl}")
+                                            com.podmix.AppLogger.resolve("SC_REAUTH", "HLS expired → re-resolving ${episode.soundcloudTrackUrl?.takeLast(60)}")
                                             scope.launch {
                                                 val newUrl = youTubeStreamResolver.resolveSoundCloudTrack(episode.soundcloudTrackUrl)
                                                 if (newUrl != null) mainHandler.post { pendingSeekMs = pos; playMedia(episode.copy(audioUrl = newUrl), podcast) }
@@ -149,6 +184,7 @@ class PlayerController @Inject constructor(
                                         }
                                         episode.youtubeVideoId != null -> {
                                             Log.w("PodMix", "HTTP error, re-resolving YouTube URL for ${episode.youtubeVideoId}")
+                                            com.podmix.AppLogger.resolve("YT_REAUTH", "403 → invalidate+re-resolve ${episode.youtubeVideoId}")
                                             youTubeStreamResolver.invalidateCache(episode.youtubeVideoId)
                                             scope.launch {
                                                 val newUrl = youTubeStreamResolver.resolve(episode.youtubeVideoId)
@@ -158,19 +194,38 @@ class PlayerController @Inject constructor(
                                     }
                                 }
                             }
-                            // Retry on transient network errors
+                            // Retry on transient network errors — max 3 fois puis abandon
                             androidx.media3.common.PlaybackException.ERROR_CODE_IO_NETWORK_CONNECTION_FAILED,
                             androidx.media3.common.PlaybackException.ERROR_CODE_IO_NETWORK_CONNECTION_TIMEOUT -> {
-                                mainHandler.postDelayed({
-                                    exoPlayer.prepare()
-                                    exoPlayer.seekTo(pos)
-                                    exoPlayer.play()
-                                }, 3000)
+                                networkRetryCount++
+                                if (networkRetryCount <= MAX_NETWORK_RETRIES) {
+                                    val delayMs = (networkRetryCount * 3000L).coerceAtMost(10_000L)
+                                    Log.w("PodMix", "Network error, retry $networkRetryCount/$MAX_NETWORK_RETRIES in ${delayMs}ms")
+                                    com.podmix.AppLogger.err("PLAYER", "NET_ERR retry $networkRetryCount/$MAX_NETWORK_RETRIES in ${delayMs}ms", epInfo)
+                                    mainHandler.postDelayed({
+                                        exoPlayer.prepare()
+                                        exoPlayer.seekTo(pos)
+                                        exoPlayer.play()
+                                    }, delayMs)
+                                } else {
+                                    Log.e("PodMix", "Network error: max retries ($MAX_NETWORK_RETRIES) reached, giving up")
+                                    com.podmix.AppLogger.err("PLAYER", "NET_ERR GIVE_UP after $MAX_NETWORK_RETRIES retries", epInfo)
+                                }
                             }
                         }
                     }
 
                     override fun onPlaybackStateChanged(state: Int) {
+                        val ep = _playerState.value.currentEpisode
+                        val epInfo = ep?.let { "'${it.title.take(50)}'" } ?: "?"
+                        val stateName = when (state) {
+                            Player.STATE_IDLE -> "IDLE"
+                            Player.STATE_BUFFERING -> "BUFFERING"
+                            Player.STATE_READY -> "READY"
+                            Player.STATE_ENDED -> "ENDED"
+                            else -> "STATE_$state"
+                        }
+                        com.podmix.AppLogger.player("STATE_$stateName", epInfo)
                         updatePosition()
                         when (state) {
                             Player.STATE_READY -> {
@@ -194,6 +249,7 @@ class PlayerController @Inject constructor(
     }
 
     fun playEpisode(episode: Episode, podcast: Podcast, seekToMs: Long = 0L) {
+        com.podmix.AppLogger.player("PLAY_REQUEST", "'${episode.title.take(60)}' | podcast='${podcast.name}' seekMs=$seekToMs")
         if (seekToMs > 0L) pendingSeekMs = seekToMs
         _playerState.value = _playerState.value.copy(
             currentEpisode = episode,
@@ -204,6 +260,7 @@ class PlayerController @Inject constructor(
         val localPath = episode.localAudioPath
         if (localPath != null && java.io.File(localPath).exists()) {
             Log.i("PodMix", "Playing from local file: $localPath")
+            com.podmix.AppLogger.player("PLAY_LOCAL", localPath)
             playMedia(episode.copy(audioUrl = android.net.Uri.fromFile(java.io.File(localPath)).toString()), podcast)
             return
         }
@@ -212,40 +269,55 @@ class PlayerController @Inject constructor(
             // SoundCloud — HLS stream, no throttle, re-resolve on expiry
             scope.launch {
                 Log.i("PodMix", "Resolving SoundCloud HLS for ${episode.soundcloudTrackUrl}...")
+                com.podmix.AppLogger.resolve("SC_START", episode.soundcloudTrackUrl ?: "")
+                val t0 = System.currentTimeMillis()
                 val hlsUrl = youTubeStreamResolver.resolveSoundCloudTrack(episode.soundcloudTrackUrl)
+                val ms = System.currentTimeMillis() - t0
                 if (hlsUrl != null) {
                     Log.i("PodMix", "SoundCloud HLS OK, streaming...")
+                    com.podmix.AppLogger.resolve("SC_OK ${ms}ms", hlsUrl.take(80))
                     playMedia(episode.copy(audioUrl = hlsUrl), podcast)
                 } else if (!episode.youtubeVideoId.isNullOrBlank()) {
                     Log.w("PodMix", "SoundCloud failed, falling back to YouTube ${episode.youtubeVideoId}")
+                    com.podmix.AppLogger.err("RESOLVE", "SC_FAIL ${ms}ms → YT fallback", episode.youtubeVideoId ?: "")
+                    val t1 = System.currentTimeMillis()
                     val ytUrl = youTubeStreamResolver.resolve(episode.youtubeVideoId)
-                    if (ytUrl != null) playMedia(episode.copy(audioUrl = ytUrl), podcast)
-                    else { Log.e("PodMix", "All resolution failed"); pendingSeekMs = null }
+                    if (ytUrl != null) { com.podmix.AppLogger.resolve("YT_OK ${System.currentTimeMillis()-t1}ms", episode.youtubeVideoId ?: ""); playMedia(episode.copy(audioUrl = ytUrl), podcast) }
+                    else { com.podmix.AppLogger.err("RESOLVE", "ALL_FAIL SC+YT"); pendingSeekMs = null }
                 } else {
                     Log.e("PodMix", "SoundCloud resolution failed, no fallback")
+                    com.podmix.AppLogger.err("RESOLVE", "SC_FAIL ${ms}ms NO_FALLBACK")
                     pendingSeekMs = null
                 }
             }
         } else if (episode.mixcloudKey != null) {
-            // Mixcloud primary, YouTube fallback
+            // Mixcloud primary (HLS preferred for streaming), YouTube fallback
             scope.launch {
-                Log.i("PodMix", "Resolving Mixcloud audio for ${episode.mixcloudKey}...")
-                val url = mixcloudStreamResolver.resolve(episode.mixcloudKey)
+                Log.i("PodMix", "Resolving Mixcloud HLS for ${episode.mixcloudKey}...")
+                com.podmix.AppLogger.resolve("MC_START", episode.mixcloudKey ?: "")
+                val t0 = System.currentTimeMillis()
+                val url = mixcloudStreamResolver.resolveForStreaming(episode.mixcloudKey)
                 if (url != null) {
-                    Log.i("PodMix", "Mixcloud resolved OK, playing...")
+                    Log.i("PodMix", "Mixcloud resolved OK (${if (url.contains(".m3u8")) "HLS" else "direct"}), playing...")
+                    com.podmix.AppLogger.resolve("MC_OK ${System.currentTimeMillis()-t0}ms", url.take(80))
                     playMedia(episode.copy(audioUrl = url), podcast)
                 } else if (!episode.youtubeVideoId.isNullOrBlank()) {
                     Log.w("PodMix", "Mixcloud failed, trying YouTube fallback...")
+                    com.podmix.AppLogger.err("RESOLVE", "MC_FAIL → YT fallback ${episode.youtubeVideoId}")
+                    val t1 = System.currentTimeMillis()
                     val ytUrl = youTubeStreamResolver.resolve(episode.youtubeVideoId)
                     if (ytUrl != null) {
                         Log.i("PodMix", "YouTube fallback OK, playing...")
+                        com.podmix.AppLogger.resolve("YT_OK ${System.currentTimeMillis()-t1}ms", episode.youtubeVideoId ?: "")
                         playMedia(episode.copy(audioUrl = ytUrl), podcast)
                     } else {
                         Log.e("PodMix", "All stream resolution failed for ${episode.mixcloudKey}")
+                        com.podmix.AppLogger.err("RESOLVE", "ALL_FAIL MC+YT")
                         pendingSeekMs = null
                     }
                 } else {
                     Log.e("PodMix", "Mixcloud resolution failed, no YouTube fallback")
+                    com.podmix.AppLogger.err("RESOLVE", "MC_FAIL NO_FALLBACK")
                     pendingSeekMs = null
                 }
             }
@@ -253,17 +325,23 @@ class PlayerController @Inject constructor(
             // YouTube only
             scope.launch {
                 Log.i("PodMix", "Resolving YouTube audio for ${episode.youtubeVideoId}...")
+                com.podmix.AppLogger.resolve("YT_START", episode.youtubeVideoId ?: "")
+                val t0 = System.currentTimeMillis()
                 val resolvedUrl = youTubeStreamResolver.resolve(episode.youtubeVideoId)
+                val ms = System.currentTimeMillis() - t0
                 if (resolvedUrl != null) {
                     Log.i("PodMix", "Resolved OK, playing...")
+                    com.podmix.AppLogger.resolve("YT_OK ${ms}ms", episode.youtubeVideoId ?: "")
                     playMedia(episode.copy(audioUrl = resolvedUrl), podcast)
                 } else {
                     Log.e("PodMix", "Failed to resolve YouTube audio for ${episode.youtubeVideoId}")
+                    com.podmix.AppLogger.err("RESOLVE", "YT_FAIL ${ms}ms", episode.youtubeVideoId ?: "")
                     pendingSeekMs = null
                 }
             }
         } else {
             // Direct URL (podcasts RSS)
+            com.podmix.AppLogger.player("PLAY_DIRECT", episode.audioUrl.take(80))
             playMedia(episode, podcast)
         }
     }
@@ -271,6 +349,7 @@ class PlayerController @Inject constructor(
     private fun playMedia(episode: Episode, podcast: Podcast) {
         mainHandler.post {
             listenedMarked = false
+            networkRetryCount = 0  // reset retry counter pour chaque nouvelle URL
             val mediaItem = MediaItem.Builder()
                 .setUri(episode.audioUrl)
                 .setMediaMetadata(
@@ -479,7 +558,7 @@ class PlayerController @Inject constructor(
                 runCatching { episodeDao.updateProgress(episode.id, positionSec) }
 
                 val duration = exoPlayer.duration
-                if (!listenedMarked && duration > 0 && exoPlayer.currentPosition >= duration * 0.9) {
+                if (!listenedMarked && duration > 0 && exoPlayer.currentPosition >= duration * 0.98) {
                     runCatching { episodeDao.toggleListened(episode.id) }
                     listenedMarked = true
                 }
