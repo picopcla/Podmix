@@ -744,14 +744,20 @@ class TrackRepository @Inject constructor(
     }
 
     suspend fun saveTracksForEpisode(episodeId: Int, tracks: List<ParsedTrack>, hasTimestamps: Boolean) {
-        saveTracks(episodeId, tracks, hasTimestamps, 0, "1001tl")
+        val dur = episodeDao.getById(episodeId)?.durationSeconds ?: 0
+        saveTracks(episodeId, tracks, hasTimestamps, dur, "1001tl")
     }
 
     private suspend fun saveTracks(
         episodeId: Int, tracks: List<ParsedTrack>,
         hasTimestamps: Boolean, durationSec: Int, source: String
     ) {
-        val effectiveDuration = if (durationSec > 0) durationSec else 5400 // 90 min par défaut
+        // Always use real episode duration — fallback to DB lookup, then 90min default
+        val effectiveDuration = when {
+            durationSec > 0 -> durationSec
+            else -> episodeDao.getById(episodeId)?.durationSeconds
+                        ?.takeIf { it > 0 } ?: 5400
+        }
 
         // Si le mode timestampé est activé, nettoyer les 0f parasites au milieu de la liste
         val finalTracks = if (hasTimestamps) fixZeroTimestamps(tracks, effectiveDuration) else tracks
@@ -765,6 +771,8 @@ class TrackRepository @Inject constructor(
         val entities = finalTracks.mapIndexed { index, p ->
             val startSec = if (hasTimestamps) p.startTimeSec
             else (effectiveDuration.toFloat() * index / finalTracks.size)
+                .coerceAtMost(effectiveDuration.toFloat() - 5f)  // never past end of file
+                .coerceAtLeast(0f)
             TrackEntity(
                 episodeId = episodeId, position = index,
                 title = p.title, artist = p.artist,
