@@ -58,6 +58,7 @@ fun PodcastDetailScreen(
     val isRefreshing by viewModel.isRefreshing.collectAsState()
     val playerState by viewModel.playerState.collectAsState()
     val episodeIdsWithTracks by viewModel.episodeIdsWithTracks.collectAsState()
+    val refinementProgress by viewModel.refinementProgress.collectAsState()
 
     Scaffold(
         containerColor = Background,
@@ -130,6 +131,7 @@ fun PodcastDetailScreen(
                     downloadState = if (episode.localAudioPath != null)
                         com.podmix.service.DownloadState.Downloaded(episode.localAudioPath)
                     else com.podmix.service.DownloadState.Idle,
+                    refinementPct = refinementProgress[episode.id],
                     onClick = { onEpisodeClick(episode.podcastId, episode.id) }
                 )
             }

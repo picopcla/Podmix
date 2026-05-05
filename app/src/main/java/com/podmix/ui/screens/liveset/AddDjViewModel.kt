@@ -11,6 +11,7 @@ import com.podmix.service.ArtistPageScraper
 import com.podmix.service.EpisodeEnrichmentService
 import com.podmix.service.SetMatcher
 import com.podmix.service.SoundCloudArtistScraper
+import com.podmix.service.YouTubeDjSetSearcher
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
@@ -52,7 +53,7 @@ data class DiscoveredSet(
     val youtubeVideoId: String?   // depuis 1001TL page artiste
 ) {
     /** Identifiant stable unique pour Compose key et toggleSelection */
-    val id: String get() = soundcloudUrl ?: tracklistUrl ?: title
+    val id: String get() = soundcloudUrl ?: tracklistUrl ?: youtubeVideoId?.let { "yt:$it" } ?: title
 }
 
 data class DiscoveredSetUiItem(
@@ -63,6 +64,7 @@ data class DiscoveredSetUiItem(
     val sourceLabel: String get() = when {
         set.soundcloudUrl != null && set.tracklistUrl != null -> "SC+TL"
         set.soundcloudUrl != null -> "SC"
+        set.youtubeVideoId != null && set.tracklistUrl == null -> "YT"
         else -> "1001TL"
     }
 
@@ -76,6 +78,7 @@ class AddDjViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
     private val artistPageScraper: ArtistPageScraper,
     private val soundCloudArtistScraper: SoundCloudArtistScraper,
+    private val youtubeDjSetSearcher: YouTubeDjSetSearcher,
     private val episodeDao: EpisodeDao,
     private val djRepository: DjRepository,
     private val enrichmentService: EpisodeEnrichmentService,
@@ -185,9 +188,33 @@ class AddDjViewModel @Inject constructor(
                 if (podcast) Log.i(TAG, "Post-merge filter: '${set.title}'")
                 !podcast
             }
-            Log.i(TAG, "Merged: ${mergedRaw.size} → ${merged.size} sets after podcast filter")
 
-            rawSets = merged.map { set ->
+            // Fallback YouTube APRÈS merge — seulement si SC+1001TL insuffisants (< 40)
+            val ytSets: List<DiscoveredSet> = if (merged.size < 40) {
+                val needed = (40 - merged.size).coerceAtMost(30)
+                Log.i(TAG, "SC+1001TL=${merged.size} < 40 → fallback YouTube ($needed manquants) pour '$q'")
+                try {
+                    youtubeDjSetSearcher.search(q, maxResults = needed.coerceAtLeast(10)).map { yt ->
+                        DiscoveredSet(
+                            title = yt.title,
+                            date = "",
+                            viewCount = yt.viewCount.toInt().coerceAtLeast(0),
+                            soundcloudUrl = null,
+                            tracklistUrl = null,
+                            youtubeVideoId = yt.videoId
+                        )
+                    }
+                } catch (e: Exception) {
+                    Log.w(TAG, "YouTube fallback failed: ${e.message}")
+                    emptyList()
+                }
+            } else emptyList()
+
+            // Ajoute les résultats YouTube (fallback) — déjà filtrés dans YouTubeDjSetSearcher
+            val allSets = merged + ytSets
+            Log.i(TAG, "Final: SC+1001TL=${merged.size}, YT=${ytSets.size}, total=${allSets.size}")
+
+            rawSets = allSets.map { set ->
                 DiscoveredSetUiItem(
                     set = set,
                     isAlreadyImported = (set.youtubeVideoId != null && set.youtubeVideoId in alreadyImportedVideoIds)

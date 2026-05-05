@@ -8,6 +8,7 @@ import http.server
 import socketserver
 import json
 import urllib.parse
+import urllib.request
 import subprocess
 import sys
 import os
@@ -99,6 +100,83 @@ class AudioTimestampHandler(http.server.BaseHTTPRequestHandler):
                 logger.error(f"Error searching 1001TL: {e}")
                 self.send_error(500, f"Internal server error: {e}")
                 
+        elif path == "/comments":
+            query_params = urllib.parse.parse_qs(parsed.query)
+            video_id = query_params.get("video_id", [""])[0]
+            if not video_id:
+                self.send_error(400, "Missing 'video_id' parameter")
+                return
+            try:
+                tracks = []
+                if YT_DLP_AVAILABLE:
+                    import re as _re
+                    timestamp_re = _re.compile(r'\[?\(?\d{1,2}:\d{2}(?::\d{2})?\)?\]?')
+                    ydl_opts = {
+                        'quiet': True,
+                        'skip_download': True,
+                        'no_warnings': True,
+                        'getcomments': True,
+                        'extractor_args': {
+                            'youtube': {
+                                'max_comments': ['200'],
+                                'comment_sort': ['top'],
+                            }
+                        },
+                        'js_runtimes': {'node': {}},
+                        'remote_components': ['ejs:github'],
+                    }
+                    with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+                        info = ydl.extract_info(
+                            f"https://www.youtube.com/watch?v={video_id}",
+                            download=False
+                        )
+                        comments = info.get('comments') or []
+
+                    # Find comment with most timestamp lines
+                    best_comment = ""
+                    best_count = 0
+                    for c in comments:
+                        text = c.get('text', '')
+                        count = len(timestamp_re.findall(text))
+                        if count > best_count:
+                            best_count = count
+                            best_comment = text
+
+                    # Parse timestamped lines
+                    if best_count >= 3:
+                        for line in best_comment.splitlines():
+                            line = line.strip()
+                            if not line:
+                                continue
+                            m = _re.search(r'(\d{1,2}):(\d{2})(?::(\d{2}))?', line)
+                            if not m:
+                                continue
+                            h = int(m.group(1)) if m.group(3) else 0
+                            mins = int(m.group(2)) if m.group(3) else int(m.group(1))
+                            secs = int(m.group(3)) if m.group(3) else int(m.group(2))
+                            start_sec = h * 3600 + mins * 60 + secs
+                            track_text = _re.sub(r'\[?\(?\d{1,2}:\d{2}(?::\d{2})?\)?\]?', '', line).strip(' -–—.')
+                            if not track_text:
+                                continue
+                            if ' - ' in track_text:
+                                parts = track_text.split(' - ', 1)
+                                artist, title = parts[0].strip(), parts[1].strip()
+                            else:
+                                artist, title = '', track_text
+                            if title:
+                                tracks.append({"artist": artist, "title": title, "startTimeSec": start_sec})
+
+                self.send_response(200)
+                self.send_header("Content-type", "application/json")
+                self.end_headers()
+                self.wfile.write(json.dumps({"tracks": tracks}).encode())
+            except Exception as e:
+                logger.error(f"Error fetching comments: {e}")
+                self.send_response(200)
+                self.send_header("Content-type", "application/json")
+                self.end_headers()
+                self.wfile.write(json.dumps({"tracks": []}).encode())
+
         elif path == "/chapters":
             query_params = urllib.parse.parse_qs(parsed.query)
             video_id = query_params.get("video_id", [""])[0]
@@ -141,15 +219,17 @@ class AudioTimestampHandler(http.server.BaseHTTPRequestHandler):
                 self.send_error(400, "Missing 'q' parameter")
                 return
             try:
-                import urllib.request
                 tracks = []
+
+                headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"}
 
                 # 1. Search for the page
                 search_url = (
                     "https://www.mixesdb.com/api.php?action=query&list=search"
                     f"&srsearch={urllib.parse.quote(q)}&format=json&srlimit=1"
                 )
-                with urllib.request.urlopen(search_url, timeout=5) as resp:
+                req = urllib.request.Request(search_url, headers=headers)
+                with urllib.request.urlopen(req, timeout=5) as resp:
                     search_data = json.loads(resp.read().decode())
                 results = search_data.get("query", {}).get("search", [])
                 if not results:
@@ -162,7 +242,8 @@ class AudioTimestampHandler(http.server.BaseHTTPRequestHandler):
                     f"https://www.mixesdb.com/api.php?action=parse&pageid={page_id}"
                     "&prop=wikitext&format=json"
                 )
-                with urllib.request.urlopen(parse_url, timeout=5) as resp:
+                req = urllib.request.Request(parse_url, headers=headers)
+                with urllib.request.urlopen(req, timeout=5) as resp:
                     parse_data = json.loads(resp.read().decode())
                 wikitext = parse_data.get("parse", {}).get("wikitext", {}).get("*", "")
 
@@ -193,8 +274,25 @@ class AudioTimestampHandler(http.server.BaseHTTPRequestHandler):
                 self.end_headers()
                 self.wfile.write(json.dumps({"tracks": []}).encode())
 
+        elif path == "/analyze":
+            # GET fallback — Retrofit sends GET /analyze?url=...
+            query_params = urllib.parse.parse_qs(parsed.query)
+            url = query_params.get("url", [""])[0]
+            if not url:
+                self.send_error(400, "Missing 'url' parameter")
+                return
+            self._handle_analyze(url)
+
         else:
             self.send_error(404, f"Endpoint not found: {path}")
+
+    def _handle_analyze(self, url: str):
+        """Analyse audio via Shazam — actuellement retourne vide (pipeline non implémenté)."""
+        logger.info(f"analyze requested for: {url[:80]}")
+        self.send_response(200)
+        self.send_header("Content-type", "application/json")
+        self.end_headers()
+        self.wfile.write(json.dumps({"tracks": [], "source": "shazam", "error": "not implemented"}).encode())
 
     def do_POST(self):
         """Gère les requêtes POST."""

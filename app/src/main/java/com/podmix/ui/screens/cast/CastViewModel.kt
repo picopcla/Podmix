@@ -18,6 +18,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withTimeoutOrNull
 import javax.inject.Inject
 
 @HiltViewModel
@@ -42,8 +43,14 @@ class CastViewModel @Inject constructor(
             castCurrentEpisode()
         }
         override fun onSessionResumed(session: CastSession, wasSuspended: Boolean) {
-            Log.i("CastVM", "Session resumed")
+            // Ne PAS auto-caster au resume : l'URL audio peut être expirée (YT ~6h).
+            // L'user devra appuyer sur Cast manuellement pour rejouer.
+            Log.i("CastVM", "Session resumed — pas d'auto-cast (URL possiblement expirée)")
             _connectedDeviceName.value = session.castDevice?.friendlyName ?: "Chromecast"
+            // Terminer la session proprement pour éviter le "Getting your selection" bloquant
+            try {
+                session.remoteMediaClient?.stop()
+            } catch (_: Exception) {}
         }
         override fun onSessionEnded(session: CastSession, error: Int) {
             Log.i("CastVM", "Session ended: $error")
@@ -104,15 +111,23 @@ class CastViewModel @Inject constructor(
         val podcast = playerController.playerState.value.currentPodcast
 
         viewModelScope.launch {
-            val audioUrl = when {
-                episode.mixcloudKey != null -> mixcloudStreamResolver.resolve(episode.mixcloudKey)
-                !episode.youtubeVideoId.isNullOrBlank() -> youTubeStreamResolver.resolve(episode.youtubeVideoId)
-                episode.audioUrl.isNotBlank() -> episode.audioUrl
-                else -> null
+            // Timeout 15s : si la résolution URL échoue (expirée, réseau absent), on abandonne
+            val audioUrl = withTimeoutOrNull(15_000) {
+                when {
+                    episode.mixcloudKey != null -> mixcloudStreamResolver.resolve(episode.mixcloudKey)
+                    !episode.youtubeVideoId.isNullOrBlank() -> youTubeStreamResolver.resolve(episode.youtubeVideoId)
+                    !episode.soundcloudTrackUrl.isNullOrBlank() -> youTubeStreamResolver.resolveSoundCloudTrack(episode.soundcloudTrackUrl)
+                    episode.audioUrl.isNotBlank() -> episode.audioUrl
+                    else -> null
+                }
             }
 
             if (audioUrl == null) {
-                Log.e("CastVM", "Cannot resolve audio for cast")
+                Log.e("CastVM", "Cannot resolve audio for cast (timeout ou aucune source)")
+                // Stopper le receiver pour éviter "Getting your selection" bloquant
+                try {
+                    castContext?.sessionManager?.currentCastSession?.remoteMediaClient?.stop()
+                } catch (_: Exception) {}
                 return@launch
             }
 
@@ -120,12 +135,14 @@ class CastViewModel @Inject constructor(
                 val cc = castContext ?: return@launch
                 castPlayer = CastPlayer(cc).apply {
                     val mimeType = when {
+                        audioUrl.contains("googlevideo.com", true) -> "audio/mp4"   // YouTube progressive (AAC/m4a)
+                        audioUrl.contains("soundcloud", true) && audioUrl.contains(".m3u8", true) -> "application/x-mpegURL"
                         audioUrl.contains(".mp3", true) -> "audio/mpeg"
                         audioUrl.contains(".m4a", true) -> "audio/mp4"
                         audioUrl.contains(".ogg", true) -> "audio/ogg"
                         audioUrl.contains(".opus", true) -> "audio/ogg"
                         audioUrl.contains(".m3u8", true) -> "application/x-mpegURL"
-                        else -> "audio/mpeg"
+                        else -> "audio/mp4"
                     }
                     val mediaItem = MediaItem.Builder()
                         .setUri(audioUrl)

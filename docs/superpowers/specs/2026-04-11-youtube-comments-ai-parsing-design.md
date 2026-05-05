@@ -55,7 +55,7 @@ The caller (`extractTracklistFromComments`) is already a suspend function — no
 | `service/YouTubeCommentsService.kt` | MODIFY — `analyzeCommentForTracklist()` becomes `suspend`, adds Gemini fallback |
 | `app/build.gradle.kts` | MODIFY — expose `BuildConfig.GEMINI_API_KEY` from `local.properties` |
 | `local.properties` | MODIFY — add `gemini.api.key=<value>` (never committed) |
-| `di/NetworkModule.kt` | MODIFY — provide `GeminiTracklistParser` (or use `@Inject` directly) |
+| `di/NetworkModule.kt` | no change — `GeminiTracklistParser` uses `@Inject constructor` directly |
 
 ## Gemini Prompt
 

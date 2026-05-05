@@ -13,7 +13,7 @@ import com.podmix.data.local.entity.TrackEntity
 
 @Database(
     entities = [PodcastEntity::class, EpisodeEntity::class, TrackEntity::class],
-    version = 9,
+    version = 12,
     exportSchema = false
 )
 abstract class PodMixDatabase : RoomDatabase() {
@@ -55,6 +55,21 @@ abstract class PodMixDatabase : RoomDatabase() {
         val MIGRATION_8_9 = object : Migration(8, 9) {
             override fun migrate(database: SupportSQLiteDatabase) {
                 database.execSQL("ALTER TABLE tracks ADD COLUMN deezerUrl TEXT")
+            }
+        }
+        val MIGRATION_9_10 = object : Migration(9, 10) {
+            override fun migrate(database: SupportSQLiteDatabase) {
+                database.execSQL("ALTER TABLE episodes ADD COLUMN trackRefinementStatus TEXT NOT NULL DEFAULT 'none'")
+            }
+        }
+        val MIGRATION_10_11 = object : Migration(10, 11) {
+            override fun migrate(database: SupportSQLiteDatabase) {
+                database.execSQL("ALTER TABLE episodes ADD COLUMN isFavorite INTEGER NOT NULL DEFAULT 0")
+            }
+        }
+        val MIGRATION_11_12 = object : Migration(11, 12) {
+            override fun migrate(database: SupportSQLiteDatabase) {
+                database.execSQL("ALTER TABLE episodes ADD COLUMN tracklistSourceName TEXT")
             }
         }
     }

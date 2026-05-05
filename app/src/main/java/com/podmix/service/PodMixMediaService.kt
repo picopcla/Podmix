@@ -2,6 +2,7 @@ package com.podmix.service
 
 import android.content.Intent
 import android.net.Uri
+import android.util.Log
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
 import androidx.media3.common.Player
@@ -23,6 +24,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.guava.future
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -42,46 +44,90 @@ class PodMixMediaService : MediaLibraryService() {
         private const val ROOT_ID = "ROOT"
         private const val PODCASTS_ID = "PODCASTS"
         private const val DJS_ID = "DJS"
+        private const val EMISSIONS_ID = "EMISSIONS"
+        private const val RADIOS_ID = "RADIOS"
         private const val FAVORIS_ID = "FAVORIS"
         private const val PODCAST_PREFIX = "PODCAST/"
         private const val DJ_PREFIX = "DJ/"
+        private const val EMISSION_PREFIX = "EMISSION/"
+        private const val RADIO_PREFIX = "RADIO/"
         private const val EPISODE_PREFIX = "EPISODE/"
         private const val FAVORITE_PREFIX = "FAVORITE/"
     }
 
+    private lateinit var trackAwarePlayer: TrackAwarePlayer
+
     override fun onCreate() {
         super.onCreate()
-        // Wrap ExoPlayer so Android Auto skip-next/prev commands navigate tracks, not episodes
-        val trackAwarePlayer = object : ForwardingPlayer(playerController.exoPlayer) {
-            override fun seekToNextMediaItem() { playerController.nextTrack() }
-            override fun seekToPreviousMediaItem() { playerController.prevTrack() }
-            override fun seekToNext() { playerController.nextTrack() }
-            override fun seekToPrevious() { playerController.prevTrack() }
-
-            override fun getAvailableCommands(): Player.Commands =
-                super.getAvailableCommands().buildUpon()
-                    .add(Player.COMMAND_SEEK_TO_NEXT_MEDIA_ITEM)
-                    .add(Player.COMMAND_SEEK_TO_PREVIOUS_MEDIA_ITEM)
-                    .add(Player.COMMAND_SEEK_TO_NEXT)
-                    .add(Player.COMMAND_SEEK_TO_PREVIOUS)
-                    .build()
-
-            override fun isCommandAvailable(command: Int): Boolean {
-                val hasTracks = playerController.playerState.value.currentTracks.isNotEmpty()
-                return when (command) {
-                    Player.COMMAND_SEEK_TO_NEXT_MEDIA_ITEM,
-                    Player.COMMAND_SEEK_TO_NEXT -> hasTracks
-                    Player.COMMAND_SEEK_TO_PREVIOUS_MEDIA_ITEM,
-                    Player.COMMAND_SEEK_TO_PREVIOUS -> hasTracks
-                    else -> super.isCommandAvailable(command)
-                }
-            }
-        }
+        trackAwarePlayer = TrackAwarePlayer(playerController.exoPlayer)
         mediaLibrarySession = MediaLibrarySession.Builder(
             this,
             trackAwarePlayer,
             LibrarySessionCallback()
         ).build()
+
+        // Track changes → update Android Auto metadata via getMediaMetadata() override (no replaceMediaItem = no seek reset)
+        serviceScope.launch {
+            var lastEpisodeId = -1
+            var lastTrackIdx = -1
+            playerController.playerState.collect { state ->
+                val episodeId = state.currentEpisode?.id ?: -1
+                val idx = state.currentTrackIndex
+                if (idx >= 0 && (idx != lastTrackIdx || episodeId != lastEpisodeId)) {
+                    lastTrackIdx = idx
+                    lastEpisodeId = episodeId
+                    val track = state.currentTracks.getOrNull(idx) ?: return@collect
+                    val label = if (track.artist.isNotBlank())
+                        "${track.artist} – ${track.title}"
+                    else
+                        track.title
+                    trackAwarePlayer.updateTrackLabel(label)
+                    Log.d("PodMixMS", "AA track: [$idx] $label")
+                }
+            }
+        }
+    }
+
+    /** ForwardingPlayer that routes skip commands to track navigation and exposes
+     *  current track name via getMediaMetadata() — no replaceMediaItem, no buffer reset. */
+    private inner class TrackAwarePlayer(player: Player) : ForwardingPlayer(player) {
+
+        @Volatile private var trackLabel: String? = null
+
+        fun updateTrackLabel(label: String) { trackLabel = label }
+
+        override fun getMediaMetadata(): MediaMetadata {
+            val base = super.getMediaMetadata()
+            val label = trackLabel ?: return base
+            return base.buildUpon()
+                .setArtist(label)
+                .setSubtitle(label)
+                .build()
+        }
+
+        override fun seekToNextMediaItem() { playerController.nextTrack() }
+        override fun seekToPreviousMediaItem() { playerController.prevTrack() }
+        override fun seekToNext() { playerController.nextTrack() }
+        override fun seekToPrevious() { playerController.prevTrack() }
+
+        override fun getAvailableCommands(): Player.Commands =
+            super.getAvailableCommands().buildUpon()
+                .add(Player.COMMAND_SEEK_TO_NEXT_MEDIA_ITEM)
+                .add(Player.COMMAND_SEEK_TO_PREVIOUS_MEDIA_ITEM)
+                .add(Player.COMMAND_SEEK_TO_NEXT)
+                .add(Player.COMMAND_SEEK_TO_PREVIOUS)
+                .build()
+
+        override fun isCommandAvailable(command: Int): Boolean {
+            val hasTracks = playerController.playerState.value.currentTracks.isNotEmpty()
+            return when (command) {
+                Player.COMMAND_SEEK_TO_NEXT_MEDIA_ITEM,
+                Player.COMMAND_SEEK_TO_NEXT -> hasTracks
+                Player.COMMAND_SEEK_TO_PREVIOUS_MEDIA_ITEM,
+                Player.COMMAND_SEEK_TO_PREVIOUS -> hasTracks
+                else -> super.isCommandAvailable(command)
+            }
+        }
     }
 
     override fun onGetSession(controllerInfo: MediaSession.ControllerInfo): MediaLibrarySession? =
@@ -131,6 +177,8 @@ class PodMixMediaService : MediaLibraryService() {
                     parentId == ROOT_ID -> getRootChildren()
                     parentId == PODCASTS_ID -> getPodcastsList("podcast")
                     parentId == DJS_ID -> getPodcastsList("dj")
+                    parentId == EMISSIONS_ID -> getPodcastsList("emission")
+                    parentId == RADIOS_ID -> getPodcastsList("radio")
                     parentId == FAVORIS_ID -> getFavorites()
                     parentId.startsWith(PODCAST_PREFIX) -> {
                         val id = parentId.removePrefix(PODCAST_PREFIX).toIntOrNull()
@@ -138,6 +186,14 @@ class PodMixMediaService : MediaLibraryService() {
                     }
                     parentId.startsWith(DJ_PREFIX) -> {
                         val id = parentId.removePrefix(DJ_PREFIX).toIntOrNull()
+                        if (id != null) getEpisodesForPodcast(id) else emptyList()
+                    }
+                    parentId.startsWith(EMISSION_PREFIX) -> {
+                        val id = parentId.removePrefix(EMISSION_PREFIX).toIntOrNull()
+                        if (id != null) getEpisodesForPodcast(id) else emptyList()
+                    }
+                    parentId.startsWith(RADIO_PREFIX) -> {
+                        val id = parentId.removePrefix(RADIO_PREFIX).toIntOrNull()
                         if (id != null) getEpisodesForPodcast(id) else emptyList()
                     }
                     else -> emptyList()
@@ -163,12 +219,24 @@ class PodMixMediaService : MediaLibraryService() {
             controller: MediaSession.ControllerInfo
         ): ListenableFuture<MediaSession.MediaItemsWithStartPosition> {
             return serviceScope.future {
+                val exo = playerController.exoPlayer
+                // If ExoPlayer is already active (phone playing), do NOT call setMediaItem —
+                // that replaces the stream (even with the same URL) → rebuffer → expired URL → broken controls.
+                // Android Auto connects to the live MediaSession directly, no resumption needed.
+                if (exo.mediaItemCount > 0 && (exo.isPlaying || exo.playWhenReady)) {
+                    Log.d("PodMixMS", "onPlaybackResumption: session live, skipping resumption")
+                    throw UnsupportedOperationException("Session already active")
+                }
+                // Cold start: ExoPlayer idle → resolve from saved state
                 val episode = playerController.playerState.value.currentEpisode
                 val podcast  = playerController.playerState.value.currentPodcast
                 if (episode != null && podcast != null) {
                     val item = resolveEpisodeToPlayable(episode.id)
                     if (item != null) {
-                        val posMs = (episode.progressSeconds * 1000L).coerceAtLeast(0L)
+                        val posMs = playerController.playerState.value.currentPosition
+                            .takeIf { it > 0L }
+                            ?: (episode.progressSeconds * 1000L).coerceAtLeast(0L)
+                        Log.d("PodMixMS", "onPlaybackResumption: cold start ep=${episode.id} pos=${posMs}ms")
                         MediaSession.MediaItemsWithStartPosition(listOf(item), 0, posMs)
                     } else {
                         throw RuntimeException("Cannot resolve episode ${episode.id}")
@@ -251,16 +319,60 @@ class PodMixMediaService : MediaLibraryService() {
                 episodeCount = 0
             )
             playerController.notifyExternalPlay(episode, podcast)
+
+            // Charger les tracks pour que skip-next/prev fonctionne depuis Android Auto
+            val tracks = trackDao.getByEpisodeId(episodeId)
+            if (tracks.isNotEmpty()) {
+                val domainTracks = tracks.map { t ->
+                    com.podmix.domain.model.Track(
+                        id = t.id, episodeId = t.episodeId, position = t.position,
+                        title = t.title, artist = t.artist ?: "",
+                        startTimeSec = t.startTimeSec, endTimeSec = t.endTimeSec,
+                        isFavorite = t.isFavorite, source = t.source ?: ""
+                    )
+                }
+                playerController.updateTracks(domainTracks)
+            }
         }
 
         private fun getRootChildren(): List<MediaItem> = listOf(
             browsableItem(PODCASTS_ID, "Podcasts", MediaMetadata.MEDIA_TYPE_FOLDER_PODCASTS),
             browsableItem(DJS_ID, "DJs", MediaMetadata.MEDIA_TYPE_FOLDER_MIXED),
+            browsableItem(EMISSIONS_ID, "Émissions", MediaMetadata.MEDIA_TYPE_FOLDER_MIXED),
+            browsableItem(RADIOS_ID, "Radios", MediaMetadata.MEDIA_TYPE_FOLDER_MIXED),
             browsableItem(FAVORIS_ID, "Favoris", MediaMetadata.MEDIA_TYPE_FOLDER_MIXED)
         )
 
         private suspend fun getPodcastsList(type: String): List<MediaItem> {
-            val prefix = if (type == "podcast") PODCAST_PREFIX else DJ_PREFIX
+            // Radios : streams directs — playable immédiatement, pas de drill-down
+            if (type == "radio") {
+                return podcastDao.getByTypeSuspend("radio").map { radio ->
+                    MediaItem.Builder()
+                        .setMediaId("$RADIO_PREFIX${radio.id}")
+                        .setUri(radio.rssFeedUrl ?: "")   // rssFeedUrl = stream URL pour les radios
+                        .setMediaMetadata(
+                            MediaMetadata.Builder()
+                                .setTitle(radio.name)
+                                .setArtworkUri(radio.logoUrl?.let { Uri.parse(it) })
+                                .setIsBrowsable(false)
+                                .setIsPlayable(true)
+                                .setMediaType(MediaMetadata.MEDIA_TYPE_RADIO_STATION)
+                                .build()
+                        )
+                        .build()
+                }
+            }
+
+            val prefix = when (type) {
+                "podcast"  -> PODCAST_PREFIX
+                "dj"       -> DJ_PREFIX
+                "emission" -> EMISSION_PREFIX
+                else       -> PODCAST_PREFIX
+            }
+            val mediaType = when (type) {
+                "podcast" -> MediaMetadata.MEDIA_TYPE_PODCAST
+                else      -> MediaMetadata.MEDIA_TYPE_FOLDER_MIXED
+            }
             return podcastDao.getByTypeSuspend(type).map { podcast ->
                 MediaItem.Builder()
                     .setMediaId("$prefix${podcast.id}")
@@ -270,10 +382,7 @@ class PodMixMediaService : MediaLibraryService() {
                             .setArtworkUri(podcast.logoUrl?.let { Uri.parse(it) })
                             .setIsBrowsable(true)
                             .setIsPlayable(false)
-                            .setMediaType(
-                                if (type == "podcast") MediaMetadata.MEDIA_TYPE_PODCAST
-                                else MediaMetadata.MEDIA_TYPE_FOLDER_MIXED
-                            )
+                            .setMediaType(mediaType)
                             .build()
                     )
                     .build()
@@ -324,6 +433,8 @@ class PodMixMediaService : MediaLibraryService() {
                 mediaId == ROOT_ID -> browsableItem(ROOT_ID, "PodMix", MediaMetadata.MEDIA_TYPE_FOLDER_MIXED)
                 mediaId == PODCASTS_ID -> browsableItem(PODCASTS_ID, "Podcasts", MediaMetadata.MEDIA_TYPE_FOLDER_PODCASTS)
                 mediaId == DJS_ID -> browsableItem(DJS_ID, "DJs", MediaMetadata.MEDIA_TYPE_FOLDER_MIXED)
+                mediaId == EMISSIONS_ID -> browsableItem(EMISSIONS_ID, "Émissions", MediaMetadata.MEDIA_TYPE_FOLDER_MIXED)
+                mediaId == RADIOS_ID -> browsableItem(RADIOS_ID, "Radios", MediaMetadata.MEDIA_TYPE_FOLDER_MIXED)
                 mediaId == FAVORIS_ID -> browsableItem(FAVORIS_ID, "Favoris", MediaMetadata.MEDIA_TYPE_FOLDER_MIXED)
                 mediaId.startsWith(EPISODE_PREFIX) -> {
                     val id = mediaId.removePrefix(EPISODE_PREFIX).toIntOrNull() ?: return null

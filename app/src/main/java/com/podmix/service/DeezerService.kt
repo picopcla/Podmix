@@ -69,10 +69,16 @@ class DeezerService @Inject constructor(
 
     suspend fun searchAndSave(trackId: Int, artist: String, title: String) {
         Log.i(TAG, "searchAndSave #$trackId '$artist – $title'")
+        com.podmix.AppLogger.deezer("SEARCH #$trackId", "'$artist – $title'")
+        val t0 = System.currentTimeMillis()
         val url = searchTrack(artist, title)
+        val ms = System.currentTimeMillis() - t0
         if (url != null) {
             trackDao.updateDeezerUrl(trackId, url)
             Log.i(TAG, "Saved Deezer URL for track #$trackId")
+            com.podmix.AppLogger.deezer("FOUND #$trackId ${ms}ms", url)
+        } else {
+            com.podmix.AppLogger.err("DEEZER", "NOT_FOUND #$trackId ${ms}ms", "'$artist – $title'")
         }
     }
 }

@@ -16,11 +16,13 @@ import com.podmix.ui.screens.podcasts.AddPodcastScreen
 import com.podmix.ui.screens.podcasts.PodcastDetailScreen
 import com.podmix.ui.screens.podcasts.PodcastsScreen
 import com.podmix.ui.screens.radio.AddRadioScreen
+import com.podmix.ui.screens.settings.SettingsScreen
 
 sealed class Screen(val route: String) {
     object Podcasts : Screen("podcasts")
     object Favorites : Screen("favorites")
     object Cast : Screen("cast")
+    object Settings : Screen("settings")
     object AddPodcast : Screen("add_podcast")
     object AddEmission : Screen("add_emission")
     object AddDj : Screen("add_dj")
@@ -51,8 +53,13 @@ fun NavGraph(navController: NavHostController, modifier: Modifier = Modifier) {
                 onAddDj = { navController.navigate(Screen.AddDj.route) },
                 onEmissionClick = { navController.navigate(Screen.PodcastDetail.createRoute(it)) },
                 onAddEmission = { navController.navigate(Screen.AddEmission.route) },
-                onAddRadio = { navController.navigate(Screen.AddRadio.route) }
+                onAddRadio = { navController.navigate(Screen.AddRadio.route) },
+                onSettings = { navController.navigate(Screen.Settings.route) }
             )
+        }
+
+        composable(Screen.Settings.route) {
+            SettingsScreen(onBack = { navController.popBackStack() })
         }
 
         composable(Screen.Favorites.route) { FavoritesScreen() }

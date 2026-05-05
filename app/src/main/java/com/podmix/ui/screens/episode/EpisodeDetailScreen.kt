@@ -29,19 +29,26 @@ import androidx.compose.material.icons.filled.Download
 import androidx.compose.material.icons.filled.ErrorOutline
 import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material.icons.filled.Link
 import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -237,6 +244,22 @@ fun EpisodeDetailScreen(
                     }
                 }
                 item {
+                    // Nom du set source (pageTitle 1001TL) — vérification visuelle user
+                    val sourceName = episode?.tracklistSourceName
+                    if (!sourceName.isNullOrBlank()) {
+                        val cleanSourceName = sourceName
+                            .replace(" | 1001Tracklists", "")
+                            .replace(" | 1001tracklists", "")
+                            .trim()
+                        Text(
+                            text = "📋 $cleanSourceName",
+                            color = TextSecondary,
+                            fontSize = 11.sp,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 12.dp, vertical = 2.dp)
+                        )
+                    }
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -289,11 +312,61 @@ fun EpisodeDetailScreen(
                         } else {
                             Spacer(modifier = androidx.compose.ui.Modifier.weight(1f))
                         }
+                        // Bouton URL manuelle 1001TL
+                        var showUrlDialog by remember { mutableStateOf(false) }
+                        IconButton(
+                            onClick = { showUrlDialog = true },
+                            modifier = Modifier.size(32.dp)
+                        ) {
+                            Icon(Icons.Default.Link, "Entrer URL tracklist", tint = AccentPrimary, modifier = Modifier.size(20.dp))
+                        }
+                        // Bouton refresh auto
                         IconButton(
                             onClick = { viewModel.redetectTracks() },
                             modifier = Modifier.size(32.dp)
                         ) {
                             Icon(Icons.Default.Refresh, "Re-detect tracklist", tint = AccentPrimary, modifier = Modifier.size(20.dp))
+                        }
+
+                        if (showUrlDialog) {
+                            var urlInput by remember { mutableStateOf("") }
+                            AlertDialog(
+                                onDismissRequest = { showUrlDialog = false },
+                                title = { Text("URL Tracklist 1001TL", color = TextPrimary) },
+                                text = {
+                                    Column {
+                                        Text(
+                                            "Colle l'URL exacte de la page 1001tracklists.com",
+                                            color = TextSecondary,
+                                            fontSize = 12.sp
+                                        )
+                                        Spacer(modifier = Modifier.height(8.dp))
+                                        OutlinedTextField(
+                                            value = urlInput,
+                                            onValueChange = { urlInput = it },
+                                            placeholder = { Text("https://www.1001tracklists.com/tracklist/...", fontSize = 11.sp) },
+                                            singleLine = true,
+                                            modifier = Modifier.fillMaxWidth()
+                                        )
+                                    }
+                                },
+                                confirmButton = {
+                                    TextButton(
+                                        onClick = {
+                                            if (urlInput.contains("1001tracklists.com")) {
+                                                viewModel.setTracklistUrl(urlInput)
+                                            }
+                                            showUrlDialog = false
+                                        }
+                                    ) { Text("Appliquer", color = AccentPrimary) }
+                                },
+                                dismissButton = {
+                                    TextButton(onClick = { showUrlDialog = false }) {
+                                        Text("Annuler", color = TextSecondary)
+                                    }
+                                },
+                                containerColor = com.podmix.ui.theme.SurfaceSecondary
+                            )
                         }
                     }
                 }

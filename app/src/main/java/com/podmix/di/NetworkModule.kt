@@ -10,6 +10,9 @@ import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
@@ -24,6 +27,7 @@ object NetworkModule {
     @Singleton
     fun provideOkHttpClient(): OkHttpClient =
         OkHttpClient.Builder()
+            .addInterceptor(com.podmix.service.PodmixLoggingInterceptor())  // log fichier structuré
             .addInterceptor(HttpLoggingInterceptor().apply {
                 level = HttpLoggingInterceptor.Level.BASIC
             })
@@ -94,6 +98,11 @@ object NetworkModule {
             .build()
             .create(DuckDuckGoApi::class.java)
     
+    @Provides
+    @Singleton
+    fun provideApplicationScope(): CoroutineScope =
+        CoroutineScope(SupervisorJob() + Dispatchers.IO)
+
     @Provides
     @Singleton
     fun provideAudioAnalysisService(): com.podmix.service.AudioAnalysisService =

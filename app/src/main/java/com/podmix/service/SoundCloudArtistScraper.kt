@@ -10,7 +10,12 @@ import android.webkit.WebViewClient
 import com.podmix.ui.screens.liveset.ScSet
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.suspendCancellableCoroutine
+import kotlinx.coroutines.sync.Semaphore
+import kotlinx.coroutines.sync.withPermit
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeoutOrNull
 import okhttp3.OkHttpClient
@@ -86,8 +91,8 @@ class SoundCloudArtistScraper @Inject constructor(
             var lastCount = 0;
             var stableRounds = 0;
             var totalAttempts = 0;
-            var MAX_ATTEMPTS = 45;    // 45 × 700ms ≈ 31s max
-            var STABLE_STOP = 10;     // 10 rounds stables × 700ms = 7s sans nouveau contenu → stop
+            var MAX_ATTEMPTS = 100;   // 100 × 700ms ≈ 70s max
+            var STABLE_STOP = 30;     // 30 rounds stables × 700ms = 21s sans nouveau contenu → stop
 
             function tryExtract() {
                 totalAttempts++;
@@ -149,21 +154,25 @@ class SoundCloudArtistScraper @Inject constructor(
         })(0);
     """.trimIndent()
 
-    /** Trouve la page artiste SC (search native → fallback DDG), scrape ses tracks. */
+    /** Trouve la page artiste SC (slug direct → DDG → fallback WebView SC), scrape ses tracks. */
     suspend fun findAndScrape(artistName: String): List<ScSet>? {
-        // 1. Recherche SC native — supporte le préfixe partiel
-        var artistPageUrl = findArtistPageViaSCSearch(artistName)
-        // 2. Fallback DDG si SC search échoue (page ne charge pas, bot-block, etc.)
+        // 0. Sonde directe : tente le slug normalisé AVANT DDG (≈500ms, zéro scrape)
+        var artistPageUrl = findArtistPageDirectSlug(artistName)
+        // 1. DDG (HTTP ~1s) si sonde directe échoue
         if (artistPageUrl == null) {
-            Log.w(TAG, "SC native search failed for '$artistName', trying DDG fallback")
             artistPageUrl = findArtistPageViaDDG(artistName)
+        }
+        // 2. Fallback WebView SC si DDG échoue (bot-block DDG, slug exotique, etc.)
+        if (artistPageUrl == null) {
+            Log.w(TAG, "DDG failed for '$artistName', trying SC native WebView search")
+            artistPageUrl = findArtistPageViaSCSearch(artistName)
         }
         if (artistPageUrl == null) return null
         // /tracks = liste complète des uploads (vs page principale = seulement Popular Tracks ~10)
         val tracksPageUrl = artistPageUrl.trimEnd('/') + "/tracks"
         Log.i(TAG, "SC tracks page: $tracksPageUrl")
         val raw = scrapeArtistPage(tracksPageUrl) ?: return null
-        return filterSets(raw)  // synchrone — durée capturée dans le DOM
+        return filterSets(raw)  // suspend — fetch HTTP pour durées manquantes
     }
 
     /**
@@ -213,6 +222,48 @@ class SoundCloudArtistScraper @Inject constructor(
         } else null
     }
 
+    /**
+     * Sonde directe : normalise le nom en slug SC et vérifie HEAD.
+     * "Korolova" → soundcloud.com/korolova (~500ms, pas de DDG/WebView).
+     * "Carl Craig" → soundcloud.com/carl-craig ET soundcloud.com/carlcraig
+     * SC retourne 404 pour les slugs inexistants (SPA redirige vers /search sinon).
+     */
+    private suspend fun findArtistPageDirectSlug(artistName: String): String? = withContext(Dispatchers.IO) {
+        val base = artistName.lowercase().replace(Regex("[^a-z0-9]+"), "-").trim('-')
+        val variants = listOf(base, base.replace("-", "")).distinct()
+
+        val probeClient = okHttpClient.newBuilder()
+            .connectTimeout(4, TimeUnit.SECONDS)
+            .readTimeout(4, TimeUnit.SECONDS)
+            .followRedirects(true)
+            .build()
+
+        for (slug in variants) {
+            val url = "https://soundcloud.com/$slug"
+            try {
+                val resp = probeClient.newCall(
+                    Request.Builder().url(url)
+                        .head()
+                        .header("User-Agent", "Mozilla/5.0 (Linux; Android 12) AppleWebKit/537.36")
+                        .build()
+                ).execute()
+                val finalUrl = resp.request.url.toString()
+                // SC redirige les slugs invalides vers /search ou /discover
+                if (resp.isSuccessful
+                    && !finalUrl.contains("/search")
+                    && !finalUrl.contains("/discover")
+                    && finalUrl.contains("soundcloud.com/$slug")) {
+                    Log.i(TAG, "Direct slug probe ✓ $url")
+                    return@withContext url
+                }
+                Log.d(TAG, "Direct slug probe: $url → ${resp.code} (final=$finalUrl)")
+            } catch (e: Exception) {
+                Log.d(TAG, "Direct slug probe failed for $slug: ${e.message}")
+            }
+        }
+        null
+    }
+
     /** Fallback : DDG site:soundcloud.com [query] avec scoring multi-candidats. */
     private suspend fun findArtistPageViaDDG(artistName: String): String? = withContext(Dispatchers.IO) {
         try {
@@ -248,9 +299,10 @@ class SoundCloudArtistScraper @Inject constructor(
                 .sortedByDescending { it.score }
                 .toList()
 
+            val minScore = queryTokens.sumOf { it.length } // tous les tokens doivent matcher
             val best = scored.firstOrNull()
-            if (best == null || best.score == 0) {
-                Log.w(TAG, "DDG fallback: aucun slug pertinent pour '$artistName'")
+            if (best == null || best.score < minScore) {
+                Log.w(TAG, "DDG fallback: score insuffisant pour '$artistName' (best=${best?.slug}/${best?.score}, min=$minScore)")
                 return@withContext null
             }
             Log.i(TAG, "DDG fallback: ${best.slug} (score=${best.score})")
@@ -310,7 +362,7 @@ class SoundCloudArtistScraper @Inject constructor(
         }
 
     private suspend fun scrapeArtistPage(url: String): List<ScSet>? {
-        return withTimeoutOrNull(30_000) {
+        return withTimeoutOrNull(75_000) {
             withContext(Dispatchers.Main) {
                 scrapeOnMainThread(url)
             }
@@ -365,7 +417,7 @@ class SoundCloudArtistScraper @Inject constructor(
                     var flingCount = 0
                     val flingRunnable = object : Runnable {
                         override fun run() {
-                            if (resumed || flingCount >= 18) return
+                            if (resumed || flingCount >= 60) return
                             view.scrollBy(0, 2000)
                             view.flingScroll(0, 4000)
                             flingCount++
@@ -466,6 +518,9 @@ class SoundCloudArtistScraper @Inject constructor(
         )
         if (radioKeywords.any { t.contains(it) }) return true
 
+        // "radio" seul comme mot entier : "Wake Your Mind Radio 432", "WYM Radio", etc.
+        if (Regex("""\bradio\b""").containsMatchIn(t)) return true
+
         // Patterns épisode numérotés : "Episode 123", "Ep.45", "Ep 12", "#45", "Vol. 3"
         val episodePattern = Regex(
             """\b(episode|ep\.?|vol\.?)\s*\d+\b|#\s*\d{2,}""",
@@ -479,8 +534,9 @@ class SoundCloudArtistScraper @Inject constructor(
             "techno", "trance", "set", "mix", "boiler", "cercle")
         val hasLiveContext = liveContext.any { t.contains(it) }
         if (!hasLiveContext) {
-            val seriesPattern = Regex("""\b([2-9]\d{1,3}|[1-9]\d{2,})\s*$""")
-            val yearPattern   = Regex("""\b(19|20)\d{2}\s*$""")   // 1900-2099 = année, pas un épisode
+            // Nombre > 19 en fin de titre OU suivi de texte non-significatif (tiret, pipe, parenthèse)
+            val seriesPattern = Regex("""\b(0\d+|[2-9]\d{1,3}|[1-9]\d{2,})\s*(?:[-–|({].*)?$""")
+            val yearPattern   = Regex("""\b(19|20)\d{2}\s*(?:[-–|({].*)?$""")  // années exclues
             if (seriesPattern.containsMatchIn(title.trim()) && !yearPattern.containsMatchIn(title.trim())) return true
         }
 
@@ -556,12 +612,14 @@ class SoundCloudArtistScraper @Inject constructor(
     }
 
     /**
-     * Filtre qualité sur une liste de ScSet (3 niveaux, tout en mémoire — pas de réseau) :
+     * Filtre qualité sur une liste de ScSet (3 niveaux + fallback) :
      * 0. Titre bogus (nav SC, trop court)
      * 1. Titre podcast/single (mots-clés + pattern épisode numéroté)
-     * 2. Durée < 45 min capturée depuis le DOM (0 = inconnue → conservé par défaut)
+     * 2. Durée < 45 min — si DOM n'a pas capturé la durée (0), fetch HTTP la page pour la lire
+     * Fallback : si < 20 résultats valides, on réintègre les séries numérotées (ex: WYM)
+     *            uniquement si leur durée réelle est >= 45 min (vrais DJ mixes)
      */
-    fun filterSets(sets: List<ScSet>): List<ScSet> {
+    suspend fun filterSets(sets: List<ScSet>): List<ScSet> {
         val MIN_DURATION_SEC = 45 * 60
 
         // Niveau 0 : bogus
@@ -580,13 +638,26 @@ class SoundCloudArtistScraper @Inject constructor(
         }
         Log.i(TAG, "After title: ${afterTitle.size}/${afterBogus.size}")
 
-        // Niveau 2 : durée (capturée dans le DOM)
-        val afterDur = afterTitle.filter { set ->
+        // Niveau 2 : durée — fetch HTTP pour les tracks sans durée DOM (max 5 en parallèle)
+        val durationSemaphore = Semaphore(5)
+        suspend fun resolveDuration(set: ScSet): ScSet {
+            if (set.durationSec != 0) return set
+            val fetched = durationSemaphore.withPermit { fetchTrackDurationSec(set.url) }
+            Log.i(TAG, "Fetched duration: '${set.title.take(50)}' → ${fetched}s")
+            return set.copy(durationSec = fetched)
+        }
+
+        val resolved = coroutineScope { afterTitle.map { async { resolveDuration(it) } }.awaitAll() }
+        val afterDur = resolved.filter { set ->
             val keep = set.durationSec == 0 || set.durationSec >= MIN_DURATION_SEC
-            if (!keep) Log.i(TAG, "Excluded short (${set.durationSec}s): '${set.title}'")
+            if (!keep) Log.i(TAG, "Excluded short (${set.durationSec}s): '${set.title.take(50)}'")
             keep
         }
         Log.i(TAG, "After duration: ${afterDur.size}/${afterTitle.size}")
+
         return afterDur
     }
+
+    /** Indique si les résultats SC sont insuffisants → déclencher fallback YouTube */
+    fun needsYoutubeFallback(scResults: List<ScSet>): Boolean = scResults.size < 20
 }

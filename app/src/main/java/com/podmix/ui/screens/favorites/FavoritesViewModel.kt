@@ -143,6 +143,16 @@ class FavoritesViewModel @Inject constructor(
         }
     }
 
+    fun forceRefreshSpotify() {
+        viewModelScope.launch {
+            val allFavs = trackDao.getAllFavoritesSuspend()
+            android.util.Log.i("FavoritesVM", "Force Spotify refresh for ${allFavs.size} favorites")
+            allFavs.forEach { fav ->
+                spotifyService.searchAndSave(fav.id, fav.artist, fav.title)
+            }
+        }
+    }
+
     /** Force la re-détection Deezer pour TOUS les favoris, même ceux déjà traités. */
     fun forceRefreshDeezer() {
         viewModelScope.launch {

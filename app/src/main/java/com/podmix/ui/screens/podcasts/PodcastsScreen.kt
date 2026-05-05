@@ -22,6 +22,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Radio
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -68,6 +69,7 @@ fun PodcastsScreen(
     onEmissionClick: (Int) -> Unit = {},
     onAddEmission: () -> Unit = {},
     onAddRadio: () -> Unit = {},
+    onSettings: () -> Unit = {},
     viewModel: PodcastsViewModel = hiltViewModel()
 ) {
     val podcasts by viewModel.podcasts.collectAsState()
@@ -100,8 +102,11 @@ fun PodcastsScreen(
                         text = "v${com.podmix.BuildConfig.VERSION_NAME}",
                         color = TextSecondary,
                         fontSize = 10.sp,
-                        modifier = Modifier.padding(end = 12.dp)
+                        modifier = Modifier.padding(end = 4.dp)
                     )
+                    IconButton(onClick = onSettings) {
+                        Icon(Icons.Default.Settings, "Paramètres", tint = TextSecondary)
+                    }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = Background)
             )

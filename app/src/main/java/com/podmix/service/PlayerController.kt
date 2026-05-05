@@ -83,8 +83,10 @@ class PlayerController @Inject constructor(
             .setBufferDurationsMs(
                 60 * 1000,       // minBufferMs: 1 minute (stabilité réseau)
                 8 * 60 * 1000,   // maxBufferMs: 8 minutes
-                1_500,           // bufferForPlaybackMs: 1.5s — démarrage rapide (était 5s)
-                3_000            // bufferForPlaybackAfterRebufferMs: 3s après rebuffer (était 10s)
+                1_500,           // bufferForPlaybackMs: 1.5s — démarrage rapide
+                10_000           // bufferForPlaybackAfterRebufferMs: 10s — BT earbuds
+                                 // prennent ~6s pour se reconnecter après une coupure audio ;
+                                 // 3s causait une reprise trop tôt → nouveau stall immédiat
             )
             .build()
 
@@ -187,9 +189,26 @@ class PlayerController @Inject constructor(
                                             com.podmix.AppLogger.resolve("YT_REAUTH", "403 → invalidate+re-resolve ${episode.youtubeVideoId}")
                                             youTubeStreamResolver.invalidateCache(episode.youtubeVideoId)
                                             scope.launch {
-                                                val newUrl = youTubeStreamResolver.resolve(episode.youtubeVideoId)
+                                                val newUrl = youTubeStreamResolver.resolveForStreaming(episode.youtubeVideoId)
                                                 if (newUrl != null) mainHandler.post { pendingSeekMs = pos; playMedia(episode.copy(audioUrl = newUrl), podcast) }
                                             }
+                                        }
+                                    }
+                                }
+                            }
+                            // Corrupted/unreadable local file — delete and fall back to streaming
+                            androidx.media3.common.PlaybackException.ERROR_CODE_PARSING_CONTAINER_UNSUPPORTED,
+                            androidx.media3.common.PlaybackException.ERROR_CODE_PARSING_CONTAINER_MALFORMED -> {
+                                val localPath = episode?.localAudioPath
+                                if (localPath != null && episode != null && podcast != null) {
+                                    Log.w("PodMix", "Corrupted local file $localPath — deleting and re-streaming")
+                                    com.podmix.AppLogger.err("PLAYER", "CORRUPT_LOCAL → delete+restream", localPath)
+                                    scope.launch {
+                                        java.io.File(localPath).delete()
+                                        episodeDao.clearLocalAudioPath(episode.id)
+                                        mainHandler.post {
+                                            // Re-play via URL resolution (no local file now)
+                                            playEpisode(episode.copy(localAudioPath = null), podcast)
                                         }
                                     }
                                 }
@@ -210,6 +229,19 @@ class PlayerController @Inject constructor(
                                 } else {
                                     Log.e("PodMix", "Network error: max retries ($MAX_NETWORK_RETRIES) reached, giving up")
                                     com.podmix.AppLogger.err("PLAYER", "NET_ERR GIVE_UP after $MAX_NETWORK_RETRIES retries", epInfo)
+                                    // Last resort: if SoundCloud/Mixcloud CDN unreachable, try YouTube
+                                    if (episode != null && podcast != null && !episode.youtubeVideoId.isNullOrBlank()) {
+                                        Log.w("PodMix", "CDN unreachable — YouTube last-resort fallback ${episode.youtubeVideoId}")
+                                        com.podmix.AppLogger.resolve("NET_GIVE_UP → YT_FALLBACK", episode.youtubeVideoId ?: "")
+                                        networkRetryCount = 0
+                                        scope.launch {
+                                            val ytUrl = youTubeStreamResolver.resolveForStreaming(episode.youtubeVideoId)
+                                            if (ytUrl != null) mainHandler.post {
+                                                pendingSeekMs = pos
+                                                playMedia(episode.copy(audioUrl = ytUrl), podcast)
+                                            }
+                                        }
+                                    }
                                 }
                             }
                         }
@@ -281,7 +313,7 @@ class PlayerController @Inject constructor(
                     Log.w("PodMix", "SoundCloud failed, falling back to YouTube ${episode.youtubeVideoId}")
                     com.podmix.AppLogger.err("RESOLVE", "SC_FAIL ${ms}ms → YT fallback", episode.youtubeVideoId ?: "")
                     val t1 = System.currentTimeMillis()
-                    val ytUrl = youTubeStreamResolver.resolve(episode.youtubeVideoId)
+                    val ytUrl = youTubeStreamResolver.resolveForStreaming(episode.youtubeVideoId)
                     if (ytUrl != null) { com.podmix.AppLogger.resolve("YT_OK ${System.currentTimeMillis()-t1}ms", episode.youtubeVideoId ?: ""); playMedia(episode.copy(audioUrl = ytUrl), podcast) }
                     else { com.podmix.AppLogger.err("RESOLVE", "ALL_FAIL SC+YT"); pendingSeekMs = null }
                 } else {
@@ -305,7 +337,7 @@ class PlayerController @Inject constructor(
                     Log.w("PodMix", "Mixcloud failed, trying YouTube fallback...")
                     com.podmix.AppLogger.err("RESOLVE", "MC_FAIL → YT fallback ${episode.youtubeVideoId}")
                     val t1 = System.currentTimeMillis()
-                    val ytUrl = youTubeStreamResolver.resolve(episode.youtubeVideoId)
+                    val ytUrl = youTubeStreamResolver.resolveForStreaming(episode.youtubeVideoId)
                     if (ytUrl != null) {
                         Log.i("PodMix", "YouTube fallback OK, playing...")
                         com.podmix.AppLogger.resolve("YT_OK ${System.currentTimeMillis()-t1}ms", episode.youtubeVideoId ?: "")
@@ -327,7 +359,7 @@ class PlayerController @Inject constructor(
                 Log.i("PodMix", "Resolving YouTube audio for ${episode.youtubeVideoId}...")
                 com.podmix.AppLogger.resolve("YT_START", episode.youtubeVideoId ?: "")
                 val t0 = System.currentTimeMillis()
-                val resolvedUrl = youTubeStreamResolver.resolve(episode.youtubeVideoId)
+                val resolvedUrl = youTubeStreamResolver.resolveForStreaming(episode.youtubeVideoId)
                 val ms = System.currentTimeMillis() - t0
                 if (resolvedUrl != null) {
                     Log.i("PodMix", "Resolved OK, playing...")

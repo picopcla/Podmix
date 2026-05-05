@@ -41,15 +41,34 @@ class ArtistPageScraper @Inject constructor(
     // Extract set list from the 1001TL artist/DJ page.
     // Each row in the listing is a tracklist link with metadata.
     private val EXTRACT_JS = """
-        (function tryExtract(attempt) {
+        (function() {
+            var lastCount = 0;
+            var stableRounds = 0;
+            var totalAttempts = 0;
+            var MAX_ATTEMPTS = 60;   // 60 × 600ms = 36s max
+            var STABLE_STOP = 12;   // 12 rounds stables = 7s sans nouveau contenu → stop
+
+            function tryExtract() {
+                totalAttempts++;
+                // Scroll pour déclencher le chargement de la suite (1001TL infinite scroll)
+                window.scrollTo(0, document.body.scrollHeight);
+
             // Try structured row selectors first
             var rows = document.querySelectorAll('div.tlpItem, div.tl-item, li.tlpItem, .cTlTog, .tl-item, div[class*="tlp"]');
             // Also try direct tracklist links as fallback (1001TL renders content via JS)
             var directLinks = document.querySelectorAll('a[href*="/tracklist/"]');
 
-            if (rows.length === 0 && directLinks.length === 0 && attempt < 20) {
-                setTimeout(function() { tryExtract(attempt + 1); }, 500);
-                return;
+            var currentCount = rows.length > 0 ? rows.length : directLinks.length;
+            if (currentCount > lastCount) { stableRounds = 0; lastCount = currentCount; }
+            else if (currentCount > 0) { stableRounds++; }
+
+            if (totalAttempts % 10 === 0) Android.onDebug('1001TL attempt=' + totalAttempts + ' rows=' + currentCount + ' stable=' + stableRounds);
+
+            if (currentCount === 0 && totalAttempts < 20) {
+                setTimeout(tryExtract, 600); return;
+            }
+            if (stableRounds < STABLE_STOP && totalAttempts < MAX_ATTEMPTS) {
+                setTimeout(tryExtract, 600); return;
             }
 
             var sets = [];
@@ -115,11 +134,13 @@ class ArtistPageScraper @Inject constructor(
             }
 
             Android.onSetsExtracted(JSON.stringify(sets));
-        })(0);
+            }
+            tryExtract();
+        })();
     """.trimIndent()
 
     suspend fun scrapeArtistSets(artistPageUrl: String): List<ArtistSet>? {
-        return withTimeoutOrNull(15_000) {
+        return withTimeoutOrNull(40_000) {
             withContext(Dispatchers.Main) {
                 scrapeOnMainThread(artistPageUrl)
             }

@@ -13,9 +13,15 @@ import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeoutOrNull
 import org.json.JSONArray
+import org.json.JSONObject
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlin.coroutines.resume
+
+data class ScrapedTracklist(
+    val pageTitle: String,
+    val tracks: List<ParsedTrack>
+)
 
 @Singleton
 class TracklistWebScraper @Inject constructor(
@@ -43,15 +49,16 @@ class TracklistWebScraper @Inject constructor(
                 var timeSec = cueInput ? parseInt(cueInput.value) || 0 : 0;
                 tracks.push({ text: text, timeSec: timeSec });
             });
-            Android.onTracksExtracted(JSON.stringify(tracks));
+            var pageTitle = document.title || '';
+            Android.onTracksExtracted(JSON.stringify({ tracks: tracks, pageTitle: pageTitle }));
         })(0);
     """.trimIndent()
 
     /**
-     * Charge la page 1001TL via WebView (Main thread) et extrait les tracks.
+     * Charge la page 1001TL via WebView (Main thread) et extrait les tracks + titre de page.
      * Timeout : 15s. Retourne null si échec ou timeout.
      */
-    suspend fun scrape1001TL(url: String): List<ParsedTrack>? {
+    suspend fun scrape1001TL(url: String): ScrapedTracklist? {
         return withTimeoutOrNull(15_000) {
             withContext(Dispatchers.Main) {
                 scrapeOnMainThread(url)
@@ -59,12 +66,12 @@ class TracklistWebScraper @Inject constructor(
         }
     }
 
-    private suspend fun scrapeOnMainThread(url: String): List<ParsedTrack>? =
+    private suspend fun scrapeOnMainThread(url: String): ScrapedTracklist? =
         suspendCancellableCoroutine { cont ->
             val webView = WebView(context)
             var resumed = false
 
-            fun resume(result: List<ParsedTrack>?) {
+            fun resume(result: ScrapedTracklist?) {
                 if (!resumed) {
                     resumed = true
                     // webView.destroy() MUST run on main thread — post it, don't block
@@ -80,9 +87,9 @@ class TracklistWebScraper @Inject constructor(
                 @JavascriptInterface
                 fun onTracksExtracted(json: String) {
                     Log.d(TAG, "JS callback received, json length=${json.length}")
-                    val tracks = parseTracksJson(json)
-                    Log.i(TAG, "Extracted ${tracks?.size ?: 0} tracks from 1001TL")
-                    resume(tracks)
+                    val result = parseResult(json)
+                    Log.i(TAG, "Extracted ${result?.tracks?.size ?: 0} tracks, pageTitle='${result?.pageTitle?.take(80)}'")
+                    resume(result)
                 }
                 @JavascriptInterface
                 fun onDebug(msg: String) {
@@ -118,9 +125,11 @@ class TracklistWebScraper @Inject constructor(
             webView.loadUrl(url)
         }
 
-    private fun parseTracksJson(json: String): List<ParsedTrack>? {
+    private fun parseResult(json: String): ScrapedTracklist? {
         return try {
-            val arr = JSONArray(json)
+            val root = JSONObject(json)
+            val pageTitle = root.optString("pageTitle", "")
+            val arr = root.getJSONArray("tracks")
             if (arr.length() == 0) return null
             val tracks = mutableListOf<ParsedTrack>()
             for (i in 0 until arr.length()) {
@@ -133,8 +142,8 @@ class TracklistWebScraper @Inject constructor(
                 }
             }
             val withTimestamps = tracks.count { it.startTimeSec > 0f }
-            Log.i(TAG, "Parsed ${tracks.size} tracks, $withTimestamps avec timestamps")
-            if (tracks.size >= 3) tracks else null
+            Log.i(TAG, "Parsed ${tracks.size} tracks, $withTimestamps avec timestamps, page='$pageTitle'")
+            if (tracks.size >= 3) ScrapedTracklist(pageTitle, tracks) else null
         } catch (e: Exception) {
             Log.e(TAG, "JSON parse error: ${e.message}")
             null

@@ -46,6 +46,9 @@ class TrackRepository @Inject constructor(
     // quand un podcast de 482 épisodes est ajouté/rafraîchi en parallel
     private val ddgSemaphore = Semaphore(1)
 
+    /** Résultat de try1001TL : tracks + titre de la page scrappée (pour vérification UI) */
+    private data class TLResult(val tracks: List<ParsedTrack>, val pageTitle: String?)
+
     fun getTracksForEpisode(episodeId: Int): Flow<List<Track>> {
         return trackDao.getByEpisodeIdFlow(episodeId).map { list ->
             list.map { it.toDomain() }
@@ -68,6 +71,13 @@ class TrackRepository @Inject constructor(
         tracklistPageUrl: String? = null,
         mixcloudKey: String? = null
     ): Boolean {
+        // Épisodes marqués "no_tracklist" → aucune source connue, ne pas tenter de détection
+        val episodeStatus = episodeDao.getById(episodeId)?.trackRefinementStatus
+        if (episodeStatus == "no_tracklist") {
+            Log.d("TrackRepo", "detectAndSaveTracks: ep#$episodeId marqué no_tracklist → skip")
+            return false
+        }
+
         val existing = trackDao.getByEpisodeId(episodeId)
         if (existing.isNotEmpty()) {
             val allUniform = existing.all { it.source == "uniform" }
@@ -124,8 +134,9 @@ class TrackRepository @Inject constructor(
             val t1001 = System.currentTimeMillis()
             onSourceResult?.invoke(SourceResult("1001Tracklists", SourceStatus.RUNNING))
             status(5, "🌐 1001Tracklists WebView... ${elapsed()}")
-            val from1001 = try1001TL(query, knownUrl = tracklistPageUrl, description = description, isLiveSet = true)
+            val tl1001 = try1001TL(query, knownUrl = tracklistPageUrl, description = description, isLiveSet = true)
             val elapsed1001 = System.currentTimeMillis() - t1001
+            val from1001 = tl1001?.tracks
             // ≥50% des tracks (hors 1er) ont un timestamp valide → mode timestampé
             val has1001Timestamps = from1001 != null && from1001.size >= 3 &&
                 from1001.drop(1).count { it.startTimeSec > 0f } >= (from1001.size - 1) / 2
@@ -133,6 +144,7 @@ class TrackRepository @Inject constructor(
                 // 1001TL avec timestamps → résultat parfait, on s'arrête
                 trackDao.deleteByEpisode(episodeId)
                 saveTracks(episodeId, from1001, true, 0, "1001tl")
+                episodeDao.updateTracklistSourceName(episodeId, tl1001?.pageTitle)
                 onSourceResult?.invoke(SourceResult("1001Tracklists", SourceStatus.SUCCESS,
                     trackCount = from1001.size, elapsedMs = elapsed1001))
                 listOf("Description YouTube", "Commentaires YouTube", "Mixcloud", "MixesDB", "yt-dlp", "Shazam/IA").forEach {
@@ -145,6 +157,7 @@ class TrackRepository @Inject constructor(
                 // 1001TL sans timestamps → tracklist trouvée, on s'arrête (pas de chasse aux timestamps)
                 trackDao.deleteByEpisode(episodeId)
                 saveTracks(episodeId, from1001, false, episodeDurationSec, "1001tl")
+                episodeDao.updateTracklistSourceName(episodeId, tl1001?.pageTitle)
                 onSourceResult?.invoke(SourceResult("1001Tracklists", SourceStatus.SUCCESS,
                     trackCount = from1001.size, elapsedMs = elapsed1001))
                 listOf("Description YouTube", "Commentaires YouTube", "Mixcloud", "MixesDB", "yt-dlp", "Shazam/IA").forEach {
@@ -327,12 +340,14 @@ class TrackRepository @Inject constructor(
             val t1001 = System.currentTimeMillis()
             onSourceResult?.invoke(SourceResult("1001Tracklists", SourceStatus.RUNNING))
             status(10, "🌐 1001Tracklists... ${elapsed()}")
-            val from1001 = try1001TL(query, knownUrl = null, description = description, isLiveSet = false)
+            val tl1001 = try1001TL(query, knownUrl = null, description = description, isLiveSet = false)
             val elapsed1001 = System.currentTimeMillis() - t1001
+            val from1001 = tl1001?.tracks
             if (from1001 != null && from1001.size >= 3) {
                 val has1001Timestamps = from1001.drop(1).count { it.startTimeSec > 0f } >= (from1001.size - 1) / 2
                 trackDao.deleteByEpisode(episodeId)
                 saveTracks(episodeId, from1001, has1001Timestamps, episodeDurationSec, "1001tl")
+                episodeDao.updateTracklistSourceName(episodeId, tl1001?.pageTitle)
                 onSourceResult?.invoke(SourceResult("1001Tracklists", SourceStatus.SUCCESS,
                     trackCount = from1001.size, elapsedMs = elapsed1001))
                 onSourceResult?.invoke(SourceResult("Description YouTube", SourceStatus.SKIPPED, reason = "1001TL suffisant"))
@@ -423,7 +438,7 @@ class TrackRepository @Inject constructor(
         }
     }
 
-    private suspend fun try1001TL(query: String, knownUrl: String? = null, description: String? = null, isLiveSet: Boolean = true): List<ParsedTrack>? {
+    private suspend fun try1001TL(query: String, knownUrl: String? = null, description: String? = null, isLiveSet: Boolean = true): TLResult? {
         return try {
             val tracklistUrl: String
 
@@ -432,62 +447,94 @@ class TrackRepository @Inject constructor(
                 Log.i("TrackRepo", "1001TL using known URL: $knownUrl")
                 tracklistUrl = knownUrl
             } else {
-                // Stratégie selon le type de contenu
-                val cleanQuery = if (!isLiveSet) {
-                    // PODCAST : résoudre depuis description (ex: ASOT/1273 → "A State Of Trance 1273")
-                    // puis extraire keywords en CONSERVANT les numéros d'épisode (3+ chiffres)
-                    val resolvedQuery = resolveQueryFromDescription(query, description)
-                    extractKeywordsPodcast(resolvedQuery)
+                // Construire la liste de queries en cascade :
+                // 1. Titre exact complet (le plus spécifique)
+                // 2. Titre sans date
+                // 3. Keywords artiste + localisation + année (fallback)
+                // 4. Keywords artiste + localisation sans année
+                val resolvedBase = if (!isLiveSet)
+                    resolveQueryFromDescription(query, description) else query
+
+                val queries = if (!isLiveSet) {
+                    listOf(
+                        extractKeywordsPodcast(resolvedBase),
+                        extractKeywordsPodcast(resolvedBase).split(" ").dropLast(1).joinToString(" ")
+                    ).filter { it.isNotBlank() }.distinct()
                 } else {
-                    // LIVESET : extraire artiste + lieu, virer les numéros parasites
-                    extractKeywords(query, maxWords = 5)
+                    buildList {
+                        // 1. Titre nettoyé complet (séparateurs → espace, trim)
+                        val fullClean = query
+                            .replace(Regex("""[@|/\[\](){}#]"""), " ")
+                            .replace(Regex("""\s+"""), " ").trim()
+                        add(fullClean)
+                        // 2. Sans la date (tout sauf le dernier token si ressemble à une date)
+                        val noDate = fullClean
+                            .replace(Regex("""\b\d{4}-\d{2}-\d{2}\b"""), "")
+                            .replace(Regex("""\s+"""), " ").trim()
+                        if (noDate != fullClean) add(noDate)
+                        // 3. Artiste + localisation + année
+                        val smart = extractKeywords(query)
+                        if (smart.isNotBlank()) add(smart)
+                        // 4. Artiste + localisation sans année
+                        val smartNoYear = smart.replace(Regex("""\b20\d{2}\b"""), "").trim()
+                        if (smartNoYear != smart && smartNoYear.isNotBlank()) add(smartNoYear)
+                    }.filter { it.isNotBlank() }.distinct()
                 }
-                Log.i("TrackRepo", "1001TL keyword query: '$cleanQuery' (isLiveSet=$isLiveSet, from: '$query')")
 
-                // Trouver l'URL via DuckDuckGo — sérialisé (1 à la fois) pour éviter les bursts
-                val searchUrl = "https://html.duckduckgo.com/html/?q=" +
-                    URLEncoder.encode("site:1001tracklists.com $cleanQuery", "UTF-8")
-                Log.i("TrackRepo", "1001TL DDG search: $searchUrl")
-                val ddgHtml = ddgSemaphore.withPermit {
-                    val ddgClient = okHttpClient.newBuilder()
-                        .connectTimeout(8, TimeUnit.SECONDS)
-                        .readTimeout(8, TimeUnit.SECONDS)
-                        .followRedirects(true)
-                        .build()
-                    val ddgReq = okhttp3.Request.Builder()
-                        .url(searchUrl)
-                        .header("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64)")
-                        .header("Accept", "text/html")
-                        .build()
-                    withContext(Dispatchers.IO) {
-                        ddgClient.newCall(ddgReq).execute().use { it.body?.string() }
-                    }
-                } ?: run { Log.w("TrackRepo", "1001TL: DDG empty response"); return null }
-
-                Log.i("TrackRepo", "1001TL DDG response size=${ddgHtml.length}")
-                // Parcourir TOUS les liens uddg= et prendre le premier qui pointe
-                // vers une page tracklist 1001TL (le premier lien DDG n'est pas forcément 1001TL)
-                val candidate = Regex("""uddg=([^&"]+)""").findAll(ddgHtml)
-                    .map { java.net.URLDecoder.decode(it.groupValues[1], "UTF-8") }
-                    .firstOrNull { it.contains("1001tracklists.com/tracklist/") }
-                if (candidate == null) {
-                    // Aucun lien vers une tracklist 1001TL → log tous les candidats pour debug
-                    val allLinks = Regex("""uddg=([^&"]+)""").findAll(ddgHtml)
+                // Essayer chaque query DDG jusqu'à trouver un candidat valide
+                var candidate: String? = null
+                for ((idx, q) in queries.withIndex()) {
+                    Log.i("TrackRepo", "1001TL DDG query [$idx]: '$q'")
+                    val searchUrl = "https://html.duckduckgo.com/html/?q=" +
+                        URLEncoder.encode("site:1001tracklists.com $q", "UTF-8")
+                    val ddgHtml = ddgSemaphore.withPermit {
+                        val ddgClient = okHttpClient.newBuilder()
+                            .connectTimeout(8, TimeUnit.SECONDS)
+                            .readTimeout(8, TimeUnit.SECONDS)
+                            .followRedirects(true)
+                            .build()
+                        val ddgReq = okhttp3.Request.Builder()
+                            .url(searchUrl)
+                            .header("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64)")
+                            .header("Accept", "text/html")
+                            .build()
+                        withContext(Dispatchers.IO) {
+                            ddgClient.newCall(ddgReq).execute().use { it.body?.string() }
+                        }
+                    } ?: continue
+                    Log.i("TrackRepo", "1001TL DDG response [$idx] size=${ddgHtml.length}")
+                    candidate = Regex("""uddg=([^&"]+)""").findAll(ddgHtml)
                         .map { java.net.URLDecoder.decode(it.groupValues[1], "UTF-8") }
-                        .take(5).toList()
-                    Log.w("TrackRepo", "1001TL: pas de tracklist dans DDG. Liens trouvés: $allLinks")
+                        .firstOrNull { it.contains("1001tracklists.com/tracklist/") }
+                    if (candidate != null) {
+                        Log.i("TrackRepo", "1001TL found candidate at query[$idx]: $candidate")
+                        break
+                    } else {
+                        Log.d("TrackRepo", "1001TL no result for query[$idx]")
+                    }
+                }
+                if (candidate == null) {
+                    Log.w("TrackRepo", "1001TL: aucun résultat après ${queries.size} queries")
                     return null
                 }
                 Log.i("TrackRepo", "1001TL candidate URL: $candidate")
 
-                // Valider que le slug de l'URL contient au moins un mot-clé significatif
-                // Ex: cleanQuery="Miro PPB" → slug doit contenir "miro" ou "ppb"
-                // Évite les faux positifs (Jonas Steur matchant "Miro PPB" via DDG sémantique)
+                // Valider que le slug de l'URL contient au moins un mot-clé SPÉCIFIQUE
+                // Exclure les mots génériques ("live", "mix", "set"…) qui matchent n'importe quelle page
+                // Ex: "Driftmoon Live @ Epic Prague" → tokens spécifiques = ["driftmoon","epic","prague"]
+                //     slug d'un set Armin van Buuren ne contient aucun de ces mots → rejeté
                 val slugPart = candidate.substringAfter("1001tracklists.com/tracklist/").lowercase()
-                val keywordTokens = cleanQuery.lowercase().split(" ").filter { it.length > 2 }
+                val genericTokens = setOf(
+                    "live", "mix", "set", "the", "and", "for", "with", "from",
+                    "edition", "remix", "radio", "show", "vol", "part", "episode",
+                    "best", "top", "new", "music", "podcast", "session", "tour"
+                )
+                val allTokens = query.lowercase().split(Regex("[^a-z0-9]+")).filter { it.length > 2 }
+                val specificTokens = allTokens.filter { it !in genericTokens }
+                val keywordTokens = specificTokens.ifEmpty { allTokens }
                 val slugValid = keywordTokens.any { slugPart.contains(it) }
                 if (!slugValid) {
-                    Log.w("TrackRepo", "1001TL: slug '$slugPart' ne contient aucun mot-clé de '$cleanQuery' → rejeté")
+                    Log.w("TrackRepo", "1001TL: slug '$slugPart' sans mot spécifique de '$query' → rejeté")
                     return null
                 }
 
@@ -496,7 +543,38 @@ class TrackRepository @Inject constructor(
 
             // Scraper via WebView (page JS-rendered — extrait DOM complet avec timestamps)
             Log.i("TrackRepo", "1001TL launching WebView scraper: $tracklistUrl")
-            tracklistWebScraper.scrape1001TL(tracklistUrl)
+            val scraped = tracklistWebScraper.scrape1001TL(tracklistUrl) ?: return null
+
+            // Valider que le titre de page correspond bien à l'épisode attendu.
+            // Format 1001TL : "DJ Name @ Event Name - Date | 1001Tracklists"
+            val pageTitle = scraped.pageTitle.lowercase()
+            if (pageTitle.isNotBlank()) {
+                // 1. Vérifier le DJ (partie avant " @ ")
+                val djInPage = pageTitle.substringBefore(" @ ").substringBefore(" - ").trim()
+                val djTokens = djInPage.split(Regex("[^a-z0-9]+")).filter { it.length > 2 }.toSet()
+                val queryTokens = query.lowercase().split(Regex("[^a-z0-9]+")).filter { it.length > 2 }.toSet()
+                val djOverlap = djTokens.intersect(queryTokens).size
+                if (djOverlap == 0 && djInPage.length > 2) {
+                    Log.w("TrackRepo", "1001TL: pageTitle DJ '$djInPage' ≠ '$query' → rejeté")
+                    return null
+                }
+
+                // 2. Vérifier les tokens spécifiques de l'événement (ville, venue).
+                // Si ≥ 1/3 des tokens long (>4 chars) de la query sont absents du pageTitle → mauvais match.
+                // Ex: query contient "bangkok" mais pageTitle dit "prague" → rejeté.
+                val pageTitleTokens = pageTitle.split(Regex("[^a-z0-9]+")).filter { it.length > 4 }.toSet()
+                val queryLongTokens = query.lowercase().split(Regex("[^a-z0-9]+")).filter { it.length > 4 }.toSet()
+                val missingFromPage = queryLongTokens - pageTitleTokens
+                val maxMissing = maxOf(1, queryLongTokens.size / 3)
+                if (missingFromPage.size > maxMissing) {
+                    Log.w("TrackRepo", "1001TL: pageTitle manque ${missingFromPage.size} tokens spécifiques ($missingFromPage) > seuil $maxMissing → rejeté (mauvais événement)")
+                    return null
+                }
+
+                Log.i("TrackRepo", "1001TL: pageTitle validé — DJ '$djInPage' overlap=$djOverlap, missing=${missingFromPage.size}/$maxMissing")
+            }
+
+            TLResult(scraped.tracks, scraped.pageTitle.takeIf { it.isNotBlank() })
         } catch (e: Exception) {
             Log.w("TrackRepo", "1001TL exception: ${e.javaClass.simpleName}: ${e.message}")
             null
@@ -722,25 +800,64 @@ class TrackRepository @Inject constructor(
         return query
     }
 
+    /**
+     * Extraction keywords pour LIVE SETS.
+     * Stratégie : artiste + location/date, pas les N premiers mots.
+     *
+     * Pour "Driftmoon @ Vintage Pure Transmix, Elysium, Transmission Bangkok, BITEC Bangkok, Thailand 2024-10-12"
+     * → "Driftmoon Bangkok Thailand 2024"  (artiste + localisation + année)
+     *
+     * Pour "KOROLOVA Live @ Cercle - Belvedere Vienna 2024"
+     * → "KOROLOVA Vienna 2024"
+     */
     private fun extractKeywords(query: String, maxWords: Int = 4): String {
         val noiseWords = setOf(
             "live", "set", "at", "the", "a", "in", "on", "by", "and", "or", "of",
             "mixed", "mix", "radio", "show", "ep", "episode", "vol", "volume",
             "ft", "feat", "with", "presents", "b2b", "vs", "open", "closing",
             "warm", "up", "down", "stage", "main", "room", "floor", "night",
-            "day", "festival", "tour", "all", "for", "from", "to", "is", "this"
+            "day", "festival", "tour", "all", "for", "from", "to", "is", "this",
+            "pres", "elysium", "arena", "club", "bitec", "o2", "area"
         )
-        return query
-            .replace(Regex("""[@\-–—|/\[\](){}#]"""), " ")   // normalise séparateurs
-            .replace(Regex("""\b(?:19|20)\d{2}\b"""), "")        // supprime années (19xx/20xx)
-            .replace(Regex("""\b\d+\b"""), "")                 // supprime tous les nombres (numéros de série parasites)
-            .replace(Regex("""\s+"""), " ")
-            .trim()
-            .split(" ")
+
+        // 1. Artiste = partie avant "@" ou "-" ou le premier mot si pas de séparateur
+        val artistPart = query
+            .substringBefore("@").substringBefore(" - ").substringBefore(" – ")
+            .replace(Regex("""[@\-–—|/\[\](){}#]"""), " ").trim()
+        val artistTokens = artistPart.split(" ")
+            .filter { it.length > 1 && it.lowercase() !in noiseWords }
+            .take(3)
+
+        // 2. Partie événement = tout après "@"
+        val eventPart = if (query.contains("@")) query.substringAfter("@") else query
+
+        // 3. Année si présente (discriminant fort entre deux éditions)
+        val yearMatch = Regex("""\b(20\d{2})\b""").find(query)
+        val year = yearMatch?.groupValues?.get(1)
+
+        // 4. Tokens de localisation = mots significatifs du segment final (après dernière virgule
+        //    ou après "Transmission") — ce sont les discriminants géographiques
+        val locationSource = when {
+            eventPart.contains("Transmission", ignoreCase = true) ->
+                eventPart.substringAfterLast("Transmission", "").substringAfterLast(",", eventPart)
+            eventPart.contains(",") ->
+                eventPart.substringAfterLast(",")
+            else -> eventPart
+        }
+        val locationTokens = locationSource
+            .replace(Regex("""[@\-–—|/\[\](){}#.,]"""), " ")
+            .replace(Regex("""\b\d+\b"""), "")
+            .split(Regex("""\s+"""))
+            .map { it.trim() }
             .filter { it.length > 2 && it.lowercase() !in noiseWords }
-            .take(maxWords)
-            .joinToString(" ")
-            .ifBlank { query.take(40) }  // fallback si tout est filtré
+            .take(3)
+
+        // 5. Assembler : artiste + location + année
+        val parts = (artistTokens + locationTokens + listOfNotNull(year)).distinct()
+        val result = parts.joinToString(" ").trim()
+
+        Log.d("TrackRepo", "extractKeywords: '$query' → '$result' (artist=$artistTokens, loc=$locationTokens, year=$year)")
+        return result.ifBlank { query.replace(Regex("""[@\[\](){}]"""), " ").take(60) }
     }
 
     suspend fun saveTracksForEpisode(episodeId: Int, tracks: List<ParsedTrack>, hasTimestamps: Boolean) {

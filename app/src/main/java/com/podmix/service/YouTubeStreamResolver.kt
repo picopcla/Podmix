@@ -11,8 +11,11 @@ import javax.inject.Singleton
 @Singleton
 class YouTubeStreamResolver @Inject constructor() {
 
-    private val cache = mutableMapOf<String, Pair<String, Long>>()
-    private val maxAge = 4 * 60 * 60 * 1000L // 4 hours
+    private val cache    = mutableMapOf<String, Pair<String, Long>>()  // progressive URL (download)
+    private val dashCache = mutableMapOf<String, Pair<String, Long>>() // DASH MPD URL (streaming)
+    private val scCache  = mutableMapOf<String, Pair<String, Long>>()  // SoundCloud stream cache
+    private val maxAge   = 4 * 60 * 60 * 1000L // 4 hours (YouTube)
+    private val scMaxAge = 30 * 60 * 1000L      // 30 min (SoundCloud — expire plus vite)
     private var initialized = false
 
     fun ensureInitialized() {
@@ -26,8 +29,53 @@ class YouTubeStreamResolver @Inject constructor() {
 
     fun invalidateCache(videoId: String) {
         cache.remove(videoId)
+        dashCache.remove(videoId)
     }
 
+    /**
+     * Returns the best URL for STREAMING (playback without download).
+     * Prefers DASH MPD if available — ExoPlayer's DefaultMediaSourceFactory handles it
+     * natively, fetching CDN segments in parallel → bypasses YouTube's progressive throttle.
+     * Falls back to progressive URL if no DASH manifest is available.
+     */
+    suspend fun resolveForStreaming(videoId: String): String? {
+        val cached = dashCache[videoId]
+        if (cached != null && System.currentTimeMillis() - cached.second < maxAge) {
+            return cached.first
+        }
+        return withContext(Dispatchers.IO) {
+            try {
+                ensureInitialized()
+                val info = StreamInfo.getInfo("https://www.youtube.com/watch?v=$videoId")
+
+                // Prefer DASH MPD — segments not throttled the same way as progressive streams
+                val dashUrl = info.dashMpdUrl.takeIf { it.isNotBlank() }
+                if (dashUrl != null) {
+                    dashCache[videoId] = dashUrl to System.currentTimeMillis()
+                    Log.i("StreamResolver", "Streaming $videoId via DASH MPD")
+                    return@withContext dashUrl
+                }
+
+                // Fallback: progressive stream
+                val audioStream = info.audioStreams
+                    .filter { it.averageBitrate > 0 }
+                    .minByOrNull { kotlin.math.abs(it.averageBitrate - 128) }
+                    ?: info.audioStreams.maxByOrNull { it.averageBitrate }
+                audioStream?.content?.also { streamUrl ->
+                    cache[videoId] = streamUrl to System.currentTimeMillis()
+                    Log.i("StreamResolver", "Streaming $videoId via progressive (${audioStream.averageBitrate}kbps, no DASH)")
+                }
+            } catch (e: Exception) {
+                Log.e("StreamResolver", "Failed resolveForStreaming $videoId: ${e.message}")
+                null
+            }
+        }
+    }
+
+    /**
+     * Returns progressive URL for DOWNLOADING (chunked parallel download).
+     * DASH MPD is XML — cannot be used with EpisodeDownloadManager's byte-range downloader.
+     */
     suspend fun resolve(videoId: String): String? {
         val cached = cache[videoId]
         if (cached != null && System.currentTimeMillis() - cached.second < maxAge) {
@@ -139,6 +187,12 @@ class YouTubeStreamResolver @Inject constructor() {
      * - API URL: "https://api.soundcloud.com/tracks/NNN" → converted via SoundcloudParsingHelper
      */
     suspend fun resolveSoundCloudTrack(trackUrl: String): String? {
+        // Cache check — évite re-résolution NewPipe à chaque navigation
+        val cached = scCache[trackUrl]
+        if (cached != null && System.currentTimeMillis() - cached.second < scMaxAge) {
+            Log.d("StreamResolver", "SoundCloud cache hit: ${trackUrl.takeLast(50)}")
+            return cached.first
+        }
         return withContext(Dispatchers.IO) {
             try {
                 ensureInitialized()
@@ -160,7 +214,8 @@ class YouTubeStreamResolver @Inject constructor() {
                     .filter { it.averageBitrate > 0 }
                     .maxByOrNull { it.averageBitrate }
                     ?: info.audioStreams.firstOrNull()
-                audioStream?.content?.also {
+                audioStream?.content?.also { streamUrl ->
+                    scCache[trackUrl] = streamUrl to System.currentTimeMillis()
                     Log.i("StreamResolver", "SoundCloud OK (${audioStream.averageBitrate}kbps): ${resolvedUrl.takeLast(60)}")
                 }
             } catch (e: Exception) {

@@ -271,10 +271,57 @@ class DjRepository @Inject constructor(
         // Auto-clean: remove oldest listened sets beyond the configured limit
         episodeDao.deleteOldestListened(djId, maxLivesets)
 
+        // Retroactive Mixcloud enrichment: YouTube-only episodes already in DB
+        // may have a Mixcloud counterpart that wasn't found during initial import
+        // (title similarity miss, or Mixcloud search failed at import time).
+        // For each YouTube-only episode, search Mixcloud by DJ name + title and
+        // link the mixcloudKey if found — streaming will then use Mixcloud (no throttle).
+        applicationScope.launch {
+            enrichYouTubeOnlyWithMixcloud(djId, dj.name)
+        }
+
         if (inserted == 0 && topSets.isEmpty()) {
             Log.w("DjRepo", "No sets found for ${dj.name}")
         } else {
             Log.i("DjRepo", "Inserted $inserted new sets for ${dj.name}")
+        }
+    }
+
+    /**
+     * For each YouTube-only episode (no mixcloudKey), search Mixcloud by DJ name + episode title.
+     * If a match is found (title similarity > 0.55), save the mixcloudKey so future streaming
+     * uses Mixcloud instead of the throttled YouTube progressive stream.
+     */
+    private suspend fun enrichYouTubeOnlyWithMixcloud(djId: Int, djName: String) {
+        val ytOnly = episodeDao.getYouTubeOnlyEpisodes(djId)
+        if (ytOnly.isEmpty()) return
+        Log.i("DjRepo", "Enrichment: ${ytOnly.size} YouTube-only episodes for $djName")
+
+        for (ep in ytOnly) {
+            try {
+                val query = "$djName ${ep.title}"
+                val response = mixcloudApi.search(djName, "cloudcast")
+                val match = (response.data ?: emptyList())
+                    .filter { (it.audioLength ?: 0) > 1200 }
+                    .maxByOrNull { mc ->
+                        titleSimilarity(ep.title.lowercase(), (mc.name ?: "").lowercase())
+                    } ?: continue
+
+                val sim = titleSimilarity(ep.title.lowercase(), (match.name ?: "").lowercase())
+                val key = match.key ?: continue
+                if (sim > 0.55 && key.isNotBlank()) {
+                    // Verify not already used by another episode
+                    val conflict = episodeDao.getByMixcloudKey(key, djId)
+                    if (conflict != null && conflict.id != ep.id) continue
+
+                    episodeDao.updateMixcloudKey(ep.id, key)
+                    Log.i("DjRepo", "  ✓ enriched '${ep.title}' → Mixcloud $key (sim=${"%.2f".format(sim)})")
+                } else {
+                    Log.d("DjRepo", "  ✗ '${ep.title}' best sim=${"%.2f".format(sim)} (${match.name}) — skip")
+                }
+            } catch (e: Exception) {
+                Log.w("DjRepo", "  enrichment failed for '${ep.title}': ${e.message}")
+            }
         }
     }
 

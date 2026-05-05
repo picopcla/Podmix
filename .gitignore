@@ -14,3 +14,11 @@
 .cxx
 local.properties
 .worktrees/
+__pycache__/
+*.db
+*.zip
+*.png
+*.webp
+.gradle/
+.idea/
+.superpowers/

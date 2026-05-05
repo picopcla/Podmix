@@ -33,5 +33,9 @@ data class EpisodeEntity(
     val localAudioPath: String? = null,
     val soundcloudTrackUrl: String? = null,
     val tracklistPageUrl: String? = null,
-    val enrichedAt: Long? = null
+    val enrichedAt: Long? = null,
+    val trackRefinementStatus: String = "none", // "none" | "pending" | "refining" | "done"
+    val isFavorite: Boolean = false,
+    /** Titre de la page 1001TL scrappée — ex: "Driftmoon @ Transmission Bangkok 2024 | 1001Tracklists" */
+    val tracklistSourceName: String? = null
 )

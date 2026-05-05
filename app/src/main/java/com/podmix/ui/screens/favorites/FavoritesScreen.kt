@@ -76,6 +76,9 @@ fun FavoritesScreen(viewModel: FavoritesViewModel = hiltViewModel()) {
             title = { Text("Favoris", color = TextPrimary, fontSize = 18.sp) },
             actions = {
                 if (favorites.isNotEmpty()) {
+                    IconButton(onClick = { viewModel.forceRefreshSpotify() }) {
+                        Icon(Icons.Default.Refresh, "Rafraîchir Spotify", tint = Color(0xFF1DB954))
+                    }
                     IconButton(onClick = { viewModel.forceRefreshDeezer() }) {
                         Icon(Icons.Default.Refresh, "Rafraîchir Deezer", tint = Color(0xFFEF5466))
                     }

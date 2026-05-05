@@ -12,19 +12,25 @@ import androidx.work.NetworkType
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
+import com.podmix.service.EpisodeDownloadManager
 import com.podmix.service.RefreshWorker
 import dagger.hilt.android.HiltAndroidApp
 import java.util.concurrent.TimeUnit
+import javax.inject.Inject
 
 @HiltAndroidApp
 class PodMixApplication : Application() {
 
+    @Inject lateinit var downloadManager: EpisodeDownloadManager
+
     override fun onCreate() {
         super.onCreate()
 
+        AppLogger.init(this)  // doit être AVANT tout le reste
         createNotificationChannel()
         schedulePeriodicRefresh()
         triggerImmediateRefresh()
+        downloadManager.checkAndRefinePendingOnStartup()
     }
 
     private fun createNotificationChannel() {

@@ -6,9 +6,7 @@ import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
-import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -73,7 +71,6 @@ fun WigWagIndicator(modifier: Modifier = Modifier) {
     }
 }
 
-@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun EpisodeRow(
     episode: Episode,
@@ -97,12 +94,24 @@ fun EpisodeRow(
             .clickable(onClick = onClick)
             .padding(horizontal = 12.dp, vertical = 4.dp)
     ) {
+        val dateStr = episode.datePublished
+            ?.takeIf { it > 0L }
+            ?.let { SimpleDateFormat("MMM yyyy", Locale.ENGLISH).format(Date(it)) }
+            ?: ""
+        val durStr = if (episode.durationSeconds > 0) {
+            val h = episode.durationSeconds / 3600
+            val m = (episode.durationSeconds % 3600) / 60
+            val s = episode.durationSeconds % 60
+            if (h > 0) String.format("%d:%02d:%02d", h, m, s)
+            else String.format("%d:%02d", m, s)
+        } else ""
+
+        // Ligne 1 : indicateur + date + durée
         Row(
             modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically
         ) {
             if (episode.trackRefinementStatus == "refining") {
-                // Affinage en cours → wig-wag + pourcentage
                 WigWagIndicator(Modifier.padding(end = 2.dp))
                 if (refinementPct != null) {
                     Text(
@@ -113,7 +122,6 @@ fun EpisodeRow(
                     )
                 }
             } else {
-                // Dot : rouge=pas d'audio, orange=audio sans TL ou TTE, vert=TL réelle affinée
                 val dotColor = when {
                     !hasAudio -> Color(0xFFFF4444)
                     !hasTracklist || episode.trackRefinementStatus == "pending"
@@ -126,56 +134,40 @@ fun EpisodeRow(
                         .background(dotColor, CircleShape)
                 )
             }
-
-            val dateStr = episode.datePublished
-                ?.takeIf { it > 0L }
-                ?.let { SimpleDateFormat("MMM yyyy", Locale.ENGLISH).format(Date(it)) }
-                ?: ""
-            val durStr = if (episode.durationSeconds > 0) {
-                val h = episode.durationSeconds / 3600
-                val m = (episode.durationSeconds % 3600) / 60
-                val s = episode.durationSeconds % 60
-                if (h > 0) String.format("%d:%02d:%02d", h, m, s)
-                else String.format("%d:%02d", m, s)
-            } else ""
-
-            // Date fixe (ne défile pas)
             if (dateStr.isNotEmpty()) {
                 Text(
-                    text = "$dateStr · ",
+                    text = dateStr,
                     color = TextSecondary,
                     fontSize = 11.sp,
-                    maxLines = 1,
                     modifier = Modifier.padding(start = 8.dp)
                 )
             }
-            // Titre seul défile en marquee
-            Text(
-                text = episode.title,
-                color = if (isPlaying) Color(0xFFC084FC) else TextPrimary,
-                fontSize = 12.sp,
-                maxLines = 1,
-                modifier = Modifier
-                    .weight(1f)
-                    .basicMarquee(iterations = Int.MAX_VALUE)
-            )
+            Spacer(modifier = Modifier.weight(1f))
             if (downloadState is DownloadState.Downloaded) {
                 Icon(
                     Icons.Default.CheckCircle,
                     contentDescription = "Téléchargé",
                     tint = AccentPrimary,
-                    modifier = Modifier.size(14.dp).padding(start = 4.dp)
+                    modifier = Modifier.size(14.dp).padding(end = 4.dp)
                 )
             }
             if (durStr.isNotEmpty()) {
                 Text(
                     text = durStr,
                     color = TextSecondary,
-                    fontSize = 11.sp,
-                    modifier = Modifier.padding(start = 8.dp)
+                    fontSize = 11.sp
                 )
             }
         }
+        // Ligne 2 : titre complet (wrap sur 2 lignes max)
+        Text(
+            text = episode.title,
+            color = if (isPlaying) Color(0xFFC084FC) else TextPrimary,
+            fontSize = 13.sp,
+            maxLines = 2,
+            overflow = TextOverflow.Ellipsis,
+            modifier = Modifier.padding(start = 16.dp, top = 2.dp)
+        )
 
         // Download indicator
         when (downloadState) {

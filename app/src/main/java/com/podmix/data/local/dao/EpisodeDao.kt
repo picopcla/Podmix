@@ -29,6 +29,12 @@ interface EpisodeDao {
     @Query("SELECT * FROM episodes WHERE youtubeVideoId = :videoId AND podcastId = :podcastId LIMIT 1")
     suspend fun getByYoutubeVideoId(videoId: String, podcastId: Int): EpisodeEntity?
 
+    @Query("UPDATE episodes SET mixcloudKey = :key WHERE id = :id")
+    suspend fun updateMixcloudKey(id: Int, key: String)
+
+    @Query("SELECT * FROM episodes WHERE podcastId = :podcastId AND youtubeVideoId IS NOT NULL AND mixcloudKey IS NULL")
+    suspend fun getYouTubeOnlyEpisodes(podcastId: Int): List<EpisodeEntity>
+
     @Query("SELECT * FROM episodes WHERE title = :title AND podcastId = :podcastId LIMIT 1")
     suspend fun getByTitleAndPodcastId(title: String, podcastId: Int): EpisodeEntity?
 
@@ -62,6 +68,28 @@ interface EpisodeDao {
     @Query("UPDATE episodes SET localAudioPath = NULL WHERE id = :id")
     suspend fun clearLocalAudioPath(id: Int)
 
+    @Query("SELECT * FROM episodes WHERE soundcloudTrackUrl = :url LIMIT 1")
+    suspend fun getBySoundcloudTrackUrl(url: String): EpisodeEntity?
+
+    @Query("UPDATE episodes SET youtubeVideoId = :videoId WHERE id = :id")
+    suspend fun updateYoutubeVideoId(id: Int, videoId: String)
+
+    @Query("UPDATE episodes SET soundcloudTrackUrl = NULL WHERE id = :id")
+    suspend fun clearSoundcloudTrackUrl(id: Int)
+
+    /**
+     * Episodes with ONLY a SoundCloud URL as audio source (no YouTube, no Mixcloud, no RSS).
+     * These may have been enriched with a wrong SC URL that doesn't match the episode content.
+     */
+    @Query("""
+        SELECT * FROM episodes
+        WHERE soundcloudTrackUrl IS NOT NULL
+          AND (youtubeVideoId IS NULL OR youtubeVideoId = '')
+          AND (mixcloudKey IS NULL OR mixcloudKey = '')
+          AND (audioUrl IS NULL OR audioUrl = '')
+    """)
+    suspend fun getSCOnlyEpisodes(): List<EpisodeEntity>
+
     @Query("UPDATE episodes SET trackRefinementStatus = :status WHERE id = :id")
     suspend fun updateRefinementStatus(id: Int, status: String)
 
@@ -70,6 +98,23 @@ interface EpisodeDao {
 
     @Query("SELECT * FROM episodes WHERE trackRefinementStatus = 'chroma_pending' AND localAudioPath IS NOT NULL")
     suspend fun getChromaPendingWithLocalAudio(): List<EpisodeEntity>
+
+    /**
+     * Episodes that have been refined (status=done) but still have at least one track
+     * whose startTimeSec exceeds the episode duration — timestamps need redistribution.
+     * Only includes downloaded episodes with known duration.
+     */
+    @Query("""
+        SELECT DISTINCT e.* FROM episodes e
+        INNER JOIN tracks t ON t.episodeId = e.id
+        WHERE e.durationSeconds > 0
+          AND t.startTimeSec > e.durationSeconds
+          AND e.localAudioPath IS NOT NULL
+    """)
+    suspend fun getEpisodesWithTimestampsBeyondDuration(): List<EpisodeEntity>
+
+    @Query("UPDATE episodes SET tracklistSourceName = :name WHERE id = :id")
+    suspend fun updateTracklistSourceName(id: Int, name: String?)
 
     @Query("UPDATE episodes SET isFavorite = NOT isFavorite WHERE id = :id")
     suspend fun toggleEpisodeFavorite(id: Int)

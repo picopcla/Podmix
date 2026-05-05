@@ -1,8 +1,6 @@
 package com.podmix.ui.screens.liveset
 
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
-import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -169,7 +167,6 @@ private fun SortChip(label: String, selected: Boolean, onClick: () -> Unit) {
     }
 }
 
-@OptIn(ExperimentalFoundationApi::class)
 @Composable
 private fun SetRow(item: DiscoveredSetUiItem, onClick: () -> Unit) {
     val alpha = if (item.isAlreadyImported) 0.38f else 1f
@@ -197,42 +194,40 @@ private fun SetRow(item: DiscoveredSetUiItem, onClick: () -> Unit) {
         )
         Spacer(Modifier.width(7.dp))
 
-        // Titre — marquee scrolling si le texte dépasse
-        Text(
-            text = item.set.title,
-            color = TextPrimary.copy(alpha = alpha),
-            fontSize = 11.sp,
-            maxLines = 1,
-            modifier = Modifier
-                .weight(1f)
-                .basicMarquee(iterations = Int.MAX_VALUE)
-        )
-
-        Spacer(Modifier.width(6.dp))
-
-        // Métadonnées à droite : date + source
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(4.dp)
+        // Date + titre (date avant, titre complet sur 2 lignes max)
+        Column(
+            modifier = Modifier.weight(1f)
         ) {
             val dateShort = formatDateShort(item.set.date)
             if (dateShort.isNotBlank()) {
                 Text(
                     text = dateShort,
-                    color = TextSecondary.copy(alpha = alpha),
-                    fontSize = 9.sp
+                    color = AccentPrimary.copy(alpha = alpha),
+                    fontSize = 10.sp,
+                    fontWeight = FontWeight.Medium
                 )
             }
             Text(
-                text = item.sourceLabel,
-                color = when (item.sourceLabel) {
-                    "SC+TL", "SC" -> scColor.copy(alpha = alpha)
-                    else -> tlColor.copy(alpha = alpha)
-                },
-                fontSize = 9.sp,
-                fontWeight = FontWeight.Bold
+                text = item.set.title,
+                color = TextPrimary.copy(alpha = alpha),
+                fontSize = 12.sp,
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis
             )
         }
+
+        Spacer(Modifier.width(6.dp))
+
+        // Badge source à droite
+        Text(
+            text = item.sourceLabel,
+            color = when (item.sourceLabel) {
+                "SC+TL", "SC" -> scColor.copy(alpha = alpha)
+                else -> tlColor.copy(alpha = alpha)
+            },
+            fontSize = 9.sp,
+            fontWeight = FontWeight.Bold
+        )
     }
     HorizontalDivider(color = SurfaceSecondary.copy(alpha = 0.4f), thickness = 0.5.dp)
 }

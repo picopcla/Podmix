@@ -170,8 +170,9 @@ class ChromaTimestampRefiner @Inject constructor(
 
     /**
      * Post-match consistency check:
-     * 1. Any track (matched or not) with ts > episode duration → chroma_suspect
+     * 1. Any track (matched or not) with ts > episode duration → chroma_suspect + redistribute
      * 2. Inter-track gap among chroma_matched: gap < 30s or > 1200s → rollback + suspect
+     * 3. Final pass: redistribute any track still beyond duration
      */
     private suspend fun validateConsistency(episodeId: Int, originalTs: Map<Int, Float>, durationSec: Int) {
         val refined = trackDao.getByEpisodeId(episodeId).sortedBy { it.position }
@@ -202,5 +203,42 @@ class ChromaTimestampRefiner @Inject constructor(
         }
 
         if (suspects > 0) Log.i(TAG, "Post-validation: $suspects track(s) flagged as chroma_suspect")
+
+        // Rule 3: redistribute any track still beyond duration (includes freshly flagged ones)
+        if (durationSec > 0) redistributeBeyondDuration(episodeId, durationSec)
+    }
+
+    /**
+     * Redistributes tracks whose startTimeSec exceeds episode duration.
+     * Groups them after the last valid anchor and spreads them evenly toward the end.
+     *
+     * Example: 13 tracks, last valid at 3573s, duration=3641s, 2 tracks beyond:
+     *   → track 12 = 3573 + (3631-3573)/3*1 = ~3592s
+     *   → track 13 = 3573 + (3631-3573)/3*2 = ~3611s
+     */
+    suspend fun redistributeBeyondDuration(episodeId: Int, durationSec: Int) {
+        if (durationSec <= 0) return
+        val tracks = trackDao.getByEpisodeId(episodeId).sortedBy { it.position }
+        val dur = durationSec.toFloat()
+
+        val beyond = tracks.filter { it.startTimeSec > dur }
+        if (beyond.isEmpty()) return
+
+        // Last valid anchor = highest ts still within duration
+        val lastValidTs = tracks
+            .filter { it.startTimeSec <= dur }
+            .maxOfOrNull { it.startTimeSec } ?: 0f
+
+        // Spread evenly in [lastValidTs, dur - 5s], leaving a 5s gap before the end
+        val window = (dur - 5f - lastValidTs).coerceAtLeast(0f)
+        val step = if (beyond.size > 1) window / beyond.size else window / 2f
+
+        beyond.forEachIndexed { i, track ->
+            val newTs = (lastValidTs + step * (i + 1)).coerceAtMost(dur - 5f).coerceAtLeast(lastValidTs + 5f)
+            if (newTs != track.startTimeSec) {
+                trackDao.update(track.copy(startTimeSec = newTs, source = "chroma_suspect"))
+                Log.i(TAG, "  ↻ redistribute '${track.title}' ${track.startTimeSec.toInt()}s → ${newTs.toInt()}s (dur=${durationSec}s)")
+            }
+        }
     }
 }

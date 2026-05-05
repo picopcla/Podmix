@@ -64,6 +64,7 @@ fun DjDetailScreen(
     val playerState by viewModel.playerState.collectAsState()
     val episodeIdsWithTracks by viewModel.episodeIdsWithTracks.collectAsState()
     val downloadStates by viewModel.downloadStates.collectAsState()
+    val refinementProgress by viewModel.refinementProgress.collectAsState()
 
     Scaffold(
         containerColor = Background,
@@ -167,6 +168,7 @@ fun DjDetailScreen(
                         hasTracklist = episode.id in episodeIdsWithTracks,
                         downloadState = downloadStates[episode.id]
                             ?: if (episode.localAudioPath != null) com.podmix.service.DownloadState.Downloaded(episode.localAudioPath) else com.podmix.service.DownloadState.Idle,
+                        refinementPct = refinementProgress[episode.id],
                         onClick = { onEpisodeClick(episode.podcastId, episode.id) }
                     )
                 }

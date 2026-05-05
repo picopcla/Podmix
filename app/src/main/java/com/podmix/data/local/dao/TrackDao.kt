@@ -57,6 +57,13 @@ interface TrackDao {
     @Query("DELETE FROM tracks WHERE episodeId = :episodeId")
     suspend fun deleteByEpisode(episodeId: Int)
 
+    /**
+     * Retourne les episodeIds dont les tracks 1001tl ont un artiste contenant [artistFragment].
+     * Utilisé pour détecter les faux positifs DDG (ex: "Armin van Buuren" sur un set Driftmoon).
+     */
+    @Query("SELECT DISTINCT episodeId FROM tracks WHERE source = '1001tl' AND artist LIKE '%' || :artistFragment || '%'")
+    suspend fun getEpisodeIdsWithWrongArtist(artistFragment: String): List<Int>
+
     @Query("""
         SELECT t.id, t.episodeId, t.title, t.artist, t.startTimeSec, t.endTimeSec,
                p.id AS podcastId, p.name AS podcastName, p.logoUrl AS podcastLogoUrl,

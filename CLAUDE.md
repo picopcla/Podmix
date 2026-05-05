@@ -4,21 +4,28 @@
 **NE PAS UTILISER :** JDK 17 Oracle, JDK 21 standalone → bug Windows 11 25H2 (WEPollSelectorImpl EINVAL)
 **JAVA_TOOL_OPTIONS :** `-Djdk.net.unixdomain.tmpdir=C:/Temp`
 
-### Build (génère APK + copie dans Google Drive)
+### Build + Install émulateur (PRIORITAIRE — pas besoin de téléphone)
+```bash
+cd C:/APP/Podmix
+./run-emulator.sh
+```
+Lance l'émulateur automatiquement si pas déjà démarré, build, installe et ouvre l'app.
+
+### Build APK + Google Drive (release/backup)
 ```bash
 cd C:/APP/Podmix
 ./build-apk.sh
 ```
 
-### Install direct sur téléphone (Samsung SM-S916B, USB ADB)
+### Install téléphone Samsung (si émulateur insuffisant)
 ```bash
 cd C:/APP/Podmix
-JAVA_HOME="/c/Program Files/Android/Android Studio/jbr" JAVA_TOOL_OPTIONS="-Djdk.net.unixdomain.tmpdir=C:/Temp" ./gradlew installDebug --no-daemon
+JAVA_HOME="/c/Program Files/Android/Android Studio/jbr" JAVA_TOOL_OPTIONS="-Djava.io.tmpdir=C:\\tmp" ./gradlew installDebug --no-daemon
 ```
 
-### Vérifier device
+### Vérifier devices
 ```bash
-adb devices  # doit afficher SM-S916B, pas "unauthorized"
+adb devices  # émulateur = emulator-5554, Samsung = SM-S916B
 ```
 
 **Package :** `com.podmix`

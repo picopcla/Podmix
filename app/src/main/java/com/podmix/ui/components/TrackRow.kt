@@ -14,7 +14,11 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.podmix.domain.model.Track
@@ -45,12 +49,27 @@ fun TrackRow(
             fontSize = 11.sp,
             modifier = Modifier.padding(end = 8.dp)
         )
-        // Artist — Title on one line
+        val playingColor = Color(0xFFC084FC)
         Text(
-            text = "${track.artist} — ${track.title}",
-            color = if (isPlaying) Color(0xFFC084FC) else TextPrimary,
+            text = buildAnnotatedString {
+                if (track.artist.isNotBlank()) {
+                    withStyle(SpanStyle(
+                        fontWeight = FontWeight.Bold,
+                        color = if (isPlaying) playingColor else Color.White
+                    )) { append(track.artist) }
+                    withStyle(SpanStyle(
+                        fontWeight = FontWeight.Normal,
+                        color = if (isPlaying) playingColor else Color.White
+                    )) { append(" — ${track.title}") }
+                } else {
+                    withStyle(SpanStyle(
+                        fontWeight = FontWeight.Normal,
+                        color = if (isPlaying) playingColor else Color.White
+                    )) { append(track.title) }
+                }
+            },
             fontSize = 12.sp,
-            maxLines = 1,
+            maxLines = 2,
             overflow = TextOverflow.Ellipsis,
             modifier = Modifier.weight(1f)
         )

@@ -103,7 +103,8 @@ class EpisodeDetailViewModel @Inject constructor(
                     localAudioPath = e.localAudioPath,
                     soundcloudTrackUrl = e.soundcloudTrackUrl,
                     trackRefinementStatus = e.trackRefinementStatus,
-                    isFavorite = e.isFavorite
+                    isFavorite = e.isFavorite,
+                    tracklistSourceName = e.tracklistSourceName
                 )
                 _episode.value = episode
                 downloadManager.initState(episode)
@@ -196,6 +197,10 @@ class EpisodeDetailViewModel @Inject constructor(
             _detectStatus.value = ""
             _isAudioAnalyzing.value = false
             _audioAnalysisStatus.value = ""
+            // Recharger l'épisode pour récupérer tracklistSourceName mis à jour par la détection
+            episodeDao.getById(episodeId)?.let { e ->
+                _episode.value = _episode.value?.copy(tracklistSourceName = e.tracklistSourceName)
+            }
         }
     }
 
@@ -332,6 +337,34 @@ class EpisodeDetailViewModel @Inject constructor(
             playerController.updateTracks(tracks.value)
             if (trackIdx >= 0) playerController.setCurrentTrackIndex(trackIdx)
             playerController.playEpisode(ep, pod, seekToMs = rawMs)
+        }
+    }
+
+    /**
+     * Force la détection avec une URL 1001TL connue (fournie manuellement par l'user).
+     * Purge les tracks existants, supprime le statut "no_tracklist" si présent, puis lance.
+     */
+    fun setTracklistUrl(url: String) {
+        viewModelScope.launch(Dispatchers.IO) {
+            trackRepository.deleteTracksForEpisode(episodeId)
+            // Lever le blocage "no_tracklist" pour permettre la détection
+            episodeDao.updateRefinementStatus(episodeId, "none")
+            val ep = episodeDao.getById(episodeId) ?: return@launch
+            val podcast = _podcast.value
+            _detectStatus.value = "🔍 Scraping $url..."
+            trackRepository.detectAndSaveTracks(
+                episodeId = episodeId,
+                description = ep.description,
+                episodeTitle = ep.title,
+                podcastName = podcast?.name,
+                episodeDurationSec = ep.durationSeconds,
+                onStatus = { _detectStatus.value = it },
+                isLiveSet = ep.episodeType == "liveset",
+                youtubeVideoId = ep.youtubeVideoId,
+                audioUrl = ep.audioUrl.takeIf { it.isNotBlank() },
+                tracklistPageUrl = url.trim()
+            )
+            _detectStatus.value = ""
         }
     }
 
