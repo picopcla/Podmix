@@ -219,13 +219,49 @@ class PlayerController @Inject constructor(
                                 networkRetryCount++
                                 if (networkRetryCount <= MAX_NETWORK_RETRIES) {
                                     val delayMs = (networkRetryCount * 3000L).coerceAtMost(10_000L)
-                                    Log.w("PodMix", "Network error, retry $networkRetryCount/$MAX_NETWORK_RETRIES in ${delayMs}ms")
-                                    com.podmix.AppLogger.err("PLAYER", "NET_ERR retry $networkRetryCount/$MAX_NETWORK_RETRIES in ${delayMs}ms", epInfo)
-                                    mainHandler.postDelayed({
-                                        exoPlayer.prepare()
-                                        exoPlayer.seekTo(pos)
-                                        exoPlayer.play()
-                                    }, delayMs)
+                                    Log.w("PodMix", "Network error, retry $networkRetryCount/$MAX_NETWORK_RETRIES in ${delayMs}ms (re-resolve URL)")
+                                    com.podmix.AppLogger.err("PLAYER", "NET_ERR retry $networkRetryCount/$MAX_NETWORK_RETRIES in ${delayMs}ms re-resolve", epInfo)
+                                    // Re-resolve URL on each retry — force fresh DNS lookup + new HLS token.
+                                    // Fixes the case where OkHttp's connection pool is bound to a stale
+                                    // Network handle after SIM/Wi-Fi/roaming switch — retry on the SAME
+                                    // URL would just hit the same broken socket. Re-resolution forces
+                                    // ExoPlayer to build a fresh MediaItem and a fresh DataSource.
+                                    if (episode != null && podcast != null) {
+                                        scope.launch {
+                                            kotlinx.coroutines.delay(delayMs)
+                                            val newUrl = when {
+                                                !episode.soundcloudTrackUrl.isNullOrBlank() -> {
+                                                    youTubeStreamResolver.resolveSoundCloudTrack(episode.soundcloudTrackUrl)
+                                                }
+                                                !episode.mixcloudKey.isNullOrBlank() -> {
+                                                    mixcloudStreamResolver.invalidateCache(episode.mixcloudKey)
+                                                    mixcloudStreamResolver.resolveForStreaming(episode.mixcloudKey)
+                                                }
+                                                !episode.youtubeVideoId.isNullOrBlank() -> {
+                                                    youTubeStreamResolver.invalidateCache(episode.youtubeVideoId)
+                                                    youTubeStreamResolver.resolveForStreaming(episode.youtubeVideoId)
+                                                }
+                                                else -> episode.audioUrl // direct RSS / radio stream — just re-prepare
+                                            }
+                                            mainHandler.post {
+                                                pendingSeekMs = pos
+                                                if (newUrl != null) {
+                                                    playMedia(episode.copy(audioUrl = newUrl), podcast)
+                                                } else {
+                                                    // Resolution failed — fall back to plain re-prepare on same URL
+                                                    exoPlayer.prepare()
+                                                    exoPlayer.seekTo(pos)
+                                                    exoPlayer.play()
+                                                }
+                                            }
+                                        }
+                                    } else {
+                                        mainHandler.postDelayed({
+                                            exoPlayer.prepare()
+                                            exoPlayer.seekTo(pos)
+                                            exoPlayer.play()
+                                        }, delayMs)
+                                    }
                                 } else {
                                     Log.e("PodMix", "Network error: max retries ($MAX_NETWORK_RETRIES) reached, giving up")
                                     com.podmix.AppLogger.err("PLAYER", "NET_ERR GIVE_UP after $MAX_NETWORK_RETRIES retries", epInfo)

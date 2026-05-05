@@ -231,9 +231,15 @@ class PodMixMediaService : MediaLibraryService() {
                 val episode = playerController.playerState.value.currentEpisode
                 val podcast  = playerController.playerState.value.currentPodcast
                 if (episode != null && podcast != null) {
-                    val item = resolveEpisodeToPlayable(episode.id)
+                    // Radio synthetic episode (id < 0) → resolve via podcastDao, no progress
+                    val item = if (episode.id < 0 || episode.episodeType == "radio") {
+                        resolveRadioToPlayable(podcast.id)
+                    } else {
+                        resolveEpisodeToPlayable(episode.id)
+                    }
                     if (item != null) {
-                        val posMs = playerController.playerState.value.currentPosition
+                        val posMs = if (episode.id < 0 || episode.episodeType == "radio") 0L
+                        else playerController.playerState.value.currentPosition
                             .takeIf { it > 0L }
                             ?: (episode.progressSeconds * 1000L).coerceAtLeast(0L)
                         Log.d("PodMixMS", "onPlaybackResumption: cold start ep=${episode.id} pos=${posMs}ms")
@@ -270,23 +276,81 @@ class PodMixMediaService : MediaLibraryService() {
                                 else null
                             } else null
                         }
+                        mediaId.startsWith(RADIO_PREFIX) -> {
+                            val radioId = mediaId.removePrefix(RADIO_PREFIX).toIntOrNull()
+                            if (radioId != null) resolveRadioToPlayable(radioId)
+                            else null
+                        }
                         else -> null
                     }
                 }.toMutableList()
 
                 // Sync PlayerController so progress saving & resume work for Android Auto
                 val firstMediaId = mediaItems.firstOrNull()?.mediaId
-                val firstEpisodeId = when {
+                when {
                     firstMediaId?.startsWith(EPISODE_PREFIX) == true ->
                         firstMediaId.removePrefix(EPISODE_PREFIX).toIntOrNull()
+                            ?.let { loadAndNotifyExternalPlay(it) }
                     firstMediaId?.startsWith(FAVORITE_PREFIX) == true ->
-                        firstMediaId.removePrefix(FAVORITE_PREFIX).split("/").firstOrNull()?.toIntOrNull()
-                    else -> null
+                        firstMediaId.removePrefix(FAVORITE_PREFIX).split("/").firstOrNull()
+                            ?.toIntOrNull()?.let { loadAndNotifyExternalPlay(it) }
+                    firstMediaId?.startsWith(RADIO_PREFIX) == true ->
+                        firstMediaId.removePrefix(RADIO_PREFIX).toIntOrNull()
+                            ?.let { loadAndNotifyExternalRadioPlay(it) }
                 }
-                if (firstEpisodeId != null) loadAndNotifyExternalPlay(firstEpisodeId)
 
                 resolved
             }
+        }
+
+        private suspend fun resolveRadioToPlayable(radioId: Int): MediaItem? {
+            val radio = podcastDao.getById(radioId) ?: return null
+            val streamUrl = radio.rssFeedUrl?.takeIf { it.isNotBlank() } ?: return null
+            return MediaItem.Builder()
+                .setMediaId("$RADIO_PREFIX$radioId")
+                .setUri(streamUrl)
+                .setMediaMetadata(
+                    MediaMetadata.Builder()
+                        .setTitle(radio.name)
+                        .setArtist(radio.name)
+                        .setArtworkUri(radio.logoUrl?.let { Uri.parse(it) })
+                        .setIsBrowsable(false)
+                        .setIsPlayable(true)
+                        .setMediaType(MediaMetadata.MEDIA_TYPE_RADIO_STATION)
+                        .build()
+                )
+                .build()
+        }
+
+        private suspend fun loadAndNotifyExternalRadioPlay(radioId: Int) {
+            val radioEntity = podcastDao.getById(radioId) ?: return
+            val streamUrl = radioEntity.rssFeedUrl?.takeIf { it.isNotBlank() } ?: return
+            // Synthetic Episode for radios — id = -radio.id (collision-free with real episodes)
+            val episode = Episode(
+                id = -radioId,
+                podcastId = radioId,
+                title = radioEntity.name,
+                audioUrl = streamUrl,
+                datePublished = null,
+                durationSeconds = 0,
+                progressSeconds = 0,
+                isListened = false,
+                artworkUrl = radioEntity.logoUrl,
+                episodeType = "radio",
+                youtubeVideoId = null,
+                description = null
+            )
+            val podcast = Podcast(
+                id = radioEntity.id,
+                name = radioEntity.name,
+                logoUrl = radioEntity.logoUrl,
+                description = radioEntity.description,
+                rssFeedUrl = radioEntity.rssFeedUrl,
+                type = radioEntity.type,
+                episodeCount = 0
+            )
+            playerController.notifyExternalPlay(episode, podcast)
+            // Radios n'ont pas de tracklist — aucun appel à updateTracks
         }
 
         private suspend fun loadAndNotifyExternalPlay(episodeId: Int) {
@@ -474,6 +538,23 @@ class PodMixMediaService : MediaLibraryService() {
                                 .setIsBrowsable(false)
                                 .setIsPlayable(true)
                                 .setMediaType(MediaMetadata.MEDIA_TYPE_MUSIC)
+                                .build()
+                        )
+                        .build()
+                }
+                mediaId.startsWith(RADIO_PREFIX) -> {
+                    val id = mediaId.removePrefix(RADIO_PREFIX).toIntOrNull() ?: return null
+                    val radio = podcastDao.getById(id) ?: return null
+                    MediaItem.Builder()
+                        .setMediaId(mediaId)
+                        .setMediaMetadata(
+                            MediaMetadata.Builder()
+                                .setTitle(radio.name)
+                                .setArtist(radio.name)
+                                .setArtworkUri(radio.logoUrl?.let { Uri.parse(it) })
+                                .setIsBrowsable(false)
+                                .setIsPlayable(true)
+                                .setMediaType(MediaMetadata.MEDIA_TYPE_RADIO_STATION)
                                 .build()
                         )
                         .build()
