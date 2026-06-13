@@ -20,6 +20,10 @@ http://localhost:8099
 docker compose up --build
 ```
 
+By default, state is persisted in `/var/lib/podmix/podmix.db` inside the
+container. For local runs without Docker, the fallback path is
+`/tmp/podmix-backend/podmix.db`.
+
 Health check:
 
 ```bash

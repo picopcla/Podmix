@@ -11,13 +11,15 @@ Scope: `backend/`, `docker/`, `deploy/`, `scripts serveur`, docs backend
 - Added a first Podmix V2 backend vertical slice under `backend/`
 - Defined typed API contracts for podcast and liveset analysis jobs
 - Added a stub endpoint for saved-track enrichment
-- Added repository abstraction and in-memory storage for analysis jobs/results
+- Added repository abstraction and SQLite-backed storage for analysis jobs/results
 - Added API documentation in `backend/README.md`
 - Added tests for the public HTTP contract
+- Added a persistence test for the analysis repository
+- Added Docker volume-backed backend state
 
 ### Validation
 
-- `pytest -q` in `backend/` passes: 6 tests
+- `pytest -q` in `backend/` passes: 7 tests
 - Python bytecode compile check passes for `backend/app` and `backend/tests`
 
 ## Backend / API Contracts
@@ -114,6 +116,7 @@ Saved-track enrichment response:
 - Analysis jobs are currently stubbed and always return `status=succeeded` with `tracklist_status=not_found`.
 - Saved-track enrichment is stubbed and does not return Spotify or Deezer links yet.
 - The backend contract is limited to the `backend/` slice; the Android app is not modified in this session.
+- Backend state now persists in SQLite across restarts.
 
 ## Handoff For Android
 

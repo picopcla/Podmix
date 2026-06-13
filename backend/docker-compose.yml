@@ -7,4 +7,10 @@ services:
       - "8099:8099"
     environment:
       PODMIX_ENV: development
+      PODMIX_PUBLIC_BASE_URL: https://podmix.mb4.fr
+      PODMIX_BACKEND_DB_PATH: /var/lib/podmix/podmix.db
+    volumes:
+      - podmix-backend-data:/var/lib/podmix
 
+volumes:
+  podmix-backend-data:

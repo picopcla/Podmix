@@ -1,6 +1,6 @@
 from uuid import UUID, uuid4
 
-from app.podmix.repository import AnalysisRepository, InMemoryAnalysisRepository
+from app.podmix.repository import AnalysisRepository, build_analysis_repository
 from app.podmix.schemas import (
     AnalysisJobResponse,
     AnalysisRequest,
@@ -23,8 +23,8 @@ class StartAnalysisUseCase:
 
     def execute(
         self,
-        content_kind: ContentKind,
         request: AnalysisRequest,
+        content_kind: ContentKind,
     ) -> AnalysisJobResponse:
         job_id = uuid4()
         analysis_id = uuid4()
@@ -46,7 +46,7 @@ class StartAnalysisUseCase:
             message="stub analysis completed",
         )
 
-        self._repository.save(job, result)
+        self._repository.save(request=request, job=job, result=result)
         return job
 
 
@@ -83,7 +83,7 @@ class EnrichSavedTrackUseCase:
         )
 
 
-analysis_repository = InMemoryAnalysisRepository()
+analysis_repository = build_analysis_repository()
 start_analysis = StartAnalysisUseCase(analysis_repository)
 get_analysis_job = GetAnalysisJobUseCase(analysis_repository)
 get_analysis_result = GetAnalysisResultUseCase(analysis_repository)
