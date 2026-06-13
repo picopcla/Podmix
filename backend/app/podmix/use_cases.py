@@ -1,26 +1,29 @@
 from uuid import UUID, uuid4
 
+from app.podmix.repository import AnalysisRepository, InMemoryAnalysisRepository
 from app.podmix.schemas import (
     AnalysisJobResponse,
     AnalysisRequest,
     AnalysisResultResponse,
+    ContentKind,
+    SavedTrackEnrichmentRequest,
+    SavedTrackEnrichmentResponse,
 )
 
 
-class InMemoryAnalysisStore:
-    """Temporary store for the first VPS vertical slice.
+class StartAnalysisUseCase:
+    """Start a deterministic analysis job for the first VPS vertical slice.
 
-    This intentionally returns deterministic stub results. Real 1001TL/YT/AI
-    adapters replace this behind the same API contract.
+    Real discovery and matching adapters will replace the stub result without
+    changing the route contract or storage boundary.
     """
 
-    def __init__(self) -> None:
-        self._jobs: dict[UUID, AnalysisJobResponse] = {}
-        self._results: dict[UUID, AnalysisResultResponse] = {}
+    def __init__(self, repository: AnalysisRepository) -> None:
+        self._repository = repository
 
-    def create_stub_job(
+    def execute(
         self,
-        content_kind: str,
+        content_kind: ContentKind,
         request: AnalysisRequest,
     ) -> AnalysisJobResponse:
         job_id = uuid4()
@@ -29,7 +32,7 @@ class InMemoryAnalysisStore:
         result = AnalysisResultResponse(
             analysis_id=analysis_id,
             local_content_id=request.local_content_id,
-            content_kind=content_kind,  # type: ignore[arg-type]
+            content_kind=content_kind,
             tracklist_status="not_found",
             timestamp_status="none",
             match_score=0.0,
@@ -43,16 +46,45 @@ class InMemoryAnalysisStore:
             message="stub analysis completed",
         )
 
-        self._results[analysis_id] = result
-        self._jobs[job_id] = job
+        self._repository.save(job, result)
         return job
 
-    def get_job(self, job_id: str) -> AnalysisJobResponse | None:
-        return self._jobs.get(UUID(job_id))
 
-    def get_result(self, analysis_id: str) -> AnalysisResultResponse | None:
-        return self._results.get(UUID(analysis_id))
+class GetAnalysisJobUseCase:
+    def __init__(self, repository: AnalysisRepository) -> None:
+        self._repository = repository
+
+    def execute(self, job_id: UUID) -> AnalysisJobResponse | None:
+        return self._repository.get_job(job_id)
 
 
-analysis_store = InMemoryAnalysisStore()
+class GetAnalysisResultUseCase:
+    def __init__(self, repository: AnalysisRepository) -> None:
+        self._repository = repository
 
+    def execute(self, analysis_id: UUID) -> AnalysisResultResponse | None:
+        return self._repository.get_result(analysis_id)
+
+
+class EnrichSavedTrackUseCase:
+    """Keep external music links scoped to explicitly saved tracks."""
+
+    def execute(
+        self,
+        request: SavedTrackEnrichmentRequest,
+    ) -> SavedTrackEnrichmentResponse:
+        return SavedTrackEnrichmentResponse(
+            local_track_id=request.local_track_id,
+            status="not_found",
+            normalized_artist=request.artist.strip(),
+            normalized_title=request.title.strip(),
+            links=[],
+            evidence=["spotify and deezer adapters are not connected yet"],
+        )
+
+
+analysis_repository = InMemoryAnalysisRepository()
+start_analysis = StartAnalysisUseCase(analysis_repository)
+get_analysis_job = GetAnalysisJobUseCase(analysis_repository)
+get_analysis_result = GetAnalysisResultUseCase(analysis_repository)
+enrich_saved_track = EnrichSavedTrackUseCase()
