@@ -1,0 +1,8 @@
+<resources>
+    <color name="podmix_v2_surface">#10151C</color>
+    <color name="podmix_v2_background">#071018</color>
+    <color name="podmix_v2_accent">#F5A623</color>
+    <color name="podmix_v2_success">#26D07C</color>
+    <color name="podmix_v2_warning">#F0C24B</color>
+    <color name="podmix_v2_error">#FF6B6B</color>
+</resources>

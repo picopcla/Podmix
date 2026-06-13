@@ -25,3 +25,4 @@ dependencyResolutionManagement {
 
 rootProject.name = "PodmIx"
 include(":app")
+include(":appv2")
