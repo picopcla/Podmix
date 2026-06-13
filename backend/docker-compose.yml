@@ -1,0 +1,10 @@
+services:
+  podmix-backend:
+    build: .
+    container_name: podmix-backend
+    restart: unless-stopped
+    ports:
+      - "8099:8099"
+    environment:
+      PODMIX_ENV: development
+
