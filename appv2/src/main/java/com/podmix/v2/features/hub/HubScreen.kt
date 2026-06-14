@@ -7,13 +7,12 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
@@ -87,38 +86,56 @@ fun HubScreen(
             }
 
             item {
-                LazyVerticalGrid(
-                    columns = GridCells.Adaptive(minSize = 160.dp),
-                    userScrollEnabled = false,
-                    horizontalArrangement = Arrangement.spacedBy(12.dp),
-                    verticalArrangement = Arrangement.spacedBy(12.dp),
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    items(state.destinations) { card ->
-                        Card(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .clickable { onNavigate(card.route) },
-                            colors = CardDefaults.cardColors(
-                                containerColor = MaterialTheme.colorScheme.surface
-                            )
+                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                    state.destinations.chunked(2).forEach { rowCards ->
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(12.dp)
                         ) {
-                            Column(
-                                modifier = Modifier.padding(16.dp),
-                                verticalArrangement = Arrangement.spacedBy(10.dp)
-                            ) {
-                                Icon(card.icon, contentDescription = null)
-                                Text(card.title, style = MaterialTheme.typography.titleMedium)
-                                Text(
-                                    card.subtitle,
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.72f)
+                            rowCards.forEach { card ->
+                                HubCard(
+                                    card = card,
+                                    modifier = Modifier.weight(1f),
+                                    onNavigate = onNavigate
                                 )
+                            }
+                            if (rowCards.size == 1) {
+                                Spacer(modifier = Modifier.weight(1f))
                             }
                         }
                     }
                 }
             }
+        }
+    }
+}
+
+@Composable
+private fun HubCard(
+    card: HubDestinationCard,
+    modifier: Modifier = Modifier,
+    onNavigate: (String) -> Unit
+) {
+    Card(
+        modifier = modifier.clickable { onNavigate(card.route) },
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surface
+        )
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(10.dp)
+        ) {
+            Icon(card.icon, contentDescription = null)
+            Text(card.title, style = MaterialTheme.typography.titleMedium)
+            Text(
+                card.subtitle,
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.72f)
+            )
+            Spacer(modifier = Modifier.height(4.dp))
         }
     }
 }
