@@ -21,28 +21,60 @@ fun PodmixV2NavGraph(modifier: Modifier = Modifier) {
             HubRoute(onNavigate = navController::navigate)
         }
         composable("podcast") {
-            PlaceholderScreen("Podcast", "Import, refresh, analyse VPS et lecture.")
+            PlaceholderScreen(
+                title = "Podcast",
+                subtitle = "Import, refresh, analyse VPS et lecture.",
+                onBack = navController::navigateUp
+            )
         }
         composable("liveset") {
-            PlaceholderScreen("Liveset", "Tracklist et timestamps gouvernes par le VPS.")
+            PlaceholderScreen(
+                title = "Liveset",
+                subtitle = "Tracklist et timestamps gouvernes par le VPS.",
+                onBack = navController::navigateUp
+            )
         }
         composable("emission") {
-            PlaceholderScreen("Emission", "Jamais de tracklist, seulement import, refresh et lecture.")
+            PlaceholderScreen(
+                title = "Emission",
+                subtitle = "Jamais de tracklist, seulement import, refresh et lecture.",
+                onBack = navController::navigateUp
+            )
         }
         composable("radio") {
-            PlaceholderScreen("Radio", "Live-only, sans favoris ni tracklist persistante.")
+            PlaceholderScreen(
+                title = "Radio",
+                subtitle = "Live-only, sans favoris ni tracklist persistante.",
+                onBack = navController::navigateUp
+            )
         }
         composable("favorites") {
-            PlaceholderScreen("Favoris", "Seuls les podcasts et livesets favoris vivent ici.")
+            PlaceholderScreen(
+                title = "Favoris",
+                subtitle = "Seuls les podcasts et livesets favoris vivent ici.",
+                onBack = navController::navigateUp
+            )
         }
         composable("savedtracks") {
-            PlaceholderScreen("Tracks sauvegardees", "Liens Spotify et Deezer attaches aux tracks extraites.")
+            PlaceholderScreen(
+                title = "Tracks sauvegardees",
+                subtitle = "Liens Spotify et Deezer attaches aux tracks extraites.",
+                onBack = navController::navigateUp
+            )
         }
         composable("settings") {
-            PlaceholderScreen("Settings", "Configuration locale, sync leger, backend public.")
+            PlaceholderScreen(
+                title = "Settings",
+                subtitle = "Configuration locale, sync leger, backend public.",
+                onBack = navController::navigateUp
+            )
         }
         composable("player") {
-            PlaceholderScreen("Player", "Le player V2 ne consomme qu'un PlayableMedia.")
+            PlaceholderScreen(
+                title = "Player",
+                subtitle = "Le player V2 ne consomme qu'un PlayableMedia.",
+                onBack = navController::navigateUp
+            )
         }
     }
 }
