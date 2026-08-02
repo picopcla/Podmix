@@ -2764,7 +2764,7 @@ function App() {
               </article>)}</div>
             </section>}
             {activeView === 'home' && !selectedSource && resumeEpisodes.length > 0 && podcasts.length > 0 && shows.length > 0 && radios.length > 0 && djSets.length > 0 && <div className="home-section-divider" aria-hidden="true" />}
-            {activeView === 'home' && !selectedSource && podcasts.length > 0 && <section className="recent-list home-section">
+            {activeView === 'home' && !selectedSource && podcasts.length > 0 && <section className="home-section">
               <div className="section-heading"><div><Mic2 size={17} /><h2>Podcasts</h2></div><span>{podcasts.length}</span></div>
               <div className="catalog-grid home-catalog-grid">{podcasts.slice(0, 4).map((source) => {
                 const Icon = source.kind === 'radio' ? Radio : source.kind === 'dj' ? Disc3 : source.kind === 'show' ? AudioLines : Mic2
@@ -2787,7 +2787,7 @@ function App() {
                 </article>
               })}</div>
             </section>}
-            {activeView === 'home' && !selectedSource && shows.length > 0 && <section className="recent-list home-section">
+            {activeView === 'home' && !selectedSource && shows.length > 0 && <section className="home-section">
               <div className="section-heading"><div><AudioLines size={17} /><h2>Émissions</h2></div><span>{shows.length}</span></div>
               <div className="catalog-grid home-catalog-grid">{shows.slice(0, 4).map((source) => {
                 const Icon = source.kind === 'radio' ? Radio : source.kind === 'dj' ? Disc3 : source.kind === 'show' ? AudioLines : Mic2
@@ -2810,7 +2810,7 @@ function App() {
                 </article>
               })}</div>
             </section>}
-            {activeView === 'home' && !selectedSource && radios.length > 0 && <section className="recent-list home-section">
+            {activeView === 'home' && !selectedSource && radios.length > 0 && <section className="home-section">
               <div className="section-heading"><div><Radio size={17} /><h2>Radios</h2></div><span>{radios.length}</span></div>
               <div className="catalog-grid home-catalog-grid">{radios.slice(0, 4).map((source) => {
                 const Icon = source.kind === 'radio' ? Radio : source.kind === 'dj' ? Disc3 : source.kind === 'show' ? AudioLines : Mic2
@@ -2833,7 +2833,7 @@ function App() {
                 </article>
               })}</div>
             </section>}
-            {activeView === 'home' && !selectedSource && djSets.length > 0 && <section className="recent-list home-section">
+            {activeView === 'home' && !selectedSource && djSets.length > 0 && <section className="home-section">
               <div className="section-heading"><div><Disc3 size={17} /><h2>DJ sets</h2></div><span>{djSets.length}</span></div>
               <div className="catalog-grid home-catalog-grid">{djSets.slice(0, 4).map((source) => {
                 const Icon = source.kind === 'radio' ? Radio : source.kind === 'dj' ? Disc3 : source.kind === 'show' ? AudioLines : Mic2
@@ -2856,7 +2856,7 @@ function App() {
                 </article>
               })}</div>
             </section>}
-            {activeView === 'home' && !selectedSource && offlineEpisodes.length > 0 && <section className="recent-list home-section offline-home">
+            {activeView === 'home' && !selectedSource && offlineEpisodes.length > 0 && <section className="home-section offline-home">
               <div className="section-heading"><div><Download size={17} /><h2>Hors connexion</h2></div><span>{offlineEpisodes.filter((item) => item.status === 'completed').length}</span></div>
               <div className="episode-list">
                 {offlineEpisodes.map((episode) => {
