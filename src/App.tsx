@@ -290,6 +290,7 @@ function App() {
   const [boseIp, setBoseIp] = useState(() => localStorage.getItem('podmix-bose-ip') ?? '')
   const [boseVolume, setBoseVolume] = useState(30)
   const [boseMessage, setBoseMessage] = useState('')
+  const [castVolume, setCastVolume] = useState(50)
   const boseActiveRef = useRef(false)
   const boseStartPositionRef = useRef(0)
   const boseContentOffsetRef = useRef(0)
@@ -2359,6 +2360,10 @@ function App() {
         localStorage.removeItem('podmix-bose-session-v1')
         const result = await podmixPlayer.connectCastDevice(device.id)
         await castNowPlaying()
+        try {
+          const volumeState = await podmixPlayer.getCastVolume()
+          setCastVolume(Math.round(volumeState.volume * 100))
+        } catch {}
         setActiveOutput({ kind: 'cast', id: device.id, name: result.deviceName ?? device.name })
       }
       setShowOutputPicker(false)
@@ -2392,6 +2397,15 @@ function App() {
       setBoseMessage(error instanceof Error ? error.message : 'Volume non modifié')
     } finally {
       boseVolumeSendingRef.current = false
+    }
+  }
+
+  async function changeCastVolume(value: number) {
+    setCastVolume(value)
+    try {
+      await podmixPlayer.setCastVolume({ volume: value / 100 })
+    } catch (error) {
+      setCastMessage(error instanceof Error ? error.message : 'Volume Cast impossible')
     }
   }
 
@@ -3053,6 +3067,7 @@ function App() {
           </div>
           {!discoveringOutputs && <button className="output-system-picker" onClick={() => void chooseCastDevice()}><Wifi size={16} /> Ouvrir le sélecteur Google Cast</button>}
           {activeOutput.kind === 'bose' && <label className="output-volume"><span>Volume de {activeOutput.name}<b>{boseVolume}%</b></span><input type="range" min="0" max="100" value={boseVolume} onChange={(event) => changeBoseVolume(Number(event.target.value))} /></label>}
+          {activeOutput.kind === 'cast' && <label className="output-volume"><span>Volume de {activeOutput.name}<b>{castVolume}%</b></span><input type="range" min="0" max="100" value={castVolume} onChange={(event) => void changeCastVolume(Number(event.target.value))} /></label>}
           {(castMessage || boseMessage) && <p className="output-message" role="status">{boseMessage || castMessage}</p>}
         </section>
       </div>}

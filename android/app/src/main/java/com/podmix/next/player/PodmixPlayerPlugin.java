@@ -1010,6 +1010,48 @@ public class PodmixPlayerPlugin extends Plugin implements Player.Listener {
         });
     }
 
+    @PluginMethod
+    public void setCastVolume(PluginCall call) {
+        double volume = call.getDouble("volume", 0.5);
+        final double clampedVolume = Math.max(0.0, Math.min(1.0, volume));
+        getActivity().runOnUiThread(() -> {
+            try {
+                CastSession session = CastContext.getSharedInstance(getActivity())
+                    .getSessionManager().getCurrentCastSession();
+                if (session == null || !session.isConnected()) {
+                    call.reject("Aucun appareil Cast connecté");
+                    return;
+                }
+                session.setVolume(clampedVolume);
+                JSObject result = new JSObject();
+                result.put("volume", clampedVolume);
+                call.resolve(result);
+            } catch (Exception error) {
+                call.reject("Volume Cast impossible", error);
+            }
+        });
+    }
+
+    @PluginMethod
+    public void getCastVolume(PluginCall call) {
+        getActivity().runOnUiThread(() -> {
+            try {
+                CastSession session = CastContext.getSharedInstance(getActivity())
+                    .getSessionManager().getCurrentCastSession();
+                if (session == null || !session.isConnected()) {
+                    call.reject("Aucun appareil Cast connecté");
+                    return;
+                }
+                double volume = session.getVolume();
+                JSObject result = new JSObject();
+                result.put("volume", volume);
+                call.resolve(result);
+            } catch (Exception error) {
+                call.reject("Volume Cast indisponible", error);
+            }
+        });
+    }
+
     private String inferContentType(String url) {
         String lower = url.toLowerCase(Locale.ROOT);
         if (lower.contains(".m3u8")) return "application/x-mpegURL";

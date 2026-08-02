@@ -1,14 +1,14 @@
 {
-  "versionCode": 10040,
-  "versionName": "1.0.40",
+  "versionCode": 10041,
+  "versionName": "1.0.41",
   "minimumVersionCode": 10000,
-  "apkUrl": "https://vps-43451133.vps.ovh.net/podmix/podmix-1.0.40.apk",
-  "publishedAt": "2026-08-02T18:35:00Z",
-  "sha256": "c0f2162aa550fe6ba38af664a15a7f90b65bd25a6eafddb72822cbd34fa88379",
+  "apkUrl": "https://vps-43451133.vps.ovh.net/podmix/podmix-1.0.41.apk",
+  "publishedAt": "2026-08-02T19:00:00Z",
+  "sha256": "7b383c25103caaa5a125ca18edc2ce4ae4a28982fd3482b5b647e562ee2c89a2",
   "notes": [
+    "Contrôle du volume Cast depuis le lecteur",
     "Lecture directe des radios depuis la bibliothèque sans écran intermédiaire",
     "Suppression des boutons Favori pour les radios",
-    "Correction de la 502 sur l'annuaire Radio Browser (fallback DNS et retry)",
-    "Les radios n'apparaissent plus dans la section Reprendre l'écoute"
+    "Correction de la 502 sur l'annuaire Radio Browser"
   ]
 }

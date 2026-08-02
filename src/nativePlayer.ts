@@ -93,6 +93,8 @@ type PodmixPlayerPlugin = {
   disconnectCast(): Promise<PlayerState & { connected: boolean }>
   cast(options: { url: string; title?: string; artist?: string; artworkUrl?: string; contentType?: string; positionSeconds?: number; positionOffsetSeconds?: number; endPositionSeconds?: number }): Promise<{ connected: boolean; deviceName?: string }>
   getCastState(): Promise<{ connected: boolean; deviceName?: string }>
+  setCastVolume(options: { volume: number }): Promise<{ volume: number }>
+  getCastVolume(): Promise<{ volume: number }>
   bosePlay(options: { ip: string; url: string; title?: string; positionSeconds?: number }): Promise<{ ok: boolean }>
   boseDiscover(): Promise<{ devices: BoseDevice[] }>
   boseKey(options: { ip: string; key: string }): Promise<{ ok: boolean }>
@@ -323,6 +325,14 @@ export const podmixPlayer = {
   async getCastState() {
     if (!Capacitor.isNativePlatform()) return { connected: false }
     return NativePlayer.getCastState()
+  },
+  async setCastVolume(options: { volume: number }) {
+    if (!Capacitor.isNativePlatform()) throw new Error('Google Cast nécessite l\'application Android')
+    return NativePlayer.setCastVolume(options)
+  },
+  async getCastVolume() {
+    if (!Capacitor.isNativePlatform()) throw new Error('Google Cast nécessite l\'application Android')
+    return NativePlayer.getCastVolume()
   },
   async bosePlay(ip: string, url: string, title?: string, positionSeconds = 0) {
     if (!Capacitor.isNativePlatform()) throw new Error('Bose SoundTouch nécessite l’application Android')
