@@ -1,0 +1,22 @@
+services:
+  api:
+    build: .
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:8099:8099"
+    environment:
+      PODMIX_ALLOWED_ORIGINS: ${PODMIX_ALLOWED_ORIGINS:-https://podmix.example.com}
+      SPOTIFY_CLIENT_ID: ${SPOTIFY_CLIENT_ID:-}
+      SPOTIFY_CLIENT_SECRET: ${SPOTIFY_CLIENT_SECRET:-}
+      ACOUSTID_API_KEY: ${ACOUSTID_API_KEY:-}
+      PODMIX_BEAT_ENGINE: ${PODMIX_BEAT_ENGINE:-auto}
+      PODMIX_PREVIEW_DTW_MAX_COST: ${PODMIX_PREVIEW_DTW_MAX_COST:-0.52}
+      PODMIX_TRACKLIST_SOURCES: ${PODMIX_TRACKLIST_SOURCES:-mixesdb,1001tracklists}
+      PODMIX_CAST_PUBLIC_BASE: ${PODMIX_CAST_PUBLIC_BASE:-http://vps-43451133.vps.ovh.net/podmix-cast/v1/cast}
+      YTDLP_COOKIE_FILE: /run/secrets/yt-cookies.txt
+    volumes:
+      - podmix-data:/app/server/data
+      - ${YTDLP_COOKIE_FILE:-./server/empty-cookies.txt}:/run/secrets/yt-cookies.txt:ro
+
+volumes:
+  podmix-data:

@@ -1,0 +1,30 @@
+http://vps-43451133.vps.ovh.net {
+    handle_path /podmix-cast/* {
+        reverse_proxy 127.0.0.1:8099 {
+            flush_interval -1
+        }
+    }
+
+    handle {
+        redir https://vps-43451133.vps.ovh.net{uri} 308
+    }
+}
+
+https://vps-43451133.vps.ovh.net {
+    redir /podmix /podmix/ 308
+
+    handle_path /podmix-api/* {
+        reverse_proxy 127.0.0.1:8099
+    }
+
+    handle_path /podmix/* {
+        root * /var/www/podmix
+        header Cache-Control "no-cache"
+        header Access-Control-Allow-Origin "*"
+        file_server
+    }
+
+    handle {
+        reverse_proxy 127.0.0.1:9000
+    }
+}

@@ -1,0 +1,323 @@
+openapi: 3.1.0
+info:
+  title: Podmix API
+  version: 0.4.0
+paths:
+  /health:
+    get:
+      operationId: health
+      responses:
+        "200":
+          description: Service disponible
+  /v1/catalog/rss:
+    post:
+      operationId: importRssFeed
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [url]
+              properties:
+                url: { type: string, format: uri }
+                kind: { type: string, enum: [podcast, show], default: podcast }
+                limit: { type: integer, minimum: 1, maximum: 500, default: 100 }
+      responses:
+        "201": { description: Flux RSS importé }
+  /v1/catalog/podcasts:
+    get:
+      operationId: searchPodcasts
+      parameters:
+        - { name: q, in: query, required: true, schema: { type: string } }
+      responses:
+        "200": { description: Résultats de l’annuaire iTunes }
+  /v1/catalog/radios:
+    get:
+      operationId: searchRadios
+      parameters:
+        - { name: q, in: query, required: true, schema: { type: string } }
+      responses:
+        "200": { description: Résultats Radio Browser }
+  /v1/catalog/dj:
+    get:
+      operationId: searchDjSets
+      parameters:
+        - { name: q, in: query, required: true, schema: { type: string } }
+      responses:
+        "200": { description: DJ sets publics trouvés }
+    post:
+      operationId: importDjSet
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [url]
+              properties:
+                url: { type: string, format: uri }
+      responses:
+        "201": { description: Métadonnées et flux audio temporaire résolus }
+  /v1/detection-jobs:
+    post:
+      operationId: createDetectionJob
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateDetectionJob"
+      responses:
+        "202":
+          description: Job accepté
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DetectionJob"
+  /v1/episode-analysis:
+    post:
+      operationId: createEpisodeAnalysis
+      description: Planifie le téléchargement et l’analyse durable d’un épisode distant.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [episodeId, title, audioUrl]
+              properties:
+                episodeId: { type: string }
+                title: { type: string }
+                description: { type: string }
+                audioUrl: { type: string, format: uri }
+                sourceUrl: { type: string, format: uri }
+                sourceKind: { type: string, enum: [podcast, show, dj, radio] }
+                musical: { type: boolean, default: false }
+                enableExternalTracklists: { type: boolean, default: false }
+                refineTimestamps: { type: boolean, default: true }
+                requestKey: { type: string }
+                force: { type: boolean, default: false }
+      responses:
+        "202":
+          description: Analyse durable acceptée
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DetectionJob"
+  /v1/uploads:
+    post:
+      operationId: uploadAudio
+      description: Envoie le contenu audio brut. Le nom est fourni dans `X-Filename`.
+      parameters:
+        - name: X-Filename
+          in: header
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          audio/wav:
+            schema: { type: string, format: binary }
+          audio/mpeg:
+            schema: { type: string, format: binary }
+          audio/mp4:
+            schema: { type: string, format: binary }
+          audio/flac:
+            schema: { type: string, format: binary }
+          audio/ogg:
+            schema: { type: string, format: binary }
+      responses:
+        "201":
+          description: Audio stocké
+  /v1/detection-jobs/{jobId}:
+    get:
+      operationId: getDetectionJob
+      parameters:
+        - $ref: "#/components/parameters/JobId"
+      responses:
+        "200":
+          description: État courant
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DetectionJob"
+    delete:
+      operationId: cancelDetectionJob
+      parameters:
+        - $ref: "#/components/parameters/JobId"
+      responses:
+        "200":
+          description: Job annulé
+  /v1/detection-jobs/{jobId}/events:
+    get:
+      operationId: observeDetectionJob
+      description: Flux SSE émettant des événements `job.updated`.
+      parameters:
+        - $ref: "#/components/parameters/JobId"
+      responses:
+        "200":
+          description: Flux text/event-stream
+  /v1/detection-jobs/{jobId}/tracklist:
+    post:
+      operationId: alignTracklist
+      description: Parse une tracklist textuelle et l’aligne sur les transitions audio du job.
+      parameters:
+        - $ref: "#/components/parameters/JobId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [text]
+              properties:
+                text: { type: string }
+      responses:
+        "200":
+          description: Job contenant les titres proposés et leurs preuves
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DetectionJob"
+  /v1/detection-jobs/{jobId}/discover:
+    post:
+      operationId: discoverTracklist
+      description: Extrait les métadonnées d’une URL média autorisée puis aligne la tracklist trouvée.
+      parameters:
+        - $ref: "#/components/parameters/JobId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [url]
+              properties:
+                url: { type: string, format: uri }
+      responses:
+        "200":
+          description: Métadonnées et titres découverts
+  /v1/detection-jobs/{jobId}/discover-1001:
+    post:
+      operationId: discover1001Tracklist
+      parameters:
+        - $ref: "#/components/parameters/JobId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                url: { type: string, format: uri }
+                query: { type: string }
+      responses:
+        "200": { description: Tracklist 1001Tracklists alignée }
+  /v1/detection-jobs/{jobId}/refine:
+    post:
+      operationId: refineDetectionJob
+      parameters:
+        - $ref: "#/components/parameters/JobId"
+      responses:
+        "202": { description: Raffinage chroma/DTW démarré }
+  /v1/detection-jobs/{jobId}/tracks/{trackId}/validate:
+    post:
+      operationId: validateCatalogTrack
+      description: Recherche le titre et l’artiste dans MusicBrainz et ajoute cette preuve à la piste.
+      parameters:
+        - $ref: "#/components/parameters/JobId"
+        - name: trackId
+          in: path
+          required: true
+          schema: { type: integer }
+      responses:
+        "200":
+          description: Correspondances catalogue et piste enrichie
+  /v1/detection-jobs/{jobId}/tracks/{trackId}/fingerprint:
+    post:
+      operationId: fingerprintTrack
+      description: Identifie un segment avec Chromaprint et AcoustID si la clé serveur est configurée.
+      parameters:
+        - $ref: "#/components/parameters/JobId"
+        - name: trackId
+          in: path
+          required: true
+          schema: { type: integer }
+      responses:
+        "200": { description: Correspondances acoustiques et piste enrichie }
+components:
+  parameters:
+    JobId:
+      name: jobId
+      in: path
+      required: true
+      schema: { type: string, format: uuid }
+  schemas:
+    CreateDetectionJob:
+      type: object
+      required: [episodeId, audioSource]
+      properties:
+        episodeId: { type: string }
+        audioSource:
+          type: object
+          required: [kind, label]
+          properties:
+            kind: { type: string, enum: [upload, remote] }
+            label: { type: string }
+            uploadId: { type: string, format: uuid }
+            url: { type: string, format: uri }
+        strategies:
+          type: array
+          items: { type: string }
+        title: { type: string }
+        description: { type: string }
+        sourceUrl: { type: string, format: uri }
+        sourceKind: { type: string, enum: [podcast, show, dj, radio] }
+        musical: { type: boolean, default: false }
+        automaticTracklist: { type: boolean, default: false }
+        enableExternalTracklists: { type: boolean, default: false }
+        refineTimestamps: { type: boolean, default: false }
+        requestKey: { type: string }
+        force: { type: boolean, default: false }
+    DetectionJob:
+      type: object
+      required: [id, episodeId, status, stage, progress, createdAt, updatedAt, tracks]
+      properties:
+        id: { type: string, format: uuid }
+        episodeId: { type: string }
+        status: { type: string, enum: [queued, running, completed, failed, cancelled] }
+        stage: { type: string }
+        progress: { type: integer, minimum: 0, maximum: 100 }
+        createdAt: { type: string, format: date-time }
+        updatedAt: { type: string, format: date-time }
+        tracks:
+          type: array
+          items:
+            $ref: "#/components/schemas/Track"
+        error: { type: string }
+    Track:
+      type: object
+      required: [id, time, artist, title, confidence, source]
+      properties:
+        id: { type: integer }
+        time: { type: number, minimum: 0 }
+        artist: { type: string }
+        title: { type: string }
+        confidence: { type: integer, minimum: 0, maximum: 100 }
+        source: { type: string, enum: [detected, manual] }
+        verified: { type: boolean }
+        evidence:
+          type: array
+          items: { type: string }
+        acousticValidation:
+          type: object
+          required: [accepted, available, provider]
+          properties:
+            accepted: { type: boolean }
+            available: { type: boolean }
+            provider: { type: string }
+            catalogScore: { type: integer, minimum: 0, maximum: 100 }
+            acousticScore: { type: integer, minimum: 0, maximum: 100 }
+            dtwCost: { type: number, minimum: 0 }
+            confidence: { type: integer, minimum: 0, maximum: 100 }

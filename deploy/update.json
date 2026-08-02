@@ -1,0 +1,14 @@
+{
+  "versionCode": 10040,
+  "versionName": "1.0.40",
+  "minimumVersionCode": 10000,
+  "apkUrl": "https://vps-43451133.vps.ovh.net/podmix/podmix-1.0.40.apk",
+  "publishedAt": "2026-08-02T18:35:00Z",
+  "sha256": "pending",
+  "notes": [
+    "Lecture directe des radios depuis la bibliothèque sans écran intermédiaire",
+    "Suppression des boutons Favori pour les radios",
+    "Correction de la 502 sur l'annuaire Radio Browser (fallback DNS et retry)",
+    "Les radios n'apparaissent plus dans la section Reprendre l'écoute"
+  ]
+}

@@ -1,0 +1,61 @@
+<!doctype html>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Podmix — parcours simplifié</title>
+<style>
+  :root{color-scheme:light dark;--bg:#f8fafc;--fg:#172033;--muted:#5b6475;--line:#64748b;--neutral:#e2e8f0;--input:#bfdbfe;--process:#c7d2fe;--storage:#99f6e4;--external:#fde68a}
+  @media(prefers-color-scheme:dark){:root{--bg:#0f172a;--fg:#e5e7eb;--muted:#a3adbd;--line:#94a3b8;--neutral:#334155;--input:#1d4ed8;--process:#4338ca;--storage:#0f766e;--external:#92400e}}
+  body{margin:0;background:var(--bg);color:var(--fg);font:14px/1.4 ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+  main{max-width:980px;margin:32px auto;padding:0 20px}svg{width:100%;height:auto;display:block}
+  .title{font-size:20px;font-weight:650;fill:var(--fg)}.label{font-size:14px;font-weight:600;fill:var(--fg)}.small{font-size:12px;fill:var(--muted)}
+  .node{stroke:var(--line);stroke-width:1}.neutral{fill:var(--neutral)}.input{fill:var(--input)}.process{fill:var(--process)}.storage{fill:var(--storage)}.external{fill:var(--external)}
+  .edge{stroke:var(--line);stroke-width:1.5;fill:none}
+</style>
+<main>
+  <svg viewBox="0 0 940 520" role="img" aria-labelledby="title description">
+    <title id="title">Parcours simplifié de Podmix</title>
+    <desc id="description">Quatre destinations principales : Accueil, Bibliothèque, Analyses et Réglages.</desc>
+    <defs><marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="var(--line)" /></marker></defs>
+    <text x="20" y="36" class="title">Podmix : une action principale par écran</text>
+
+    <path class="edge" marker-end="url(#arrow)" d="M230 150 H278" />
+    <path class="edge" marker-end="url(#arrow)" d="M470 150 H518" />
+    <path class="edge" marker-end="url(#arrow)" d="M710 150 H758" />
+    <path class="edge" marker-end="url(#arrow)" d="M375 200 V258 H245 V310" />
+    <path class="edge" marker-end="url(#arrow)" d="M615 200 V258 H695 V310" />
+    <path class="edge" marker-end="url(#arrow)" d="M695 410 V455 H470" />
+
+    <rect x="20" y="96" width="210" height="104" rx="12" class="node input" />
+    <text x="44" y="128" class="label">1. Accueil</text>
+    <text x="44" y="154" class="small">Reprendre l’écoute</text>
+    <text x="44" y="176" class="small">Voir ce qui est en cours</text>
+
+    <rect x="278" y="96" width="192" height="104" rx="12" class="node storage" />
+    <text x="302" y="128" class="label">2. Bibliothèque</text>
+    <text x="302" y="154" class="small">Trouver une source</text>
+    <text x="302" y="176" class="small">Ajouter / filtrer</text>
+
+    <rect x="518" y="96" width="192" height="104" rx="12" class="node process" />
+    <text x="542" y="128" class="label">3. Analyses</text>
+    <text x="542" y="154" class="small">Suivre le traitement</text>
+    <text x="542" y="176" class="small">Corriger une tracklist</text>
+
+    <rect x="758" y="96" width="162" height="104" rx="12" class="node neutral" />
+    <text x="782" y="128" class="label">4. Réglages</text>
+    <text x="782" y="154" class="small">Automatisation</text>
+    <text x="782" y="176" class="small">Serveur et stockage</text>
+
+    <rect x="125" y="310" width="240" height="100" rx="12" class="node external" />
+    <text x="149" y="342" class="label">Source → épisode</text>
+    <text x="149" y="368" class="small">Lire, télécharger ou analyser</text>
+    <text x="149" y="390" class="small">État visible avant la tracklist</text>
+
+    <rect x="575" y="310" width="240" height="100" rx="12" class="node process" />
+    <text x="599" y="342" class="label">Détail de l’analyse</text>
+    <text x="599" y="368" class="small">Progression → résultat → correction</text>
+    <text x="599" y="390" class="small">Un seul bouton principal</text>
+
+    <rect x="350" y="455" width="240" height="52" rx="12" class="node storage" />
+    <text x="374" y="487" class="label">Tracklist enregistrée dans l’épisode</text>
+  </svg>
+</main>

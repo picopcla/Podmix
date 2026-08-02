@@ -1,0 +1,10 @@
+.git
+.venv
+node_modules
+dist
+android
+server/data
+server/tests
+__pycache__
+*.pyc
+*.apk
