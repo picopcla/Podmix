@@ -2848,11 +2848,15 @@ function App() {
               if (sectionId === 'resume' && resumeEpisodes.length > 0) {
                 return <section key="resume" className={`recent-list home-resume ${dragSection === 'resume' ? 'dragging' : ''}`}>
                   <div className="section-heading" onPointerDown={(e) => { if (e.pointerType === 'touch' || e.pointerType === 'pen') handleSectionDragStart('resume', e.clientY) }} onTouchStart={(e) => handleSectionDragStart('resume', e.touches[0].clientY)}><div><Clock3 size={17} /><h2>Reprendre l’écoute</h2></div><button onClick={() => setHistory([])}>Effacer</button></div>
-                  <div className="episode-list">{resumeEpisodes.map(({ item, source, episode }) => <article className={`episode-item resume-episode ${nowPlaying?.id === item.id ? 'playing' : ''}`} key={item.id}>
-                    <button className="episode-play" aria-label={`${globalPlaying && nowPlaying?.id === item.id && nowPlaying.scope === 'episode' ? 'Mettre en pause' : 'Reprendre'} ${item.title}`} onClick={() => playEpisode(item.id, item.title, item.artist, item.url, episode.artworkUrl || source.artworkUrl, item.position)}>{globalPlaying && nowPlaying?.id === item.id && nowPlaying.scope === 'episode' ? <Pause size={16} /> : <Play size={16} fill="currentColor" />}</button>
-                    <button className="episode-info" aria-label={`Ouvrir ${item.title}`} onClick={() => openResumeEpisode(source, episode)}><h3>{item.title}</h3><p>{item.artist} · {globalPlaying && nowPlaying?.id === item.id ? `En lecture à ${formatTime(item.position)}` : `Reprendre à ${formatTime(item.position)}`}</p></button>
-                    <span>{new Date(item.playedAt).toLocaleDateString('fr-FR')}</span><ChevronRight size={16} />
-                  </article>)}</div>
+                  <div className="episode-list">{resumeEpisodes.map(({ item, source, episode }) => {
+                    const pct = (item.duration ?? 0) > 0 ? Math.min(100, Math.round((item.position / (item.duration ?? 1)) * 100)) : 0
+                    const bars = Math.min(5, Math.max(0, Math.round(pct / 20)))
+                    return <article className={`episode-item resume-episode ${nowPlaying?.id === item.id ? 'playing' : ''}`} key={item.id}>
+                      <button className="episode-play" aria-label={`${globalPlaying && nowPlaying?.id === item.id && nowPlaying.scope === 'episode' ? 'Mettre en pause' : 'Reprendre'} ${item.title}`} onClick={() => playEpisode(item.id, item.title, item.artist, item.url, episode.artworkUrl || source.artworkUrl, item.position)}>{globalPlaying && nowPlaying?.id === item.id && nowPlaying.scope === 'episode' ? <Pause size={16} /> : <Play size={16} fill="currentColor" />}</button>
+                      <button className="episode-info" aria-label={`Ouvrir ${item.title}`} onClick={() => openResumeEpisode(source, episode)}><h3>{item.title}</h3><div className="resume-bars">{[0,1,2,3,4].map((i) => <span key={i} className={`read-bar ${i < bars ? 'filled' : ''}`} />)}</div></button>
+                      <ChevronRight size={16} />
+                    </article>
+                  })}</div>
                 </section>
               }
               if (sectionId === 'podcasts' && podcasts.length > 0) return renderCatalogSection('podcasts', 'Podcasts', Mic2, podcasts)
