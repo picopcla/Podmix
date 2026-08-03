@@ -2753,6 +2753,27 @@ function App() {
   const failedAnalyses = analyzedEpisodes.filter(({ episode }) =>
     episode.analysis?.status === 'failed')
 
+  function openNowPlayingEpisode() {
+    if (!nowPlaying) return
+    if (nowPlaying.scope === 'radio') {
+      const source = catalog.find((source) => source.id === nowPlaying.id)
+      if (source) {
+        setSelectedSourceId(source.id)
+        setSelectedEpisodeId('')
+      }
+      return
+    }
+    const episodeId = nowPlaying.id
+    for (const source of catalog) {
+      const episode = source.episodes.find((episode) => episode.id === episodeId)
+      if (episode) {
+        setSelectedSourceId(source.id)
+        setSelectedEpisodeId(episode.id)
+        return
+      }
+    }
+  }
+
   function renderCatalogSection(sectionId: HomeSectionId, title: string, Icon: typeof Mic2, sources: CatalogSource[]) {
     return <section key={sectionId} className={`home-section ${dragSection === sectionId ? 'dragging' : ''}`}>
       <div className="section-heading" onPointerDown={(e) => { if (e.pointerType === 'touch' || e.pointerType === 'pen') handleSectionDragStart(sectionId, e.clientY) }} onTouchStart={(e) => handleSectionDragStart(sectionId, e.touches[0].clientY)}><div><Icon size={17} /><h2>{title}</h2></div><span>{sources.length}</span></div>
@@ -3102,7 +3123,7 @@ function App() {
           {(castMessage || boseMessage) && <p className="output-message" role="status">{boseMessage || castMessage}</p>}
         </section>
       </div>}
-      {nowPlaying && <div className="mini-player-global">
+      {nowPlaying && <div className="mini-player-global" onClick={(e) => { if (!(e.target as HTMLElement).closest('button')) openNowPlayingEpisode() }} style={{ cursor: 'pointer' }}>
         <div className="mini-art">{nowPlaying.artworkUrl ? <img src={nowPlaying.artworkUrl} alt="" /> : <AudioLines size={19} />}</div>
         <div className="mini-meta"><strong>{nowPlaying.title}</strong><span>{nowPlaying.artist}</span></div>
         <button onClick={() => skip('previous')} aria-label="Morceau précédent"><SkipBack size={17} fill="currentColor" /></button>
