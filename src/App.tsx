@@ -17,6 +17,7 @@ import './identification.css'
 const initialTracks: Track[] = []
 
 type AppView = 'home' | 'favorites' | 'studio' | 'settings'
+type HomeSectionId = 'resume' | 'podcasts' | 'shows' | 'radios' | 'djSets' | 'offline'
 type HistoryItem = { id: string; title: string; artist: string; url: string; position: number; duration?: number; playedAt: string }
 type FavoriteTrackEntry = {
   key: string
@@ -228,6 +229,79 @@ function App() {
   const [validatingCatalog, setValidatingCatalog] = useState(false)
   const [fingerprinting, setFingerprinting] = useState(false)
   const [activeView, setActiveView] = useState<AppView>('home')
+  const [homeSectionOrder, setHomeSectionOrder] = useState<HomeSectionId[]>(() => {
+    try {
+      const stored = JSON.parse(localStorage.getItem('podmix-home-section-order-v1') ?? 'null')
+      if (Array.isArray(stored) && stored.every((id) => ['resume', 'podcasts', 'shows', 'radios', 'djSets', 'offline'].includes(id))) {
+        return stored as HomeSectionId[]
+      }
+    } catch {}
+    return ['resume', 'podcasts', 'shows', 'radios', 'djSets', 'offline']
+  })
+  const [dragSection, setDragSection] = useState<HomeSectionId | null>(null)
+  const dragStartY = useRef(0)
+  const dragCurrentY = useRef(0)
+  const dragLongPressTimer = useRef<number | null>(null)
+
+  function handleSectionDragStart(sectionId: HomeSectionId, clientY: number) {
+    dragStartY.current = clientY
+    dragCurrentY.current = clientY
+    dragLongPressTimer.current = window.setTimeout(() => {
+      setDragSection(sectionId)
+    }, 500)
+  }
+
+  function handleSectionDragMove(clientY: number) {
+    if (!dragSection) return
+    dragCurrentY.current = clientY
+    const deltaY = clientY - dragStartY.current
+    const threshold = 80
+    const order = [...homeSectionOrder]
+    const currentIndex = order.indexOf(dragSection)
+    if (deltaY > threshold && currentIndex < order.length - 1) {
+      const newIndex = currentIndex + 1
+      order.splice(currentIndex, 1)
+      order.splice(newIndex, 0, dragSection)
+      setHomeSectionOrder(order)
+      localStorage.setItem('podmix-home-section-order-v1', JSON.stringify(order))
+      dragStartY.current = clientY
+    } else if (deltaY < -threshold && currentIndex > 0) {
+      const newIndex = currentIndex - 1
+      order.splice(currentIndex, 1)
+      order.splice(newIndex, 0, dragSection)
+      setHomeSectionOrder(order)
+      localStorage.setItem('podmix-home-section-order-v1', JSON.stringify(order))
+      dragStartY.current = clientY
+    }
+  }
+
+  function handleSectionDragEnd() {
+    if (dragLongPressTimer.current) {
+      clearTimeout(dragLongPressTimer.current)
+      dragLongPressTimer.current = null
+    }
+    setDragSection(null)
+  }
+
+  useEffect(() => {
+    function handleGlobalPointerMove(event: PointerEvent) {
+      if (dragSection) {
+        handleSectionDragMove(event.clientY)
+      }
+    }
+    function handleGlobalPointerUp() {
+      if (dragSection) {
+        handleSectionDragEnd()
+      }
+    }
+    window.addEventListener('pointermove', handleGlobalPointerMove)
+    window.addEventListener('pointerup', handleGlobalPointerUp)
+    return () => {
+      window.removeEventListener('pointermove', handleGlobalPointerMove)
+      window.removeEventListener('pointerup', handleGlobalPointerUp)
+    }
+  }, [dragSection])
+
   const [catalog, setCatalog] = useState<CatalogSource[]>(loadCatalog)
   const catalogRef = useRef(catalog)
   const artworkLookupAttempted = useRef(new Set<string>())
@@ -2690,6 +2764,32 @@ function App() {
   const failedAnalyses = analyzedEpisodes.filter(({ episode }) =>
     episode.analysis?.status === 'failed')
 
+  function renderCatalogSection(sectionId: HomeSectionId, title: string, Icon: typeof Mic2, sources: CatalogSource[]) {
+    return <section key={sectionId} className={`home-section ${dragSection === sectionId ? 'dragging' : ''}`}>
+      <div className="section-heading" onPointerDown={(e) => { if (e.pointerType === 'touch' || e.pointerType === 'pen') handleSectionDragStart(sectionId, e.clientY) }} onTouchStart={(e) => handleSectionDragStart(sectionId, e.touches[0].clientY)}><div><Icon size={17} /><h2>{title}</h2></div><span>{sources.length}</span></div>
+      <div className="catalog-grid home-catalog-grid">{sources.slice(0, 4).map((source) => {
+        const SourceIcon = source.kind === 'radio' ? Radio : source.kind === 'dj' ? Disc3 : source.kind === 'show' ? AudioLines : Mic2
+        const color = source.kind === 'radio' ? '#8ab4ff' : source.kind === 'show' ? '#c9f46f' : source.kind === 'dj' ? '#f3c95e' : '#ff6940'
+        const firstEpisode = source.episodes.find((episode) => episode.audioUrl)
+        const isRadio = source.kind === 'radio'
+        const playSource = async () => {
+          if (isRadio && source.streamUrl) {
+            await playEpisode(source.id, source.title, 'Radio en direct', source.streamUrl, source.artworkUrl, 0, 'radio')
+          } else if (firstEpisode) {
+            await playFromSource(source, firstEpisode.id)
+          } else {
+            setDownloadMessage('Aucun épisode audio disponible dans cette source')
+          }
+        }
+        return <article className="media-card" key={source.id} onClick={() => !isRadio && setSelectedSourceId(source.id)}>
+          <div className="media-art" style={{ '--card-accent': color } as React.CSSProperties}>{source.artworkUrl ? <img src={source.artworkUrl} alt="" /> : <SourceIcon size={34} />}<button aria-label={`Lire ${source.title}`} onClick={(event) => { event.stopPropagation(); void playSource() }}><Play size={18} fill="currentColor" /></button></div>
+          <span>{sourceKindLabel(source)}</span><h2>{source.title}</h2><p>{source.kind === 'radio' ? source.description : `${source.episodes.length} épisodes`}</p>
+          <div>{isRadio ? <button onClick={(event) => { event.stopPropagation(); setCatalog((items) => items.filter((item) => item.id !== source.id)); setFavoriteIds((items) => items.filter((id) => id !== source.id)) }} aria-label="Supprimer la radio"><Trash2 size={16} /></button> : <button className={favoriteIds.includes(source.id) ? 'favorited' : ''} aria-label="Favori" onClick={(event) => { event.stopPropagation(); toggleFavorite(source.id) }}><Heart size={16} fill={favoriteIds.includes(source.id) ? 'currentColor' : 'none'} /></button>}{!isRadio && <button aria-label="Télécharger le dernier épisode" disabled={!firstEpisode} onClick={(event) => { event.stopPropagation(); if (firstEpisode) void downloadSourceEpisode(source, firstEpisode) }}><Download size={16} /></button>}<button aria-label="Ouvrir la source" onClick={(event) => { event.stopPropagation(); setSelectedSourceId(source.id) }}><MoreHorizontal size={17} /></button></div>
+        </article>
+      })}</div>
+    </section>
+  }
+
   return (
     <div className="app-shell">
       <main>
@@ -2760,123 +2860,41 @@ function App() {
             </section>}
             {!favoriteSources.length && !favoriteTrackEntries.length && <div className="empty-state catalog-empty"><Heart size={28} /><strong>Aucun favori</strong><span>Ajoutez des sources ou des morceaux à vos favoris pour les retrouver ici.</span></div>}
           </section> : <>
-            {activeView === 'home' && !selectedSource && resumeEpisodes.length > 0 && <section className="recent-list home-resume">
-              <div className="section-heading"><div><Clock3 size={17} /><h2>Reprendre l’écoute</h2></div><button onClick={() => setHistory([])}>Effacer</button></div>
-              <div className="episode-list">{resumeEpisodes.map(({ item, source, episode }) => <article className={`episode-item resume-episode ${nowPlaying?.id === item.id ? 'playing' : ''}`} key={item.id}>
-                <button className="episode-play" aria-label={`${globalPlaying && nowPlaying?.id === item.id && nowPlaying.scope === 'episode' ? 'Mettre en pause' : 'Reprendre'} ${item.title}`} onClick={() => playEpisode(item.id, item.title, item.artist, item.url, episode.artworkUrl || source.artworkUrl, item.position)}>{globalPlaying && nowPlaying?.id === item.id && nowPlaying.scope === 'episode' ? <Pause size={16} /> : <Play size={16} fill="currentColor" />}</button>
-                <button className="episode-info" aria-label={`Ouvrir ${item.title}`} onClick={() => openResumeEpisode(source, episode)}><h3>{item.title}</h3><p>{item.artist} · {globalPlaying && nowPlaying?.id === item.id ? `En lecture à ${formatTime(item.position)}` : `Reprendre à ${formatTime(item.position)}`}</p></button>
-                <span>{new Date(item.playedAt).toLocaleDateString('fr-FR')}</span><ChevronRight size={16} />
-              </article>)}</div>
-            </section>}
-            {activeView === 'home' && !selectedSource && resumeEpisodes.length > 0 && podcasts.length > 0 && shows.length > 0 && radios.length > 0 && djSets.length > 0 && <div className="home-section-divider" aria-hidden="true" />}
-            {activeView === 'home' && !selectedSource && podcasts.length > 0 && <section className="home-section">
-              <div className="section-heading"><div><Mic2 size={17} /><h2>Podcasts</h2></div><span>{podcasts.length}</span></div>
-              <div className="catalog-grid home-catalog-grid">{podcasts.slice(0, 4).map((source) => {
-                const Icon = source.kind === 'radio' ? Radio : source.kind === 'dj' ? Disc3 : source.kind === 'show' ? AudioLines : Mic2
-                const color = source.kind === 'radio' ? '#8ab4ff' : source.kind === 'show' ? '#c9f46f' : source.kind === 'dj' ? '#f3c95e' : '#ff6940'
-                const firstEpisode = source.episodes.find((episode) => episode.audioUrl)
-                const isRadio = source.kind === 'radio'
-                const playSource = async () => {
-                  if (isRadio && source.streamUrl) {
-                    await playEpisode(source.id, source.title, 'Radio en direct', source.streamUrl, source.artworkUrl, 0, 'radio')
-                  } else if (firstEpisode) {
-                    await playFromSource(source, firstEpisode.id)
-                  } else {
-                    setDownloadMessage('Aucun épisode audio disponible dans cette source')
-                  }
-                }
-                return <article className="media-card" key={source.id} onClick={() => !isRadio && setSelectedSourceId(source.id)}>
-                  <div className="media-art" style={{ '--card-accent': color } as React.CSSProperties}>{source.artworkUrl ? <img src={source.artworkUrl} alt="" /> : <Icon size={34} />}<button aria-label={`Lire ${source.title}`} onClick={(event) => { event.stopPropagation(); void playSource() }}><Play size={18} fill="currentColor" /></button></div>
-                  <span>{sourceKindLabel(source)}</span><h2>{source.title}</h2><p>{source.kind === 'radio' ? source.description : `${source.episodes.length} épisodes`}</p>
-                  <div>{isRadio ? <button onClick={(event) => { event.stopPropagation(); setCatalog((items) => items.filter((item) => item.id !== source.id)); setFavoriteIds((items) => items.filter((id) => id !== source.id)) }} aria-label="Supprimer la radio"><Trash2 size={16} /></button> : <button className={favoriteIds.includes(source.id) ? 'favorited' : ''} aria-label="Favori" onClick={(event) => { event.stopPropagation(); toggleFavorite(source.id) }}><Heart size={16} fill={favoriteIds.includes(source.id) ? 'currentColor' : 'none'} /></button>}{!isRadio && <button aria-label="Télécharger le dernier épisode" disabled={!firstEpisode} onClick={(event) => { event.stopPropagation(); if (firstEpisode) void downloadSourceEpisode(source, firstEpisode) }}><Download size={16} /></button>}<button aria-label="Ouvrir la source" onClick={(event) => { event.stopPropagation(); setSelectedSourceId(source.id) }}><MoreHorizontal size={17} /></button></div>
-                </article>
-              })}</div>
-            </section>}
-            {activeView === 'home' && !selectedSource && shows.length > 0 && <section className="home-section">
-              <div className="section-heading"><div><AudioLines size={17} /><h2>Émissions</h2></div><span>{shows.length}</span></div>
-              <div className="catalog-grid home-catalog-grid">{shows.slice(0, 4).map((source) => {
-                const Icon = source.kind === 'radio' ? Radio : source.kind === 'dj' ? Disc3 : source.kind === 'show' ? AudioLines : Mic2
-                const color = source.kind === 'radio' ? '#8ab4ff' : source.kind === 'show' ? '#c9f46f' : source.kind === 'dj' ? '#f3c95e' : '#ff6940'
-                const firstEpisode = source.episodes.find((episode) => episode.audioUrl)
-                const isRadio = source.kind === 'radio'
-                const playSource = async () => {
-                  if (isRadio && source.streamUrl) {
-                    await playEpisode(source.id, source.title, 'Radio en direct', source.streamUrl, source.artworkUrl, 0, 'radio')
-                  } else if (firstEpisode) {
-                    await playFromSource(source, firstEpisode.id)
-                  } else {
-                    setDownloadMessage('Aucun épisode audio disponible dans cette source')
-                  }
-                }
-                return <article className="media-card" key={source.id} onClick={() => !isRadio && setSelectedSourceId(source.id)}>
-                  <div className="media-art" style={{ '--card-accent': color } as React.CSSProperties}>{source.artworkUrl ? <img src={source.artworkUrl} alt="" /> : <Icon size={34} />}<button aria-label={`Lire ${source.title}`} onClick={(event) => { event.stopPropagation(); void playSource() }}><Play size={18} fill="currentColor" /></button></div>
-                  <span>{sourceKindLabel(source)}</span><h2>{source.title}</h2><p>{source.kind === 'radio' ? source.description : `${source.episodes.length} épisodes`}</p>
-                  <div>{isRadio ? <button onClick={(event) => { event.stopPropagation(); setCatalog((items) => items.filter((item) => item.id !== source.id)); setFavoriteIds((items) => items.filter((id) => id !== source.id)) }} aria-label="Supprimer la radio"><Trash2 size={16} /></button> : <button className={favoriteIds.includes(source.id) ? 'favorited' : ''} aria-label="Favori" onClick={(event) => { event.stopPropagation(); toggleFavorite(source.id) }}><Heart size={16} fill={favoriteIds.includes(source.id) ? 'currentColor' : 'none'} /></button>}{!isRadio && <button aria-label="Télécharger le dernier épisode" disabled={!firstEpisode} onClick={(event) => { event.stopPropagation(); if (firstEpisode) void downloadSourceEpisode(source, firstEpisode) }}><Download size={16} /></button>}<button aria-label="Ouvrir la source" onClick={(event) => { event.stopPropagation(); setSelectedSourceId(source.id) }}><MoreHorizontal size={17} /></button></div>
-                </article>
-              })}</div>
-            </section>}
-            {activeView === 'home' && !selectedSource && radios.length > 0 && <section className="home-section">
-              <div className="section-heading"><div><Radio size={17} /><h2>Radios</h2></div><span>{radios.length}</span></div>
-              <div className="catalog-grid home-catalog-grid">{radios.slice(0, 4).map((source) => {
-                const Icon = source.kind === 'radio' ? Radio : source.kind === 'dj' ? Disc3 : source.kind === 'show' ? AudioLines : Mic2
-                const color = source.kind === 'radio' ? '#8ab4ff' : source.kind === 'show' ? '#c9f46f' : source.kind === 'dj' ? '#f3c95e' : '#ff6940'
-                const firstEpisode = source.episodes.find((episode) => episode.audioUrl)
-                const isRadio = source.kind === 'radio'
-                const playSource = async () => {
-                  if (isRadio && source.streamUrl) {
-                    await playEpisode(source.id, source.title, 'Radio en direct', source.streamUrl, source.artworkUrl, 0, 'radio')
-                  } else if (firstEpisode) {
-                    await playFromSource(source, firstEpisode.id)
-                  } else {
-                    setDownloadMessage('Aucun épisode audio disponible dans cette source')
-                  }
-                }
-                return <article className="media-card" key={source.id} onClick={() => !isRadio && setSelectedSourceId(source.id)}>
-                  <div className="media-art" style={{ '--card-accent': color } as React.CSSProperties}>{source.artworkUrl ? <img src={source.artworkUrl} alt="" /> : <Icon size={34} />}<button aria-label={`Lire ${source.title}`} onClick={(event) => { event.stopPropagation(); void playSource() }}><Play size={18} fill="currentColor" /></button></div>
-                  <span>{sourceKindLabel(source)}</span><h2>{source.title}</h2><p>{source.kind === 'radio' ? source.description : `${source.episodes.length} épisodes`}</p>
-                  <div>{isRadio ? <button onClick={(event) => { event.stopPropagation(); setCatalog((items) => items.filter((item) => item.id !== source.id)); setFavoriteIds((items) => items.filter((id) => id !== source.id)) }} aria-label="Supprimer la radio"><Trash2 size={16} /></button> : <button className={favoriteIds.includes(source.id) ? 'favorited' : ''} aria-label="Favori" onClick={(event) => { event.stopPropagation(); toggleFavorite(source.id) }}><Heart size={16} fill={favoriteIds.includes(source.id) ? 'currentColor' : 'none'} /></button>}{!isRadio && <button aria-label="Télécharger le dernier épisode" disabled={!firstEpisode} onClick={(event) => { event.stopPropagation(); if (firstEpisode) void downloadSourceEpisode(source, firstEpisode) }}><Download size={16} /></button>}<button aria-label="Ouvrir la source" onClick={(event) => { event.stopPropagation(); setSelectedSourceId(source.id) }}><MoreHorizontal size={17} /></button></div>
-                </article>
-              })}</div>
-            </section>}
-            {activeView === 'home' && !selectedSource && djSets.length > 0 && <section className="home-section">
-              <div className="section-heading"><div><Disc3 size={17} /><h2>DJ sets</h2></div><span>{djSets.length}</span></div>
-              <div className="catalog-grid home-catalog-grid">{djSets.slice(0, 4).map((source) => {
-                const Icon = source.kind === 'radio' ? Radio : source.kind === 'dj' ? Disc3 : source.kind === 'show' ? AudioLines : Mic2
-                const color = source.kind === 'radio' ? '#8ab4ff' : source.kind === 'show' ? '#c9f46f' : source.kind === 'dj' ? '#f3c95e' : '#ff6940'
-                const firstEpisode = source.episodes.find((episode) => episode.audioUrl)
-                const isRadio = source.kind === 'radio'
-                const playSource = async () => {
-                  if (isRadio && source.streamUrl) {
-                    await playEpisode(source.id, source.title, 'Radio en direct', source.streamUrl, source.artworkUrl, 0, 'radio')
-                  } else if (firstEpisode) {
-                    await playFromSource(source, firstEpisode.id)
-                  } else {
-                    setDownloadMessage('Aucun épisode audio disponible dans cette source')
-                  }
-                }
-                return <article className="media-card" key={source.id} onClick={() => !isRadio && setSelectedSourceId(source.id)}>
-                  <div className="media-art" style={{ '--card-accent': color } as React.CSSProperties}>{source.artworkUrl ? <img src={source.artworkUrl} alt="" /> : <Icon size={34} />}<button aria-label={`Lire ${source.title}`} onClick={(event) => { event.stopPropagation(); void playSource() }}><Play size={18} fill="currentColor" /></button></div>
-                  <span>{sourceKindLabel(source)}</span><h2>{source.title}</h2><p>{source.kind === 'radio' ? source.description : `${source.episodes.length} épisodes`}</p>
-                  <div>{isRadio ? <button onClick={(event) => { event.stopPropagation(); setCatalog((items) => items.filter((item) => item.id !== source.id)); setFavoriteIds((items) => items.filter((id) => id !== source.id)) }} aria-label="Supprimer la radio"><Trash2 size={16} /></button> : <button className={favoriteIds.includes(source.id) ? 'favorited' : ''} aria-label="Favori" onClick={(event) => { event.stopPropagation(); toggleFavorite(source.id) }}><Heart size={16} fill={favoriteIds.includes(source.id) ? 'currentColor' : 'none'} /></button>}{!isRadio && <button aria-label="Télécharger le dernier épisode" disabled={!firstEpisode} onClick={(event) => { event.stopPropagation(); if (firstEpisode) void downloadSourceEpisode(source, firstEpisode) }}><Download size={16} /></button>}<button aria-label="Ouvrir la source" onClick={(event) => { event.stopPropagation(); setSelectedSourceId(source.id) }}><MoreHorizontal size={17} /></button></div>
-                </article>
-              })}</div>
-            </section>}
-            {activeView === 'home' && !selectedSource && offlineEpisodes.length > 0 && <section className="home-section offline-home">
-              <div className="section-heading"><div><Download size={17} /><h2>Hors connexion</h2></div><span>{offlineEpisodes.filter((item) => item.status === 'completed').length}</span></div>
-              <div className="episode-list">
-                {offlineEpisodes.map((episode) => {
-                  const progressValue = episode.totalBytes && episode.totalBytes > 0 ? Math.round(((episode.bytesDownloaded ?? 0) / episode.totalBytes) * 100) : 0
-                  return <article className={`episode-item offline-item ${nowPlaying?.id === episode.id ? 'playing' : ''}`} key={episode.id}>
-                    <button className="episode-play" onClick={() => playOffline(episode)} disabled={episode.status !== 'completed'}>
-                      {nowPlaying?.id === episode.id && globalPlaying ? <Pause size={16} /> : <Play size={16} fill="currentColor" />}
-                    </button>
-                    <div><h3>{episode.title}</h3><p>{episode.artist} · {episode.status === 'completed' ? 'Disponible hors connexion' : episode.status === 'failed' ? 'Téléchargement échoué' : `Téléchargement ${progressValue}%`}</p>{episode.status !== 'completed' && episode.status !== 'failed' && <div className="download-progress"><i style={{ width: `${progressValue}%` }} /></div>}</div>
-                    <span>{episode.status === 'completed' && episode.bytesDownloaded ? `${(episode.bytesDownloaded / 1_048_576).toFixed(1)} Mo` : `${progressValue}%`}</span>
-                    <button className="episode-download remove-download" onClick={() => removeOffline(episode)} aria-label="Supprimer"><Trash2 size={16} /></button>
-                  </article>
-                })}
-              </div>
-            </section>}
+            {activeView === 'home' && !selectedSource && homeSectionOrder.map((sectionId) => {
+              if (sectionId === 'resume' && resumeEpisodes.length > 0) {
+                return <section key="resume" className={`recent-list home-resume ${dragSection === 'resume' ? 'dragging' : ''}`}>
+                  <div className="section-heading" onPointerDown={(e) => { if (e.pointerType === 'touch' || e.pointerType === 'pen') handleSectionDragStart('resume', e.clientY) }} onTouchStart={(e) => handleSectionDragStart('resume', e.touches[0].clientY)}><div><Clock3 size={17} /><h2>Reprendre l’écoute</h2></div><button onClick={() => setHistory([])}>Effacer</button></div>
+                  <div className="episode-list">{resumeEpisodes.map(({ item, source, episode }) => <article className={`episode-item resume-episode ${nowPlaying?.id === item.id ? 'playing' : ''}`} key={item.id}>
+                    <button className="episode-play" aria-label={`${globalPlaying && nowPlaying?.id === item.id && nowPlaying.scope === 'episode' ? 'Mettre en pause' : 'Reprendre'} ${item.title}`} onClick={() => playEpisode(item.id, item.title, item.artist, item.url, episode.artworkUrl || source.artworkUrl, item.position)}>{globalPlaying && nowPlaying?.id === item.id && nowPlaying.scope === 'episode' ? <Pause size={16} /> : <Play size={16} fill="currentColor" />}</button>
+                    <button className="episode-info" aria-label={`Ouvrir ${item.title}`} onClick={() => openResumeEpisode(source, episode)}><h3>{item.title}</h3><p>{item.artist} · {globalPlaying && nowPlaying?.id === item.id ? `En lecture à ${formatTime(item.position)}` : `Reprendre à ${formatTime(item.position)}`}</p></button>
+                    <span>{new Date(item.playedAt).toLocaleDateString('fr-FR')}</span><ChevronRight size={16} />
+                  </article>)}</div>
+                </section>
+              }
+              if (sectionId === 'podcasts' && podcasts.length > 0) return renderCatalogSection('podcasts', 'Podcasts', Mic2, podcasts)
+              if (sectionId === 'shows' && shows.length > 0) return renderCatalogSection('shows', 'Émissions', AudioLines, shows)
+              if (sectionId === 'radios' && radios.length > 0) return renderCatalogSection('radios', 'Radios', Radio, radios)
+              if (sectionId === 'djSets' && djSets.length > 0) return renderCatalogSection('djSets', 'DJ sets', Disc3, djSets)
+              if (sectionId === 'offline' && offlineEpisodes.length > 0) {
+                return <section key="offline" className={`home-section offline-home ${dragSection === 'offline' ? 'dragging' : ''}`}>
+                  <div className="section-heading" onPointerDown={(e) => { if (e.pointerType === 'touch' || e.pointerType === 'pen') handleSectionDragStart('offline', e.clientY) }} onTouchStart={(e) => handleSectionDragStart('offline', e.touches[0].clientY)}><div><Download size={17} /><h2>Hors connexion</h2></div><span>{offlineEpisodes.filter((item) => item.status === 'completed').length}</span></div>
+                  <div className="episode-list">
+                    {offlineEpisodes.map((episode) => {
+                      const progressValue = episode.totalBytes && episode.totalBytes > 0 ? Math.round(((episode.bytesDownloaded ?? 0) / episode.totalBytes) * 100) : 0
+                      return <article className={`episode-item offline-item ${nowPlaying?.id === episode.id ? 'playing' : ''}`} key={episode.id}>
+                        <button className="episode-play" onClick={() => playOffline(episode)} disabled={episode.status !== 'completed'}>
+                          {nowPlaying?.id === episode.id && globalPlaying ? <Pause size={16} /> : <Play size={16} fill="currentColor" />}
+                        </button>
+                        <div><h3>{episode.title}</h3><p>{episode.artist} · {episode.status === 'completed' ? 'Disponible hors connexion' : episode.status === 'failed' ? 'Téléchargement échoué' : `Téléchargement ${progressValue}%`}</p>{episode.status !== 'completed' && episode.status !== 'failed' && <div className="download-progress"><i style={{ width: `${progressValue}%` }} /></div>}</div>
+                        <span>{episode.status === 'completed' && episode.bytesDownloaded ? `${(episode.bytesDownloaded / 1_048_576).toFixed(1)} Mo` : `${progressValue}%`}</span>
+                        <button className="episode-download remove-download" onClick={() => removeOffline(episode)} aria-label="Supprimer"><Trash2 size={16} /></button>
+                      </article>
+                    })}
+                  </div>
+                </section>
+              }
+              return null
+            })}
             {activeView === 'home' && !selectedSource && !podcasts.length && !shows.length && !radios.length && !djSets.length && !offlineEpisodes.length && !resumeEpisodes.length && <div className="empty-state catalog-empty"><Library size={28} /><strong>Votre bibliothèque est vide</strong><span>Ajoutez un podcast, une émission, une radio ou un DJ set pour commencer.</span><button onClick={openAddSource}><Plus size={15} /> Ajouter une source</button></div>}
             {selectedSource && <section className="source-detail">
               <button className="back-button" onClick={() => selectedEpisode ? setSelectedEpisodeId('') : setSelectedSourceId('')}>← Retour {selectedEpisode ? `à ${selectedSource.title}` : 'à l’accueil'}</button>
