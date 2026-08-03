@@ -2793,7 +2793,7 @@ function App() {
         }
         return <article className="media-card" key={source.id} onClick={() => !isRadio && setSelectedSourceId(source.id)}>
           <div className="media-art" style={{ '--card-accent': color } as React.CSSProperties}>{source.artworkUrl ? <img src={source.artworkUrl} alt="" /> : <SourceIcon size={34} />}<button aria-label={`Lire ${source.title}`} onClick={(event) => { event.stopPropagation(); void playSource() }}><Play size={18} fill="currentColor" /></button></div>
-          <span>{sourceKindLabel(source)}</span><h2>{source.title}</h2>
+          <h2>{source.title}</h2>
         </article>
       })}</div>
     </section>
