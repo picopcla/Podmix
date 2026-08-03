@@ -2794,7 +2794,6 @@ function App() {
         return <article className="media-card" key={source.id} onClick={() => !isRadio && setSelectedSourceId(source.id)}>
           <div className="media-art" style={{ '--card-accent': color } as React.CSSProperties}>{source.artworkUrl ? <img src={source.artworkUrl} alt="" /> : <SourceIcon size={34} />}<button aria-label={`Lire ${source.title}`} onClick={(event) => { event.stopPropagation(); void playSource() }}><Play size={18} fill="currentColor" /></button></div>
           <span>{sourceKindLabel(source)}</span><h2>{source.title}</h2><p>{source.kind === 'radio' ? source.description : `${source.episodes.length} épisodes`}</p>
-          <div>{!isRadio && <button aria-label="Télécharger le dernier épisode" disabled={!firstEpisode} onClick={(event) => { event.stopPropagation(); if (firstEpisode) void downloadSourceEpisode(source, firstEpisode) }}><Download size={16} /></button>}<button aria-label="Ouvrir la source" onClick={(event) => { event.stopPropagation(); setSelectedSourceId(source.id) }}><MoreHorizontal size={17} /></button></div>
         </article>
       })}</div>
     </section>
