@@ -2853,7 +2853,7 @@ function App() {
                     const bars = Math.min(5, Math.max(0, Math.round(pct / 20)))
                     return <article className={`episode-item resume-episode ${nowPlaying?.id === item.id ? 'playing' : ''}`} key={item.id}>
                       <button className="episode-play" aria-label={`${globalPlaying && nowPlaying?.id === item.id && nowPlaying.scope === 'episode' ? 'Mettre en pause' : 'Reprendre'} ${item.title}`} onClick={() => playEpisode(item.id, item.title, item.artist, item.url, episode.artworkUrl || source.artworkUrl, item.position)}>{globalPlaying && nowPlaying?.id === item.id && nowPlaying.scope === 'episode' ? <Pause size={16} /> : <Play size={16} fill="currentColor" />}</button>
-                      <button className="episode-info" aria-label={`Ouvrir ${item.title}`} onClick={() => openResumeEpisode(source, episode)}><h3>{item.title}</h3><div className="resume-bars">{[0,1,2,3,4].map((i) => <span key={i} className={`read-bar ${i < bars ? 'filled' : ''}`} />)}</div></button>
+                      <button className="episode-info" aria-label={`Ouvrir ${item.title}`} onClick={() => openResumeEpisode(source, episode)}><div className="resume-info-row"><h3>{item.title}</h3><div className="resume-bars">{[0,1,2,3,4].map((i) => <span key={i} className={`read-bar ${i < bars ? 'filled' : ''}`} />)}</div></div></button>
                       <ChevronRight size={16} />
                     </article>
                   })}</div>
