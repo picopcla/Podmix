@@ -2934,9 +2934,19 @@ function App() {
                 {selectedSource.kind !== 'radio' && <div className="episode-list">
                   {selectedSource.episodes.map((episode) => {
                     const playbackStatus = playbackStatusFor(episode)
+                    const progressBars = Math.min(5, Math.max(0, Math.round(playbackStatus.percent / 20)))
+                    const barClass = playbackStatus.kind === 'done' ? 'done' : 'filled'
                     return <article className={`episode-item ${nowPlaying?.id === episode.id ? 'playing' : ''} ${playbackStatus.kind === 'done' ? 'done' : ''}`} key={episode.id}>
-                      <button className="episode-play" onClick={() => playFromSource(selectedSource, episode.id)} disabled={!episode.audioUrl}>{nowPlaying?.id === episode.id && nowPlaying.scope === 'episode' && globalPlaying ? <Pause size={16} /> : <Play size={16} fill="currentColor" />}</button>
-                      <button className="episode-info" onClick={() => setSelectedEpisodeId(episode.id)}><h3>{episode.title}</h3><p>{analysisLabel(episode) || episode.publishedAt || episode.description.replace(/<[^>]+>/g, '').slice(0, 130)}</p><span className={`episode-read-state ${playbackStatus.kind}`} aria-label={`État de lecture : ${playbackStatus.label}`}><i className="read-orbit" style={{ '--read-progress': `${playbackStatus.percent}%` } as CSSProperties}>{playbackStatus.kind === 'done' && <Check size={9} strokeWidth={3} />}</i>{playbackStatus.label}</span>{['queued', 'running'].includes(episode.analysis?.status ?? '') && <span className="episode-analysis-progress"><i style={{ width: `${episode.analysis?.progress ?? 0}%` }} /></span>}</button>
+                      <button className="episode-info" onClick={() => setSelectedEpisodeId(episode.id)}>
+                        <div className="episode-info-row">
+                          <button className={`episode-play-inline ${nowPlaying?.id === episode.id && nowPlaying.scope === 'episode' && globalPlaying ? 'playing' : ''}`} onClick={(e) => { e.stopPropagation(); playFromSource(selectedSource, episode.id) }} disabled={!episode.audioUrl}>{nowPlaying?.id === episode.id && nowPlaying.scope === 'episode' && globalPlaying ? <Pause size={14} /> : <Play size={14} fill="currentColor" />}</button>
+                          <div style={{minWidth:0}}><h3>{episode.title}</h3><p>{analysisLabel(episode) || episode.publishedAt || episode.description.replace(/<[^>]+>/g, '').slice(0, 130)}</p>
+                          <span className={`episode-read-state ${playbackStatus.kind}`} aria-label={`État de lecture : ${playbackStatus.label}`}>
+                            {[0,1,2,3,4].map((i) => <span key={i} className={`read-bar ${i < progressBars ? barClass : ''}`} />)}
+                          </span>{['queued', 'running'].includes(episode.analysis?.status ?? '') && <span className="episode-analysis-progress"><i style={{ width: `${episode.analysis?.progress ?? 0}%` }} /></span>}
+                          </div>
+                        </div>
+                      </button>
                       <span className={playbackStatus.kind === 'done' ? 'episode-done' : ''}>{episode.duration}</span>
                       <button className="episode-download" onClick={() => downloadSourceEpisode(selectedSource, episode)} disabled={!episode.audioUrl}><Download size={16} /></button>
                     </article>
