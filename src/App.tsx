@@ -732,6 +732,12 @@ function App() {
     historyRef.current = history
     localStorage.setItem('podmix-history-v1', JSON.stringify(history.slice(0, 100)))
   }, [history])
+
+  function pushHistoryItem(item: HistoryItem) {
+    const next = [item, ...historyRef.current.filter((h) => h.id !== item.id)].slice(0, 100)
+    historyRef.current = next
+    setHistory(next)
+  }
   useEffect(() => { nowPlayingRef.current = nowPlaying }, [nowPlaying])
   useEffect(() => localStorage.setItem('podmix-bose-ip', boseIp), [boseIp])
   useEffect(() => {
@@ -1669,7 +1675,7 @@ function App() {
       setNowPlaying(item); setGlobalPlaying(state.playing)
       if (boseActiveRef.current) await sendToBose(item, playbackPosition)
       if (scope !== 'radio') {
-        setHistory((items) => [{ id, title, artist, url, position: playbackPosition, duration: state.durationSeconds || undefined, playedAt: new Date().toISOString() }, ...items.filter((item) => item.id !== id)].slice(0, 100))
+        pushHistoryItem({ id, title, artist, url, position: playbackPosition, duration: state.durationSeconds || undefined, playedAt: new Date().toISOString() })
       }
     } catch (error) {
       setDownloadMessage(error instanceof Error ? `Lecture impossible : ${error.message}` : 'Lecture impossible')
@@ -1729,7 +1735,7 @@ function App() {
       if (boseActiveRef.current) {
         await sendToBose(item, playbackPosition)
       }
-      setHistory((items) => [{ id: episode.id, title: episode.title, artist: source.title, url: episode.audioUrl, position: playbackPosition, duration: Math.max(parseDuration(episode.duration), state.durationSeconds) || undefined, playedAt: new Date().toISOString() }, ...items.filter((item) => item.id !== episode.id)].slice(0, 100))
+      pushHistoryItem({ id: episode.id, title: episode.title, artist: source.title, url: episode.audioUrl, position: playbackPosition, duration: Math.max(parseDuration(episode.duration), state.durationSeconds) || undefined, playedAt: new Date().toISOString() })
     } catch (error) {
       setDownloadMessage(error instanceof Error ? `Lecture impossible : ${error.message}` : 'Lecture impossible')
     }
@@ -1795,15 +1801,7 @@ function App() {
           artworkUrl: trackArtwork(selectedTrack, episode, source),
         }, selectedTrack.time, selectedTrack.time)
       }
-      setHistory((items) => [{
-        id: episode.id,
-        title: episode.title,
-        artist: source.title,
-        url: episode.audioUrl,
-        position: selectedTrack.time,
-        duration: parseDuration(episode.duration) || undefined,
-        playedAt: new Date().toISOString(),
-      }, ...items.filter((item) => item.id !== episode.id)].slice(0, 100))
+      pushHistoryItem({ id: episode.id, title: episode.title, artist: source.title, url: episode.audioUrl, position: selectedTrack.time, duration: parseDuration(episode.duration) || undefined, playedAt: new Date().toISOString() })
     } catch (error) {
       trackQueueRef.current = undefined
       setDownloadMessage(error instanceof Error ? `Lecture du titre impossible : ${error.message}` : 'Lecture du titre impossible')
