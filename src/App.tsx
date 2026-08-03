@@ -2793,7 +2793,7 @@ function App() {
         }
         return <article className="media-card" key={source.id} onClick={() => !isRadio && setSelectedSourceId(source.id)}>
           <div className="media-art" style={{ '--card-accent': color } as React.CSSProperties}>{source.artworkUrl ? <img src={source.artworkUrl} alt="" /> : <SourceIcon size={34} />}<button aria-label={`Lire ${source.title}`} onClick={(event) => { event.stopPropagation(); void playSource() }}><Play size={18} fill="currentColor" /></button></div>
-          <span>{sourceKindLabel(source)}</span><h2>{source.title}</h2><p>{source.kind === 'radio' ? source.description : `${source.episodes.length} épisodes`}</p>
+          <span>{sourceKindLabel(source)}</span><h2>{source.title}</h2>
         </article>
       })}</div>
     </section>
@@ -2931,15 +2931,15 @@ function App() {
                   {!selectedEpisode.tracks?.length && <div className="empty-state"><AudioLines size={24} /><strong>Aucune tracklist enregistrée</strong><span>Lancez l’analyse pour rechercher les titres et calculer leurs repères.</span></div>}
                 </div>
               </div> : <>
-                <div className="source-heading">{selectedSource.artworkUrl ? <img src={selectedSource.artworkUrl} alt="" /> : <Mic2 size={38} />}<div><span>{sourceKindLabel(selectedSource)}{selectedSource.musical ? ' · musicale' : ''}</span><h2>{selectedSource.title}</h2>{selectedSource.kind === 'radio' && selectedSource.description && <p>{selectedSource.description}</p>}<div className="source-actions">{selectedSource.feedUrl && <button onClick={refreshSelectedSource} disabled={refreshingSource}><RotateCcw size={14} /> {refreshingSource ? 'Actualisation…' : 'Actualiser'}</button>}{['podcast', 'show'].includes(selectedSource.kind) && <button onClick={() => toggleMusicalSource(selectedSource)}><AudioLines size={14} /> {selectedSource.musical ? 'Analyse musicale active' : 'Activer l’analyse musicale'}</button>}<button onClick={removeSelectedSource}><Trash2 size={14} /> Supprimer</button></div></div></div>
+                <div className="source-heading">{selectedSource.artworkUrl ? <img src={selectedSource.artworkUrl} alt="" /> : <Mic2 size={38} />}<div><span>{sourceKindLabel(selectedSource)}{selectedSource.musical ? ` · musicale` : ""}</span><h2>{selectedSource.title}</h2>{selectedSource.kind === "radio" && selectedSource.description && <p>{selectedSource.description}</p>}{selectedSource.kind !== "radio" && <span className="episode-count-badge">{selectedSource.episodes.length} épisodes</span>}<div className="source-actions">{selectedSource.feedUrl && <button onClick={refreshSelectedSource} disabled={refreshingSource}><RotateCcw size={14} /> {refreshingSource ? "Actualisation…" : "Actualiser"}</button>}{["podcast", "show"].includes(selectedSource.kind) && <button onClick={() => toggleMusicalSource(selectedSource)}><AudioLines size={14} /> {selectedSource.musical ? "Analyse musicale active" : "Activer l'analyse musicale"}</button>}<button onClick={removeSelectedSource}><Trash2 size={14} /> Supprimer</button></div></div></div>
                 {selectedSource.kind === 'radio' && selectedSource.streamUrl && <button className="listen-live" onClick={() => playEpisode(selectedSource.id, selectedSource.title, 'Radio en direct', selectedSource.streamUrl!, selectedSource.artworkUrl, 0, 'radio')}>{nowPlaying?.id === selectedSource.id && globalPlaying ? <Pause size={17} /> : <Play size={17} fill="currentColor" />} Écouter en direct</button>}
                 {selectedSource.kind !== 'radio' && <div className="episode-list">
                   {selectedSource.episodes.map((episode) => {
                     const playbackStatus = playbackStatusFor(episode)
-                    return <article className={`episode-item ${nowPlaying?.id === episode.id ? 'playing' : ''}`} key={episode.id}>
+                    return <article className={`episode-item ${nowPlaying?.id === episode.id ? 'playing' : ''} ${playbackStatus.kind === 'done' ? 'done' : ''}`} key={episode.id}>
                       <button className="episode-play" onClick={() => playFromSource(selectedSource, episode.id)} disabled={!episode.audioUrl}>{nowPlaying?.id === episode.id && nowPlaying.scope === 'episode' && globalPlaying ? <Pause size={16} /> : <Play size={16} fill="currentColor" />}</button>
                       <button className="episode-info" onClick={() => setSelectedEpisodeId(episode.id)}><h3>{episode.title}</h3><p>{analysisLabel(episode) || episode.publishedAt || episode.description.replace(/<[^>]+>/g, '').slice(0, 130)}</p><span className={`episode-read-state ${playbackStatus.kind}`} aria-label={`État de lecture : ${playbackStatus.label}`}><i className="read-orbit" style={{ '--read-progress': `${playbackStatus.percent}%` } as CSSProperties}>{playbackStatus.kind === 'done' && <Check size={9} strokeWidth={3} />}</i>{playbackStatus.label}</span>{['queued', 'running'].includes(episode.analysis?.status ?? '') && <span className="episode-analysis-progress"><i style={{ width: `${episode.analysis?.progress ?? 0}%` }} /></span>}</button>
-                      <span>{episode.duration}</span>
+                      <span className={playbackStatus.kind === 'done' ? 'episode-done' : ''}>{episode.duration}</span>
                       <button className="episode-download" onClick={() => downloadSourceEpisode(selectedSource, episode)} disabled={!episode.audioUrl}><Download size={16} /></button>
                     </article>
                   })}
