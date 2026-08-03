@@ -1667,6 +1667,11 @@ function App() {
     const tracklist = episode.tracks ?? []
     const selectedTrack = tracklist[trackIndex]
     if (!episode.audioUrl || !selectedTrack) return
+    const savedPosition = historyRef.current.find((item) => item.id === episode.id)?.position ?? 0
+    const trackStartTime = selectedTrack.time
+    const nextTrackTime = tracklist[trackIndex + 1]?.time ?? Infinity
+    const isResume = savedPosition > 0 && savedPosition >= trackStartTime && savedPosition < nextTrackTime
+    const playbackPosition = isResume ? savedPosition : undefined
     const queue = tracklist.map((track, index) => {
       const nextTime = tracklist[index + 1]?.time
       return {
@@ -1691,7 +1696,7 @@ function App() {
     }
     try {
       setDownloadMessage('')
-      const state = await podmixPlayer.setQueue(queue, trackIndex, autoplayOnCurrentOutput())
+      const state = await podmixPlayer.setQueue(queue, trackIndex, autoplayOnCurrentOutput(), playbackPosition)
       setNowPlaying({
         id: episode.id,
         title: selectedTrack.title,
@@ -1702,7 +1707,7 @@ function App() {
       })
       setActiveMediaId(state.mediaId)
       setGlobalPlaying(state.playing)
-      setGlobalPosition(0)
+      setGlobalPosition(Math.max(0, state.positionSeconds))
       setGlobalDuration(
         tracklist[trackIndex + 1]?.time > selectedTrack.time
           ? tracklist[trackIndex + 1].time - selectedTrack.time
@@ -2908,7 +2913,13 @@ function App() {
                     )
                     const playing = globalPlaying && active
                     const favorite = favoriteTrackIds.includes(mediaId)
-                    return <div key={track.id} className={`episode-track-row ${active ? 'playing' : ''}`}>
+                    const savedPosition = historyRef.current.find((item) => item.id === selectedEpisode.id)?.position ?? 0
+                    const resumeTrackIndex = tracklist.reduce(
+                      (resumeIndex, item, itemIndex) => savedPosition >= item.time ? itemIndex : resumeIndex,
+                      0,
+                    )
+                    const isResume = !active && savedPosition > 1 && index === resumeTrackIndex
+                    return <div key={track.id} className={`episode-track-row ${active ? 'playing' : ''} ${isResume ? 'resume' : ''}`}>
                       <button className={`episode-track ${active ? 'playing' : ''}`} onClick={() => playTrackFromSource(selectedSource, selectedEpisode, index)}><span className="track-index">{String(index + 1).padStart(2, '0')}</span><time>{formatTime(track.time)}</time><strong><span>{track.title}</span><small>{track.artist}</small></strong>{playing ? <Pause size={14} fill="currentColor" /> : <Play size={14} />}</button>
                       <button className={`episode-track-favorite ${favorite ? 'active' : ''}`} onClick={() => toggleTrackFavorite(mediaId)} aria-label={`${favorite ? 'Retirer' : 'Ajouter'} ${track.title} ${favorite ? 'des' : 'aux'} favoris`} title={favorite ? 'Retirer des favoris' : 'Ajouter aux favoris'}><Heart size={15} fill={favorite ? 'currentColor' : 'none'} /></button>
                     </div>

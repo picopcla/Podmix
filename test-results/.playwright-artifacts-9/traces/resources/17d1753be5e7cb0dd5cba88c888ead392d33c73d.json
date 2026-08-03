@@ -1,0 +1,14 @@
+{
+  "versionCode": 10043,
+  "versionName": "1.0.43",
+  "minimumVersionCode": 10000,
+  "apkUrl": "https://vps-43451133.vps.ovh.net/podmix/podmix-1.0.43.apk",
+  "publishedAt": "2026-08-02T21:10:00Z",
+  "sha256": "4b84b73568ff66052086bfe56964616f8ef47f02dc448b8fff520bdec59f880a",
+  "notes": [
+    "Refonte écran d'accueil avec sections distinctes",
+    "Sections: Reprendre l'écoute, Podcasts, Émissions, Radios, DJ sets, Hors connexion",
+    "Séparation visuelle claire entre chaque section",
+    "Header simplifié avec boutons d'action"
+  ]
+}
