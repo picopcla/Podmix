@@ -363,6 +363,7 @@ public class PodmixPlayerPlugin extends Plugin implements Player.Listener {
         getContext().getSharedPreferences("podmix-library", Context.MODE_PRIVATE)
             .edit()
             .putString("items", items.toString())
+            .putLong("version", System.currentTimeMillis())
             .apply();
         JSObject result = new JSObject();
         result.put("count", items.length());
@@ -380,6 +381,7 @@ public class PodmixPlayerPlugin extends Plugin implements Player.Listener {
             .edit()
             .putString("trackIds", ids.toString())
             .putBoolean("initialized", true)
+            .putLong("version", System.currentTimeMillis())
             .apply();
         JSObject result = new JSObject();
         result.put("count", ids.length());
@@ -399,6 +401,23 @@ public class PodmixPlayerPlugin extends Plugin implements Player.Listener {
             result.put("ids", new JSArray());
         }
         result.put("initialized", preferences.getBoolean("initialized", false));
+        call.resolve(result);
+    }
+
+    @PluginMethod
+    public void syncResume(PluginCall call) {
+        JSArray items = call.getArray("items");
+        if (items == null) {
+            call.reject("items est obligatoire");
+            return;
+        }
+        getContext().getSharedPreferences("podmix-resume", Context.MODE_PRIVATE)
+            .edit()
+            .putString("items", items.toString())
+            .putLong("version", System.currentTimeMillis())
+            .apply();
+        JSObject result = new JSObject();
+        result.put("count", items.length());
         call.resolve(result);
     }
 

@@ -7,7 +7,7 @@ import { alignTracklist, createBoseCastSession, createDetectionJob, createEpisod
 import type { CatalogSource, DetectionJob, DjSearchResult, Episode, OfflineEpisode, PodcastSearchResult, Track } from './domain'
 import { loadCatalog, loadOfflineEpisodes, loadSession, saveCatalog, saveOfflineEpisodes, saveSession } from './storage'
 import { podmixPlayer } from './nativePlayer'
-import type { BoseDevice, CastDevice } from './nativePlayer'
+import type { BoseDevice, CastDevice, LibraryItem } from './nativePlayer'
 import { checkForUpdate, currentVersion, openUpdate } from './updates'
 import type { UpdateManifest } from './updates'
 import { mergeCatalogSource, mergeEpisode } from './catalogMerge'
@@ -753,12 +753,13 @@ function App() {
   useEffect(() => {
     if (!podmixPlayer.isNative) return
     const offlineById = new Map(offlineEpisodes.filter((item) => item.status === 'completed' && item.localUri).map((item) => [item.id, item]))
-    const library = catalog.flatMap((source) => {
+    const library: LibraryItem[] = catalog.flatMap<LibraryItem>((source) => {
       if (source.kind === 'radio' && source.streamUrl) {
         return [{
           id: `source::${source.id}`,
           parentId: 'podmix-root',
           groupId: source.id,
+          kind: 'radio',
           url: source.streamUrl,
           title: source.title,
           artist: 'Radio en direct',
@@ -776,7 +777,8 @@ function App() {
           return [{
             id: `episode::${episode.id}`,
             parentId: sourceId,
-            groupId: episode.id,
+            groupId: source.id,
+            kind: source.kind,
         url,
         title: episode.title,
         artist: source.title,
@@ -789,37 +791,45 @@ function App() {
         const trackItems = episode.tracks.map((track, index) => {
           const nextTime = episode.tracks?.[index + 1]?.time
           const mediaId = favoriteTrackKey(episode.id, track, index)
+          // Offline: use clipping, Online: use segment proxy (URL will be replaced at playback time)
           return {
             id: mediaId,
             parentId: episodeId,
             groupId: episode.id,
+            kind: source.kind,
             favoriteId: mediaId,
-            url,
+            url, // Full episode URL, will be replaced with segment URL at playback if online
             title: track.title,
             artist: track.artist || source.title,
             artworkUrl: trackArtwork(track, episode, source),
             browsable: false,
             playable: true,
-            startPositionSeconds: Math.max(0, track.time),
+            startPositionSeconds: Math.max(0, track.time), // For offline clipping
             ...(nextTime !== undefined && nextTime > track.time
               ? { endPositionSeconds: nextTime }
               : {}),
+            trackStartTime: track.time, // Store for segment proxy
+            trackEndTime: nextTime, // Store for segment proxy
           }
         })
         return [{
           id: episodeId,
           parentId: sourceId,
+          groupId: source.id,
+          kind: source.kind,
+          url,
           title: episode.title,
           artist: source.title,
           artworkUrl: episode.artworkUrl || source.artworkUrl,
           browsable: true,
-          playable: false,
+          playable: true,
         }, ...trackItems]
       })
       if (!episodes.length) return []
       return [{
         id: sourceId,
         parentId: 'podmix-root',
+        kind: source.kind,
         title: source.title,
         artist: source.kind === 'podcast' ? 'Podcast' : source.kind === 'show' ? 'Émission' : 'DJ set',
         artworkUrl: source.artworkUrl,
@@ -836,7 +846,32 @@ function App() {
         .filter((source) => source.feedUrl && ['podcast', 'show'].includes(source.kind))
         .map((source) => ({ id: source.id, title: source.title, feedUrl: source.feedUrl! })),
     ).catch(() => undefined)
-  }, [catalog, favoriteTrackIds, nativeFavoritesReady, offlineEpisodes])
+    const resumeItems: Array<{ id: string; episodeId: string; title: string; artist: string; url: string; artworkUrl: string; positionSeconds: number; durationSeconds: number }> = history
+      .filter((item) => {
+        const source = catalog.find((s) => s.episodes.some((e) => e.id === item.id))
+        const episode = source?.episodes.find((e) => e.id === item.id)
+        if (!source || !episode || !['podcast', 'show'].includes(source.kind)) return false
+        const duration = Math.max(parseDuration(episode.duration), item.duration ?? 0)
+        return duration <= 0 || item.position / duration < 0.98
+      })
+      .slice(0, 10)
+      .map((item) => {
+        const source = catalog.find((s) => s.episodes.some((e) => e.id === item.id))!
+        const episode = source.episodes.find((e) => e.id === item.id)!
+        const duration = Math.max(parseDuration(episode.duration), item.duration ?? 0)
+        return {
+          id: `resume::${episode.id}`,
+          episodeId: episode.id,
+          title: episode.title,
+          artist: source.title,
+          url: episode.audioUrl,
+          artworkUrl: episode.artworkUrl || source.artworkUrl,
+          positionSeconds: item.position,
+          durationSeconds: duration,
+        }
+      })
+    void podmixPlayer.syncResume(resumeItems).catch(() => undefined)
+  }, [catalog, favoriteTrackIds, nativeFavoritesReady, offlineEpisodes, history])
   useEffect(() => {
     void podmixPlayer.getStorage().then(setStorage).catch(() => undefined)
   }, [offlineEpisodes])
@@ -1651,6 +1686,19 @@ function App() {
     setGlobalPlaying(state.playing)
   }
 
+  // Helper to get segment URL for a track (online playback)
+  function getTrackSegmentUrl(episodeUrl: string, startTime: number, endTime?: number): string {
+    const apiUrl = getApiUrl()
+    const params = new URLSearchParams({
+      url: episodeUrl,
+      start: startTime.toString(),
+    })
+    if (endTime !== undefined) {
+      params.set('end', endTime.toString())
+    }
+    return `${apiUrl}/v1/segment?${params.toString()}`
+  }
+
   async function playEpisode(id: string, title: string, artist: string, url: string, artworkUrl?: string, resumePosition = 0, scope: NowPlayingItem['scope'] = 'episode') {
     if (!url) return
     try {
@@ -1752,14 +1800,22 @@ function App() {
     const playbackPosition = isResume ? savedPosition : undefined
     const queue = tracklist.map((track, index) => {
       const nextTime = tracklist[index + 1]?.time
+      const isDownloaded = offlineEpisodes.some((item) => item.id === episode.id && item.status === 'completed')
+      // Use segment proxy for online playback, local file with clipping for offline
+      const trackUrl = isDownloaded
+        ? episode.audioUrl
+        : getTrackSegmentUrl(episode.audioUrl, track.time, nextTime)
       return {
         id: favoriteTrackKey(episode.id, track, index),
-        url: episode.audioUrl,
+        url: trackUrl,
         title: track.title,
         artist: track.artist,
         artworkUrl: trackArtwork(track, episode, source),
-        startPositionSeconds: Math.max(0, track.time),
-        ...(nextTime > track.time ? { endPositionSeconds: nextTime } : {}),
+        // Only use clipping for offline/downloaded episodes
+        ...(isDownloaded ? {
+          startPositionSeconds: Math.max(0, track.time),
+          ...(nextTime > track.time ? { endPositionSeconds: nextTime } : {}),
+        } : {}),
       }
     })
     favoriteQueueRef.current = undefined
@@ -1819,16 +1875,22 @@ function App() {
     const queue = entries.map((entry) => {
       const tracks = entry.episode.tracks ?? []
       const nextTime = tracks[entry.trackIndex + 1]?.time
+      const isLocal = entry.episode.audioUrl.startsWith('file://') || entry.episode.audioUrl.startsWith('content://')
+      const url = isLocal 
+        ? entry.episode.audioUrl 
+        : getTrackSegmentUrl(entry.episode.audioUrl, entry.track.time, nextTime)
       return {
         id: entry.key,
-        url: entry.episode.audioUrl,
+        url,
         title: entry.track.title,
         artist: entry.track.artist || entry.source.title,
         artworkUrl: trackArtwork(entry.track, entry.episode, entry.source),
-        startPositionSeconds: Math.max(0, entry.track.time),
-        ...(nextTime !== undefined && nextTime > entry.track.time
-          ? { endPositionSeconds: nextTime }
-          : {}),
+        ...(isLocal ? {
+          startPositionSeconds: Math.max(0, entry.track.time),
+          ...(nextTime !== undefined && nextTime > entry.track.time
+            ? { endPositionSeconds: nextTime }
+            : {}),
+        } : {}),
       }
     })
     trackQueueRef.current = undefined

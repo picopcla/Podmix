@@ -35,6 +35,7 @@ export type LibraryItem = Omit<LoadOptions, 'url'> & {
   favoriteId?: string
   browsable: boolean
   playable: boolean
+  kind?: string
 }
 
 export type DownloadState = {
@@ -78,6 +79,7 @@ type PodmixPlayerPlugin = {
   getState(): Promise<PlayerState>
   syncLibrary(options: { items: LibraryItem[] }): Promise<{ count: number }>
   syncFavorites(options: { ids: string[] }): Promise<{ count: number }>
+  syncResume(options: { items: Array<{ id: string; episodeId: string; title: string; artist: string; url: string; artworkUrl: string; positionSeconds: number; durationSeconds: number }> }): Promise<{ count: number }>
   getFavorites(): Promise<{ ids: string[]; initialized: boolean }>
   syncSubscriptions(options: { items: Array<{ id: string; title: string; feedUrl: string }> }): Promise<{ count: number }>
   getStorage(): Promise<{ downloadedBytes: number; availableBytes: number; totalBytes: number }>
@@ -234,6 +236,10 @@ export const podmixPlayer = {
   async syncFavorites(ids: string[]) {
     if (!Capacitor.isNativePlatform()) return { count: ids.length }
     return NativePlayer.syncFavorites({ ids })
+  },
+  async syncResume(items: Array<{ id: string; episodeId: string; title: string; artist: string; url: string; artworkUrl: string; positionSeconds: number; durationSeconds: number }>) {
+    if (!Capacitor.isNativePlatform()) return { count: items.length }
+    return NativePlayer.syncResume({ items })
   },
   async getFavorites() {
     if (!Capacitor.isNativePlatform()) return { ids: [] as string[], initialized: false }

@@ -1,14 +1,15 @@
 {
-  "versionCode": 10043,
-  "versionName": "1.0.43",
+  "versionCode": 10062,
+  "versionName": "1.0.62",
   "minimumVersionCode": 10000,
-  "apkUrl": "https://vps-43451133.vps.ovh.net/podmix/podmix-1.0.43.apk",
-  "publishedAt": "2026-08-02T21:10:00Z",
-  "sha256": "4b84b73568ff66052086bfe56964616f8ef47f02dc448b8fff520bdec59f880a",
+  "apkUrl": "https://vps-43451133.vps.ovh.net/podmix/podmix-1.0.62.apk",
+  "publishedAt": "2026-08-04T21:20:00Z",
+  "sha256": "36d403461eb182f386bf4bfe0abe966af5c17831cf6bcaaf02bd2a26d394665d",
   "notes": [
-    "Refonte écran d'accueil avec sections distinctes",
-    "Sections: Reprendre l'écoute, Podcasts, Émissions, Radios, DJ sets, Hors connexion",
-    "Séparation visuelle claire entre chaque section",
-    "Header simplifié avec boutons d'action"
+    "🚀 Proxy FFmpeg VPS pour lecture de segments (online)",
+    "🎯 Réduction drastique du lag à la lecture des morceaux",
+    "📱 Cache en mémoire pour Android Auto (parsing JSON éliminé)",
+    "🎧 Lecture hybride : proxy online / clipping local offline",
+    "⚡ Endpoint /v1/segment pour extraction FFmpeg à la demande"
   ]
 }

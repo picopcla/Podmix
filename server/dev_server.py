@@ -706,6 +706,43 @@ class Handler(BaseHTTPRequestHandler):
                     transcoder.kill()
             self.close_connection = True
 
+    def stream_segment(self, audio_url: str, start: float, end: float) -> None:
+        """Extract and stream an audio segment using FFmpeg."""
+        duration = end - start
+        
+        transcoder = None
+        try:
+            transcoder = subprocess.Popen(
+                [
+                    "ffmpeg", "-hide_banner", "-loglevel", "error",
+                    "-ss", f"{start:.3f}", "-i", audio_url,
+                    "-t", f"{duration:.3f}",
+                    "-map", "0:a:0", "-vn", "-c:a", "libmp3lame",
+                    "-b:a", "160k", "-f", "mp3", "pipe:1",
+                ],
+                stdout=subprocess.PIPE,
+                stderr=subprocess.DEVNULL,
+            )
+            assert transcoder.stdout is not None
+            while True:
+                chunk = transcoder.stdout.read(64 * 1024)
+                if not chunk:
+                    break
+                self.wfile.write(chunk)
+                self.wfile.flush()
+        except (BrokenPipeError, ConnectionResetError):
+            pass
+        finally:
+            if transcoder is not None:
+                if transcoder.stdout is not None:
+                    transcoder.stdout.close()
+                if transcoder.poll() is None:
+                    transcoder.terminate()
+                try:
+                    transcoder.wait(timeout=2)
+                except subprocess.TimeoutExpired:
+                    transcoder.kill()
+
     def do_HEAD(self) -> None:
         parts = urlparse(self.path).path.strip("/").split("/")
         if len(parts) == 3 and parts[:2] == ["v1", "cast"]:
@@ -722,6 +759,20 @@ class Handler(BaseHTTPRequestHandler):
         parts = path.strip("/").split("/")
         if len(parts) == 3 and parts[:2] == ["v1", "cast"]:
             self.relay_cast(parts[2])
+            return
+        if path == "/v1/segment":
+            from urllib.parse import parse_qs
+            query = parse_qs(parsed_url.query)
+            audio_url = query.get("url", [""])[0]
+            start = float(query.get("start", ["0"])[0])
+            end = float(query.get("end", ["0"])[0])
+            if not audio_url or start < 0 or end <= start:
+                self.json_response({"error": "invalid_segment_params"}, 400)
+                return
+            try:
+                self.stream_segment(audio_url, start, end)
+            except Exception as error:
+                self.json_response({"error": "segment_failed", "message": str(error)}, 500)
             return
         if path == "/v1/catalog/radios":
             from urllib.parse import parse_qs
