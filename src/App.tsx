@@ -1978,6 +1978,28 @@ function App() {
         addedAt: new Date().toISOString(),
       }, ...items.filter((item) => item.id !== id)])
       setDownloadMessage(state.status === 'completed' ? 'Déjà disponible hors connexion' : 'Téléchargement lancé')
+      
+      // If download completed and episode has tracks, extract them
+      if (state.status === 'completed' && state.localUri) {
+        const episode = catalog.flatMap(s => s.episodes).find(e => e.id === id)
+        if (episode && episode.tracks && episode.tracks.length > 0) {
+          try {
+            await podmixPlayer.extractTracks({
+              episodeId: id,
+              audioPath: state.localUri,
+              tracks: episode.tracks.map((track, index) => ({
+                id: String(track.id || index),
+                start: track.time,
+                end: episode.tracks?.[index + 1]?.time ?? -1
+              }))
+            })
+            console.log(`Extracted ${episode.tracks.length} tracks for episode ${id}`)
+          } catch (extractError) {
+            console.error('Failed to extract tracks:', extractError)
+            // Non-fatal: episode is still playable with clipping
+          }
+        }
+      }
     } catch (error) {
       setDownloadMessage(error instanceof Error ? error.message : 'Téléchargement impossible')
     }

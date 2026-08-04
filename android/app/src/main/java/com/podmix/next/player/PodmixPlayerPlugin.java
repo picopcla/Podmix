@@ -449,6 +449,74 @@ public class PodmixPlayerPlugin extends Plugin implements Player.Listener {
     }
 
     @PluginMethod
+    public void extractTracks(PluginCall call) {
+        String episodeId = call.getString("episodeId");
+        String audioPath = call.getString("audioPath");
+        JSArray tracks = call.getArray("tracks");
+        if (episodeId == null || audioPath == null || tracks == null) {
+            call.reject("episodeId, audioPath et tracks sont obligatoires");
+            return;
+        }
+        File episodeDir = new File(getContext().getExternalFilesDir(Environment.DIRECTORY_PODCASTS), "podmix/tracks/" + episodeId);
+        if (!episodeDir.exists()) episodeDir.mkdirs();
+        new Thread(() -> {
+            try {
+                JSONArray tracksArray = new JSONArray();
+                for (int i = 0; i < tracks.length(); i++) {
+                    JSONObject track = tracks.getJSONObject(i);
+                    double start = track.optDouble("start", 0.0);
+                    double end = track.optDouble("end", -1.0);
+                    String trackId = track.optString("id", String.valueOf(i));
+                    File outputFile = new File(episodeDir, trackId + ".mp3");
+                    if (outputFile.exists() && outputFile.length() > 0) {
+                        JSONObject result = new JSONObject();
+                        result.put("trackId", trackId);
+                        result.put("path", outputFile.getAbsolutePath());
+                        result.put("status", "exists");
+                        tracksArray.put(result);
+                        continue;
+                    }
+                    List<String> cmd = new ArrayList<>();
+                    cmd.add("ffmpeg");
+                    cmd.add("-y");
+                    cmd.add("-hide_banner");
+                    cmd.add("-loglevel");
+                    cmd.add("error");
+                    cmd.add("-ss");
+                    cmd.add(String.format("%.3f", start));
+                    cmd.add("-i");
+                    cmd.add(audioPath);
+                    if (end > start) {
+                        cmd.add("-t");
+                        cmd.add(String.format("%.3f", end - start));
+                    }
+                    cmd.add("-map");
+                    cmd.add("0:a:0");
+                    cmd.add("-vn");
+                    cmd.add("-c:a");
+                    cmd.add("libmp3lame");
+                    cmd.add("-b:a");
+                    cmd.add("160k");
+                    cmd.add(outputFile.getAbsolutePath());
+                    ProcessBuilder pb = new ProcessBuilder(cmd);
+                    Process process = pb.start();
+                    int exitCode = process.waitFor();
+                    JSONObject result = new JSONObject();
+                    result.put("trackId", trackId);
+                    result.put("path", outputFile.getAbsolutePath());
+                    result.put("status", exitCode == 0 ? "extracted" : "failed");
+                    tracksArray.put(result);
+                }
+                JSObject response = new JSObject();
+                response.put("tracks", tracksArray);
+                call.resolve(response);
+            } catch (Exception error) {
+                call.reject("Extraction des pistes impossible", error);
+            }
+        }, "podmix-extract-tracks").start();
+    }
+
+    @PluginMethod
     public void getStorage(PluginCall call) {
         File directory = new File(getContext().getExternalFilesDir(Environment.DIRECTORY_PODCASTS), "podmix");
         if (!directory.exists()) directory.mkdirs();

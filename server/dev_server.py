@@ -721,17 +721,55 @@ class Handler(BaseHTTPRequestHandler):
                     "-b:a", "160k", "-f", "mp3", "pipe:1",
                 ],
                 stdout=subprocess.PIPE,
-                stderr=subprocess.DEVNULL,
+                stderr=subprocess.PIPE,
             )
             assert transcoder.stdout is not None
+            
+            # Read stderr in a separate thread to avoid blocking
+            stderr_lines = []
+            def read_stderr():
+                while True:
+                    line = transcoder.stderr.readline()
+                    if not line:
+                        break
+                    stderr_lines.append(line.decode('utf-8', errors='ignore'))
+            
+            import threading
+            stderr_thread = threading.Thread(target=read_stderr)
+            stderr_thread.start()
+            
+            # Stream audio data
+            bytes_sent = 0
             while True:
                 chunk = transcoder.stdout.read(64 * 1024)
                 if not chunk:
                     break
                 self.wfile.write(chunk)
                 self.wfile.flush()
+                bytes_sent += len(chunk)
+            
+            stderr_thread.join(timeout=5)
+            transcoder.wait(timeout=10)
+            
+            # Check if FFmpeg failed
+            if transcoder.returncode != 0:
+                error_msg = ''.join(stderr_lines[-5:]) if stderr_lines else 'Unknown error'
+                print(f"[podmix-api] FFmpeg error (exit {transcoder.returncode}): {error_msg}")
+                if bytes_sent == 0:
+                    try:
+                        self.wfile.write(b'\n\nFFmpeg error: ' + error_msg.encode() + b'\n')
+                    except (BrokenPipeError, ConnectionResetError):
+                        pass
         except (BrokenPipeError, ConnectionResetError):
             pass
+        except Exception as error:
+            print(f"[podmix-api] stream_segment error: {error}")
+            if transcoder is not None and transcoder.poll() is None:
+                transcoder.terminate()
+                try:
+                    transcoder.wait(timeout=2)
+                except subprocess.TimeoutExpired:
+                    transcoder.kill()
         finally:
             if transcoder is not None:
                 if transcoder.stdout is not None:
@@ -742,6 +780,51 @@ class Handler(BaseHTTPRequestHandler):
                     transcoder.wait(timeout=2)
                 except subprocess.TimeoutExpired:
                     transcoder.kill()
+
+    def extract_tracks(self, audio_url: str, tracks: list, episode_id: str) -> dict:
+        """Extract individual tracks from an episode and return their info."""
+        extracted = []
+        for i, track in enumerate(tracks):
+            start_time = float(track.get('time', 0))
+            next_track = tracks[i + 1] if i + 1 < len(tracks) else None
+            end_time = float(next_track['time']) if next_track else None
+            
+            # Extract track to temporary file
+            output_path = DATA_DIR / 'extracted_tracks' / episode_id / f"track_{i:03d}.mp3"
+            output_path.parent.mkdir(parents=True, exist_ok=True)
+            
+            cmd = [
+                "ffmpeg", "-hide_banner", "-loglevel", "error",
+                "-ss", f"{start_time:.3f}",
+                "-i", audio_url,
+            ]
+            if end_time is not None:
+                cmd.extend(["-t", f"{end_time - start_time:.3f}"])
+            cmd.extend([
+                "-map", "0:a:0", "-vn", "-c:a", "libmp3lame",
+                "-b:a", "160k", "-y", str(output_path)
+            ])
+            
+            result = subprocess.run(cmd, capture_output=True, text=True, timeout=300)
+            
+            if result.returncode == 0 and output_path.exists():
+                extracted.append({
+                    "index": i,
+                    "title": track.get('title', f'Track {i+1}'),
+                    "artist": track.get('artist', ''),
+                    "startTime": start_time,
+                    "endTime": end_time,
+                    "localPath": str(output_path),
+                    "size": output_path.stat().st_size,
+                })
+            else:
+                print(f"[podmix-api] Failed to extract track {i}: {result.stderr}")
+        
+        return {
+            "episodeId": episode_id,
+            "tracks": extracted,
+            "count": len(extracted),
+        }
 
     def do_HEAD(self) -> None:
         parts = urlparse(self.path).path.strip("/").split("/")
@@ -774,22 +857,23 @@ class Handler(BaseHTTPRequestHandler):
             except Exception as error:
                 self.json_response({"error": "segment_failed", "message": str(error)}, 500)
             return
-        if path == "/v1/catalog/radios":
-            from urllib.parse import parse_qs
-            query = parse_qs(parsed_url.query).get("q", [""])[0]
-            try:
-                self.json_response({"items": search_radios(query)})
-            except Exception as error:
-                self.json_response({"error": "radio_directory_unavailable", "message": str(error)}, 502)
             return
-        if path == "/v1/catalog/podcasts":
-            from urllib.parse import parse_qs
-            query = parse_qs(parsed_url.query).get("q", [""])[0]
+        if path == "/v1/extract-tracks":
+            from urllib.parse import parse_qs, unquote
+            import json as json_module
+            query = parse_qs(parsed_url.query)
+            audio_url = unquote(query.get("url", [""])[0])
+            tracks_json = unquote(query.get("tracks", [""])[0])
+            episode_id = query.get("episodeId", [""])[0]
+            if not audio_url or not tracks_json or not episode_id:
+                self.json_response({"error": "missing_params"}, 400)
+                return
             try:
-                self.json_response({"items": search_podcasts(query)})
+                tracks = json_module.loads(tracks_json)
+                result = self.extract_tracks(audio_url, tracks, episode_id)
+                self.json_response(result)
             except Exception as error:
-                self.json_response({"error": "podcast_directory_unavailable", "message": str(error)}, 502)
-            return
+                self.json_response({"error": "extraction_failed", "message": str(error)}, 500)
         if path == "/v1/tracklists/candidates":
             from urllib.parse import parse_qs
             parameters = parse_qs(parsed_url.query)

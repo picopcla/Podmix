@@ -89,6 +89,7 @@ type PodmixPlayerPlugin = {
   download(options: { id: string; url: string; title?: string }): Promise<DownloadState>
   getDownload(options: { id: string }): Promise<DownloadState>
   removeDownload(options: { id: string }): Promise<DownloadState>
+  extractTracks(options: { episodeId: string; audioPath: string; tracks: Array<{ id: string; start: number; end: number }> }): Promise<{ tracks: Array<{ trackId: string; path: string; status: string }> }>
   openCastPicker(): Promise<{ pickerOpened?: boolean; connected?: boolean }>
   discoverCastDevices(): Promise<{ devices: CastDevice[] }>
   connectCastDevice(options: { id: string }): Promise<{ connected: boolean; deviceName?: string }>
@@ -301,6 +302,10 @@ export const podmixPlayer = {
   async removeDownload(id: string) {
     if (!Capacitor.isNativePlatform()) return { id, status: 'not_found' as const, removed: false }
     return NativePlayer.removeDownload({ id })
+  },
+  async extractTracks(options: { episodeId: string; audioPath: string; tracks: Array<{ id: string; start: number; end: number }> }) {
+    if (!Capacitor.isNativePlatform()) return { tracks: [] }
+    return NativePlayer.extractTracks(options)
   },
   async openCastPicker() {
     if (!Capacitor.isNativePlatform()) throw new Error('Google Cast nécessite l’application Android')

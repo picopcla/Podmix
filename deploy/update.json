@@ -1,15 +1,15 @@
 {
-  "versionCode": 10062,
-  "versionName": "1.0.62",
+  "versionCode": 10063,
+  "versionName": "1.0.63",
   "minimumVersionCode": 10000,
-  "apkUrl": "https://vps-43451133.vps.ovh.net/podmix/podmix-1.0.62.apk",
-  "publishedAt": "2026-08-04T21:20:00Z",
-  "sha256": "36d403461eb182f386bf4bfe0abe966af5c17831cf6bcaaf02bd2a26d394665d",
+  "apkUrl": "https://vps-43451133.vps.ovh.net/podmix/podmix-1.0.63.apk",
+  "publishedAt": "2026-08-04T21:50:00Z",
+  "sha256": "PENDING",
   "notes": [
-    "🚀 Proxy FFmpeg VPS pour lecture de segments (online)",
-    "🎯 Réduction drastique du lag à la lecture des morceaux",
-    "📱 Cache en mémoire pour Android Auto (parsing JSON éliminé)",
-    "🎧 Lecture hybride : proxy online / clipping local offline",
-    "⚡ Endpoint /v1/segment pour extraction FFmpeg à la demande"
+    "🚀 Proxy FFmpeg hybride : lecture instantanée des morceaux (online)",
+    "📥 Extraction automatique des pistes lors du téléchargement (offline)",
+    "📱 Cache en mémoire pour Android Auto (navigation ultra-rapide)",
+    "⚡ Endpoint /v1/extract-tracks pour pré-découpage VPS",
+    "🎧 Réduction drastique du lag à la lecture et recalage Android Auto"
   ]
 }
