@@ -725,6 +725,13 @@ class Handler(BaseHTTPRequestHandler):
             )
             assert transcoder.stdout is not None
             
+            # Send HTTP headers first
+            self.send_response(200)
+            self.send_header("Content-Type", "audio/mpeg")
+            self.send_header("Cache-Control", "no-cache")
+            self.send_header("Access-Control-Allow-Origin", "*")
+            self.end_headers()
+            
             # Read stderr in a separate thread to avoid blocking
             stderr_lines = []
             def read_stderr():
