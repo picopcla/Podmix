@@ -8,8 +8,8 @@ import type { CatalogSource, DetectionJob, DjSearchResult, Episode, OfflineEpiso
 import { loadCatalog, loadOfflineEpisodes, loadSession, saveCatalog, saveOfflineEpisodes, saveSession } from './storage'
 import { podmixPlayer } from './nativePlayer'
 import type { BoseDevice, CastDevice, LibraryItem } from './nativePlayer'
-import { checkForUpdate, currentVersion, openUpdate } from './updates'
-import type { UpdateManifest } from './updates'
+import { checkForUpdate, currentVersion, downloadAndUpdate } from './updates'
+import type { UpdateManifest, UpdateProgress } from './updates'
 import { mergeCatalogSource, mergeEpisode } from './catalogMerge'
 import './App.css'
 import './identification.css'
@@ -463,6 +463,7 @@ function App() {
   const [, setStorage] = useState({ downloadedBytes: 0, availableBytes: 0, totalBytes: 0 })
   const [availableUpdate, setAvailableUpdate] = useState<UpdateManifest | null>(null)
   const [updateMessage, setUpdateMessage] = useState('Recherche automatique…')
+  const [updateProgress, setUpdateProgress] = useState<UpdateProgress | null>(null)
 
   useEffect(() => () => waveRef.current?.destroy(), [])
   useEffect(() => {
@@ -2907,7 +2908,20 @@ function App() {
             <section><h2>Appareils</h2><button className="device-row" onClick={openOutputPicker}><Cast size={18} /><span>Sortie audio<small>{activeOutput.name}</small></span><ChevronDown size={16} /></button></section>
             <section><h2>Données</h2><p className="settings-copy">Exportez une sauvegarde ou importez le JSON produit par le convertisseur Room.</p><div className="backup-actions"><button onClick={exportBackup}><Download size={15} /> Exporter</button><button onClick={() => backupInputRef.current?.click()}><CloudUpload size={15} /> Importer</button><input ref={backupInputRef} type="file" accept="application/json,.json" onChange={importBackup} hidden /></div>{backupMessage && <small className="backup-message">{backupMessage}</small>}</section>
             <section><h2>Serveur Podmix</h2><p className="settings-copy">Adresse du moteur de détection et des annuaires. Sur un téléphone, utilisez l’adresse HTTPS de votre serveur ou son IP locale en debug.</p><div className="server-settings"><input type="url" value={serverUrl} onChange={(event) => setServerUrlState(event.target.value)} placeholder="https://podmix.example.com" /><button onClick={saveAndTestServer}>Enregistrer et tester</button></div>{serverMessage && <small className="backup-message">{serverMessage}</small>}</section>
-            <section><h2>Mises à jour</h2><p className="settings-copy">Version installée : {currentVersion}. {updateMessage}</p>{availableUpdate && <button className="device-row" onClick={() => openUpdate(availableUpdate)}><Download size={18} /><span>Installer la version {availableUpdate.versionName}<small>{availableUpdate.notes.join(' · ')}</small></span><ExternalLink size={16} /></button>}</section>
+            <section><h2>Mises à jour</h2><p className="settings-copy">Version installée : {currentVersion}. {updateMessage}</p>{availableUpdate && (updateProgress ? (
+              <div className="device-row" style={{ opacity: 0.7 }}>
+                <Download size={18} />
+                <span style={{ flex: 1 }}>
+                  {updateProgress.status === 'installing' ? 'Installation…' : 'Téléchargement…'}
+                  <small>{updateProgress.status === 'downloading' ? `${Math.round(updateProgress.progress * 100)}%` : updateProgress.status}</small>
+                  <div style={{ width: '100%', height: 4, background: '#ddd', borderRadius: 2, marginTop: 6, overflow: 'hidden' }}>
+                    <div style={{ width: `${updateProgress.progress * 100}%`, height: '100%', background: '#667eea', borderRadius: 2, transition: 'width 0.3s' }} />
+                  </div>
+                </span>
+              </div>
+            ) : (
+              <button className="device-row" onClick={() => { downloadAndUpdate(availableUpdate, setUpdateProgress).catch((err) => { setUpdateMessage(`Erreur : ${err.message}`); setUpdateProgress(null) }) }}><Download size={18} /><span>Installer la version {availableUpdate.versionName}<small>{availableUpdate.notes.join(' · ')}</small></span><ExternalLink size={16} /></button>
+            ))}</section>
           </div> : activeView === 'favorites' ? <section className="favorites-view">
             {favoriteTrackEntries.length > 0 && <section className="recent-list favorite-tracks">
               <div className="section-heading"><div><Heart size={17} fill="currentColor" /><h2>Morceaux favoris</h2></div><div className="favorite-heading-actions"><button className="spotify-refresh" onClick={() => {

@@ -49,6 +49,16 @@ export type DownloadState = {
   removed?: boolean
 }
 
+export type ApkDownloadState = {
+  requestId?: number
+  status: 'queued' | 'downloading' | 'paused' | 'completed' | 'failed' | 'not_found' | 'unknown'
+  bytesDownloaded?: number
+  totalBytes?: number
+  progress?: number
+  localUri?: string
+  path?: string
+}
+
 export type NativeTracklistResult = {
   sourceUrl: string
   pageTitle: string
@@ -90,6 +100,9 @@ type PodmixPlayerPlugin = {
   getDownload(options: { id: string }): Promise<DownloadState>
   removeDownload(options: { id: string }): Promise<DownloadState>
   extractTracks(options: { episodeId: string; audioPath: string; tracks: Array<{ id: string; start: number; end: number }> }): Promise<{ tracks: Array<{ trackId: string; path: string; status: string }> }>
+  downloadApk(options: { url: string; versionName: string }): Promise<{ requestId: number; path: string }>
+  getApkStatus(options: { requestId: number }): Promise<ApkDownloadState>
+  installApk(options: { path?: string; localUri?: string }): Promise<{ ok: boolean }>
   openCastPicker(): Promise<{ pickerOpened?: boolean; connected?: boolean }>
   discoverCastDevices(): Promise<{ devices: CastDevice[] }>
   connectCastDevice(options: { id: string }): Promise<{ connected: boolean; deviceName?: string }>
@@ -302,6 +315,18 @@ export const podmixPlayer = {
   async removeDownload(id: string) {
     if (!Capacitor.isNativePlatform()) return { id, status: 'not_found' as const, removed: false }
     return NativePlayer.removeDownload({ id })
+  },
+  async downloadApk(url: string, versionName: string) {
+    if (!Capacitor.isNativePlatform()) throw new Error('La mise à jour native nécessite l\'application Android')
+    return NativePlayer.downloadApk({ url, versionName })
+  },
+  async getApkStatus(requestId: number) {
+    if (!Capacitor.isNativePlatform()) return { status: 'not_found' as const, progress: 0 }
+    return NativePlayer.getApkStatus({ requestId })
+  },
+  async installApk(path?: string, localUri?: string) {
+    if (!Capacitor.isNativePlatform()) throw new Error('L\'installation native nécessite l\'application Android')
+    return NativePlayer.installApk({ path, localUri })
   },
   async extractTracks(options: { episodeId: string; audioPath: string; tracks: Array<{ id: string; start: number; end: number }> }) {
     if (!Capacitor.isNativePlatform()) return { tracks: [] }

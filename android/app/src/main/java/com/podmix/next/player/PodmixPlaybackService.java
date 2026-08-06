@@ -31,6 +31,8 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 
+import android.util.Log;
+
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -69,25 +71,52 @@ public class PodmixPlaybackService extends MediaLibraryService {
     @Override
     public void onCreate() {
         super.onCreate();
-        DefaultHttpDataSource.Factory httpFactory = new DefaultHttpDataSource.Factory()
-            .setUserAgent("Podmix/1.0 (Android)")
-            .setAllowCrossProtocolRedirects(true)
-            .setConnectTimeoutMs(20_000)
-            .setReadTimeoutMs(30_000);
+        
+        // LoadControl: 3-8 min de buffer, 1.5s démarrage rapide, 10s après rebuffer
+        // (même config que l'ancien PlayerController.kt qui marchait)
+        androidx.media3.exoplayer.DefaultLoadControl loadControl = 
+            new androidx.media3.exoplayer.DefaultLoadControl.Builder()
+                .setBufferDurationsMs(
+                    3 * 60 * 1000,   // minBufferMs: 3 minutes
+                    8 * 60 * 1000,   // maxBufferMs: 8 minutes
+                    1_500,           // bufferForPlaybackMs: 1.5s
+                    10_000           // bufferForPlaybackAfterRebufferMs: 10s
+                )
+                .build();
+        
+        // Audio attributes pour le streaming média
         AudioAttributes audioAttributes = new AudioAttributes.Builder()
             .setUsage(C.USAGE_MEDIA)
             .setContentType(C.AUDIO_CONTENT_TYPE_MUSIC)
             .build();
+        
+        // HTTP avec timeout de lecture de 30s — équilibre entre streaming et détection d'erreur
+        DefaultHttpDataSource.Factory httpFactory = new DefaultHttpDataSource.Factory()
+            .setUserAgent("Podmix/1.0.66 (Android)")
+            .setAllowCrossProtocolRedirects(true)
+            .setConnectTimeoutMs(30_000)
+            .setReadTimeoutMs(30_000);
+        
+        // Création ExoPlayer sans cache (le cache SimpleCache causait un crash)
         player = new ExoPlayer.Builder(this)
             .setMediaSourceFactory(new DefaultMediaSourceFactory(this).setDataSourceFactory(httpFactory))
+            .setLoadControl(loadControl)
             .setAudioAttributes(audioAttributes, true)
             .setHandleAudioBecomingNoisy(true)
+            .setWakeMode(C.WAKE_MODE_NETWORK)  // CPU éveillé pour streaming
             .build();
+        
         mediaSession = new MediaLibrarySession.Builder(this, player, new LibraryCallback()).build();
         player.addListener(new Player.Listener() {
             @Override
             public void onMediaItemTransition(@Nullable MediaItem mediaItem, int reason) {
                 updateFavoriteLayout(favoriteIdFor(mediaItem == null ? "" : mediaItem.mediaId));
+            }
+            
+            @Override
+            public void onPlayerError(androidx.media3.common.PlaybackException error) {
+                String mediaId = player.getCurrentMediaItem() != null ? player.getCurrentMediaItem().mediaId : "?";
+                android.util.Log.e("PodmixService", "Player error on " + mediaId + ": " + error.getErrorCodeName() + " - " + error.getMessage());
             }
         });
     }
@@ -473,6 +502,7 @@ public class PodmixPlaybackService extends MediaLibraryService {
         } catch (Exception ignored) {
             // Une bibliothèque corrompue reste simplement vide.
         }
+        Log.d("PodmixService", "libraryEntries: parsed " + items.size() + " items from SharedPreferences");
         Set<String> favorites = favoriteIds();
         List<LibraryEntry> aliases = new ArrayList<>();
         for (LibraryEntry entry : items) {

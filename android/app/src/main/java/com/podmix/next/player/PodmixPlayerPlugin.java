@@ -4,6 +4,7 @@ import android.Manifest;
 import android.app.DownloadManager;
 import android.content.ComponentName;
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.net.Uri;
@@ -354,10 +355,10 @@ public class PodmixPlayerPlugin extends Plugin implements Player.Listener {
         for (int index = 0; index < items.length(); index++) {
             JSONObject item = items.optJSONObject(index);
             if (item != null) {
-                ArtworkProvider.register(
-                    getContext(),
-                    item.optString("artworkUrl", "")
-                );
+                String artworkUrl = item.optString("artworkUrl", "");
+                if (artworkUrl != null && !artworkUrl.isEmpty()) {
+                    ArtworkProvider.register(getContext(), artworkUrl);
+                }
             }
         }
         getContext().getSharedPreferences("podmix-library", Context.MODE_PRIVATE)
@@ -858,6 +859,131 @@ public class PodmixPlayerPlugin extends Plugin implements Player.Listener {
         result.put("id", id);
         result.put("removed", removed);
         call.resolve(result);
+    }
+
+    @PluginMethod
+    public void downloadApk(PluginCall call) {
+        ensureNotificationPermission();
+        String url = call.getString("url");
+        String versionName = call.getString("versionName", "update");
+        if (url == null || url.isBlank()) {
+            call.reject("url est obligatoire");
+            return;
+        }
+        File directory = new File(getContext().getExternalFilesDir(Environment.DIRECTORY_PODCASTS), "podmix/updates");
+        if (!directory.exists() && !directory.mkdirs()) {
+            call.reject("Création du dossier de mise à jour impossible");
+            return;
+        }
+        String safeVersion = versionName.replaceAll("[^a-zA-Z0-9._-]", "_");
+        File destination = new File(directory, "podmix-" + safeVersion + ".apk");
+        try {
+            DownloadManager.Request request = new DownloadManager.Request(Uri.parse(url))
+                .setTitle("Podmix " + versionName)
+                .setDescription("Téléchargement de la mise à jour")
+                .setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED)
+                .setAllowedOverMetered(true)
+                .setAllowedOverRoaming(false)
+                .setDestinationUri(Uri.fromFile(destination))
+                .setMimeType("application/vnd.android.package-archive");
+            DownloadManager manager = (DownloadManager) getContext().getSystemService(Context.DOWNLOAD_SERVICE);
+            long requestId = manager.enqueue(request);
+            SharedPreferences prefs = getContext().getSharedPreferences("podmix_updates", Context.MODE_PRIVATE);
+            prefs.edit()
+                .putLong("apk.requestId", requestId)
+                .putString("apk.path", destination.getAbsolutePath())
+                .apply();
+            JSObject result = new JSObject();
+            result.put("requestId", requestId);
+            result.put("path", destination.getAbsolutePath());
+            call.resolve(result);
+        } catch (Exception error) {
+            call.reject("Téléchargement de la mise à jour impossible", error);
+        }
+    }
+
+    @PluginMethod
+    public void getApkStatus(PluginCall call) {
+        long requestId = call.getLong("requestId", -1L);
+        if (requestId < 0) {
+            call.reject("requestId est obligatoire");
+            return;
+        }
+        DownloadManager manager = (DownloadManager) getContext().getSystemService(Context.DOWNLOAD_SERVICE);
+        try (Cursor cursor = manager.query(new DownloadManager.Query().setFilterById(requestId))) {
+            if (!cursor.moveToFirst()) {
+                JSObject result = new JSObject();
+                result.put("status", "not_found");
+                result.put("progress", 0);
+                call.resolve(result);
+                return;
+            }
+            int androidStatus = cursor.getInt(cursor.getColumnIndexOrThrow(DownloadManager.COLUMN_STATUS));
+            long downloaded = cursor.getLong(cursor.getColumnIndexOrThrow(DownloadManager.COLUMN_BYTES_DOWNLOADED_SO_FAR));
+            long total = cursor.getLong(cursor.getColumnIndexOrThrow(DownloadManager.COLUMN_TOTAL_SIZE_BYTES));
+            String status;
+            switch (androidStatus) {
+                case DownloadManager.STATUS_PENDING: status = "queued"; break;
+                case DownloadManager.STATUS_RUNNING: status = "downloading"; break;
+                case DownloadManager.STATUS_PAUSED: status = "paused"; break;
+                case DownloadManager.STATUS_SUCCESSFUL: status = "completed"; break;
+                case DownloadManager.STATUS_FAILED: status = "failed"; break;
+                default: status = "unknown";
+            }
+            JSObject result = new JSObject();
+            result.put("status", status);
+            result.put("bytesDownloaded", downloaded);
+            result.put("totalBytes", total);
+            result.put("progress", total > 0 ? (double) downloaded / total : 0);
+            SharedPreferences prefs = getContext().getSharedPreferences("podmix_updates", Context.MODE_PRIVATE);
+            String path = prefs.getString("apk.path", "");
+            if (!path.isBlank() && new File(path).exists()) {
+                result.put("localUri", Uri.fromFile(new File(path)).toString());
+                result.put("path", path);
+            }
+            call.resolve(result);
+        }
+    }
+
+    @PluginMethod
+    public void installApk(PluginCall call) {
+        String path = call.getString("path");
+        String localUri = call.getString("localUri");
+        File file;
+        if (path != null && !path.isBlank()) {
+            file = new File(path);
+        } else if (localUri != null && !localUri.isBlank()) {
+            try {
+                file = new File(Uri.parse(localUri).getPath());
+            } catch (Exception error) {
+                call.reject("URI invalide");
+                return;
+            }
+        } else {
+            call.reject("path ou localUri est obligatoire");
+            return;
+        }
+        if (!file.exists()) {
+            call.reject("Le fichier APK n'existe pas: " + file.getAbsolutePath());
+            return;
+        }
+        try {
+            Uri apkUri = androidx.core.content.FileProvider.getUriForFile(
+                getContext(),
+                getContext().getPackageName() + ".fileprovider",
+                file
+            );
+            Intent intent = new Intent(Intent.ACTION_VIEW);
+            intent.setDataAndType(apkUri, "application/vnd.android.package-archive");
+            intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            getContext().startActivity(intent);
+            JSObject result = new JSObject();
+            result.put("ok", true);
+            call.resolve(result);
+        } catch (Exception error) {
+            call.reject("Installation de l'APK impossible", error);
+        }
     }
 
     @PluginMethod

@@ -770,16 +770,6 @@ class Handler(BaseHTTPRequestHandler):
                     transcoder.wait(timeout=2)
                 except subprocess.TimeoutExpired:
                     transcoder.kill()
-        finally:
-            if transcoder is not None:
-                if transcoder.stdout is not None:
-                    transcoder.stdout.close()
-                if transcoder.poll() is None:
-                    transcoder.terminate()
-                try:
-                    transcoder.wait(timeout=2)
-                except subprocess.TimeoutExpired:
-                    transcoder.kill()
 
     def extract_tracks(self, audio_url: str, tracks: list, episode_id: str) -> dict:
         """Extract individual tracks from an episode and return their info."""
@@ -905,6 +895,22 @@ class Handler(BaseHTTPRequestHandler):
                 self.json_response({"items": search_dj_sets(query)})
             except Exception as error:
                 self.json_response({"error": "dj_search_unavailable", "message": str(error)}, 502)
+            return
+        if path == "/v1/catalog/podcasts":
+            from urllib.parse import parse_qs
+            query = parse_qs(parsed_url.query).get("q", [""])[0]
+            try:
+                self.json_response({"items": search_podcasts(query)})
+            except Exception as error:
+                self.json_response({"error": "podcasts_unavailable", "message": str(error)}, 502)
+            return
+        if path == "/v1/catalog/radios":
+            from urllib.parse import parse_qs
+            query = parse_qs(parsed_url.query).get("q", [""])[0]
+            try:
+                self.json_response({"items": search_radios(query)})
+            except Exception as error:
+                self.json_response({"error": "radios_unavailable", "message": str(error)}, 502)
             return
         parts = path.strip("/").split("/")
         if len(parts) >= 3 and parts[:2] == ["v1", "detection-jobs"]:
