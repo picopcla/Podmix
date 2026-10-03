@@ -111,8 +111,14 @@ def _words(value: str) -> set[str]:
 def _score_match(wanted_artist: str, wanted_title: str, found_artist: str, found_title: str) -> int:
     artist_words, title_words = _words(wanted_artist), _words(wanted_title)
     found_artist_words, found_title_words = _words(found_artist), _words(found_title)
-    artist_score = len(artist_words & found_artist_words) / max(1, len(artist_words))
-    title_score = len(title_words & found_title_words) / max(1, len(title_words))
+    def canonical(value: str) -> str:
+        return re.sub(r"[^a-z0-9]+", "", _clean_credit(value).casefold())
+
+    # Des artistes tels que « TH;EN » ou « U2 » ne gardent aucun mot après le
+    # filtre des termes courts. Une égalité normalisée reste pourtant un signal
+    # fort et évite de rejeter leur titre Deezer exact.
+    artist_score = 1.0 if canonical(wanted_artist) == canonical(found_artist) else len(artist_words & found_artist_words) / max(1, len(artist_words))
+    title_score = 1.0 if canonical(wanted_title) == canonical(found_title) else len(title_words & found_title_words) / max(1, len(title_words))
     return round((artist_score * 0.45 + title_score * 0.55) * 100)
 
 

@@ -114,6 +114,28 @@ test('une donnée locale abîmée ne bloque pas le démarrage', async ({ page })
   await expect(page.locator('.mobile-nav')).toBeAttached()
 })
 
+test('l’historique Hermes migre, recherche et supprime les anciennes écoutes', async ({ page }) => {
+  await page.addInitScript(() => {
+    localStorage.setItem('podmix-history-v1', JSON.stringify([{
+      id: 'episode-hermes', title: 'Session Hermes', artist: 'Podcast mémoire', url: '/hermes.wav',
+      position: 42, duration: 600, playedAt: '2026-08-12T10:00:00.000Z',
+    }]))
+  })
+
+  await page.goto('/')
+  await page.getByRole('button', { name: 'Voir l’historique' }).click()
+  await expect(page.getByRole('heading', { name: 'Historique' })).toBeVisible()
+  await expect(page.locator('.history-item')).toContainText('Session Hermes')
+  await expect(page.locator('.history-item')).toContainText('repris à 0:42')
+
+  await page.getByLabel('Rechercher dans l’historique').fill('introuvable')
+  await expect(page.locator('.history-item')).toHaveCount(0)
+  await page.getByLabel('Rechercher dans l’historique').fill('mémoire')
+  await expect(page.locator('.history-item')).toHaveCount(1)
+  await page.getByRole('button', { name: 'Supprimer Session Hermes de l’historique' }).click()
+  await expect(page.locator('.history-item')).toHaveCount(0)
+})
+
 test('un catalogue proche de la limite de stockage reste utilisable', async ({ page }) => {
   await page.addInitScript(() => {
     const catalog = [{
@@ -308,13 +330,14 @@ test('la liste des épisodes montre un état de lecture compact sans pourcentage
     localStorage.setItem('podmix-history-v1', JSON.stringify([{
       id: 'episode-progress', title: 'Épisode commencé', artist: 'Podcast progression', url: '/episode-progress.wav', position: 300, playedAt: '2026-08-01T10:00:00.000Z',
     }, {
-      id: 'episode-done', title: 'Épisode terminé', artist: 'Podcast progression', url: '/episode-done.wav', position: 580, playedAt: '2026-08-01T09:00:00.000Z',
+      // A new partial replay must not erase the historical completed state.
+      id: 'episode-done', title: 'Épisode terminé', artist: 'Podcast progression', url: '/episode-done.wav', position: 60, playedAt: '2026-08-01T09:00:00.000Z',
     }]))
+    localStorage.setItem('podmix-completed-episodes-v1', JSON.stringify(['episode-done']))
   })
 
   await page.goto('/')
-  await page.getByRole('button', { name: 'Bibliothèque' }).last().click()
-  await page.locator('.media-card').filter({ hasText: 'Podcast progression' }).click()
+  await page.getByRole('img', { name: 'Logo Podcast progression' }).click()
 
   await expect(page.locator('.episode-item').filter({ hasText: 'Épisode neuf' }).getByLabel('État de lecture : À lire')).toBeVisible()
   const startedEpisode = page.locator('.episode-item').filter({ hasText: 'Épisode commencé' })
@@ -406,6 +429,10 @@ test('les favoris gardent leur épisode et s’enchaînent', async ({ page }) =>
     })
   })
   await page.addInitScript(() => {
+    Object.defineProperty(navigator, 'share', {
+      configurable: true,
+      value: async () => undefined,
+    })
     const tracks = [{
       id: 1,
       time: 0.25,
@@ -427,8 +454,9 @@ test('les favoris gardent leur épisode et s’enchaînent', async ({ page }) =>
         title: 'Premier épisode favori',
         description: '',
         publishedAt: '2026-07-28',
-        duration: '00:01',
-        audioUrl: '/favorite-a.wav',
+        duration: '00:02',
+        audioUrl: 'https://publisher.example/favorite-a.wav',
+        sourceUrl: 'https://publisher.example/episode-a',
         artworkUrl: '',
         tracks,
       }, {
@@ -436,10 +464,14 @@ test('les favoris gardent leur épisode et s’enchaînent', async ({ page }) =>
         title: 'Second épisode favori',
         description: '',
         publishedAt: '2026-07-28',
-        duration: '00:01',
-        audioUrl: '/favorite-b.wav',
+        duration: '00:02',
+        audioUrl: 'https://publisher.example/favorite-b.wav',
+        sourceUrl: 'https://publisher.example/episode-b',
         artworkUrl: '',
-        tracks: [{ ...tracks[0], id: 2, title: 'Favori du second épisode', artworkUrl: '', deezerUrl: undefined, spotifyUrl: 'https://open.spotify.com/track/abc' }],
+        tracks: [
+          { ...tracks[0], id: 2, title: 'Favori du second épisode', artworkUrl: '', deezerUrl: undefined, spotifyUrl: 'https://open.spotify.com/track/abc' },
+          { ...tracks[0], id: 3, time: 4, title: 'Titre étranger à la file', artworkUrl: '', deezerUrl: undefined, spotifyUrl: undefined },
+        ],
       }],
     }]))
     localStorage.setItem('podmix-track-favorites-v1', JSON.stringify([
@@ -453,26 +485,34 @@ test('les favoris gardent leur épisode et s’enchaînent', async ({ page }) =>
   }))
 
   await page.goto('/')
-  await page.getByRole('button', { name: 'Bibliothèque' }).last().click()
-  await page.locator('.library-shortcuts').getByRole('button', { name: /Favoris/ }).click()
+  await page.getByRole('button', { name: 'Voir les favoris' }).click()
   const favorites = page.locator('.favorite-tracks')
-  await expect(favorites.getByText('Podcast des favoris', { exact: true })).toBeVisible()
-  await expect(favorites.getByText('Premier épisode favori', { exact: false })).toBeVisible()
-  await expect(favorites.locator('.track-cover-button img').nth(0)).toHaveAttribute('src', '/track-cover.jpg')
-  await expect(favorites.locator('.track-cover-button img').nth(1)).toHaveAttribute('src', '/podcast-logo.jpg')
+  await expect(favorites.getByText('Favori du premier épisode', { exact: true })).toBeVisible()
+  await expect(favorites.getByText('Podcast des favoris', { exact: true })).toHaveCount(0)
+  await expect(favorites.getByText('Premier épisode favori', { exact: false })).toHaveCount(0)
+  await expect(favorites.locator('.track-cover-button')).toHaveCount(2)
   await expect(favorites.getByLabel('Deezer disponible : ouvrir le morceau').nth(0)).toHaveAttribute('href', 'https://www.deezer.com/track/123')
   await expect(favorites.getByLabel('Spotify disponible : ouvrir le morceau').nth(0)).toHaveAttribute('href', 'https://open.spotify.com/track/detected-a')
   await expect(favorites.getByLabel('Deezer disponible : ouvrir le morceau').nth(1)).toHaveAttribute('href', 'https://www.deezer.com/track/detected-b')
   await expect(favorites.getByLabel('Spotify disponible : ouvrir le morceau').nth(1)).toHaveAttribute('href', 'https://open.spotify.com/track/abc')
+  await expect(favorites.getByRole('button', { name: 'Partager Favori du premier épisode' })).toBeVisible()
   await expect(favorites.locator('.favorite-track-actions')).toHaveCount(2)
   const copyBox = await favorites.locator('.favorite-track-copy').first().boundingBox()
   const actionBox = await favorites.locator('.favorite-track-actions').first().boundingBox()
   expect(copyBox).not.toBeNull()
   expect(actionBox).not.toBeNull()
   expect(actionBox?.x ?? 0).toBeGreaterThan(copyBox?.x ?? 0)
-  const spotifyRefreshRequest = page.waitForRequest((request) => request.url().includes('/v1/catalog/links') && request.method() === 'POST')
-  await favorites.getByRole('button', { name: 'Rafraîchir les liens Spotify' }).click()
-  await spotifyRefreshRequest
+  await page.route('**/v1/shares', async (route) => {
+    const payload = route.request().postDataJSON() as { startSeconds: number; endSeconds?: number; artist: string; trackTitle: string }
+    expect(payload.startSeconds).toBe(0.25)
+    expect(payload.endSeconds).toBe(2)
+    expect(payload.artist).toBe('Artiste A')
+    expect(payload.trackTitle).toBe('Favori du premier épisode')
+    await route.fulfill({ contentType: 'application/json', status: 201, body: JSON.stringify({ id: 'share-token', shareUrl: 'https://podmix.mb4.fr/s/share-token', expiresAt: '2026-09-11T00:00:00Z' }) })
+  })
+  const shareRequest = page.waitForRequest((request) => request.url().includes('/v1/shares') && request.method() === 'POST')
+  await favorites.getByRole('button', { name: 'Partager Favori du premier épisode' }).click()
+  await shareRequest
   await page.getByRole('button', { name: 'Tout lire' }).click()
 
   await expect(page.locator('.mini-player-global')).toContainText('Favori du premier épisode')
@@ -480,4 +520,10 @@ test('les favoris gardent leur épisode et s’enchaînent', async ({ page }) =>
   await page.getByRole('button', { name: 'Morceau suivant' }).click()
   await expect(page.locator('.mini-player-global')).toContainText('Favori du second épisode')
   await expect(favorites.locator('.episode-item.playing')).toContainText('Favori du second épisode')
+  // Le poll natif/web s'exécute chaque seconde. La file de favoris est à
+  // l'index 1, mais ce favori est à l'index 0 de son épisode : ces deux index
+  // ne doivent jamais être confondus dans le titre du mini-lecteur.
+  await page.waitForTimeout(1_200)
+  await expect(page.locator('.mini-player-global')).toContainText('Favori du second épisode')
+  await expect(page.locator('.mini-player-global')).not.toContainText('Titre étranger à la file')
 })

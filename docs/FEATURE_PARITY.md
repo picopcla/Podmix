@@ -34,16 +34,13 @@ remplacée que lorsqu'elle fonctionne dans l'APK hybride sur un appareil réel.
 | Fonction historique | Cible | État |
 | --- | --- | --- |
 | Timestamping manuel | PWA | Implémenté |
-| Détection de transitions | Worker Python | Implémenté |
-| Import de tracklist et alignement | API + PWA | Implémenté |
+| Recherche de timestamps | Worker Python | RSS, Web, commentaires et Nous Portal sans accès au média |
+| Import de tracklist | API + PWA | Timestamps explicites conservés, valeurs absentes laissées en attente |
 | YouTube, SoundCloud, Mixcloud | API serveur | Découverte de métadonnées implémentée |
 | Bases de tracklists | API serveur | MixesDB puis 1001Tracklists, import sécurisé et alignement implémentés |
 | Spotify et Deezer | API serveur | Deezer opérationnel ; Spotify activable avec identifiants serveur ; pochettes de morceaux récupérées automatiquement avec repli sur le logo du podcast |
 | MusicBrainz | API serveur | Implémenté |
-| Analyse chroma et DTW | Worker Python | Validation acoustique, preuves et corpus reproductible implémentés |
-| Frontières musicales | BeatNet/Librosa | BeatNet optionnel, repli Librosa et recalage sur temps forts implémentés |
-| AAC et M4A | FFmpeg + Librosa | Décodage et analyse testés |
-| Empreinte AcoustID/Chromaprint | Worker Python | Implémentée avec clé serveur facultative |
+| Traitement audio VPS | — | Retiré ; lecture et édition locale uniquement |
 
 ## Ordre d'exécution
 

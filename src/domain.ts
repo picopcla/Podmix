@@ -1,4 +1,6 @@
 export type TrackSource = 'detected' | 'manual'
+export type TimestampSource = 'rss' | 'external' | 'youtube' | 'audio' | 'manual' | 'provisional'
+export type TimestampStatus = 'provided' | 'manual' | 'pending' | 'verified'
 
 export type Track = {
   id: number
@@ -6,6 +8,9 @@ export type Track = {
   artist: string
   title: string
   confidence: number
+  timestampSource?: TimestampSource
+  timestampScore?: number
+  timestampStatus?: TimestampStatus
   source: TrackSource
   verified?: boolean
   catalogValidated?: boolean
@@ -14,19 +19,9 @@ export type Track = {
   artworkUrl?: string
   spotifyUrl?: string
   deezerUrl?: string
-  acousticValidation?: {
-    accepted: boolean
-    available: boolean
-    provider: string
-    catalogScore?: number
-    acousticScore?: number
-    dtwCost?: number
-    confidence?: number
-    catalogId?: string
-  }
 }
 
-export type DetectionJobStatus = 'queued' | 'running' | 'completed' | 'failed' | 'cancelled'
+export type DetectionJobStatus = 'queued' | 'running' | 'web_pending' | 'completed' | 'failed' | 'cancelled'
 
 export type DetectionJob = {
   id: string
@@ -39,7 +34,7 @@ export type DetectionJob = {
   tracks: Track[]
   duration?: number
   error?: string
-  operation?: 'download_analyze' | 'analyze' | 'refine'
+  operation?: 'research'
 }
 
 export type EpisodeAnalysis = {
@@ -59,6 +54,13 @@ export type Episode = {
   duration: string
   audioUrl: string
   sourceUrl?: string
+  // URL 1001Tracklists déjà validée pour cet épisode. Elle évite de refaire
+  // une recherche fragile lors d'une actualisation ultérieure.
+  webTracklistUrl?: string
+  // Source réellement retenue pour un DJ set. Une actualisation ne doit pas
+  // remplacer silencieusement une tracklist validée par un autre set du DJ.
+  liveSetTracklistUrl?: string
+  liveSetTracklistOrigin?: string
   artworkUrl: string
   tracks?: Track[]
   analysis?: EpisodeAnalysis
@@ -72,7 +74,12 @@ export type CatalogSource = {
   artworkUrl: string
   feedUrl?: string
   streamUrl?: string
+  streamContentType?: string
   musical?: boolean
+  /** Épisodes arrivés depuis la dernière actualisation consultée. */
+  newEpisodeIds?: string[]
+  /** Sous-ensemble non encore vu, utilisé pour la pastille sur la carte. */
+  unseenEpisodeIds?: string[]
   episodes: Episode[]
 }
 
@@ -106,4 +113,34 @@ export type DjSearchResult = {
   artworkUrl: string
   duration: number
   viewCount: number
+}
+
+export type LiveSetSearchResult = {
+  id: string
+  provider: 'youtube' | 'soundcloud'
+  title: string
+  channel: string
+  url: string
+  artworkUrl: string
+  duration: number
+  viewCount: number
+  publishedAt: string
+  score: number
+}
+
+export type LiveSetTrack = {
+  id: number
+  time: number | null
+  artist: string
+  title: string
+  timestampSource: string
+  timestampStatus: string
+}
+
+export type LiveSetDetails = LiveSetSearchResult & {
+  audioUrl?: string
+  description?: string
+  tracks?: LiveSetTrack[]
+  tracklistOrigin?: string
+  tracklistUrl?: string
 }

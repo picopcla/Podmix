@@ -1,0 +1,10 @@
+tunnel: 82a8e0ac-9dcd-4216-92fe-a76c052967ab
+credentials-file: /home/debian/.cloudflared/82a8e0ac-9dcd-4216-92fe-a76c052967ab.json
+
+ingress:
+  - hostname: podmix.mb4.fr
+    path: ^/podmix(/.*)?$
+    service: http://127.0.0.1:8081
+  - hostname: podmix.mb4.fr
+    service: http://127.0.0.1:8080
+  - service: http_status:404

@@ -49,6 +49,8 @@ def _get_json(parameters: dict[str, object]) -> dict:
 
 def parse_mixesdb_html(html: str, title: str = "") -> dict:
     soup = BeautifulSoup(html, "html.parser")
+    source_text = soup.get_text("\n", strip=True)
+
     heading = next(
         (
             item for item in soup.select("h2, h3")
@@ -62,6 +64,7 @@ def parse_mixesdb_html(html: str, title: str = "") -> dict:
             "title": title,
             "candidateCount": 0,
             "candidates": [],
+            "sourceText": source_text,
         }
     ordered_list = None
     for item in heading.find_all_next(["h2", "h3", "ol"]):
@@ -76,6 +79,7 @@ def parse_mixesdb_html(html: str, title: str = "") -> dict:
             "title": title,
             "candidateCount": 0,
             "candidates": [],
+            "sourceText": source_text,
         }
 
     lines: list[str] = []
@@ -106,6 +110,7 @@ def parse_mixesdb_html(html: str, title: str = "") -> dict:
         "title": title,
         "candidateCount": len(candidates),
         "candidates": candidates,
+        "sourceText": source_text,
     }
 
 
@@ -156,4 +161,3 @@ def search_tracklist(query: str, limit: int = 6) -> dict:
         + title.replace(" ", "_")
     )
     return parsed
-

@@ -1,0 +1,16 @@
+[Unit]
+Description=Podmix API and Bose relay watchdog
+Wants=network-online.target
+After=network-online.target docker.service
+Requires=docker.service
+
+[Service]
+Type=simple
+Environment=PODMIX_LAN_INTERFACE=enp3s0
+Environment=PODMIX_WATCHDOG_INTERVAL=10
+ExecStart=/usr/local/lib/podmix/podmix-api-watchdog.sh
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

@@ -14,10 +14,17 @@ export type PlayerState = {
   hasPrevious: boolean
   mediaId: string
   error?: string
+  playRequested?: boolean
+  absolutePositionSeconds?: number
+  bufferedPositionSeconds?: number
+  playbackSuppressionReason?: number
+  positionOffsetSeconds?: number
 }
 
 export type LoadOptions = {
   id?: string
+  podmixSourceId?: string
+  podmixEpisodeId?: string
   url: string
   title?: string
   artist?: string
@@ -25,6 +32,9 @@ export type LoadOptions = {
   autoplay?: boolean
   startPositionSeconds?: number
   endPositionSeconds?: number
+  continuousEpisode?: boolean
+  trackNavigation?: boolean
+  live?: boolean
 }
 
 export type LibraryItem = Omit<LoadOptions, 'url'> & {
@@ -37,6 +47,28 @@ export type LibraryItem = Omit<LoadOptions, 'url'> & {
   playable: boolean
   kind?: string
 }
+
+// Keep each Capacitor bridge message small without truncating the catalogue.
+// The native side appends these chunks to a staging file and atomically commits
+// it only after every source, episode and track has arrived.
+const NATIVE_LIBRARY_CHUNK_SIZE = 100
+
+function normalizedNativeLibrary(items: LibraryItem[]) {
+  const snapshot: LibraryItem[] = []
+  const includedIds = new Set<string>()
+
+  for (const item of items) {
+    const normalized = item.url ? { ...item, url: secureMediaUrl(item.url) } : item
+    if (normalized.parentId !== 'podmix-root' && !includedIds.has(normalized.parentId)) continue
+    snapshot.push(normalized)
+    includedIds.add(normalized.id)
+  }
+
+  return snapshot
+}
+
+type LibrarySyncResult = { count: number; bytes?: number }
+let nativeLibrarySyncQueue: Promise<void> = Promise.resolve()
 
 export type DownloadState = {
   id: string
@@ -66,6 +98,21 @@ export type NativeTracklistResult = {
   tracks: Array<{ artist: string; title: string; providedTime: number }>
 }
 
+export type NativeTracklistSearchResult = {
+  candidates: Array<{ url: string; title: string; domain: string; address?: string }>
+}
+
+export type MusicRecognitionResult = {
+  matched: boolean
+  title: string
+  artist: string
+  album?: string
+  artworkUrl?: string
+  spotifyUrl?: string
+  deezerUrl?: string
+  appleMusicUrl?: string
+}
+
 export type BoseDevice = {
   ip: string
   name: string
@@ -87,17 +134,28 @@ type PodmixPlayerPlugin = {
   pause(): Promise<PlayerState>
   seekTo(options: { positionSeconds: number }): Promise<PlayerState>
   getState(): Promise<PlayerState>
-  syncLibrary(options: { items: LibraryItem[] }): Promise<{ count: number }>
+  getPendingPlaybackTarget(): Promise<{ sourceId: string; episodeId: string }>
+  setVolume(options: { volume: number }): Promise<{ volume: number }>
+  getVolume(): Promise<{ volume: number }>
+  recognizeMusic(options: { apiUrl: string }): Promise<MusicRecognitionResult>
+  getAppInfo(): Promise<{ versionName: string; versionCode: number; lastUpdateTime: number }>
+  cacheArtwork(options: { url: string }): Promise<{ uri: string; dataUrl?: string }>
+  beginLibrarySync(options: { syncId: string }): Promise<{ ok: boolean }>
+  appendLibraryChunk(options: { syncId: string; items: LibraryItem[] }): Promise<{ count: number }>
+  commitLibrarySync(options: { syncId: string; expectedCount: number }): Promise<LibrarySyncResult>
   syncFavorites(options: { ids: string[] }): Promise<{ count: number }>
-  syncResume(options: { items: Array<{ id: string; episodeId: string; title: string; artist: string; url: string; artworkUrl: string; positionSeconds: number; durationSeconds: number }> }): Promise<{ count: number }>
+  syncResume(options: { items: Array<{ id: string; episodeId: string; title: string; artist: string; url: string; artworkUrl: string; positionSeconds: number; durationSeconds: number }>; completedEpisodeIds?: string[] }): Promise<{ count: number }>
+  getCompletedEpisodeIds(): Promise<{ ids: string[] }>
   getFavorites(): Promise<{ ids: string[]; initialized: boolean }>
   syncSubscriptions(options: { items: Array<{ id: string; title: string; feedUrl: string }> }): Promise<{ count: number }>
   getStorage(): Promise<{ downloadedBytes: number; availableBytes: number; totalBytes: number }>
   setQueue(options: { items: Array<LoadOptions & { id: string }>; startIndex?: number; startPositionSeconds?: number; autoplay?: boolean }): Promise<PlayerState>
   next(): Promise<PlayerState>
   previous(): Promise<PlayerState>
+  setRepeatMode(options: { mode: 0 | 1 | 2 }): Promise<PlayerState>
   download(options: { id: string; url: string; title?: string }): Promise<DownloadState>
   getDownload(options: { id: string }): Promise<DownloadState>
+  listDownloads(): Promise<{ downloads: DownloadState[] }>
   removeDownload(options: { id: string }): Promise<DownloadState>
   extractTracks(options: { episodeId: string; audioPath: string; tracks: Array<{ id: string; start: number; end: number }> }): Promise<{ tracks: Array<{ trackId: string; path: string; status: string }> }>
   downloadApk(options: { url: string; versionName: string }): Promise<{ requestId: number; path: string }>
@@ -116,16 +174,21 @@ type PodmixPlayerPlugin = {
   boseKey(options: { ip: string; key: string }): Promise<{ ok: boolean }>
   boseSetVolume(options: { ip: string; volume: number }): Promise<{ ok: boolean }>
   boseGetState(options: { ip: string }): Promise<{ ok: boolean; name?: string; volume?: number; playing?: boolean; playStatus?: string; positionSeconds?: number; source?: string; title?: string; location?: string }>
+  searchTracklists1001(options: { query: string }): Promise<NativeTracklistSearchResult>
   fetchTracklist1001(options: { url: string; address?: string }): Promise<NativeTracklistResult>
+  fetchPublishedTracklist(options: { url: string }): Promise<NativeTracklistResult>
+  startWebTimestampWorker(options: { apiUrl: string }): Promise<{ started: boolean }>
   addListener(eventName: 'stateChanged', listener: (state: PlayerState) => void): Promise<PluginListenerHandle>
 }
 
 const NativePlayer = registerPlugin<PodmixPlayerPlugin>('PodmixPlayer')
 const webAudio = new Audio()
+webAudio.volume = Math.max(0, Math.min(1, Number(localStorage.getItem('podmix-player-volume') ?? 1)))
 let webTitle = ''
 let webArtist = ''
 let webQueue: Array<LoadOptions & { id: string }> = []
 let webQueueIndex = 0
+let webRepeatMode = 0
 let webAdvancing = false
 
 function webItemStart(item?: LoadOptions) {
@@ -150,6 +213,11 @@ webAudio.addEventListener('timeupdate', () => {
   webAdvancing = true
   if (webQueueIndex < webQueue.length - 1) {
     webQueueIndex += 1
+    void loadWebQueueItem(webQueue[webQueueIndex], true).finally(() => { webAdvancing = false })
+  } else if (webRepeatMode === 2) {
+    webQueueIndex = 0
+    void loadWebQueueItem(webQueue[webQueueIndex], true).finally(() => { webAdvancing = false })
+  } else if (webRepeatMode === 1) {
     void loadWebQueueItem(webQueue[webQueueIndex], true).finally(() => { webAdvancing = false })
   } else {
     webAudio.pause()
@@ -221,6 +289,13 @@ export const podmixPlayer = {
   },
   async play() {
     if (Capacitor.isNativePlatform()) return NativePlayer.play()
+    const item = webQueue[webQueueIndex]
+    // A paused HTMLAudioElement keeps consuming the old radio connection's
+    // buffered bytes. Radios are not podcasts: resuming one must reconnect to
+    // the stream head instead of replaying delayed audio.
+    if (item?.live && webAudio.paused) {
+      await loadWebQueueItem(item, false)
+    }
     await webAudio.play()
     return webState()
   },
@@ -237,23 +312,75 @@ export const podmixPlayer = {
   async getState() {
     return Capacitor.isNativePlatform() ? NativePlayer.getState() : webState()
   },
+  async setVolume(options: { volume: number }) {
+    const volume = Math.max(0, Math.min(1, options.volume))
+    if (Capacitor.isNativePlatform()) return NativePlayer.setVolume({ volume })
+    webAudio.volume = volume
+    localStorage.setItem('podmix-player-volume', String(volume))
+    return { volume }
+  },
+  async getVolume() {
+    if (Capacitor.isNativePlatform()) return NativePlayer.getVolume()
+    return { volume: webAudio.volume }
+  },
+  async recognizeMusic(options: { apiUrl: string }) {
+    if (!Capacitor.isNativePlatform()) throw new Error('La reconnaissance au microphone nécessite l’application Android')
+    return NativePlayer.recognizeMusic(options)
+  },
+  async getAppInfo() {
+    if (Capacitor.isNativePlatform()) return NativePlayer.getAppInfo()
+    return {
+      versionName: import.meta.env.VITE_APP_VERSION ?? '1.0.0',
+      versionCode: 0,
+      lastUpdateTime: Date.now(),
+    }
+  },
+  async cacheArtwork(url: string) {
+    if (!Capacitor.isNativePlatform()) return { uri: url }
+    return NativePlayer.cacheArtwork({ url })
+  },
   async onStateChanged(listener: (state: PlayerState) => void) {
     if (!Capacitor.isNativePlatform()) return { remove: async () => undefined }
     return NativePlayer.addListener('stateChanged', listener)
   },
   async syncLibrary(items: LibraryItem[]) {
     if (!Capacitor.isNativePlatform()) return { count: items.length }
-    return NativePlayer.syncLibrary({
-      items: items.map((item) => item.url ? { ...item, url: secureMediaUrl(item.url) } : item),
-    })
+    const normalized = normalizedNativeLibrary(items)
+    const task = nativeLibrarySyncQueue
+      .catch(() => undefined)
+      .then(async (): Promise<LibrarySyncResult> => {
+        const syncId = `${Date.now()}-${Math.random().toString(36).slice(2)}`
+        await NativePlayer.beginLibrarySync({ syncId })
+        for (let offset = 0; offset < normalized.length; offset += NATIVE_LIBRARY_CHUNK_SIZE) {
+          await NativePlayer.appendLibraryChunk({
+            syncId,
+            items: normalized.slice(offset, offset + NATIVE_LIBRARY_CHUNK_SIZE),
+          })
+        }
+        const result = await NativePlayer.commitLibrarySync({
+          syncId,
+          expectedCount: normalized.length,
+        })
+        if (result.count !== normalized.length) {
+          throw new Error(`Bibliothèque Android Auto incomplète : ${result.count}/${normalized.length}`)
+        }
+        return result
+      })
+    nativeLibrarySyncQueue = task.then(() => undefined, () => undefined)
+    return task
   },
   async syncFavorites(ids: string[]) {
     if (!Capacitor.isNativePlatform()) return { count: ids.length }
     return NativePlayer.syncFavorites({ ids })
   },
-  async syncResume(items: Array<{ id: string; episodeId: string; title: string; artist: string; url: string; artworkUrl: string; positionSeconds: number; durationSeconds: number }>) {
+  async syncResume(items: Array<{ id: string; episodeId: string; title: string; artist: string; url: string; artworkUrl: string; positionSeconds: number; durationSeconds: number }>, completedEpisodeIds: string[] = []) {
     if (!Capacitor.isNativePlatform()) return { count: items.length }
-    return NativePlayer.syncResume({ items })
+    return NativePlayer.syncResume({ items, completedEpisodeIds })
+  },
+  async getCompletedEpisodeIds() {
+    if (!Capacitor.isNativePlatform()) return [] as string[]
+    const result = await NativePlayer.getCompletedEpisodeIds()
+    return result.ids
   },
   async getFavorites() {
     if (!Capacitor.isNativePlatform()) return { ids: [] as string[], initialized: false }
@@ -269,6 +396,10 @@ export const podmixPlayer = {
       return { downloadedBytes: estimate?.usage ?? 0, availableBytes: Math.max(0, (estimate?.quota ?? 0) - (estimate?.usage ?? 0)), totalBytes: estimate?.quota ?? 0 }
     }
     return NativePlayer.getStorage()
+  },
+  async getPendingPlaybackTarget() {
+    if (!Capacitor.isNativePlatform()) return { sourceId: '', episodeId: '' }
+    return NativePlayer.getPendingPlaybackTarget()
   },
   async setQueue(items: Array<LoadOptions & { id: string }>, startIndex = 0, autoplay = false, startPositionSeconds = 0) {
     const safeItems = items.map(secureLoadOptions)
@@ -296,12 +427,15 @@ export const podmixPlayer = {
   },
   async previous() {
     if (Capacitor.isNativePlatform()) return NativePlayer.previous()
-    const start = webItemStart(webQueue[webQueueIndex])
-    if (webAudio.currentTime - start > 5) webAudio.currentTime = start
-    else if (webQueueIndex > 0) {
+    if (webQueueIndex > 0) {
       webQueueIndex -= 1
       await loadWebQueueItem(webQueue[webQueueIndex], true)
     }
+    return webState()
+  },
+  async setRepeatMode(mode: 0 | 1 | 2) {
+    webRepeatMode = mode
+    if (Capacitor.isNativePlatform()) return NativePlayer.setRepeatMode({ mode })
     return webState()
   },
   async download(id: string, url: string, title?: string) {
@@ -311,6 +445,10 @@ export const podmixPlayer = {
   async getDownload(id: string) {
     if (!Capacitor.isNativePlatform()) return { id, status: 'not_found' as const }
     return NativePlayer.getDownload({ id })
+  },
+  async listDownloads() {
+    if (!Capacitor.isNativePlatform()) return { downloads: [] as DownloadState[] }
+    return NativePlayer.listDownloads()
   },
   async removeDownload(id: string) {
     if (!Capacitor.isNativePlatform()) return { id, status: 'not_found' as const, removed: false }
@@ -351,6 +489,7 @@ export const podmixPlayer = {
   async cast(options: LoadOptions & {
     artworkUrl?: string
     contentType?: string
+    live?: boolean
     positionSeconds?: number
     positionOffsetSeconds?: number
     endPositionSeconds?: number
@@ -393,5 +532,17 @@ export const podmixPlayer = {
   async fetchTracklist1001(url: string, address?: string) {
     if (!Capacitor.isNativePlatform()) throw new Error('La récupération 1001Tracklists directe nécessite Android')
     return NativePlayer.fetchTracklist1001({ url, address })
+  },
+  async fetchPublishedTracklist(url: string) {
+    if (!Capacitor.isNativePlatform()) throw new Error('La récupération des liens publiés nécessite Android')
+    return NativePlayer.fetchPublishedTracklist({ url })
+  },
+  async startWebTimestampWorker(apiUrl: string) {
+    if (!Capacitor.isNativePlatform()) return { started: false }
+    return NativePlayer.startWebTimestampWorker({ apiUrl })
+  },
+  async searchTracklists1001(query: string) {
+    if (!Capacitor.isNativePlatform()) throw new Error('La recherche 1001Tracklists directe nécessite Android')
+    return NativePlayer.searchTracklists1001({ query })
   },
 }

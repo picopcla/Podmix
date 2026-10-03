@@ -1,13 +1,15 @@
-"""Parsing et alignement d'une tracklist textuelle sur des transitions audio."""
+"""Parsing et normalisation de tracklists textuelles horodatées."""
 
 from __future__ import annotations
 
 import re
 
 TIMESTAMP = re.compile(r"^\s*[\[(]?(\d{1,2}):(\d{2})(?::(\d{2}))?[\])]?(?:\s+|[-–—]\s*)")
+TRAILING_TIMESTAMP = re.compile(r"\s*[\[(]?(\d{1,2}):(\d{2})(?::(\d{2}))?:?[\])]?[\s]*$")
 SEPARATOR = re.compile(r"\s+[-–—]\s+")
-NUMBERED = re.compile(r"^\s*\d{1,3}[.)]\s+")
+NUMBERED = re.compile(r"^\s*\d{1,3}(?:[.)]|\s+)\s*")
 TRACKLIST_HEADER = re.compile(r"\btrack\s*list\b", re.IGNORECASE)
+MIX_METADATA = re.compile(r"\[[^\]]+\]|\([^)]{1,40}\)")
 
 
 def _time(match: re.Match) -> float:
@@ -43,6 +45,11 @@ def parse_tracklist(text: str, structured_only: bool = False) -> list[dict]:
         content = NUMBERED.sub("", line, count=1).strip()
         timestamp = TIMESTAMP.match(content)
         without_time = content[timestamp.end():].strip() if timestamp else content
+        if not timestamp:
+            trailing_timestamp = TRAILING_TIMESTAMP.search(content)
+            if trailing_timestamp:
+                timestamp = trailing_timestamp
+                without_time = content[:trailing_timestamp.start()].rstrip(" -–—")
         if structured_only and not timestamp and not numbered and not inside_tracklist:
             continue
         if not timestamp and not numbered and not SEPARATOR.search(without_time):
@@ -58,43 +65,95 @@ def parse_tracklist(text: str, structured_only: bool = False) -> list[dict]:
     return parsed
 
 
-def align_tracklist(candidates: list[dict], transitions: list[dict], duration: float | None) -> list[dict]:
-    if not candidates:
-        return []
-    transition_times = sorted({0.0, *(float(track["time"]) for track in transitions)})
-    duration = duration or (transition_times[-1] if transition_times else 0)
+def first_track_match_score(candidates: list[dict], reference: dict | None) -> float:
+    if not candidates or not reference:
+        return 0.0
 
-    def ordinal_time(index: int) -> float:
-        if len(candidates) == 1:
-            return 0
-        if len(transition_times) >= len(candidates):
-            anchor_index = round(index * (len(transition_times) - 1) / (len(candidates) - 1))
-            return transition_times[anchor_index]
-        expected = duration * index / len(candidates) if duration else index * 240
-        return min(transition_times, key=lambda value: abs(value - expected)) if len(transition_times) > 1 else expected
+    def tokens(value: str) -> set[str]:
+        cleaned = MIX_METADATA.sub(" ", value.casefold())
+        cleaned = re.sub(r"\b(?:and|feat|ft|pres|presents|vs|versus|x)\b", " ", cleaned)
+        return set(re.findall(r"[a-z0-9]+", cleaned))
 
+    reference_tokens = tokens(f"{reference.get('artist', '')} {reference.get('title', '')}")
+    if not reference_tokens:
+        return 0.0
+
+    best_score = 0.0
+    # Chercher l'ancre RSS dans les 3 premières pistes 1001 pour tolérer les Intros/IDs
+    for candidate in candidates[:3]:
+        candidate_tokens = tokens(f"{candidate.get('artist', '')} {candidate.get('title', '')}")
+        if not candidate_tokens:
+            continue
+        score = len(candidate_tokens & reference_tokens) / max(1, min(len(candidate_tokens), len(reference_tokens)))
+        if score > best_score:
+            best_score = score
+
+    return best_score
+
+
+def apply_external_timestamps(reference: list[dict], timestamped: list[dict]) -> list[dict]:
+    """Preserve an established tracklist and copy explicit external timestamps by index."""
+
+    if not reference or len(reference) != len(timestamped):
+        return timestamped
+    if first_track_match_score(timestamped, reference[0]) < 0.5:
+        return timestamped
+    merged: list[dict] = []
+    for index, item in enumerate(reference):
+        merged_item = dict(item)
+        if timestamped[index].get("providedTime") is not None:
+            merged_item["providedTime"] = timestamped[index]["providedTime"]
+        merged.append(merged_item)
+    return merged
+
+
+def align_tracklist(
+    candidates: list[dict],
+    existing_tracks: list[dict],
+    duration: float | None,
+    timestamp_source: str = "manual",
+) -> list[dict]:
+    """Build tracks from explicit timestamps only; never invent media positions."""
+    del duration
+    existing_by_index = {
+        index: track for index, track in enumerate(existing_tracks)
+        if track.get("time") is not None
+    }
     tracks = []
     for index, candidate in enumerate(candidates):
-        provided = candidate["providedTime"]
+        provided = candidate.get("providedTime")
+        existing = existing_by_index.get(index)
         if provided is not None:
-            nearby = [time for time in transition_times if abs(time - provided) <= 12]
-            aligned = min(nearby, key=lambda value: abs(value - provided)) if nearby else provided
-            delta = abs(aligned - provided)
-            confidence = 94 if delta <= 3 else 86 if delta <= 12 else 75
-            evidence = [f"Timestamp fourni : {provided:.1f} s"]
-            if aligned != provided:
-                evidence.append(f"Recalé sur une transition audio : {aligned:.1f} s")
+            position = round(float(provided), 2)
+            confidence = 94 if timestamp_source == "rss" else 90
+            evidence = [f"Timestamp fourni : {position:.1f} s"]
+            status = "provided"
+            score = 1.0 if timestamp_source == "rss" else 0.9
+            resolved_source = timestamp_source
+        elif existing:
+            position = round(float(existing["time"]), 2)
+            confidence = int(existing.get("confidence") or 50)
+            evidence = list(existing.get("evidence") or ["Repère manuel conservé"])
+            status = str(existing.get("timestampStatus") or "manual")
+            score = float(existing.get("timestampScore") or 0.5)
+            resolved_source = str(existing.get("timestampSource") or "manual")
         else:
-            aligned = ordinal_time(index)
-            confidence = 72 if aligned in transition_times else 58
-            evidence = ["Ordre de la tracklist", f"Transition audio : {aligned:.1f} s"]
+            position = None
+            confidence = 0
+            evidence = ["Titre trouvé · timestamp absent de la source"]
+            status = "pending"
+            score = 0.0
+            resolved_source = "provisional"
         tracks.append({
             "id": 3000 + index,
-            "time": round(aligned, 2),
+            "time": position,
             "artist": candidate["artist"],
             "title": candidate["title"],
             "confidence": confidence,
             "source": "detected",
+            "timestampSource": resolved_source,
+            "timestampScore": score,
+            "timestampStatus": status,
             "verified": False,
             "evidence": evidence,
         })

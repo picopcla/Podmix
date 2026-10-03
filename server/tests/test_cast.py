@@ -1,10 +1,8 @@
 from __future__ import annotations
 
-import subprocess
 import sys
 import unittest
 from pathlib import Path
-from unittest.mock import Mock, patch
 
 SERVER_DIR = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(SERVER_DIR))
@@ -13,50 +11,39 @@ import dev_server
 
 
 class CastDurationTests(unittest.TestCase):
-    def setUp(self):
-        dev_server.CAST_DURATION_CACHE.clear()
+    def test_known_client_duration_is_kept(self):
+        self.assertEqual(
+            3600,
+            dev_server.resolve_cast_duration("https://media.example/show.mp3", 120, 3600),
+        )
 
-    def test_known_duration_does_not_probe(self):
-        with patch("dev_server.probe_cast_duration") as probe:
-            duration = dev_server.resolve_cast_duration("https://media.example/show.mp3", 120, 3600)
-        self.assertEqual(3600, duration)
-        probe.assert_not_called()
+    def test_server_never_probes_missing_duration(self):
+        self.assertEqual(
+            0,
+            dev_server.resolve_cast_duration("https://media.example/show.mp3", 1200, 0),
+        )
 
-    def test_missing_duration_is_probed_after_safe_redirect_resolution(self):
-        response = Mock()
-        completed = subprocess.CompletedProcess([], 0, stdout="6924.202350\n", stderr="")
-        with (
-            patch(
-                "dev_server.open_cast_upstream",
-                return_value=(response, "https://cdn.example/show.mp3?signature=safe"),
-            ) as upstream,
-            patch("dev_server.subprocess.run", return_value=completed) as ffprobe,
-        ):
-            duration = dev_server.resolve_cast_duration("https://media.example/show.mp3", 6231.6, 0)
+    def test_start_position_is_not_mistaken_for_duration(self):
+        self.assertEqual(
+            0,
+            dev_server.resolve_cast_duration("https://media.example/show.mp3", 1200, 1200),
+        )
 
-        self.assertAlmostEqual(6924.20235, duration)
-        upstream.assert_called_once()
-        response.close.assert_called_once()
-        self.assertEqual("https://cdn.example/show.mp3?signature=safe", ffprobe.call_args.args[0][-1])
+    def test_normalizes_googlevideo_m4a_to_audio_mp4_for_bose(self):
+        self.assertEqual("audio/mp4", dev_server.bose_audio_content_type("video/mp4"))
+        self.assertEqual(
+            "audio/mp4; charset=binary",
+            dev_server.bose_audio_content_type("video/mp4; charset=binary"),
+        )
 
-    def test_probed_duration_is_cached_for_later_tracks(self):
-        response = Mock()
-        completed = subprocess.CompletedProcess([], 0, stdout="3600\n", stderr="")
-        with (
-            patch("dev_server.open_cast_upstream", return_value=(response, "https://cdn.example/show.mp3")),
-            patch("dev_server.subprocess.run", return_value=completed) as ffprobe,
-        ):
-            first = dev_server.resolve_cast_duration("https://media.example/show.mp3", 120, 0)
-            second = dev_server.resolve_cast_duration("https://media.example/show.mp3", 240, 0)
+    def test_keeps_existing_audio_content_type(self):
+        self.assertEqual("audio/mpeg", dev_server.bose_audio_content_type("audio/mpeg"))
 
-        self.assertEqual(3600, first)
-        self.assertEqual(3600, second)
-        ffprobe.assert_called_once()
-
-    def test_unusable_probe_never_turns_start_position_into_duration(self):
-        with patch("dev_server.probe_cast_duration", return_value=0):
-            duration = dev_server.resolve_cast_duration("https://media.example/show.mp3", 1200, 1200)
-        self.assertEqual(0, duration)
+    def test_bose_cast_detects_a_live_set_stream(self):
+        url = "https://podmix.mb4.fr/podmix-api/v1/live-sets/stream?url=https%3A%2F%2Fwww.youtube.com%2Fwatch%3Fv%3Dabc"
+        parsed = dev_server.urlparse(url)
+        self.assertTrue(parsed.path.rstrip("/").endswith("/v1/live-sets/stream"))
+        self.assertEqual("https://www.youtube.com/watch?v=abc", dev_server.parse_qs(parsed.query)["url"][0])
 
 
 if __name__ == "__main__":

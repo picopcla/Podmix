@@ -17,6 +17,10 @@ https://vps-43451133.vps.ovh.net {
         reverse_proxy 127.0.0.1:8099
     }
 
+    handle /s/* {
+        reverse_proxy 127.0.0.1:8099
+    }
+
     handle_path /podmix/* {
         root * /var/www/podmix
         header Cache-Control "no-cache"

@@ -4,18 +4,29 @@ services:
     restart: unless-stopped
     ports:
       - "127.0.0.1:8099:8099"
+      # Relais HTTP réservé au réseau Wi-Fi : les anciennes Bose SoundTouch
+      # refusent les URL HTTPS alors que l'application utilise une API HTTPS.
+      - "${PODMIX_LAN_IP:-192.168.1.24}:8099:8099"
     environment:
-      PODMIX_ALLOWED_ORIGINS: ${PODMIX_ALLOWED_ORIGINS:-https://podmix.example.com}
+      PODMIX_ALLOWED_ORIGINS: ${PODMIX_ALLOWED_ORIGINS:-https://podmix.mb4.fr,capacitor://localhost}
       SPOTIFY_CLIENT_ID: ${SPOTIFY_CLIENT_ID:-}
       SPOTIFY_CLIENT_SECRET: ${SPOTIFY_CLIENT_SECRET:-}
-      ACOUSTID_API_KEY: ${ACOUSTID_API_KEY:-}
-      PODMIX_BEAT_ENGINE: ${PODMIX_BEAT_ENGINE:-auto}
-      PODMIX_PREVIEW_DTW_MAX_COST: ${PODMIX_PREVIEW_DTW_MAX_COST:-0.52}
       PODMIX_TRACKLIST_SOURCES: ${PODMIX_TRACKLIST_SOURCES:-mixesdb,1001tracklists}
-      PODMIX_CAST_PUBLIC_BASE: ${PODMIX_CAST_PUBLIC_BASE:-http://vps-43451133.vps.ovh.net/podmix-cast/v1/cast}
+      PODMIX_CAST_PUBLIC_BASE: ${PODMIX_CAST_PUBLIC_BASE:-https://podmix.mb4.fr/podmix-cast/v1/cast}
+      PODMIX_CAST_LAN_BASE: ${PODMIX_CAST_LAN_BASE:-http://192.168.1.24:8099/v1/cast}
+      PODMIX_SHARE_PUBLIC_BASE: ${PODMIX_SHARE_PUBLIC_BASE:-https://podmix.mb4.fr/s}
+      PODMIX_SHARE_TTL: ${PODMIX_SHARE_TTL:-2592000}
+      PODMIX_SHARE_PER_HOUR: ${PODMIX_SHARE_PER_HOUR:-20}
+      PODMIX_WEB_TIMESTAMP_TIMEOUT: ${PODMIX_WEB_TIMESTAMP_TIMEOUT:-86400}
+      # Dernier recours uniquement : RSS / YouTube / Web restent prioritaires.
+      PODMIX_AUDIO_FALLBACK: ${PODMIX_AUDIO_FALLBACK:-1}
+      # Reconnaissance volontaire depuis le micro : le jeton reste sur le serveur.
+      PODMIX_AUDD_API_TOKEN: ${PODMIX_AUDD_API_TOKEN:-}
+      PODMIX_MUSIC_RECOGNITION_PER_HOUR: ${PODMIX_MUSIC_RECOGNITION_PER_HOUR:-20}
       YTDLP_COOKIE_FILE: /run/secrets/yt-cookies.txt
     volumes:
       - podmix-data:/app/server/data
+      - ./local.properties:/app/local.properties:ro
       - ${YTDLP_COOKIE_FILE:-./server/empty-cookies.txt}:/run/secrets/yt-cookies.txt:ro
 
 volumes:

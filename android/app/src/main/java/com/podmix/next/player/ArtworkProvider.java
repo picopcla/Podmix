@@ -7,6 +7,7 @@ import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.ParcelFileDescriptor;
+import android.util.Base64;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -16,6 +17,7 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.FileInputStream;
 import java.security.MessageDigest;
 import java.nio.charset.StandardCharsets;
 import java.util.concurrent.TimeUnit;
@@ -28,7 +30,9 @@ import okhttp3.ResponseBody;
 public class ArtworkProvider extends ContentProvider {
     private static final String PREFERENCES = "podmix-artwork";
     private static final long MAX_IMAGE_BYTES = 10L * 1024L * 1024L;
-    private final OkHttpClient client = new OkHttpClient.Builder()
+    private static final long MAX_WEB_DATA_BYTES = 3L * 1024L * 1024L;
+    private static final char[] HEX = "0123456789abcdef".toCharArray();
+    private static final OkHttpClient client = new OkHttpClient.Builder()
         .connectTimeout(15, TimeUnit.SECONDS)
         .readTimeout(20, TimeUnit.SECONDS)
         .followRedirects(true)
@@ -51,6 +55,52 @@ public class ArtworkProvider extends ContentProvider {
             .authority(context.getPackageName() + ".artwork")
             .appendPath(key)
             .build();
+    }
+
+    /**
+     * Télécharge une illustration dans le stockage privé persistant de
+     * l'application. L'URI retournée reste lisible par le WebView et Android
+     * Auto, même lorsqu'il n'y a plus de réseau.
+     */
+    @Nullable
+    public static Uri prefetch(Context context, @Nullable String remoteUrl) throws FileNotFoundException {
+        Uri uri = register(context, remoteUrl);
+        if (uri == null) return null;
+        String key = uri.getLastPathSegment();
+        if (key == null) return null;
+        File directory = artworkDirectory(context);
+        if (!directory.exists() && !directory.mkdirs()) {
+            throw new FileNotFoundException("Cache d'illustrations indisponible");
+        }
+        File cached = new File(directory, key);
+        if (!cached.isFile() || cached.length() == 0) download(remoteUrl, cached);
+        return uri;
+    }
+
+    /** Une data URI est la forme la plus fiable pour le WebView Capacitor :
+     * elle garde la vraie jaquette hors connexion sans dépendre de content://. */
+    @Nullable
+    public static String webDataUrl(Context context, @Nullable String remoteUrl) throws FileNotFoundException {
+        Uri uri = prefetch(context, remoteUrl);
+        if (uri == null || remoteUrl == null) return null;
+        String key = uri.getLastPathSegment();
+        if (key == null) return null;
+        File cached = new File(artworkDirectory(context), key);
+        if (!cached.isFile() || cached.length() == 0 || cached.length() > MAX_WEB_DATA_BYTES) return null;
+        byte[] bytes = new byte[(int) cached.length()];
+        try (FileInputStream input = new FileInputStream(cached)) {
+            int offset = 0;
+            while (offset < bytes.length) {
+                int read = input.read(bytes, offset, bytes.length - offset);
+                if (read < 0) throw new IOException("Illustration incomplète");
+                offset += read;
+            }
+        } catch (IOException error) {
+            FileNotFoundException failure = new FileNotFoundException("Lecture de l'illustration impossible");
+            failure.initCause(error);
+            throw failure;
+        }
+        return "data:" + mimeType(remoteUrl) + ";base64," + Base64.encodeToString(bytes, Base64.NO_WRAP);
     }
 
     @Override
@@ -117,16 +167,28 @@ public class ArtworkProvider extends ContentProvider {
         String remoteUrl = preferences(context).getString(key, "");
         if (remoteUrl.isBlank()) throw new FileNotFoundException("Illustration non enregistrée");
 
-        File directory = new File(context.getCacheDir(), "android-auto-artwork");
+        File directory = artworkDirectory(context);
         if (!directory.exists() && !directory.mkdirs()) {
-            throw new FileNotFoundException("Cache indisponible");
+            throw new FileNotFoundException("Cache d'illustrations indisponible");
         }
         File cached = new File(directory, key);
-        if (!cached.isFile() || cached.length() == 0) download(remoteUrl, cached);
+        if (!cached.isFile() || cached.length() == 0) prefetch(context, remoteUrl);
         return ParcelFileDescriptor.open(cached, ParcelFileDescriptor.MODE_READ_ONLY);
     }
 
-    private void download(String remoteUrl, File destination) throws FileNotFoundException {
+    private static File artworkDirectory(Context context) {
+        return new File(context.getFilesDir(), "podmix-artwork");
+    }
+
+    private static String mimeType(String remoteUrl) {
+        String path = Uri.parse(remoteUrl).getPath();
+        if (path != null && path.toLowerCase().endsWith(".png")) return "image/png";
+        if (path != null && path.toLowerCase().endsWith(".webp")) return "image/webp";
+        if (path != null && path.toLowerCase().endsWith(".gif")) return "image/gif";
+        return "image/jpeg";
+    }
+
+    private static void download(String remoteUrl, File destination) throws FileNotFoundException {
         File temporary = new File(destination.getParentFile(), destination.getName() + ".part");
         Request request = new Request.Builder()
             .url(remoteUrl)
@@ -174,9 +236,13 @@ public class ArtworkProvider extends ContentProvider {
         try {
             byte[] digest = MessageDigest.getInstance("SHA-256")
                 .digest(value.getBytes(StandardCharsets.UTF_8));
-            StringBuilder result = new StringBuilder();
-            for (byte item : digest) result.append(String.format("%02x", item & 0xff));
-            return result.toString();
+            char[] result = new char[digest.length * 2];
+            for (int index = 0; index < digest.length; index++) {
+                int item = digest[index] & 0xff;
+                result[index * 2] = HEX[item >>> 4];
+                result[index * 2 + 1] = HEX[item & 0x0f];
+            }
+            return new String(result);
         } catch (Exception error) {
             throw new IllegalStateException("SHA-256 indisponible", error);
         }

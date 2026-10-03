@@ -1,0 +1,17 @@
+$ORIGIN mb4.fr.
+$TTL 300
+
+www     IN A     213.186.33.5
+ftp     IN CNAME mb4.fr.
+
+@       IN TXT   "v=spf1 include:mx.ovh.com -all"
+@       IN TXT   "1|www.mb4.fr"
+www     IN TXT   "3|welcome"
+
+@       IN MX    1 mx1.mail.ovh.net.
+@       IN MX    5 mx2.mail.ovh.net.
+@       IN MX    100 mx3.mail.ovh.net.
+
+podmix  IN A     167.233.80.231
+notes   IN A     167.233.80.231
+ai      IN A     146.59.233.23

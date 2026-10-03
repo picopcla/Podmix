@@ -1,0 +1,14 @@
+[Unit]
+Description=Cloudflare Tunnel for Podmix mini-PC
+After=network-online.target caddy.service docker.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=debian
+ExecStart=/usr/bin/cloudflared --config /home/debian/.cloudflared/podmix-minipc.yml tunnel run
+Restart=always
+RestartSec=5s
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,16 @@
+[Unit]
+Description=Podmix public download files
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=notify
+ExecStart=/usr/bin/caddy run --environ --config /home/debian/projects/podmix/deploy/podmix-downloads-user.caddy --adapter caddyfile
+TimeoutStopSec=5s
+LimitNOFILE=1048576
+PrivateTmp=true
+ProtectSystem=full
+Restart=on-failure
+
+[Install]
+WantedBy=default.target

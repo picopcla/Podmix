@@ -67,7 +67,12 @@ def import_feed(url: str, kind: str = "podcast", limit: int = 100) -> dict:
         description = _text(item, ("description", "summary", "content"))
         duration = _text(item, ("duration",))
         candidates = parse_tracklist(description, structured_only=True)
-        tracks = align_tracklist(candidates, [], _duration_seconds(duration)) if len(candidates) >= 2 else []
+        has_rss_timestamps = any(candidate.get("providedTime") is not None for candidate in candidates)
+        tracks = (
+            align_tracklist(candidates, [], _duration_seconds(duration))
+            if len(candidates) >= 2 and has_rss_timestamps
+            else []
+        )
         for track in tracks:
             track["evidence"] = ["Tracklist publiée dans la description RSS", *track.get("evidence", [])]
         episodes.append({

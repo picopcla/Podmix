@@ -1,14 +1,13 @@
 {
-  "versionCode": 10066,
-  "versionName": "1.0.67",
+  "versionCode": 10204,
+  "versionName": "1.0.204-ng",
   "minimumVersionCode": 10000,
-  "apkUrl": "https://vps-43451133.vps.ovh.net/podmix/podmix-1.0.67.apk",
-  "publishedAt": "2026-08-06T09:10:00Z",
-  "sha256": "8d13ac1c9d62d0781c340b4ca5498f56203f5d6deceb5160956bf7fb37b88700",
+  "apkUrl": "https://podmix.mb4.fr/podmix/podmix-1.0.204-ng.apk",
+  "publishedAt": "2026-09-20T17:28:24Z",
+  "sha256": "267cc6d9abc344dcfc02e888d359d502d31af15f36f4f1e90c20a65424f9ffc8",
   "notes": [
-    "Correction streaming : proxy FFmpeg pipe non bloquant",
-    "Cache Android Auto 5s au lieu de 60s",
-    "readTimeoutMs 30s au lieu d'infini",
-    "Suppression du retry automatique qui interférait"
+    "Les boutons précédent et suivant changent correctement de morceau, y compris dans Android Auto",
+    "Le lecteur inférieur est agrandi et retrouve les commandes Favori et Lecture en boucle",
+    "La mise à jour s’installe sur la version existante sans supprimer la bibliothèque ni les contenus enregistrés"
   ]
 }

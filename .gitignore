@@ -14,8 +14,29 @@ server/data/
 dist-ssr
 *.local
 .env
+.env.*
+!.env.example
+local.properties
 android/release-signing.properties
 android/podmix-release.keystore
+*.apk
+*.idsig
+*.keystore
+*.jks
+*.sqlite
+*.sqlite3
+__pycache__/
+*.py[cod]
+test-results/
+backups/
+.hermes/
+openclaw-workspace-state.json
+HEARTBEAT.md
+IDENTITY.md
+MEMORY.md
+SOUL.md
+TOOLS.md
+USER.md
 
 # Editor directories and files
 .vscode/*

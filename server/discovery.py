@@ -3,10 +3,15 @@
 from __future__ import annotations
 
 import os
+import json
+import re
 import shutil
 import tempfile
 from pathlib import Path
-from urllib.parse import urlparse
+from urllib.parse import quote, urlencode, urlparse
+from urllib.request import HTTPRedirectHandler, Request, build_opener
+
+from bs4 import BeautifulSoup
 
 try:
     from .tracklist import parse_tracklist
@@ -14,6 +19,9 @@ except ImportError:
     from tracklist import parse_tracklist
 
 ALLOWED_DOMAINS = ("youtube.com", "youtu.be", "soundcloud.com", "mixcloud.com")
+COMMENT_TEXT_LIMIT = 16_000
+TRACKLIST_TIMESTAMP = re.compile(r"(?<!\d)\d{1,2}:\d{2}(?::\d{2})?(?!\d)")
+SOUNDCLOUD_CLIENT_ID: str | None = None
 
 
 def _cookie_file() -> str | None:
@@ -42,23 +50,258 @@ def validate_media_url(url: str) -> str:
     return url.strip()
 
 
-def candidates_from_info(info: dict) -> list[dict]:
+class _SafeMediaRedirects(HTTPRedirectHandler):
+    def redirect_request(self, request, file_pointer, code, message, headers, new_url):
+        return super().redirect_request(
+            request, file_pointer, code, message, headers, validate_media_url(new_url)
+        )
+
+
+def _page_metadata(url: str) -> dict:
+    """Read published page text when yt-dlp metadata endpoints are blocked."""
+    safe_url = validate_media_url(url)
+    request = Request(
+        safe_url,
+        headers={"User-Agent": "Mozilla/5.0 Podmix/2.0", "Accept-Language": "en"},
+    )
+    with build_opener(_SafeMediaRedirects()).open(request, timeout=15) as response:
+        final_url = validate_media_url(response.geturl())
+        payload = response.read(2_000_001)
+        content_type = str(response.headers.get("Content-Type") or "")
+    if len(payload) > 2_000_000 or "html" not in content_type.casefold():
+        raise ValueError("Page média trop volumineuse ou non HTML")
+    page = payload.decode("utf-8", errors="replace")
+    soup = BeautifulSoup(page, "html.parser")
+    title_node = soup.select_one('meta[property="og:title"]') or soup.select_one("title")
+    title = str(title_node.get("content") if title_node and title_node.name == "meta" else title_node.get_text(" ") if title_node else "").strip()
+    description = ""
+    youtube_description = re.search(
+        r'"attributedDescription":\{"content":("(?:\\.|[^"\\])*")',
+        page,
+    )
+    if youtube_description:
+        try:
+            description = str(json.loads(youtube_description.group(1)))
+        except json.JSONDecodeError:
+            description = ""
+    if not description:
+        description_node = soup.select_one('meta[property="og:description"]') or soup.select_one('meta[name="description"]')
+        description = str(description_node.get("content") or "").strip() if description_node else ""
+    comments = _youtube_page_comments(page, final_url)
+    if not description and not comments:
+        raise ValueError("Aucune description publique exploitable")
+    return {
+        "webpage_url": final_url,
+        "title": title,
+        "description": description,
+        "comments": comments,
+        "extractor": f"{urlparse(final_url).hostname or 'media'}-html",
+    }
+
+
+def _youtube_page_comments(page: str, source_url: str) -> list[dict]:
+    """Extract comments embedded in public YouTube HTML as a last resort."""
+    if "youtube.com" not in (urlparse(source_url).hostname or "").casefold():
+        return []
+    blobs = re.findall(r"(?:var\s+)?ytInitialData\s*=\s*(\{.*?\})\s*;", page, re.DOTALL)
+    comments: list[dict] = []
+
+    def text_from_runs(value: object) -> str:
+        if not isinstance(value, dict):
+            return ""
+        runs = value.get("runs")
+        if isinstance(runs, list):
+            return "".join(str(run.get("text") or "") for run in runs if isinstance(run, dict)).strip()
+        return str(value.get("simpleText") or "").strip()
+
+    def visit(value: object) -> None:
+        if isinstance(value, dict):
+            renderer = value.get("commentRenderer")
+            if isinstance(renderer, dict):
+                text = text_from_runs(renderer.get("contentText"))
+                if text:
+                    comments.append({"text": text, "source": "youtube"})
+            for child in value.values():
+                visit(child)
+        elif isinstance(value, list):
+            for child in value:
+                visit(child)
+
+    for blob in blobs:
+        try:
+            visit(json.loads(blob))
+        except json.JSONDecodeError:
+            continue
+    return comments
+
+
+def _read_json(url: str) -> dict:
+    request = Request(
+        url,
+        headers={"User-Agent": "Mozilla/5.0 Podmix/2.0", "Accept": "application/json"},
+    )
+    with build_opener(_SafeMediaRedirects()).open(request, timeout=15) as response:
+        payload = response.read(2_000_001)
+    if len(payload) > 2_000_000:
+        raise ValueError("Réponse média trop volumineuse")
+    return json.loads(payload.decode("utf-8", errors="replace"))
+
+
+def _soundcloud_client_id() -> str | None:
+    global SOUNDCLOUD_CLIENT_ID
+    if SOUNDCLOUD_CLIENT_ID:
+        return SOUNDCLOUD_CLIENT_ID
+    request = Request(
+        "https://soundcloud.com/",
+        headers={"User-Agent": "Mozilla/5.0 Podmix/2.0", "Accept-Language": "en"},
+    )
+    try:
+        with build_opener(_SafeMediaRedirects()).open(request, timeout=15) as response:
+            page = response.read(1_000_001).decode("utf-8", errors="replace")
+        scripts = re.findall(r'<script[^>]+src="([^"]+\.js)"', page)
+        for script_url in reversed(scripts[-12:]):
+            script_request = Request(script_url, headers={"User-Agent": "Mozilla/5.0 Podmix/2.0"})
+            with build_opener(_SafeMediaRedirects()).open(script_request, timeout=15) as response:
+                script = response.read(2_000_001).decode("utf-8", errors="replace")
+            match = re.search(r'client_id\s*[:=]\s*"([A-Za-z0-9]{20,})"', script)
+            if match:
+                SOUNDCLOUD_CLIENT_ID = match.group(1)
+                return SOUNDCLOUD_CLIENT_ID
+    except Exception:
+        return None
+    return None
+
+
+def _clock_from_milliseconds(value: object) -> str | None:
+    try:
+        total_seconds = max(0, int(float(value) / 1000))
+    except (TypeError, ValueError):
+        return None
+    hours, remainder = divmod(total_seconds, 3600)
+    minutes, seconds = divmod(remainder, 60)
+    return f"{hours}:{minutes:02d}:{seconds:02d}" if hours else f"{minutes:02d}:{seconds:02d}"
+
+
+def _soundcloud_comments(info: dict, source_url: str) -> list[dict]:
+    parsed = urlparse(source_url)
+    if not (parsed.hostname or "").lower().endswith("soundcloud.com"):
+        return []
+    client_id = _soundcloud_client_id()
+    if not client_id:
+        return []
+    track_id = str(info.get("id") or info.get("display_id") or "").strip()
+    if not track_id.isdigit():
+        try:
+            resolved = _read_json(
+                "https://api-v2.soundcloud.com/resolve?"
+                + urlencode({"url": source_url, "client_id": client_id}, quote_via=quote)
+            )
+            track_id = str(resolved.get("id") or "").strip()
+        except Exception:
+            track_id = ""
+    if not track_id.isdigit():
+        return []
+    try:
+        payload = _read_json(
+            f"https://api-v2.soundcloud.com/tracks/{track_id}/comments?"
+            + urlencode({"client_id": client_id, "limit": "200", "threaded": "0"})
+        )
+    except Exception:
+        return []
+    comments = []
+    for comment in payload.get("collection") or []:
+        if not isinstance(comment, dict):
+            continue
+        body = re.sub(r"\s+", " ", str(comment.get("body") or "")).strip()
+        clock = _clock_from_milliseconds(comment.get("timestamp"))
+        if body and clock:
+            comments.append({"text": f"{clock} {body}", "source": "soundcloud"})
+    if len(comments) >= 2:
+        return [{"text": "\n".join(comment["text"] for comment in comments), "source": "soundcloud"}]
+    return comments
+
+
+def _normalized_info(info: dict) -> dict:
     if info.get("_type") == "playlist":
         entries = info.get("entries") or []
-        info = entries[0] if entries else info
-    description = info.get("description") or ""
-    chapter_lines = []
+        return entries[0] if entries else info
+    return info
+
+
+def _chapter_lines(info: dict) -> list[str]:
+    lines = []
     for chapter in info.get("chapters") or []:
         start = int(chapter.get("start_time") or 0)
         hours, remainder = divmod(start, 3600)
         minutes, seconds = divmod(remainder, 60)
         stamp = f"{hours}:{minutes:02d}:{seconds:02d}" if hours else f"{minutes:02d}:{seconds:02d}"
-        chapter_lines.append(f"{stamp} {chapter.get('title') or 'Chapitre'}")
+        lines.append(f"{stamp} {chapter.get('title') or 'Chapitre'}")
+    return lines
 
+
+def _comment_text(comment: dict) -> str:
+    text = str(comment.get("text") or comment.get("content") or comment.get("body") or "")
+    lines = [re.sub(r"[^\S\r\n]+", " ", line).strip() for line in text.splitlines()]
+    return "\n".join(line for line in lines if line).strip()
+
+
+def _comment_tracklist_score(text: str) -> int:
+    timestamps = len(TRACKLIST_TIMESTAMP.findall(text))
+    separators = len(re.findall(r"\s[-–—]\s", text))
+    header = 3 if re.search(r"\btrack\s*list\b", text, re.IGNORECASE) else 0
+    return timestamps * 4 + separators + header
+
+
+def tracklist_comment_texts(info: dict, limit: int = 12) -> list[str]:
+    comments = [
+        _comment_text(comment)
+        for comment in info.get("comments") or []
+        if isinstance(comment, dict)
+    ]
+    ranked = sorted(
+        (text for text in comments if text),
+        key=lambda text: (_comment_tracklist_score(text), len(text)),
+        reverse=True,
+    )
+    return [
+        text for text in ranked[:max(1, limit)]
+        if _comment_tracklist_score(text) >= 6 or len(TRACKLIST_TIMESTAMP.findall(text)) >= 2
+    ]
+
+
+def tracklist_text_from_info(info: dict) -> str:
+    info = _normalized_info(info)
+    description = str(info.get("description") or "")
+    chapter_lines = _chapter_lines(info)
+    comment_text = "\n\n".join(tracklist_comment_texts(info))[:COMMENT_TEXT_LIMIT]
+    return "\n\n".join(filter(None, [
+        "\n".join(chapter_lines),
+        description,
+        comment_text,
+    ]))
+
+
+def candidates_from_info(info: dict) -> list[dict]:
+    info = _normalized_info(info)
+    description = str(info.get("description") or "")
+    chapter_lines = _chapter_lines(info)
     candidates = parse_tracklist("\n".join(chapter_lines), structured_only=True) if chapter_lines else []
-    if len(candidates) < 2:
-        candidates = parse_tracklist(description, structured_only=True)
-    return candidates if len(candidates) >= 2 else []
+    if len(candidates) >= 2:
+        return candidates
+
+    candidates = parse_tracklist(description, structured_only=True)
+    if len(candidates) >= 2:
+        return candidates
+
+    for comment_text in tracklist_comment_texts(info):
+        candidates = parse_tracklist(comment_text, structured_only=True)
+        candidates = [
+            candidate for candidate in candidates
+            if str(candidate.get("artist") or "").casefold() != "artiste inconnu"
+        ]
+        if len(candidates) >= 2:
+            return candidates
+    return []
 
 
 def discover_tracklist(url: str) -> dict:
@@ -71,19 +314,28 @@ def discover_tracklist(url: str) -> dict:
         "skip_download": True,
         "extract_flat": False,
         "playlistend": 1,
+        "getcomments": True,
+        "extractor_args": {"youtube": {"comment_sort": ["top"], "max_comments": ["80"]}},
         "socket_timeout": 18,
     }
     cookie_file = _cookie_file()
     if cookie_file:
         options["cookiefile"] = cookie_file
-    with yt_dlp.YoutubeDL(options) as downloader:
-        info = downloader.extract_info(safe_url, download=False)
-        info = downloader.sanitize_info(info)
+    try:
+        with yt_dlp.YoutubeDL(options) as downloader:
+            info = downloader.extract_info(safe_url, download=False)
+            info = downloader.sanitize_info(info)
+    except Exception:
+        info = _page_metadata(safe_url)
 
     if info.get("_type") == "playlist":
         entries = info.get("entries") or []
         info = entries[0] if entries else info
+    extra_comments = _soundcloud_comments(info, safe_url)
+    if extra_comments:
+        info = {**info, "comments": [*(info.get("comments") or []), *extra_comments]}
     candidates = candidates_from_info(info)
+    source_text = tracklist_text_from_info(info)
     return {
         "sourceUrl": safe_url,
         "extractor": info.get("extractor_key") or info.get("extractor") or "media",
@@ -92,6 +344,7 @@ def discover_tracklist(url: str) -> dict:
         "duration": info.get("duration"),
         "candidateCount": len(candidates),
         "candidates": candidates,
+        "sourceText": source_text,
     }
 
 

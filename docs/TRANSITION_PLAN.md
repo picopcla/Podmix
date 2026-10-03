@@ -90,20 +90,15 @@ timeline — avant la migration du catalogue et de la navigation complète.
 - [x] Marqueurs et édition de tracklist
 - [x] Persistance IndexedDB
 - [x] Contrat OpenAPI v1
-- [x] Cycle DetectionJob et progression SSE
-- [x] Premier moteur réel de transitions WAV sans dépendance
-- [x] Upload audio et stockage durable des jobs avec SQLite
-- [x] Moteur avancé Librosa/SoundFile pour WAV, MP3, FLAC et OGG
-- [x] Décodage AAC/M4A via FFmpeg
+- [x] Cycle de recherche durable et progression SSE
+- [x] Suppression des uploads, téléchargements et traitements audio du VPS
 - [x] Parsing des tracklists horodatées et numérotées
-- [x] Alignement des titres sur les transitions avec preuves
+- [x] Conservation exclusive des timestamps explicites avec preuves
 - [x] Validation humaine des propositions dans l’atelier
 - [x] Découverte par URL et métadonnées YouTube, SoundCloud et Mixcloud
 - [x] Protection SSRF par HTTPS et liste blanche de domaines
 - [x] Recherche automatique d’une URL depuis le titre de l’épisode
 - [x] Validation artiste/titre dans MusicBrainz avec cache et limitation de débit
-- [x] Validation acoustique des titres avec des previews catalogue
-- [x] Empreinte acoustique optionnelle AcoustID/Chromaprint avec clé serveur
 - [x] Conteneur Capacitor Android isolé sous `com.podmix.next`
 - [x] Synchronisation automatisée PWA vers Android
 - [x] Compilation et vérification de l’APK debug
@@ -113,11 +108,10 @@ timeline — avant la migration du catalogue et de la navigation complète.
 - [x] File de lecture, Android Auto et Cast
 - [ ] Authentification et synchronisation multi-appareils
 
-## Priorité 3 — 28 juillet 2026
+## Timestamping sans média VPS
 
-- [x] Score acoustique explicite par aperçu Deezer et chroma/DTW
-- [x] Recalage sur grille BeatNet optionnelle avec repli Librosa
-- [x] Podcasts explicitement musicaux inclus dans l’analyse automatique
-- [x] Corpus synthétique et benchmark reproductible
-- [x] Fallback MixesDB avant 1001Tracklists
-- [x] Évaluation Olaf/Panako documentée sans embarquer leurs composants AGPL
+- [x] RSS en première source
+- [x] Fallback MixesDB et 1001Tracklists
+- [x] Recherche Web et commentaires publics
+- [x] Consolidation Nous Portal
+- [x] Aucun timestamp inventé quand la source n’en publie pas

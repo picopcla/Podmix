@@ -1,0 +1,3 @@
+interface:
+  display_name: "Podmix Release Publish"
+  short_description: "Build, publish, and present a Podmix Android update"

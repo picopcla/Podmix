@@ -12,6 +12,22 @@ from urllib.request import Request, urlopen, HTTPSHandler, build_opener
 _FALLBACK_HOST = "de1.api.radio-browser.info"
 
 
+def _stream_content_type(station: dict) -> str:
+    """Return a Cast-friendly MIME type from Radio Browser's codec metadata."""
+    codec = str(station.get("codec") or "").strip().lower()
+    stream_url = str(station.get("url_resolved") or station.get("url") or "").lower()
+    if ".m3u8" in stream_url or "hls" in codec:
+        return "application/x-mpegURL"
+    if "opus" in codec or ".opus" in stream_url:
+        return "audio/ogg"
+    if "ogg" in codec or ".ogg" in stream_url:
+        return "audio/ogg"
+    if "aac" in codec:
+        return "audio/aac"
+    # MP3 is also the safest fallback for Radio Browser streams with no codec.
+    return "audio/mpeg"
+
+
 class _RadioBrowserConnection(http.client.HTTPSConnection):
     """Connecte à l'adresse IP radio-browser mais valide le certificat contre le hostname."""
 
@@ -105,5 +121,6 @@ def search_radios(query: str, limit: int = 30) -> list[dict]:
         "description": " · ".join(value for value in (station.get("country"), station.get("tags", "").split(",")[0]) if value),
         "artworkUrl": station.get("favicon") or "",
         "streamUrl": station.get("url_resolved") or station.get("url") or "",
+        "streamContentType": _stream_content_type(station),
         "episodes": [],
     } for station in stations if station.get("stationuuid") and (station.get("url_resolved") or station.get("url"))]

@@ -5,6 +5,7 @@ import static org.junit.Assert.assertTrue;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.os.Bundle;
 
 import androidx.media3.common.MediaItem;
 import androidx.media3.common.PlaybackException;
@@ -12,6 +13,8 @@ import androidx.media3.common.Player;
 import androidx.media3.session.LibraryResult;
 import androidx.media3.session.MediaBrowser;
 import androidx.media3.session.MediaController;
+import androidx.media3.session.SessionCommand;
+import androidx.media3.session.SessionResult;
 import androidx.media3.session.SessionToken;
 import androidx.test.core.app.ApplicationProvider;
 import androidx.test.ext.junit.runners.AndroidJUnit4;
@@ -44,7 +47,7 @@ public class PlaybackInstrumentedTest {
     }
 
     @Test
-    public void media3QueueCanMoveToNextEpisode() throws Exception {
+    public void mediaButtonsOnlyMoveInsideAnExplicitTrackQueue() throws Exception {
         Context context = ApplicationProvider.getApplicationContext();
         SessionToken token = new SessionToken(context, new ComponentName(context, PodmixPlaybackService.class));
         ListenableFuture<MediaController> future = new MediaController.Builder(context, token).buildAsync();
@@ -70,7 +73,23 @@ public class PlaybackInstrumentedTest {
             } while (System.currentTimeMillis() < deadline);
             InstrumentationRegistry.getInstrumentation().runOnMainSync(controller::seekToNextMediaItem);
             InstrumentationRegistry.getInstrumentation().runOnMainSync(() -> index.set(controller.getCurrentMediaItemIndex()));
-            assertTrue(count.get() == 2 && index.get() == 1);
+            assertTrue(count.get() == 2 && index.get() == 0);
+
+            Bundle trackExtras = new Bundle();
+            trackExtras.putBoolean("podmixTrackNavigation", true);
+            androidx.media3.common.MediaMetadata trackMetadata =
+                new androidx.media3.common.MediaMetadata.Builder().setExtras(trackExtras).build();
+            InstrumentationRegistry.getInstrumentation().runOnMainSync(() -> {
+                controller.setMediaItems(List.of(
+                    new MediaItem.Builder().setMediaId("track-one").setUri("https://example.com/one.mp3")
+                        .setMediaMetadata(trackMetadata).build(),
+                    new MediaItem.Builder().setMediaId("track-two").setUri("https://example.com/two.mp3")
+                        .setMediaMetadata(trackMetadata).build()
+                ));
+                controller.seekToNextMediaItem();
+                index.set(controller.getCurrentMediaItemIndex());
+            });
+            assertTrue(index.get() == 1);
         } finally {
             InstrumentationRegistry.getInstrumentation().runOnMainSync(() -> {
                 controller.stop();
@@ -184,6 +203,73 @@ public class PlaybackInstrumentedTest {
                     && tracks.value.get(0).clippingConfiguration.endPositionMs == 20_000
             );
 
+            Bundle continuousExtras = new Bundle();
+            continuousExtras.putBoolean("podmixContinuousEpisode", true);
+            MediaItem continuousEpisode = new MediaItem.Builder()
+                .setMediaId("episode::mix")
+                .setUri("https://example.com/mix.mp3")
+                .setMediaMetadata(new androidx.media3.common.MediaMetadata.Builder()
+                    .setTitle("Mon épisode")
+                    .setExtras(continuousExtras)
+                    .build())
+                .build();
+            InstrumentationRegistry.getInstrumentation().runOnMainSync(() -> {
+                browser.setMediaItem(continuousEpisode);
+                browser.seekTo(12_000);
+            });
+            AtomicReference<ListenableFuture<SessionResult>> nextTrackFuture = new AtomicReference<>();
+            InstrumentationRegistry.getInstrumentation().runOnMainSync(() ->
+                nextTrackFuture.set(browser.sendCustomCommand(
+                    new SessionCommand(PodmixPlaybackService.ACTION_SEEK_NEXT_TRACK, Bundle.EMPTY),
+                    Bundle.EMPTY
+                ))
+            );
+            assertTrue(nextTrackFuture.get().get(5, TimeUnit.SECONDS).resultCode == SessionResult.RESULT_SUCCESS);
+            AtomicReference<Long> trackPosition = new AtomicReference<>(0L);
+            InstrumentationRegistry.getInstrumentation().runOnMainSync(
+                () -> trackPosition.set(browser.getCurrentPosition())
+            );
+            assertTrue(trackPosition.get() >= 19_900 && trackPosition.get() <= 20_100);
+
+            AtomicReference<ListenableFuture<SessionResult>> lastTrackNextFuture = new AtomicReference<>();
+            InstrumentationRegistry.getInstrumentation().runOnMainSync(() ->
+                lastTrackNextFuture.set(browser.sendCustomCommand(
+                    new SessionCommand(PodmixPlaybackService.ACTION_SEEK_NEXT_TRACK, Bundle.EMPTY),
+                    Bundle.EMPTY
+                ))
+            );
+            assertTrue(lastTrackNextFuture.get().get(5, TimeUnit.SECONDS).resultCode != SessionResult.RESULT_SUCCESS);
+            InstrumentationRegistry.getInstrumentation().runOnMainSync(
+                () -> trackPosition.set(browser.getCurrentPosition())
+            );
+            assertTrue(trackPosition.get() >= 19_900 && trackPosition.get() <= 20_100);
+
+            AtomicReference<ListenableFuture<SessionResult>> previousTrackFuture = new AtomicReference<>();
+            InstrumentationRegistry.getInstrumentation().runOnMainSync(() ->
+                previousTrackFuture.set(browser.sendCustomCommand(
+                    new SessionCommand(PodmixPlaybackService.ACTION_SEEK_PREVIOUS_TRACK, Bundle.EMPTY),
+                    Bundle.EMPTY
+                ))
+            );
+            assertTrue(previousTrackFuture.get().get(5, TimeUnit.SECONDS).resultCode == SessionResult.RESULT_SUCCESS);
+            InstrumentationRegistry.getInstrumentation().runOnMainSync(
+                () -> trackPosition.set(browser.getCurrentPosition())
+            );
+            assertTrue(trackPosition.get() >= 9_900 && trackPosition.get() <= 10_100);
+
+            AtomicReference<ListenableFuture<SessionResult>> firstTrackPreviousFuture = new AtomicReference<>();
+            InstrumentationRegistry.getInstrumentation().runOnMainSync(() ->
+                firstTrackPreviousFuture.set(browser.sendCustomCommand(
+                    new SessionCommand(PodmixPlaybackService.ACTION_SEEK_PREVIOUS_TRACK, Bundle.EMPTY),
+                    Bundle.EMPTY
+                ))
+            );
+            assertTrue(firstTrackPreviousFuture.get().get(5, TimeUnit.SECONDS).resultCode != SessionResult.RESULT_SUCCESS);
+            InstrumentationRegistry.getInstrumentation().runOnMainSync(
+                () -> trackPosition.set(browser.getCurrentPosition())
+            );
+            assertTrue(trackPosition.get() >= 9_900 && trackPosition.get() <= 10_100);
+
             InstrumentationRegistry.getInstrumentation().runOnMainSync(
                 () -> browser.setMediaItem(new MediaItem.Builder().setMediaId("mix::track::2").build())
             );
@@ -221,6 +307,103 @@ public class PlaybackInstrumentedTest {
                 .putString("trackIds", previousFavorites)
                 .putBoolean("initialized", previousFavoritesInitialized)
                 .commit();
+            InstrumentationRegistry.getInstrumentation().runOnMainSync(
+                () -> MediaController.releaseFuture(future)
+            );
+        }
+    }
+
+    @Test
+    public void androidAutoSelectionResolvesIdOnlyResumeItemToPlayableUri() throws Exception {
+        Context context = ApplicationProvider.getApplicationContext();
+        SharedPreferences preferences =
+            context.getSharedPreferences("podmix-resume", Context.MODE_PRIVATE);
+        String previousItems = preferences.getString("items", "[]");
+        preferences.edit()
+            .putString("items", "[{\"id\":\"resume::episode-1\",\"episodeId\":\"episode-1\",\"title\":\"Episode reprise\",\"artist\":\"Podcast\",\"url\":\"https://example.com/episode.mp3\",\"artworkUrl\":\"\",\"positionSeconds\":42,\"durationSeconds\":3600}]")
+            .putLong("version", System.currentTimeMillis())
+            .commit();
+        SessionToken token = new SessionToken(context, new ComponentName(context, PodmixPlaybackService.class));
+        ListenableFuture<MediaBrowser> future = new MediaBrowser.Builder(context, token).buildAsync();
+        MediaBrowser browser = future.get(15, TimeUnit.SECONDS);
+        try {
+            AtomicReference<ListenableFuture<LibraryResult<com.google.common.collect.ImmutableList<MediaItem>>>>
+                childrenFuture = new AtomicReference<>();
+            InstrumentationRegistry.getInstrumentation().runOnMainSync(
+                () -> childrenFuture.set(browser.getChildren("podmix-resume", 0, 20, null))
+            );
+            LibraryResult<com.google.common.collect.ImmutableList<MediaItem>> children =
+                childrenFuture.get().get(15, TimeUnit.SECONDS);
+            assertTrue(children.value != null && children.value.size() == 1);
+
+            MediaItem idOnly = new MediaItem.Builder()
+                .setMediaId("resume::episode-1")
+                .build();
+            InstrumentationRegistry.getInstrumentation().runOnMainSync(() -> browser.setMediaItem(idOnly));
+            AtomicReference<MediaItem> current = new AtomicReference<>();
+            long deadline = System.currentTimeMillis() + 2_000;
+            do {
+                InstrumentationRegistry.getInstrumentation().runOnMainSync(
+                    () -> current.set(browser.getCurrentMediaItem())
+                );
+                if (current.get() != null && current.get().localConfiguration != null) break;
+                Thread.sleep(50);
+            } while (System.currentTimeMillis() < deadline);
+            assertTrue(current.get() != null && current.get().localConfiguration != null);
+        } finally {
+            preferences.edit().putString("items", previousItems).commit();
+            InstrumentationRegistry.getInstrumentation().runOnMainSync(
+                () -> MediaController.releaseFuture(future)
+            );
+        }
+    }
+
+    @Test
+    public void androidAutoSearchReturnsPlayableSelection() throws Exception {
+        Context context = ApplicationProvider.getApplicationContext();
+        SharedPreferences preferences =
+            context.getSharedPreferences("podmix-library", Context.MODE_PRIVATE);
+        String previousItems = preferences.getString("items", "[]");
+        preferences.edit()
+            .putString("items", "[{\"id\":\"episode::search-1\",\"parentId\":\"podmix-root\",\"kind\":\"podcast\",\"url\":\"https://example.com/search.mp3\",\"title\":\"Recherche Podmix\",\"artist\":\"Podcast\",\"browsable\":false,\"playable\":true}]")
+            .putLong("version", System.currentTimeMillis())
+            .commit();
+        SessionToken token = new SessionToken(context, new ComponentName(context, PodmixPlaybackService.class));
+        ListenableFuture<MediaBrowser> future = new MediaBrowser.Builder(context, token).buildAsync();
+        MediaBrowser browser = future.get(15, TimeUnit.SECONDS);
+        try {
+            AtomicReference<ListenableFuture<LibraryResult<Void>>> searchFuture = new AtomicReference<>();
+            InstrumentationRegistry.getInstrumentation().runOnMainSync(
+                () -> searchFuture.set(browser.search("Recherche", null))
+            );
+            LibraryResult<Void> search = searchFuture.get().get(15, TimeUnit.SECONDS);
+            assertTrue(search.resultCode == LibraryResult.RESULT_SUCCESS);
+
+            AtomicReference<ListenableFuture<LibraryResult<com.google.common.collect.ImmutableList<MediaItem>>>>
+                resultsFuture = new AtomicReference<>();
+            InstrumentationRegistry.getInstrumentation().runOnMainSync(
+                () -> resultsFuture.set(browser.getSearchResult("Recherche", 0, 20, null))
+            );
+            LibraryResult<com.google.common.collect.ImmutableList<MediaItem>> results =
+                resultsFuture.get().get(15, TimeUnit.SECONDS);
+            assertTrue(results.value != null && results.value.size() == 1);
+            assertTrue("episode::search-1".contentEquals(results.value.get(0).mediaId));
+            MediaItem idOnly = new MediaItem.Builder()
+                .setMediaId("episode::search-1")
+                .build();
+            InstrumentationRegistry.getInstrumentation().runOnMainSync(() -> browser.setMediaItem(idOnly));
+            AtomicReference<MediaItem> current = new AtomicReference<>();
+            long deadline = System.currentTimeMillis() + 2_000;
+            do {
+                InstrumentationRegistry.getInstrumentation().runOnMainSync(
+                    () -> current.set(browser.getCurrentMediaItem())
+                );
+                if (current.get() != null && current.get().localConfiguration != null) break;
+                Thread.sleep(50);
+            } while (System.currentTimeMillis() < deadline);
+            assertTrue(current.get() != null && current.get().localConfiguration != null);
+        } finally {
+            preferences.edit().putString("items", previousItems).commit();
             InstrumentationRegistry.getInstrumentation().runOnMainSync(
                 () -> MediaController.releaseFuture(future)
             );

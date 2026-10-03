@@ -1,0 +1,26 @@
+:8080 {
+    bind 127.0.0.1
+
+    handle_path /podmix-cast/* {
+        reverse_proxy 127.0.0.1:8099 {
+            flush_interval -1
+        }
+    }
+
+    handle_path /podmix-api/* {
+        reverse_proxy 127.0.0.1:8099
+    }
+
+    handle /s/* {
+        reverse_proxy 127.0.0.1:8099
+    }
+
+    handle_path /podmix/* {
+        root * /var/www/podmix
+        header Cache-Control "no-cache"
+        header Access-Control-Allow-Origin "*"
+        file_server
+    }
+
+    respond "Not found" 404
+}
