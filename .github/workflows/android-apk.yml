@@ -1,3 +1,71 @@
+name: Android release APK
+
+on:
+  push:
+    branches: [fix/resume-position-id-normalize]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+      - name: Prepare release signing
+        env:
+          KS_B64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          KS_PASS: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          KEY_PASS: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: |
+          for v in KS_B64 KS_PASS KEY_ALIAS KEY_PASS; do
+            if [ -z "${!v}" ]; then echo "Missing secret for $v"; exit 1; fi
+          done
+          umask 077
+          printf '%s' "$KS_B64" | base64 -d > android/podmix-release.keystore
+          {
+            echo "storeFile=podmix-release.keystore"
+            echo "storePassword=$KS_PASS"
+            echo "keyAlias=$KEY_ALIAS"
+            echo "keyPassword=$KEY_PASS"
+          } > android/release-signing.properties
+      - run: npm ci
+      - name: Build signed release APK
+        run: npm run android:build:release
+      - name: Collect and verify APK
+        env:
+          KS_PASS: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+        run: |
+          mkdir -p out
+          find android/app/build/outputs/apk -name '*release*.apk' -exec cp {} out/ \;
+          ls -l out
+          BT=$(ls -d "$ANDROID_HOME"/build-tools/* | sort -V | tail -1)
+          for f in out/*.apk; do
+            echo "== $f"
+            "$BT/aapt2" dump badging "$f" | grep -E "^package:"
+            "$BT/apksigner" verify --verbose --print-certs "$f" | grep -E "Verifies|Verified using|certificate SHA-256"
+          done
+          echo "== keystore cert"
+          keytool -list -keystore android/podmix-release.keystore -alias "$KEY_ALIAS" -storepass:env KS_PASS | grep -i "SHA-256\|SHA256"
+      - name: Remove signing material
+        if: always()
+        run: rm -f android/podmix-release.keystore android/release-signing.properties
+      - uses: actions/upload-artifact@v4
+        with:
+          name: podmix-release-apk
+          path: out/*.apk
+          retention-days: 14
 name: Android debug APK
 
 on:
