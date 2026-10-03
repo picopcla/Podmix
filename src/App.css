@@ -506,3 +506,25 @@ main{min-width:0}.topbar{height:68px;padding:0 30px;border-bottom:1px solid var(
 
 /* Accueil : marque Podmix sur fond blanc (icone casque + ecriture Nunito) */
 .topbar .brand{background:#fff;border-radius:999px;padding:4px 16px 4px 4px;gap:9px}.topbar .brand-mark{width:34px;height:34px}.topbar .brand-wordmark{display:block;width:92px;height:22px;font-size:0;line-height:0;letter-spacing:0;color:transparent;background:url(./assets/podmix-wordmark.png) left center/contain no-repeat;-webkit-background-clip:border-box;background-clip:border-box}
+
+/* === Theme clair Podmix : inversion globale + corrections cibles === */
+html{filter:invert(1) hue-rotate(180deg);background:#0b090f}
+html img,html video,html canvas,html .brand-wordmark{filter:invert(1) hue-rotate(180deg)}
+:root{--ink:#0b090f!important;--panel:#000000!important;--cream:#e3e2ed!important;--orange:#ff714a!important;--line:#282333!important}
+html,body,#root,.app-shell{background:#0b090f!important}
+.topbar{background:#0b090f!important;border-bottom-color:#1f1b29!important}
+.topbar .brand{background:none!important;padding:0!important}
+.topbar .brand-mark{width:38px;height:38px;background:transparent}
+section.home-section{background:#000000!important;background-image:none!important;border-color:#1f1a28!important;box-shadow:0 6px 20px rgba(60,30,120,.10)!important}
+section.home-section.home-podcasts{background:#1a1120!important}
+section.home-section.home-shows{background:#06140c!important}
+section.home-section.home-radios{background:#08141e!important}
+section.home-section.home-djSets{background:#1b1003!important}
+.media-art{background:#17141f!important}
+.home-source-card .media-art{background:transparent!important;padding:0!important}
+section.source-detail,.workspace .source-detail{background:#000000!important}
+.source-heading>img,.source-heading>svg{background:#ebe8f3!important}
+.modal-backdrop{background:rgba(255,255,255,.45)!important}
+.source-modal,[role="dialog"]:not(.full-player){background:#000000!important;background-image:none!important}
+.source-modal input:not([type=range]),.source-modal textarea,[role="dialog"]:not(.full-player) input:not([type=range]){background:#100e16!important}
+section.home-section.home-resume,section.home-section.home-offline,section.home-section.home-history{background:#000000!important;background-image:none!important}
