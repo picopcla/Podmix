@@ -1,4 +1,3 @@
-name: Android release APK
 
 on:
   push:
@@ -6,7 +5,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   build:
@@ -66,3 +65,20 @@ jobs:
           name: podmix-release-apk
           path: out/*.apk
           retention-days: 14
+      - name: Publish pre-release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          BT=$(ls -d "$ANDROID_HOME"/build-tools/* | sort -V | tail -1)
+          APK=$(ls out/*.apk | head -1)
+          VN=$("$BT/aapt2" dump badging "$APK" | sed -n "s/.*versionName='\([^']*\)'.*/\1/p" | head -1)
+          TAG="v${VN}-fix-resume"
+          SHA=$(sha256sum "$APK" | cut -d' ' -f1)
+          echo "tag=$TAG sha256=$SHA"
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            gh release upload "$TAG" "$APK" --clobber
+          else
+            gh release create "$TAG" "$APK" --prerelease --target "$GITHUB_SHA" \
+              --title "Podmix $VN (fix resume position)" \
+              --notes "Signed release APK. sha256: $SHA"
+          fi
