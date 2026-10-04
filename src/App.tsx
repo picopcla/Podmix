@@ -3146,6 +3146,21 @@ function App() {
     return Math.max(catalogDuration, historyDuration)
   }
 
+  // A Cast session can be started outside the app's output picker (system
+  // picker, notification, another launch). Re-read the native state before each
+  // playback so a new episode follows the live cast session instead of
+  // starting on the phone while the old one keeps playing on the speaker.
+  async function syncCastOutput() {
+    if (activeOutputRef.current.kind !== 'phone' || isBoseOutputActive()) return
+    try {
+      const castState = await podmixPlayer.getCastState()
+      if (!castState.connected) return
+      const cast = { kind: 'cast' as const, id: 'cast', name: castState.deviceName || 'Google Cast' }
+      activeOutputRef.current = cast
+      setActiveOutput(cast)
+    } catch { /* stay on the phone */ }
+  }
+
   function autoplayOnCurrentOutput() {
     // A remote renderer owns playback. Preparing Media3 with autoplay would
     // start a second queue locally and let it advance while the remote output
@@ -3257,6 +3272,7 @@ function App() {
   async function playEpisode(id: string, title: string, artist: string, url: string, artworkUrl?: string, resumePosition = 0, scope: NowPlayingItem['scope'] = 'episode', existingRequestId?: number) {
     if (!url) return
     const requestId = existingRequestId ?? beginPlaybackRequest()
+    await syncCastOutput()
     // Les raccourcis « Reprendre », l'historique et certaines commandes
     // Android Auto arrivent directement ici.  Auparavant ils remplaçaient la
     // file de morceaux par un unique épisode, même quand une tracklist était
@@ -3322,6 +3338,7 @@ function App() {
 
   async function playFromSource(source: CatalogSource, episodeId: string, startPosition?: number) {
     const requestId = beginPlaybackRequest()
+    await syncCastOutput()
     // La page d'une source est aussi utilisable en avion : ne jamais repartir
     // sur l'URL RSS/YouTube si DownloadManager a bien produit le fichier local.
     // Cela vaut également pour la file de lecture continue et les morceaux.
@@ -3452,6 +3469,7 @@ function App() {
     const playbackUrl = localUri || episode.audioUrl
     if (!playbackUrl || !selectedTrack) return
     const requestId = existingRequestId ?? beginPlaybackRequest()
+    await syncCastOutput()
     // « Lire » au niveau de l'épisode doit inclure l'introduction, même si
     // le premier repère de tracklist commence plus tard. En revanche, un
     // appui direct sur un morceau conserve bien le début de ce morceau.
@@ -3557,6 +3575,7 @@ function App() {
 
   async function playFavoriteTracks(startIndex: number) {
     const requestId = beginPlaybackRequest()
+    await syncCastOutput()
     const requestedEntry = favoriteTrackEntries[startIndex]
     const offlineById = new Map(
       offlineEpisodesRef.current
