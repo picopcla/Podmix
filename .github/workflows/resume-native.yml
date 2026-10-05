@@ -9,16 +9,6 @@ permissions:
 jobs:
   build:
     runs-on: ubuntu-latest
-on:
-  push:
-    branches: [fix/resume-native]
-  workflow_dispatch:
-permissions:
-  contents: write
-  issues: read
-jobs:
-  build:
-    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - name: Apply patch from issue 1
