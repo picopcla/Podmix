@@ -1,0 +1,98 @@
+name: resume-native
+on:
+  push:
+    branches: [fix/resume-native]
+  workflow_dispatch:
+permissions:
+  contents: write
+  issues: read
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Apply patch from issue 1
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if git log -1 --format=%s | grep -q 'native resume patch'; then echo already applied; exit 0; fi
+          gh issue view 1 --json body -q .body | tr -d '\r' > /tmp/p.patch
+          git apply --index /tmp/p.patch
+          git config user.name instinct
+          git config user.email instinct@users.noreply.github.com
+          git commit -m 'Apply native resume patch'
+          git push origin HEAD:fix/resume-native
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+      - name: Prepare release signing
+        env:
+          KS_B64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          KS_PASS: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          KEY_PASS: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: |
+          umask 077
+          printf '%s' "$KS_B64" | base64 -d > android/podmix-release.keystore
+          printf 'storeFile=podmix-release.keystore\nstorePassword=%s\nkeyAlias=%s\nkeyPassword=%s\n' "$KS_PASS" "$KEY_ALIAS" "$KEY_PASS" > android/release-signing.properties
+      - run: npm ci
+      - run: npm run android:build:release
+      - name: Collect APK
+        run: |
+          mkdir -p out
+          find android/app/build/outputs/apk -name '*release*.apk' -exec cp {} out/ \;
+          ls -l out
+      - name: Remove signing material
+        if: always()
+        run: rm -f android/podmix-release.keystore android/release-signing.properties
+      - uses: actions/upload-artifact@v4
+        with:
+          name: podmix-resume-native-apk
+          path: out/*.apk
+  smoke:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: podmix-resume-native-apk
+          path: out
+      - name: Enable KVM
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+      - uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 33
+          arch: x86_64
+          script: |
+            adb install -r out/*.apk
+            adb shell monkey -p com.podmix.next.ng -c android.intent.category.LAUNCHER 1
+            sleep 25
+            adb logcat -d | grep -E 'FATAL EXCEPTION' && exit 1
+            adb shell pidof com.podmix.next.ng
+            echo SMOKE_OK
+  release:
+    needs: smoke
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: podmix-resume-native-apk
+          path: out
+      - name: Publish pre-release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          APK=$(ls out/*.apk | head -1)
+          BT=$(ls -d "$ANDROID_HOME"/build-tools/* | sort -V | tail -1)
+          VN=$("$BT/aapt2" dump badging "$APK" | sed -n "s/.*versionName='\([^']*\)'.*/\1/p" | head -1)
+          TAG="v${VN}-resume-native"
+          gh release create "$TAG" "$APK" --prerelease --target "${{ github.sha }}" --title "Podmix $VN (resume native)" --notes "Signed release APK, emulator smoke test passed."
