@@ -15,7 +15,7 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          if git log -50 --format=%s | grep -q 'native resume patch'; then echo already applied; exit 0; fi
+          if grep -q saveNativeResume android/app/src/main/java/com/podmix/next/player/PodmixPlaybackService.java; then echo already applied; exit 0; fi
           gh issue view 1 --json body -q .body | tr -d '\r' > /tmp/p.patch
           git apply --index /tmp/p.patch
           git config user.name instinct
