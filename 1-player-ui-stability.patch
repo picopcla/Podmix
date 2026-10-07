@@ -1,0 +1,251 @@
+diff --git a/android/app/src/main/java/com/podmix/next/player/PodmixPlayerPlugin.java b/android/app/src/main/java/com/podmix/next/player/PodmixPlayerPlugin.java
+index 98e622d..cffdaf8 100644
+--- a/android/app/src/main/java/com/podmix/next/player/PodmixPlayerPlugin.java
++++ b/android/app/src/main/java/com/podmix/next/player/PodmixPlayerPlugin.java
+@@ -144,6 +144,7 @@ public class PodmixPlayerPlugin extends Plugin implements Player.Listener {
+     private ListenableFuture<MediaController> controllerFuture;
+     private MediaController controller;
+     private String playbackError = "";
++    private long stateSequence = 0;
+     private int repeatMode = Player.REPEAT_MODE_OFF;
+     private String castMediaId = "";
+     private long castPositionOffsetMs = 0;
+@@ -2960,12 +2961,15 @@ public class PodmixPlayerPlugin extends Plugin implements Player.Listener {
+                 result.put("mediaId", castMediaId);
+             }
+         }
++        // All command replies, polls and events share one ordering.
++        result.put("stateSequence", ++stateSequence);
+         return result;
+     }
+ 
+     private void emitState() {
+         if (controller != null) {
+-            notifyListeners("stateChanged", state(controller), true);
++            // Playback snapshots are not durable events: never replay old positions.
++            notifyListeners("stateChanged", state(controller), false);
+         }
+     }
+ 
+@@ -2974,22 +2978,17 @@ public class PodmixPlayerPlugin extends Plugin implements Player.Listener {
+         emitState();
+     }
+ 
+-    @Override
+-    public void onMediaItemTransition(MediaItem mediaItem, int reason) {
+-        emitState();
+-    }
+-
+     @Override
+     public void onPlayerError(@NonNull PlaybackException error) {
+         playbackError = error.getErrorCodeName() + (error.getMessage() == null ? "" : " · " + error.getMessage());
+         Log.e(TAG, playbackError, error);
+-        emitState();
++        // onEvents delivers the complete batch after individual callbacks.
+     }
+ 
+     @Override
+     public void onPlaybackStateChanged(int playbackState) {
+         if (playbackState == Player.STATE_READY) playbackError = "";
+-        emitState();
++        // Emit only from onEvents, after Media3 has applied the whole batch.
+     }
+ 
+     @Override
+diff --git a/package-lock.json b/package-lock.json
+index b996ea1..0c9359a 100644
+--- a/package-lock.json
++++ b/package-lock.json
+@@ -1,12 +1,12 @@
+ {
+   "name": "podmix-next",
+-  "version": "1.0.188",
++  "version": "1.0.214",
+   "lockfileVersion": 3,
+   "requires": true,
+   "packages": {
+     "": {
+       "name": "podmix-next",
+-      "version": "1.0.188",
++      "version": "1.0.214",
+       "dependencies": {
+         "@capacitor/android": "^8.4.2",
+         "@capacitor/app": "^8.1.1",
+diff --git a/package.json b/package.json
+index cad66b7..4140398 100644
+--- a/package.json
++++ b/package.json
+@@ -1,7 +1,7 @@
+ {
+   "name": "podmix-next",
+   "private": true,
+-  "version": "1.0.213",
++  "version": "1.0.214",
+   "type": "module",
+   "scripts": {
+     "dev": "vite",
+diff --git a/src/nativePlayer.ts b/src/nativePlayer.ts
+index 3df554d..704cb99 100644
+--- a/src/nativePlayer.ts
++++ b/src/nativePlayer.ts
+@@ -1,7 +1,9 @@
++import { createPlayerStateOrder } from './playerStateOrder'
+ import { Capacitor, registerPlugin } from '@capacitor/core'
+ import type { PluginListenerHandle } from '@capacitor/core'
+ 
+ export type PlayerState = {
++  stateSequence?: number
+   playing: boolean
+   positionSeconds: number
+   durationSeconds: number
+@@ -182,6 +184,10 @@ type PodmixPlayerPlugin = {
+ }
+ 
+ const NativePlayer = registerPlugin<PodmixPlayerPlugin>('PodmixPlayer')
++const nativeStateOrder = createPlayerStateOrder<PlayerState>()
++async function orderedNativeState(request: Promise<PlayerState>) {
++  return nativeStateOrder.resolve(await request)
++}
+ const webAudio = new Audio()
+ webAudio.volume = Math.max(0, Math.min(1, Number(localStorage.getItem('podmix-player-volume') ?? 1)))
+ let webTitle = ''
+@@ -277,7 +283,7 @@ export const podmixPlayer = {
+   isNative: Capacitor.isNativePlatform(),
+   async load(options: LoadOptions) {
+     const safeOptions = secureLoadOptions(options)
+-    if (Capacitor.isNativePlatform()) return NativePlayer.load(safeOptions)
++    if (Capacitor.isNativePlatform()) return orderedNativeState(NativePlayer.load(safeOptions))
+     webQueue = []
+     webQueueIndex = 0
+     webAudio.src = safeOptions.url
+@@ -288,7 +294,7 @@ export const podmixPlayer = {
+     return webState()
+   },
+   async play() {
+-    if (Capacitor.isNativePlatform()) return NativePlayer.play()
++    if (Capacitor.isNativePlatform()) return orderedNativeState(NativePlayer.play())
+     const item = webQueue[webQueueIndex]
+     // A paused HTMLAudioElement keeps consuming the old radio connection's
+     // buffered bytes. Radios are not podcasts: resuming one must reconnect to
+@@ -300,17 +306,17 @@ export const podmixPlayer = {
+     return webState()
+   },
+   async pause() {
+-    if (Capacitor.isNativePlatform()) return NativePlayer.pause()
++    if (Capacitor.isNativePlatform()) return orderedNativeState(NativePlayer.pause())
+     webAudio.pause()
+     return webState()
+   },
+   async seekTo(positionSeconds: number) {
+-    if (Capacitor.isNativePlatform()) return NativePlayer.seekTo({ positionSeconds })
++    if (Capacitor.isNativePlatform()) return orderedNativeState(NativePlayer.seekTo({ positionSeconds }))
+     webAudio.currentTime = webItemStart(webQueue[webQueueIndex]) + Math.max(0, positionSeconds)
+     return webState()
+   },
+   async getState() {
+-    return Capacitor.isNativePlatform() ? NativePlayer.getState() : webState()
++    return Capacitor.isNativePlatform() ? orderedNativeState(NativePlayer.getState()) : webState()
+   },
+   async setVolume(options: { volume: number }) {
+     const volume = Math.max(0, Math.min(1, options.volume))
+@@ -341,7 +347,9 @@ export const podmixPlayer = {
+   },
+   async onStateChanged(listener: (state: PlayerState) => void) {
+     if (!Capacitor.isNativePlatform()) return { remove: async () => undefined }
+-    return NativePlayer.addListener('stateChanged', listener)
++    return NativePlayer.addListener('stateChanged', (state) => {
++      if (nativeStateOrder.accept(state)) listener(state)
++    })
+   },
+   async syncLibrary(items: LibraryItem[]) {
+     if (!Capacitor.isNativePlatform()) return { count: items.length }
+@@ -404,7 +412,7 @@ export const podmixPlayer = {
+   async setQueue(items: Array<LoadOptions & { id: string }>, startIndex = 0, autoplay = false, startPositionSeconds = 0) {
+     const safeItems = items.map(secureLoadOptions)
+     if (Capacitor.isNativePlatform()) {
+-      return NativePlayer.setQueue({ items: safeItems, startIndex, startPositionSeconds, autoplay })
++      return orderedNativeState(NativePlayer.setQueue({ items: safeItems, startIndex, startPositionSeconds, autoplay }))
+     }
+     webQueue = safeItems
+     webQueueIndex = Math.min(Math.max(0, startIndex), Math.max(0, items.length - 1))
+@@ -418,7 +426,7 @@ export const podmixPlayer = {
+     return webState()
+   },
+   async next() {
+-    if (Capacitor.isNativePlatform()) return NativePlayer.next()
++    if (Capacitor.isNativePlatform()) return orderedNativeState(NativePlayer.next())
+     if (webQueueIndex < webQueue.length - 1) {
+       webQueueIndex += 1
+       await loadWebQueueItem(webQueue[webQueueIndex], true)
+@@ -426,7 +434,7 @@ export const podmixPlayer = {
+     return webState()
+   },
+   async previous() {
+-    if (Capacitor.isNativePlatform()) return NativePlayer.previous()
++    if (Capacitor.isNativePlatform()) return orderedNativeState(NativePlayer.previous())
+     if (webQueueIndex > 0) {
+       webQueueIndex -= 1
+       await loadWebQueueItem(webQueue[webQueueIndex], true)
+@@ -435,7 +443,7 @@ export const podmixPlayer = {
+   },
+   async setRepeatMode(mode: 0 | 1 | 2) {
+     webRepeatMode = mode
+-    if (Capacitor.isNativePlatform()) return NativePlayer.setRepeatMode({ mode })
++    if (Capacitor.isNativePlatform()) return orderedNativeState(NativePlayer.setRepeatMode({ mode }))
+     return webState()
+   },
+   async download(id: string, url: string, title?: string) {
+@@ -484,7 +492,7 @@ export const podmixPlayer = {
+   },
+   async disconnectCast() {
+     if (!Capacitor.isNativePlatform()) return { ...webState(), connected: false }
+-    return NativePlayer.disconnectCast()
++    return orderedNativeState(NativePlayer.disconnectCast())
+   },
+   async cast(options: LoadOptions & {
+     artworkUrl?: string
+diff --git a/src/playerStateOrder.ts b/src/playerStateOrder.ts
+new file mode 100644
+index 0000000..3c47664
+--- /dev/null
++++ b/src/playerStateOrder.ts
+@@ -0,0 +1,17 @@
++// Merge native event and request streams without letting a delayed response
++// roll the display back. Do not smooth positions: real seeks must stay instant.
++export function createPlayerStateOrder<T extends { stateSequence?: number }>() {
++  let latest: T | undefined
++  return {
++    accept(state: T): boolean {
++      if (state.stateSequence !== undefined && latest?.stateSequence !== undefined
++        && state.stateSequence <= latest.stateSequence) return false
++      latest = state
++      return true
++    },
++    resolve(state: T): T {
++      this.accept(state)
++      return latest ?? state
++    },
++  }
++}
+diff --git a/tests/unit/player-state-order.test.mjs b/tests/unit/player-state-order.test.mjs
+new file mode 100644
+index 0000000..034af43
+--- /dev/null
++++ b/tests/unit/player-state-order.test.mjs
+@@ -0,0 +1,16 @@
++import assert from 'node:assert/strict'
++import { createPlayerStateOrder } from '../../src/playerStateOrder.ts'
++const order = createPlayerStateOrder()
++const current = { stateSequence: 12, playing: true, positionSeconds: 123 }
++assert.equal(order.accept(current), true)
++assert.equal(order.accept({ stateSequence: 10, playing: false, positionSeconds: 0 }), false)
++assert.equal(order.resolve({ stateSequence: 11, playing: false, positionSeconds: 0 }), current)
++assert.equal(order.accept(current), false)
++const seek = { stateSequence: 13, playing: true, positionSeconds: 0 }
++assert.equal(order.resolve(seek), seek)
++const pause = { stateSequence: 14, playing: false, positionSeconds: 1 }
++assert.equal(order.resolve(pause), pause)
++const newEpisode = { stateSequence: 15, playing: true, positionSeconds: 0 }
++assert.equal(order.resolve(newEpisode), newEpisode)
++assert.equal(createPlayerStateOrder().accept({ playing: true }), true)
++console.log('PASS: stale events/polls, duplicate, real seek, pause, new episode, legacy state')
