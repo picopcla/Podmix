@@ -1,7 +1,9 @@
+import { createPlayerStateOrder } from './playerStateOrder'
 import { Capacitor, registerPlugin } from '@capacitor/core'
 import type { PluginListenerHandle } from '@capacitor/core'
 
 export type PlayerState = {
+  stateSequence?: number
   playing: boolean
   positionSeconds: number
   durationSeconds: number
@@ -182,6 +184,10 @@ type PodmixPlayerPlugin = {
 }
 
 const NativePlayer = registerPlugin<PodmixPlayerPlugin>('PodmixPlayer')
+const nativeStateOrder = createPlayerStateOrder<PlayerState>()
+async function orderedNativeState(request: Promise<PlayerState>) {
+  return nativeStateOrder.resolve(await request)
+}
 const webAudio = new Audio()
 webAudio.volume = Math.max(0, Math.min(1, Number(localStorage.getItem('podmix-player-volume') ?? 1)))
 let webTitle = ''
@@ -277,7 +283,7 @@ export const podmixPlayer = {
   isNative: Capacitor.isNativePlatform(),
   async load(options: LoadOptions) {
     const safeOptions = secureLoadOptions(options)
-    if (Capacitor.isNativePlatform()) return NativePlayer.load(safeOptions)
+    if (Capacitor.isNativePlatform()) return orderedNativeState(NativePlayer.load(safeOptions))
     webQueue = []
     webQueueIndex = 0
     webAudio.src = safeOptions.url
@@ -288,7 +294,7 @@ export const podmixPlayer = {
     return webState()
   },
   async play() {
-    if (Capacitor.isNativePlatform()) return NativePlayer.play()
+    if (Capacitor.isNativePlatform()) return orderedNativeState(NativePlayer.play())
     const item = webQueue[webQueueIndex]
     // A paused HTMLAudioElement keeps consuming the old radio connection's
     // buffered bytes. Radios are not podcasts: resuming one must reconnect to
@@ -300,17 +306,17 @@ export const podmixPlayer = {
     return webState()
   },
   async pause() {
-    if (Capacitor.isNativePlatform()) return NativePlayer.pause()
+    if (Capacitor.isNativePlatform()) return orderedNativeState(NativePlayer.pause())
     webAudio.pause()
     return webState()
   },
   async seekTo(positionSeconds: number) {
-    if (Capacitor.isNativePlatform()) return NativePlayer.seekTo({ positionSeconds })
+    if (Capacitor.isNativePlatform()) return orderedNativeState(NativePlayer.seekTo({ positionSeconds }))
     webAudio.currentTime = webItemStart(webQueue[webQueueIndex]) + Math.max(0, positionSeconds)
     return webState()
   },
   async getState() {
-    return Capacitor.isNativePlatform() ? NativePlayer.getState() : webState()
+    return Capacitor.isNativePlatform() ? orderedNativeState(NativePlayer.getState()) : webState()
   },
   async setVolume(options: { volume: number }) {
     const volume = Math.max(0, Math.min(1, options.volume))
@@ -341,7 +347,9 @@ export const podmixPlayer = {
   },
   async onStateChanged(listener: (state: PlayerState) => void) {
     if (!Capacitor.isNativePlatform()) return { remove: async () => undefined }
-    return NativePlayer.addListener('stateChanged', listener)
+    return NativePlayer.addListener('stateChanged', (state) => {
+      if (nativeStateOrder.accept(state)) listener(state)
+    })
   },
   async syncLibrary(items: LibraryItem[]) {
     if (!Capacitor.isNativePlatform()) return { count: items.length }
@@ -404,7 +412,7 @@ export const podmixPlayer = {
   async setQueue(items: Array<LoadOptions & { id: string }>, startIndex = 0, autoplay = false, startPositionSeconds = 0) {
     const safeItems = items.map(secureLoadOptions)
     if (Capacitor.isNativePlatform()) {
-      return NativePlayer.setQueue({ items: safeItems, startIndex, startPositionSeconds, autoplay })
+      return orderedNativeState(NativePlayer.setQueue({ items: safeItems, startIndex, startPositionSeconds, autoplay }))
     }
     webQueue = safeItems
     webQueueIndex = Math.min(Math.max(0, startIndex), Math.max(0, items.length - 1))
@@ -418,7 +426,7 @@ export const podmixPlayer = {
     return webState()
   },
   async next() {
-    if (Capacitor.isNativePlatform()) return NativePlayer.next()
+    if (Capacitor.isNativePlatform()) return orderedNativeState(NativePlayer.next())
     if (webQueueIndex < webQueue.length - 1) {
       webQueueIndex += 1
       await loadWebQueueItem(webQueue[webQueueIndex], true)
@@ -426,7 +434,7 @@ export const podmixPlayer = {
     return webState()
   },
   async previous() {
-    if (Capacitor.isNativePlatform()) return NativePlayer.previous()
+    if (Capacitor.isNativePlatform()) return orderedNativeState(NativePlayer.previous())
     if (webQueueIndex > 0) {
       webQueueIndex -= 1
       await loadWebQueueItem(webQueue[webQueueIndex], true)
@@ -435,7 +443,7 @@ export const podmixPlayer = {
   },
   async setRepeatMode(mode: 0 | 1 | 2) {
     webRepeatMode = mode
-    if (Capacitor.isNativePlatform()) return NativePlayer.setRepeatMode({ mode })
+    if (Capacitor.isNativePlatform()) return orderedNativeState(NativePlayer.setRepeatMode({ mode }))
     return webState()
   },
   async download(id: string, url: string, title?: string) {
@@ -484,7 +492,7 @@ export const podmixPlayer = {
   },
   async disconnectCast() {
     if (!Capacitor.isNativePlatform()) return { ...webState(), connected: false }
-    return NativePlayer.disconnectCast()
+    return orderedNativeState(NativePlayer.disconnectCast())
   },
   async cast(options: LoadOptions & {
     artworkUrl?: string

@@ -144,6 +144,7 @@ public class PodmixPlayerPlugin extends Plugin implements Player.Listener {
     private ListenableFuture<MediaController> controllerFuture;
     private MediaController controller;
     private String playbackError = "";
+    private long stateSequence = 0;
     private int repeatMode = Player.REPEAT_MODE_OFF;
     private String castMediaId = "";
     private long castPositionOffsetMs = 0;
@@ -2960,12 +2961,15 @@ public class PodmixPlayerPlugin extends Plugin implements Player.Listener {
                 result.put("mediaId", castMediaId);
             }
         }
+        // All command replies, polls and events share one ordering.
+        result.put("stateSequence", ++stateSequence);
         return result;
     }
 
     private void emitState() {
         if (controller != null) {
-            notifyListeners("stateChanged", state(controller), true);
+            // Playback snapshots are not durable events: never replay old positions.
+            notifyListeners("stateChanged", state(controller), false);
         }
     }
 
@@ -2975,21 +2979,16 @@ public class PodmixPlayerPlugin extends Plugin implements Player.Listener {
     }
 
     @Override
-    public void onMediaItemTransition(MediaItem mediaItem, int reason) {
-        emitState();
-    }
-
-    @Override
     public void onPlayerError(@NonNull PlaybackException error) {
         playbackError = error.getErrorCodeName() + (error.getMessage() == null ? "" : " · " + error.getMessage());
         Log.e(TAG, playbackError, error);
-        emitState();
+        // onEvents delivers the complete batch after individual callbacks.
     }
 
     @Override
     public void onPlaybackStateChanged(int playbackState) {
         if (playbackState == Player.STATE_READY) playbackError = "";
-        emitState();
+        // Emit only from onEvents, after Media3 has applied the whole batch.
     }
 
     @Override
