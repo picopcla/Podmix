@@ -1,0 +1,115 @@
+name: player-ui-stability
+on:
+  push:
+    branches: [fix/player-ui-state-stability]
+  workflow_dispatch:
+    inputs:
+      publish:
+        description: Publish after screenshot inspection
+        type: boolean
+        default: false
+permissions:
+  contents: write
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    outputs:
+      code_sha: ${{ steps.patch.outputs.sha }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Apply reviewed player state patch
+        id: patch
+        run: |
+          if ! grep -q stateSequence src/nativePlayer.ts; then
+            echo '2edc77645f61add8477170b851ec4bb74404f1a6db7ea8c291bb39df100dd615  1-player-ui-stability.patch' | sha256sum -c -
+            git apply --index 1-player-ui-stability.patch
+            git config user.name instinct
+            git config user.email instinct@users.noreply.github.com
+            git commit -m 'Fix ordered player state updates and batched Media3 events'
+            git push origin HEAD:fix/player-ui-state-stability
+          fi
+          echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+      - name: Prepare release signing
+        env:
+          KS_B64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          KS_PASS: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          KEY_PASS: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: |
+          umask 077
+          printf '%s' "$KS_B64" | base64 -d > android/podmix-release.keystore
+          printf 'storeFile=podmix-release.keystore\nstorePassword=%s\nkeyAlias=%s\nkeyPassword=%s\n' "$KS_PASS" "$KEY_ALIAS" "$KEY_PASS" > android/release-signing.properties
+      - run: npm ci
+      - run: node --experimental-strip-types tests/unit/player-state-order.test.mjs
+      - run: npm run lint
+      - run: npm run android:build:release
+      - name: Collect APK
+        run: |
+          mkdir -p out
+          find android/app/build/outputs/apk -name '*release*.apk' -exec cp {} out/ \;
+          ls -l out
+      - name: Remove signing material
+        if: always()
+        run: rm -f android/podmix-release.keystore android/release-signing.properties
+      - uses: actions/upload-artifact@v4
+        with:
+          name: podmix-resume-native-apk
+          path: out/*.apk
+  smoke:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: podmix-resume-native-apk
+          path: out
+      - name: Enable KVM
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+      - uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 33
+          arch: x86_64
+          script: |
+            adb install -r out/*.apk
+            adb shell monkey -p com.podmix.next.ng -c android.intent.category.LAUNCHER 1
+            sleep 25
+            adb logcat -d -b crash > crash.txt; head -80 crash.txt; adb logcat -d | grep -A25 'FATAL EXCEPTION' | head -80; test ! -s crash.txt
+            adb shell pidof com.podmix.next.ng
+            adb shell screencap -p /sdcard/podmix.png
+            adb pull /sdcard/podmix.png .
+            echo SMOKE_OK
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: podmix-emulator-screen
+          path: podmix.png
+  release:
+    if: github.event_name == 'workflow_dispatch' && inputs.publish
+    needs: [build, smoke]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: podmix-resume-native-apk
+          path: out
+      - name: Publish pre-release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          APK=$(ls out/*.apk | head -1)
+          BT=$(ls -d "$ANDROID_HOME"/build-tools/* | sort -V | tail -1)
+          VN=$("$BT/aapt2" dump badging "$APK" | sed -n "s/.*versionName='\([^']*\)'.*/\1/p" | head -1)
+          TAG="v${VN}-player-ui-stability"
+          gh release create "$TAG" "$APK" --prerelease --target "${{ needs.build.outputs.code_sha }}" --title "Podmix $VN (player UI stability)" --notes "Signed APK. Ordered snapshots and batched Media3 events; regression tests and emulator launch passed. Device trigger, Android Auto and Bose not reproduced."
