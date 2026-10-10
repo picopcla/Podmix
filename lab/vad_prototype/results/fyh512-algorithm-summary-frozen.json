@@ -1,0 +1,25 @@
+{
+  "episode_id": "find-your-harmony-512",
+  "reference_times_loaded": false,
+  "media_sha256": "47814fb78f3f0236777b6c5ebf378d23e4938914c474df116c49f618b3fdaf69",
+  "decoded_sample_duration_seconds": 7216.927375,
+  "models_run_sequentially": [
+    "Silero VAD",
+    "inaSpeechSegmenter",
+    "spectral transition detector"
+  ],
+  "voice_detections": 10,
+  "reliable_voice_candidates": 4,
+  "voice_identity_confirmed": 0,
+  "transition_candidates": 141,
+  "track_starts_frozen": 32,
+  "transition_times_frozen": 31,
+  "track_count_assistance": "32 titres RSS; aucun timestamp RSS/YouTube utilise",
+  "independent_titles_identified": 0,
+  "independent_title_identification_status": "abstention",
+  "independent_title_identification_reason": "AudD exige un jeton; la methode de landmarks existante prend les titres connus en entree et n'est donc pas independante.",
+  "output_sha256": {
+    "fyh512-voice-detections-frozen.json": "94cf0a8bc75a103dc53077e03c9090442d2d93588189ee024bd5bb04da1fc51f",
+    "fyh512-transitions-frozen.json": "d8369ba170b98fd96c933520b0519b7f1fc0eefd75ebd0c770f0c26772de3378"
+  }
+}
