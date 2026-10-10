@@ -169,3 +169,16 @@ python lab/vad_prototype/make_fyh512_excerpts.py \
 La comparaison applique l'alignement audio documenté dans
 `fyh512_reference.json`. Les extraits MP3 restent privés et ne doivent jamais
 être ajoutés à ce dépôt.
+
+## FYH 512 : variante séquentielle par intervalles voix
+
+`fyh512_sequential_protocol.json` corrige la limite de la première variante :
+les quatre fins de voix à confiance interne >= 0,95 découpent réellement cinq
+grands intervalles continus. L'identification (indépendante, ASR, puis landmarks
+assistés) est tentée avant la détection spectrale locale dans chacun de ces
+intervalles. Le nombre de transitions n'est pas imposé.
+
+Le protocole et le code doivent être committés avant le calcul, puis toutes les
+sorties `fyh512-sequential-*-frozen.*` doivent être committées avant d'exécuter
+l'évaluation qui charge les temps officiels. AudD est seulement contrôlé par
+présence de configuration et n'est jamais appelé dans cette expérience.

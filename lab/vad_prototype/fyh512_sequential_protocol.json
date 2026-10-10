@@ -1,0 +1,62 @@
+{
+  "frozen_at": "2026-10-10T19:20:00+02:00",
+  "scope": "laboratoire uniquement",
+  "episode_id": "find-your-harmony-512",
+  "known_reference_warning": "La tracklist et les temps officiels ont deja ete vus lors du test precedent: cette variante n'est pas aveugle. Les temps publies restent interdits au calcul sequentiel et ne sont charges qu'apres gel.",
+  "voice_to_intervals": {
+    "source": "results/fyh512-voice-detections-frozen.json au commit 79cf846",
+    "reliable_internal_confidence_minimum": 0.95,
+    "parameters_retuned": false,
+    "boundary_convention": "La fin de phrase commune INA/Silero devient la borne entre deux grands intervalles. Ce temps est une fin de voix candidate, pas une preuve du debut exact de la musique ni d'un morceau.",
+    "coverage_rule": "Conserver [0, premiere_fin_de_voix], tous les intervalles entre fins de voix, puis [derniere_fin_de_voix, fin_decodee]. Aucun trou; intro, annonces, chants, jingles et zones sans annonce restent couverts.",
+    "ambiguity_rule": "INA+Silero ne prouve pas l'identite DJ: chant, jingle, voice-over et parole ambigue restent signales, sans promotion en titre ou transition.",
+    "abstention_rule": "Les detections sous 0,95 ne creent aucune borne."
+  },
+  "identification_before_transitions": {
+    "independent": {
+      "audd_presence_check_only": true,
+      "audd_call_allowed": false,
+      "reason": "Aucun jeton configure; aucun paiement ni credit ne doit etre consomme.",
+      "fallback_decision": "Abstention independante explicite pour chaque morceau."
+    },
+    "announcement_asr": {
+      "engine": "faster-whisper small local, CPU int8, langue anglaise, beam_size=5",
+      "samples": "segments INA des quatre detections fiables, sans vocabulaire injecte",
+      "classification": "ASR des annonces, assiste par comparaison textuelle aux candidats connus",
+      "assignment_rule": "Une mention reste ambigue entre titre precedent, suivant ou liste multiple; elle n'identifie un morceau que si la trace donne une orientation non ambigue. Sinon abstention."
+    },
+    "candidate_landmarks": {
+      "implementation": "landmarks locaux existants de server/audio_fallback.py",
+      "candidate_source": "fyh512_title_candidates.json, artistes/titres connus sans aucun temps",
+      "classification": "assiste_par_candidats_et_ordre, jamais independant",
+      "public_reference": "aperçu Deezer gratuit si disponible et score catalogue >= 70",
+      "acceptance": "presence validee par les seuils de landmarks existants; une empreinte isolee peut identifier une presence mais ne cree pas seule une transition"
+    }
+  },
+  "interval_transition_detection": {
+    "implementation": "extract_features + pure_transition_novelty + _transition_candidates, recalcules separement dans chaque intervalle",
+    "sample_rate": 8000,
+    "candidate_threshold_existing": 0.55,
+    "retained_robust_salience_minimum": 3.0,
+    "minimum_retained_separation_seconds": 60.0,
+    "edge_exclusion_seconds": 20.0,
+    "selection": "par saillance decroissante avec suppression non maximale, puis tri chronologique",
+    "track_count_target": null,
+    "published_times_used": false,
+    "parameter_retuning_after_results": false,
+    "confidence_warning": "La saillance est un z-score robuste interne, pas une probabilite."
+  },
+  "freeze_and_evaluation": {
+    "freeze_outputs_before_reference": true,
+    "frozen_files": [
+      "results/fyh512-sequential-intervals-frozen.json",
+      "results/fyh512-sequential-pieces-frozen.json",
+      "results/fyh512-sequential-transitions-frozen.json",
+      "results/fyh512-sequential-trace-frozen.json",
+      "results/fyh512-sequential-summary-frozen.json"
+    ],
+    "evaluation_after_commit_only": true,
+    "matching_rule": "appariement temporel biparti glouton dans une tolerance annoncee de 30 s; cardinalite jamais imposee",
+    "no_causal_claim": true
+  }
+}
