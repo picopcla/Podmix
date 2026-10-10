@@ -1,0 +1,57 @@
+{
+  "episode_id": "find-your-harmony-511",
+  "audio_sha256": "77b398e52b5b9e3031259cab37587a579e97fd7f531de013d4ad9f2f87965609",
+  "duration_seconds": 7347.0,
+  "rss_track_count": 33,
+  "temporal_base_available": false,
+  "base_reason": "33 titres RSS sans aucun timestamp; aucun chapitre utilisateur accessible sans SQLite/API",
+  "combined_adjustment_attempted": false,
+  "combined_adjusted_boundaries": 0,
+  "combined_abstentions": 33,
+  "audio_recomputed": true,
+  "models_run_sequentially": [
+    "Silero VAD",
+    "inaSpeechSegmenter"
+  ],
+  "model_metrics": {
+    "ina": {
+      "windows_completed": 14,
+      "windows_resumed": 0,
+      "wall_seconds": 261.133,
+      "cpu_seconds": 394.7188,
+      "peak_rss_kib": 1694548,
+      "threads_limited": {
+        "OMP_NUM_THREADS": "2",
+        "TF_NUM_INTRAOP_THREADS": "2",
+        "TF_NUM_INTEROP_THREADS": "1"
+      }
+    },
+    "silero": {
+      "windows_completed": 14,
+      "windows_resumed": 0,
+      "wall_seconds": 29.7547,
+      "cpu_seconds": 44.4474,
+      "peak_rss_kib": 363824,
+      "threads_limited": {
+        "OMP_NUM_THREADS": "2",
+        "TF_NUM_INTRAOP_THREADS": "2",
+        "TF_NUM_INTEROP_THREADS": "1"
+      }
+    }
+  },
+  "detector_parameters_source": "lab/vad_prototype/full_episode_protocol.json (inchange)",
+  "combined_parameters_source": "lab/vad_prototype/combined_protocol.json (inchange)",
+  "frozen_combined_parameters": {
+    "local_window_before_seconds": 5.0,
+    "local_window_after_seconds": 5.0,
+    "minimum_positive_displacement_seconds": 0.5,
+    "maximum_displacement_seconds": 5.0,
+    "minimum_internal_confidence": 0.95
+  },
+  "detections_total": 10,
+  "reliable_listening_suggestions": 7,
+  "confidence_threshold": 0.95,
+  "independent_temporal_reference_available": false,
+  "numeric_accuracy_comparison": "non_mesurable",
+  "identity_warning": "INA+Silero detecte une fin de voix suivie de musique, mais ne prouve pas l'identite DJ; chant, rap, jingle et voice-over restent possibles."
+}

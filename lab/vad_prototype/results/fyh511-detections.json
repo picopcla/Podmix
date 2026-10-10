@@ -1,0 +1,222 @@
+[
+  {
+    "episode_id": "find-your-harmony-511",
+    "episode_title": "Find Your Harmony Episode #511",
+    "algorithm_time_seconds": 4.58,
+    "confidence": 0.9086,
+    "ina_speech_start_seconds": 0.0,
+    "ina_speech_end_seconds": 4.58,
+    "ina_speech_duration_seconds": 4.58,
+    "ina_music_end_seconds": 77.72,
+    "ina_music_duration_seconds": 73.14,
+    "silero_speech_start_seconds": 0.514,
+    "silero_speech_end_seconds": 5.054,
+    "model_end_gap_seconds": 0.474,
+    "speech_overlap_seconds": 4.066,
+    "confidence_components": {
+      "music_continuity": 1.0,
+      "model_end_agreement": 0.763,
+      "speech_overlap": 1.0,
+      "ina_speech_duration": 0.916
+    },
+    "detection_id": "find-your-harmony-511-d001"
+  },
+  {
+    "episode_id": "find-your-harmony-511",
+    "episode_title": "Find Your Harmony Episode #511",
+    "algorithm_time_seconds": 152.4,
+    "confidence": 0.9752,
+    "ina_speech_start_seconds": 110.52,
+    "ina_speech_end_seconds": 152.4,
+    "ina_speech_duration_seconds": 41.88,
+    "ina_music_end_seconds": 225.06,
+    "ina_music_duration_seconds": 72.66,
+    "silero_speech_start_seconds": 148.194,
+    "silero_speech_end_seconds": 152.542,
+    "model_end_gap_seconds": 0.142,
+    "speech_overlap_seconds": 4.206,
+    "confidence_components": {
+      "music_continuity": 1.0,
+      "model_end_agreement": 0.929,
+      "speech_overlap": 1.0,
+      "ina_speech_duration": 1.0
+    },
+    "detection_id": "find-your-harmony-511-d002"
+  },
+  {
+    "episode_id": "find-your-harmony-511",
+    "episode_title": "Find Your Harmony Episode #511",
+    "algorithm_time_seconds": 1231.66,
+    "confidence": 0.9857,
+    "ina_speech_start_seconds": 1223.62,
+    "ina_speech_end_seconds": 1231.66,
+    "ina_speech_duration_seconds": 8.04,
+    "ina_music_end_seconds": 1487.2,
+    "ina_music_duration_seconds": 255.54,
+    "silero_speech_start_seconds": 1223.458,
+    "silero_speech_end_seconds": 1231.742,
+    "model_end_gap_seconds": 0.082,
+    "speech_overlap_seconds": 8.04,
+    "confidence_components": {
+      "music_continuity": 1.0,
+      "model_end_agreement": 0.959,
+      "speech_overlap": 1.0,
+      "ina_speech_duration": 1.0
+    },
+    "detection_id": "find-your-harmony-511-d003"
+  },
+  {
+    "episode_id": "find-your-harmony-511",
+    "episode_title": "Find Your Harmony Episode #511",
+    "algorithm_time_seconds": 1523.16,
+    "confidence": 0.917,
+    "ina_speech_start_seconds": 1487.2,
+    "ina_speech_end_seconds": 1523.16,
+    "ina_speech_duration_seconds": 35.96,
+    "ina_music_end_seconds": 2302.76,
+    "ina_music_duration_seconds": 779.6,
+    "silero_speech_start_seconds": 1507.138,
+    "silero_speech_end_seconds": 1522.686,
+    "model_end_gap_seconds": 0.474,
+    "speech_overlap_seconds": 15.548,
+    "confidence_components": {
+      "music_continuity": 1.0,
+      "model_end_agreement": 0.763,
+      "speech_overlap": 1.0,
+      "ina_speech_duration": 1.0
+    },
+    "detection_id": "find-your-harmony-511-d004"
+  },
+  {
+    "episode_id": "find-your-harmony-511",
+    "episode_title": "Find Your Harmony Episode #511",
+    "algorithm_time_seconds": 2590.04,
+    "confidence": 0.9709,
+    "ina_speech_start_seconds": 2505.2,
+    "ina_speech_end_seconds": 2590.04,
+    "ina_speech_duration_seconds": 84.84,
+    "ina_music_end_seconds": 3602.84,
+    "ina_music_duration_seconds": 1012.8,
+    "silero_speech_start_seconds": 2585.986,
+    "silero_speech_end_seconds": 2590.206,
+    "model_end_gap_seconds": 0.166,
+    "speech_overlap_seconds": 4.054,
+    "confidence_components": {
+      "music_continuity": 1.0,
+      "model_end_agreement": 0.917,
+      "speech_overlap": 1.0,
+      "ina_speech_duration": 1.0
+    },
+    "detection_id": "find-your-harmony-511-d005"
+  },
+  {
+    "episode_id": "find-your-harmony-511",
+    "episode_title": "Find Your Harmony Episode #511",
+    "algorithm_time_seconds": 3642.2,
+    "confidence": 0.9831,
+    "ina_speech_start_seconds": 3637.82,
+    "ina_speech_end_seconds": 3642.2,
+    "ina_speech_duration_seconds": 4.38,
+    "ina_music_end_seconds": 3716.96,
+    "ina_music_duration_seconds": 74.76,
+    "silero_speech_start_seconds": 3637.89,
+    "silero_speech_end_seconds": 3642.174,
+    "model_end_gap_seconds": 0.026,
+    "speech_overlap_seconds": 4.284,
+    "confidence_components": {
+      "music_continuity": 1.0,
+      "model_end_agreement": 0.987,
+      "speech_overlap": 1.0,
+      "ina_speech_duration": 0.876
+    },
+    "detection_id": "find-your-harmony-511-d006"
+  },
+  {
+    "episode_id": "find-your-harmony-511",
+    "episode_title": "Find Your Harmony Episode #511",
+    "algorithm_time_seconds": 4853.66,
+    "confidence": 0.9549,
+    "ina_speech_start_seconds": 4770.06,
+    "ina_speech_end_seconds": 4853.66,
+    "ina_speech_duration_seconds": 83.6,
+    "ina_music_end_seconds": 5383.9,
+    "ina_music_duration_seconds": 530.24,
+    "silero_speech_start_seconds": 4850.466,
+    "silero_speech_end_seconds": 4853.918,
+    "model_end_gap_seconds": 0.258,
+    "speech_overlap_seconds": 3.194,
+    "confidence_components": {
+      "music_continuity": 1.0,
+      "model_end_agreement": 0.871,
+      "speech_overlap": 1.0,
+      "ina_speech_duration": 1.0
+    },
+    "detection_id": "find-your-harmony-511-d007"
+  },
+  {
+    "episode_id": "find-your-harmony-511",
+    "episode_title": "Find Your Harmony Episode #511",
+    "algorithm_time_seconds": 5721.62,
+    "confidence": 0.9759,
+    "ina_speech_start_seconds": 5711.5,
+    "ina_speech_end_seconds": 5721.62,
+    "ina_speech_duration_seconds": 10.12,
+    "ina_music_end_seconds": 6059.32,
+    "ina_music_duration_seconds": 337.7,
+    "silero_speech_start_seconds": 5716.802,
+    "silero_speech_end_seconds": 5721.758,
+    "model_end_gap_seconds": 0.138,
+    "speech_overlap_seconds": 4.818,
+    "confidence_components": {
+      "music_continuity": 1.0,
+      "model_end_agreement": 0.931,
+      "speech_overlap": 1.0,
+      "ina_speech_duration": 1.0
+    },
+    "detection_id": "find-your-harmony-511-d008"
+  },
+  {
+    "episode_id": "find-your-harmony-511",
+    "episode_title": "Find Your Harmony Episode #511",
+    "algorithm_time_seconds": 6650.2,
+    "confidence": 0.8477,
+    "ina_speech_start_seconds": 6646.6,
+    "ina_speech_end_seconds": 6650.2,
+    "ina_speech_duration_seconds": 3.6,
+    "ina_music_end_seconds": 6716.16,
+    "ina_music_duration_seconds": 65.96,
+    "silero_speech_start_seconds": 6646.626,
+    "silero_speech_end_seconds": 6650.91,
+    "model_end_gap_seconds": 0.71,
+    "speech_overlap_seconds": 3.574,
+    "confidence_components": {
+      "music_continuity": 1.0,
+      "model_end_agreement": 0.645,
+      "speech_overlap": 1.0,
+      "ina_speech_duration": 0.72
+    },
+    "detection_id": "find-your-harmony-511-d009"
+  },
+  {
+    "episode_id": "find-your-harmony-511",
+    "episode_title": "Find Your Harmony Episode #511",
+    "algorithm_time_seconds": 7080.52,
+    "confidence": 0.9926,
+    "ina_speech_start_seconds": 7069.8,
+    "ina_speech_end_seconds": 7080.52,
+    "ina_speech_duration_seconds": 10.72,
+    "ina_music_end_seconds": 7346.98,
+    "ina_music_duration_seconds": 266.46,
+    "silero_speech_start_seconds": 7076.93,
+    "silero_speech_end_seconds": 7080.478,
+    "model_end_gap_seconds": 0.042,
+    "speech_overlap_seconds": 3.548,
+    "confidence_components": {
+      "music_continuity": 1.0,
+      "model_end_agreement": 0.979,
+      "speech_overlap": 1.0,
+      "ina_speech_duration": 1.0
+    },
+    "detection_id": "find-your-harmony-511-d010"
+  }
+]

@@ -111,3 +111,33 @@ Les sorties `results/combined-*` séparent la base brute, le complément
 automatique et les deux corrections humaines existantes. Leur comparaison à
 CueNation est explicitement une concordance circulaire à la source, pas une
 mesure de précision audio.
+
+## FYH 511 : absence de base temporelle
+
+Le test du 10 octobre 2026 sur `Find Your Harmony Episode #511` réutilise sans
+retouche les paramètres de `full_episode_protocol.json` et
+`combined_protocol.json`. Le RSS Podbean publie 33 titres mais aucun timestamp
+de piste et aucune balise de chapitres. Le code courant de Podmix ne crée donc
+aucune position : `feeds.py::import_feed` n'appelle l'alignement que si au
+moins un timestamp RSS est présent, et `tracklist.py::align_tracklist` ne sait
+conserver que des temps explicites ou préexistants.
+
+L'audio reste hors du dépôt. Avec un fichier privé déjà téléchargé, les deux
+modèles s'exécutent strictement l'un après l'autre :
+
+```bash
+nice -n 10 ../.venv-vad/bin/python lab/vad_prototype/run_external_full_episode.py \
+  --method silero --episode find-your-harmony-511 \
+  --title "Find Your Harmony Episode #511" --media /chemin/prive/fyh511.mp3 \
+  --duration 7347 --resume
+nice -n 10 ../.venv-vad/bin/python lab/vad_prototype/run_external_full_episode.py \
+  --method ina --episode find-your-harmony-511 \
+  --title "Find Your Harmony Episode #511" --media /chemin/prive/fyh511.mp3 \
+  --duration 7347 --resume
+python lab/vad_prototype/analyze_fyh511.py --feed /chemin/prive/feed.xml
+```
+
+`results/fyh511-boundaries.*` matérialise les 33 abstentions avec des temps
+vides; `results/fyh511-suggestions.*` publie séparément les fins de voix à
+écouter. Aucune suggestion n'est un chapitre : sans frontière temporelle de
+base, le protocole combiné s'arrête avant tout appariement ou déplacement.
