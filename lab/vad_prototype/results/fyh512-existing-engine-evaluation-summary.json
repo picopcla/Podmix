@@ -1,0 +1,25 @@
+{
+  "known_reference_not_blind": true,
+  "frozen_outputs_verified_by_sha256": true,
+  "recognition_classification": "reconnaissance assistee par references connues",
+  "matching_rule": "appariement libre glouton un-a-un par erreur absolue croissante",
+  "matching_tolerance_seconds": 30.0,
+  "alignment": {
+    "split_youtube_seconds": 3565.0,
+    "offset_before_seconds": 1.3455,
+    "offset_after_seconds": 1.7265,
+    "limits": "offsets estimes; timestamps YouTube publies a la seconde"
+  },
+  "reference_count": 32,
+  "algorithm_output_count": 32,
+  "matched": 12,
+  "missing": 20,
+  "surplus": 20,
+  "mean_absolute_error_seconds_on_matched": 10.886,
+  "median_absolute_error_seconds_on_matched": 2.7445,
+  "matched_under_1_second": 3,
+  "matched_under_5_seconds": 7,
+  "matched_under_10_seconds": 8,
+  "matched_under_30_seconds": 12,
+  "statistics_denominator": 12
+}
