@@ -1,0 +1,69 @@
+{
+  "frozen_at": "2026-10-10T22:35:00+02:00",
+  "scope": "FYH512 laboratoire uniquement; algorithme initial global complete uniquement par les annonces voix deja gelees",
+  "episode_id": "find-your-harmony-512",
+  "baseline": {
+    "implementation": "analyze_fyh512_frozen.py",
+    "transitions": "results/fyh512-transitions-frozen.json",
+    "transitions_sha256": "d8369ba170b98fd96c933520b0519b7f1fc0eefd75ebd0c770f0c26772de3378",
+    "points": 32,
+    "minimum_track_gap_seconds": 45.0,
+    "warning": "Detecteur spectral sur l'audio entier assiste par le nombre de 32 titres; aucune reconnaissance independante de titre n'a ete executee."
+  },
+  "voice_inputs": {
+    "detections": "results/fyh512-voice-detections-frozen.json",
+    "asr": "results/fyh512-reliable-voices-asr-frozen.json",
+    "reliable_internal_confidence_minimum": 0.95,
+    "reliable_count": 4,
+    "below_threshold_count": 6,
+    "identity_limit": "Le seuil atteste seulement une fin de voix coherente entre detecteurs. L'identite DJ n'est pas verifiee et une presence vocale seule ne prouve pas un debut de piste."
+  },
+  "semantic_decisions_frozen_without_reference_times": [
+    {
+      "detection_id": "find-your-harmony-512-d002",
+      "decision": "explicit_next_music_cue",
+      "evidence": "Kicking things off with ... Keep on running."
+    },
+    {
+      "detection_id": "find-your-harmony-512-d005",
+      "decision": "explicit_next_music_cue",
+      "evidence": "I'm gonna move on with ..."
+    },
+    {
+      "detection_id": "find-your-harmony-512-d008",
+      "decision": "explicit_next_music_cue",
+      "evidence": "Back to the music with ..."
+    },
+    {
+      "detection_id": "find-your-harmony-512-d010",
+      "decision": "explicit_next_music_cue",
+      "evidence": "And now it's time for the Classic Selection ..."
+    }
+  ],
+  "complement_rule": {
+    "candidate_time": "ina_speech_end_seconds",
+    "eligible": "confidence >= 0.95 ET decision semantique gelee explicit_next_music_cue",
+    "reconciliation_radius_seconds": 45.0,
+    "radius_source": "minimum_track_gap_seconds deja fixe dans le baseline initial",
+    "reconciliation": "Si exactement un point spectral hors audio_start est a <=45 s, le point voix plus precis remplace ce point spectral. S'il n'y en a aucun, le point voix est ajoute. S'il y en a plusieurs, la voix est ignoree par abstention d'ambiguite.",
+    "no_cardinality_target_after_complement": true,
+    "spectral_reselection": false,
+    "reference_times_loaded": false,
+    "titles_identified": 0
+  },
+  "forbidden": [
+    "pipeline sequentiel",
+    "landmarks ou fingerprints",
+    "catalogue de reconnaissance",
+    "AudD",
+    "nouveau modele ou service",
+    "ajustement par les temps de reference"
+  ],
+  "evaluation_after_freeze": {
+    "matching": "appariement glouton libre un-a-un par erreur absolue croissante",
+    "tolerance_seconds": 30.0,
+    "split_youtube_seconds": 3565,
+    "rss_equals_youtube_plus_offset_before_seconds": 1.3455,
+    "rss_equals_youtube_plus_offset_after_seconds": 1.7265
+  }
+}

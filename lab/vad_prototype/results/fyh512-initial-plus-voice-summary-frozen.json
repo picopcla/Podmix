@@ -1,0 +1,20 @@
+{
+  "episode_id": "find-your-harmony-512",
+  "reference_times_loaded": false,
+  "baseline_verified_sha256": "d8369ba170b98fd96c933520b0519b7f1fc0eefd75ebd0c770f0c26772de3378",
+  "baseline_points": 32,
+  "voice_detections": 10,
+  "reliable_voice_detections": 4,
+  "below_threshold_voice_detections": 6,
+  "eligible_explicit_voice_cues": 4,
+  "spectral_points_retained": 28,
+  "spectral_points_replaced": 4,
+  "voice_points_added_without_replacement": 0,
+  "completed_points": 32,
+  "independent_titles_identified": 0,
+  "pipeline_reused": "initial_global_spectral_only_plus_frozen_voice_information",
+  "output_sha256": {
+    "fyh512-initial-plus-voice-transitions-frozen.json": "b416f6d2a9005d9edbce4368c5bb1fdca7f760aed861a7c8b65e68b4b7dc5ec2",
+    "fyh512-initial-plus-voice-trace-frozen.json": "e439e1d3f2bfb018b809f195a2c318f51883aa7ee29c0cb408588f3071e43d8d"
+  }
+}

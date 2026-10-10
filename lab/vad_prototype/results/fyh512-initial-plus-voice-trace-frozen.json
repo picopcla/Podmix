@@ -1,0 +1,316 @@
+[
+  {
+    "input_kind": "voice",
+    "input_id": "find-your-harmony-512-d001",
+    "input_time_seconds": 4.58,
+    "confidence": 0.9086,
+    "reliability_class": "below_threshold",
+    "semantic_decision": "not_evaluated_below_threshold",
+    "action": "ignored",
+    "reason": "not_eligible",
+    "identity_confirmed": false
+  },
+  {
+    "input_kind": "voice",
+    "input_id": "find-your-harmony-512-d002",
+    "input_time_seconds": 120.0,
+    "confidence": 0.9884,
+    "reliability_class": "reliable",
+    "semantic_decision": "explicit_next_music_cue",
+    "action": "reconciled_replaces_spectral",
+    "reason": "unique_spectral_neighbour_within_baseline_minimum_gap",
+    "spectral_neighbour_id": "S002",
+    "spectral_time_seconds": 162.69,
+    "absolute_delta_seconds": 42.69,
+    "identity_confirmed": false
+  },
+  {
+    "input_kind": "voice",
+    "input_id": "find-your-harmony-512-d003",
+    "input_time_seconds": 1389.16,
+    "confidence": 0.8166,
+    "reliability_class": "below_threshold",
+    "semantic_decision": "not_evaluated_below_threshold",
+    "action": "ignored",
+    "reason": "not_eligible",
+    "identity_confirmed": false
+  },
+  {
+    "input_kind": "voice",
+    "input_id": "find-your-harmony-512-d004",
+    "input_time_seconds": 1651.52,
+    "confidence": 0.7694,
+    "reliability_class": "below_threshold",
+    "semantic_decision": "not_evaluated_below_threshold",
+    "action": "ignored",
+    "reason": "not_eligible",
+    "identity_confirmed": false
+  },
+  {
+    "input_kind": "voice",
+    "input_id": "find-your-harmony-512-d005",
+    "input_time_seconds": 2365.68,
+    "confidence": 0.9864,
+    "reliability_class": "reliable",
+    "semantic_decision": "explicit_next_music_cue",
+    "action": "reconciled_replaces_spectral",
+    "reason": "unique_spectral_neighbour_within_baseline_minimum_gap",
+    "spectral_neighbour_id": "S011",
+    "spectral_time_seconds": 2409.73,
+    "absolute_delta_seconds": 44.05,
+    "identity_confirmed": false
+  },
+  {
+    "input_kind": "voice",
+    "input_id": "find-your-harmony-512-d006",
+    "input_time_seconds": 3391.04,
+    "confidence": 0.8435,
+    "reliability_class": "below_threshold",
+    "semantic_decision": "not_evaluated_below_threshold",
+    "action": "ignored",
+    "reason": "not_eligible",
+    "identity_confirmed": false
+  },
+  {
+    "input_kind": "voice",
+    "input_id": "find-your-harmony-512-d007",
+    "input_time_seconds": 3632.38,
+    "confidence": 0.9269,
+    "reliability_class": "below_threshold",
+    "semantic_decision": "not_evaluated_below_threshold",
+    "action": "ignored",
+    "reason": "not_eligible",
+    "identity_confirmed": false
+  },
+  {
+    "input_kind": "voice",
+    "input_id": "find-your-harmony-512-d008",
+    "input_time_seconds": 5349.38,
+    "confidence": 0.9698,
+    "reliability_class": "reliable",
+    "semantic_decision": "explicit_next_music_cue",
+    "action": "reconciled_replaces_spectral",
+    "reason": "unique_spectral_neighbour_within_baseline_minimum_gap",
+    "spectral_neighbour_id": "S023",
+    "spectral_time_seconds": 5375.74,
+    "absolute_delta_seconds": 26.36,
+    "identity_confirmed": false
+  },
+  {
+    "input_kind": "voice",
+    "input_id": "find-your-harmony-512-d009",
+    "input_time_seconds": 6657.16,
+    "confidence": 0.5177,
+    "reliability_class": "below_threshold",
+    "semantic_decision": "not_evaluated_below_threshold",
+    "action": "ignored",
+    "reason": "not_eligible",
+    "identity_confirmed": false
+  },
+  {
+    "input_kind": "voice",
+    "input_id": "find-your-harmony-512-d010",
+    "input_time_seconds": 6975.72,
+    "confidence": 0.9626,
+    "reliability_class": "reliable",
+    "semantic_decision": "explicit_next_music_cue",
+    "action": "reconciled_replaces_spectral",
+    "reason": "unique_spectral_neighbour_within_baseline_minimum_gap",
+    "spectral_neighbour_id": "S032",
+    "spectral_time_seconds": 7013.25,
+    "absolute_delta_seconds": 37.53,
+    "identity_confirmed": false
+  },
+  {
+    "input_kind": "spectral",
+    "input_id": "S001",
+    "input_time_seconds": 0.0,
+    "action": "retained"
+  },
+  {
+    "input_kind": "spectral",
+    "input_id": "S002",
+    "input_time_seconds": 162.69,
+    "action": "replaced_by_voice"
+  },
+  {
+    "input_kind": "spectral",
+    "input_id": "S003",
+    "input_time_seconds": 339.71,
+    "action": "retained"
+  },
+  {
+    "input_kind": "spectral",
+    "input_id": "S004",
+    "input_time_seconds": 525.44,
+    "action": "retained"
+  },
+  {
+    "input_kind": "spectral",
+    "input_id": "S005",
+    "input_time_seconds": 783.62,
+    "action": "retained"
+  },
+  {
+    "input_kind": "spectral",
+    "input_id": "S006",
+    "input_time_seconds": 1007.94,
+    "action": "retained"
+  },
+  {
+    "input_kind": "spectral",
+    "input_id": "S007",
+    "input_time_seconds": 1233.6,
+    "action": "retained"
+  },
+  {
+    "input_kind": "spectral",
+    "input_id": "S008",
+    "input_time_seconds": 1556.93,
+    "action": "retained"
+  },
+  {
+    "input_kind": "spectral",
+    "input_id": "S009",
+    "input_time_seconds": 1807.17,
+    "action": "retained"
+  },
+  {
+    "input_kind": "spectral",
+    "input_id": "S010",
+    "input_time_seconds": 2208.0,
+    "action": "retained"
+  },
+  {
+    "input_kind": "spectral",
+    "input_id": "S011",
+    "input_time_seconds": 2409.73,
+    "action": "replaced_by_voice"
+  },
+  {
+    "input_kind": "spectral",
+    "input_id": "S012",
+    "input_time_seconds": 2520.26,
+    "action": "retained"
+  },
+  {
+    "input_kind": "spectral",
+    "input_id": "S013",
+    "input_time_seconds": 2618.56,
+    "action": "retained"
+  },
+  {
+    "input_kind": "spectral",
+    "input_id": "S014",
+    "input_time_seconds": 2919.68,
+    "action": "retained"
+  },
+  {
+    "input_kind": "spectral",
+    "input_id": "S015",
+    "input_time_seconds": 2984.64,
+    "action": "retained"
+  },
+  {
+    "input_kind": "spectral",
+    "input_id": "S016",
+    "input_time_seconds": 3184.38,
+    "action": "retained"
+  },
+  {
+    "input_kind": "spectral",
+    "input_id": "S017",
+    "input_time_seconds": 3907.39,
+    "action": "retained"
+  },
+  {
+    "input_kind": "spectral",
+    "input_id": "S018",
+    "input_time_seconds": 4048.19,
+    "action": "retained"
+  },
+  {
+    "input_kind": "spectral",
+    "input_id": "S019",
+    "input_time_seconds": 4157.82,
+    "action": "retained"
+  },
+  {
+    "input_kind": "spectral",
+    "input_id": "S020",
+    "input_time_seconds": 4436.16,
+    "action": "retained"
+  },
+  {
+    "input_kind": "spectral",
+    "input_id": "S021",
+    "input_time_seconds": 4663.17,
+    "action": "retained"
+  },
+  {
+    "input_kind": "spectral",
+    "input_id": "S022",
+    "input_time_seconds": 4742.27,
+    "action": "retained"
+  },
+  {
+    "input_kind": "spectral",
+    "input_id": "S023",
+    "input_time_seconds": 5375.74,
+    "action": "replaced_by_voice"
+  },
+  {
+    "input_kind": "spectral",
+    "input_id": "S024",
+    "input_time_seconds": 5587.97,
+    "action": "retained"
+  },
+  {
+    "input_kind": "spectral",
+    "input_id": "S025",
+    "input_time_seconds": 5643.14,
+    "action": "retained"
+  },
+  {
+    "input_kind": "spectral",
+    "input_id": "S026",
+    "input_time_seconds": 5734.78,
+    "action": "retained"
+  },
+  {
+    "input_kind": "spectral",
+    "input_id": "S027",
+    "input_time_seconds": 5858.11,
+    "action": "retained"
+  },
+  {
+    "input_kind": "spectral",
+    "input_id": "S028",
+    "input_time_seconds": 6107.07,
+    "action": "retained"
+  },
+  {
+    "input_kind": "spectral",
+    "input_id": "S029",
+    "input_time_seconds": 6187.58,
+    "action": "retained"
+  },
+  {
+    "input_kind": "spectral",
+    "input_id": "S030",
+    "input_time_seconds": 6434.56,
+    "action": "retained"
+  },
+  {
+    "input_kind": "spectral",
+    "input_id": "S031",
+    "input_time_seconds": 6639.1,
+    "action": "retained"
+  },
+  {
+    "input_kind": "spectral",
+    "input_id": "S032",
+    "input_time_seconds": 7013.25,
+    "action": "replaced_by_voice"
+  }
+]
