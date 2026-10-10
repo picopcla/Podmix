@@ -1,0 +1,33 @@
+reference_number,artist,title,youtube_reference_seconds,rss_reference_seconds,new_status,new_detection_id,new_origin,new_rss_algorithm_seconds,new_algorithm_brought_to_youtube_seconds,new_signed_error_seconds,new_absolute_error_seconds,baseline_status,baseline_detection_id,baseline_rss_algorithm_seconds,baseline_algorithm_brought_to_youtube_seconds,baseline_absolute_error_seconds
+1,Mhammed El Alami & Josie Sandfeld,Keep On Running,120,121.3455,trouve,V001,frozen_reliable_voice_boundary,120.0,118.6545,-1.3455,1.3455,trouve,V001,120.0,118.6545,1.3455
+2,Against All Ødds,Save Me,337,338.3455,trouve,T006,local_spectral_fallback,339.712,338.3665,1.3665,1.3665,trouve,B002,339.712,338.3665,1.3665
+3,Elite Electronic,Shadows,585,586.3455,non trouve,,,,,,,non trouve,,,,
+4,Phillip Castle & Aldor,Embrace The Night,780,781.3455,trouve,T008,local_spectral_fallback,783.616,782.2705,2.2705,2.2705,trouve,B005,783.616,782.2705,2.2705
+5,Freak E Beatz & JASSKALL,No Escape,1006,1007.3455,trouve,T002,anchor_constrained_spectral,1007.872,1006.5265,0.5265,0.5265,trouve,B007,1007.872,1006.5265,0.5265
+6,Adriatique,Palm Of Your Hands,1142,1143.3455,non trouve,,,,,,,non trouve,,,,
+7,Vassmo,Stay,1400,1401.3455,non trouve,,,,,,,non trouve,,,,
+8,Cubicore,Black Light,1554,1555.3455,trouve,T011,local_spectral_fallback,1556.864,1555.5185,1.5185,1.5185,trouve,B009,1556.864,1555.5185,1.5185
+9,Benny Benassi & Hypaton feat. Sandy Chambers,Illusion,1775,1776.3455,non trouve,,,,,,,non trouve,,,,
+10,"Mike Williams, Three Drives, ANTICALM",Greece 2000,1955,1956.3455,non trouve,,,,,,,trouve,B011,1926.848,1925.5025,29.4975
+11,"Genix, Dosem",Transit Point (Genix Mix),2133,2134.3455,non trouve,,,,,,,non trouve,,,,
+12,Spoiled and Zigo,More & More (BLR Remix),2366,2367.3455,trouve,V002,frozen_reliable_voice_boundary,2365.68,2364.3345,-1.6655,1.6655,trouve,V002,2365.68,2364.3345,1.6655
+13,"Ashley Wallbridge, The Paper Outlet",Forever Young,2614,2615.3455,trouve,T018,local_spectral_fallback,2618.422421,2617.0769,3.0769,3.0769,trouve,B017,2618.422421,2617.0769,3.0769
+14,Markus Schulz,Second Tomorrow,2825,2826.3455,non trouve,,,,,,,trouve,B018,2827.12,2825.7745,0.7745
+15,Victor Ruiz & KURA,FSU,3062,3063.3455,non trouve,,,,,,,non trouve,,,,
+16,MAXTAGE & Fathom (EG),The Right Place (RAYEL Remix),3390,3391.3455,non trouve,,,,,,,non trouve,,,,
+17,Andrew Rayel pres. EXTASIA,Dreaming (Giuseppe Ottaviani Remix),3631,3632.7265,non trouve,,,,,,,non trouve,,,,
+18,MIDI Kitty and Derek Ryan,Miles Away,3849,3850.7265,non trouve,,,,,,,non trouve,,,,
+19,Paul Denton & EKE,Next To Me (Club Mix),4086,4087.7265,non trouve,,,,,,,non trouve,,,,
+20,RAM & Susana pres. Tales Of Life,The Power of Love (Alex M.O.R.P.H. Remix),4310,4311.7265,non trouve,,,,,,,non trouve,,,,
+21,Giuseppe Ottaviani & Ilan Bluestone,Together Again,4589,4590.7265,non trouve,,,,,,,non trouve,,,,
+22,"Aly & Fila, Susie Ledge, Roman Messer, Anton Pallmer",Carry Me Away,4825,4826.7265,non trouve,,,,,,,non trouve,,,,
+23,John Askew,Through The Looking Glass (Nikolauss Remix),5059,5060.7265,non trouve,,,,,,,non trouve,,,,
+24,Andrew Rayel,Acid On The Train (David Forbes Remix),5348,5349.7265,trouve,V003,frozen_reliable_voice_boundary,5349.38,5347.6535,-0.3465,0.3465,trouve,V003,5349.38,5347.6535,0.3465
+25,Armin van Buuren feat. Sharon Den Adel,In And Out Of Love (Ben Hemsley Remix),5576,5577.7265,non trouve,,,,,,,non trouve,,,,
+26,Xincher & Rav3ver,Echo,5827,5828.7265,trouve,T031,local_spectral_fallback,5858.244,5856.5175,29.5175,29.5175,trouve,B032,5858.244,5856.5175,29.5175
+27,RAM & Richard Durand presents Digital Culture,La La La,5951,5952.7265,non trouve,,,,,,,non trouve,,,,
+28,Matt Bukovski & CJ Stone,Stars,6185,6186.7265,trouve,T028,anchor_constrained_spectral,6187.652,6185.9255,0.9255,0.9255,trouve,B034,6187.652,6185.9255,0.9255
+29,"LAWTON, Trancemaster Krause & Caroline Roxy",Believe In,6383,6384.7265,non trouve,,,,,,,non trouve,,,,
+30,"Olly James, Panteros666 & Evil Twiin",Berlin '99,6587,6588.7265,non trouve,,,,,,,non trouve,,,,
+31,Maurya Sevak & Jake Ryan,Sata Sata,6730,6731.7265,non trouve,,,,,,,non trouve,,,,
+32,Ferry Corsten,Sweet Sorrow (The Thrillseekers Remix 2004),6974,6975.7265,trouve,V004,frozen_reliable_voice_boundary,6975.72,6973.9935,-0.0065,0.0065,trouve,V004,6975.72,6973.9935,0.0065

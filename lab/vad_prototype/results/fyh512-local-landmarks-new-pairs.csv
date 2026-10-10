@@ -1,0 +1,12 @@
+reference_number,artist,title,youtube_reference_seconds,rss_reference_seconds,detection_id,origin,rss_algorithm_seconds,algorithm_brought_to_youtube_seconds,signed_error_seconds,absolute_error_seconds
+1,Mhammed El Alami & Josie Sandfeld,Keep On Running,120,121.3455,V001,frozen_reliable_voice_boundary,120.0,118.6545,-1.3455,1.3455
+2,Against All Ødds,Save Me,337,338.3455,T006,local_spectral_fallback,339.712,338.3665,1.3665,1.3665
+4,Phillip Castle & Aldor,Embrace The Night,780,781.3455,T008,local_spectral_fallback,783.616,782.2705,2.2705,2.2705
+5,Freak E Beatz & JASSKALL,No Escape,1006,1007.3455,T002,anchor_constrained_spectral,1007.872,1006.5265,0.5265,0.5265
+8,Cubicore,Black Light,1554,1555.3455,T011,local_spectral_fallback,1556.864,1555.5185,1.5185,1.5185
+12,Spoiled and Zigo,More & More (BLR Remix),2366,2367.3455,V002,frozen_reliable_voice_boundary,2365.68,2364.3345,-1.6655,1.6655
+13,"Ashley Wallbridge, The Paper Outlet",Forever Young,2614,2615.3455,T018,local_spectral_fallback,2618.422421,2617.0769,3.0769,3.0769
+24,Andrew Rayel,Acid On The Train (David Forbes Remix),5348,5349.7265,V003,frozen_reliable_voice_boundary,5349.38,5347.6535,-0.3465,0.3465
+26,Xincher & Rav3ver,Echo,5827,5828.7265,T031,local_spectral_fallback,5858.244,5856.5175,29.5175,29.5175
+28,Matt Bukovski & CJ Stone,Stars,6185,6186.7265,T028,anchor_constrained_spectral,6187.652,6185.9255,0.9255,0.9255
+32,Ferry Corsten,Sweet Sorrow (The Thrillseekers Remix 2004),6974,6975.7265,V004,frozen_reliable_voice_boundary,6975.72,6973.9935,-0.0065,0.0065

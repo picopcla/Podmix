@@ -1,0 +1,58 @@
+{
+  "episode_id": "find-your-harmony-512",
+  "frozen_outputs_verified_by_sha256": true,
+  "known_reference_not_blind": true,
+  "matching_tolerance_seconds": 30.0,
+  "matching_rule_identical": true,
+  "alignment": {
+    "split_youtube_seconds": 3565.0,
+    "offset_before_seconds": 1.3455,
+    "offset_after_seconds": 1.7265,
+    "warning": "offsets medians conditionnels aux decodages"
+  },
+  "new_anchor_constrained_with_fallback": {
+    "reference_count": 32,
+    "detection_count": 37,
+    "matches_within_30_seconds": 11,
+    "missing": 21,
+    "surplus": 26,
+    "mean_absolute_error_seconds_on_matches": 3.8696,
+    "median_absolute_error_seconds_on_matches": 1.3665,
+    "matches_under_1_second": 4,
+    "matches_under_5_seconds": 10,
+    "matches_under_10_seconds": 10,
+    "matches_under_30_seconds": 11,
+    "threshold_denominator": 11
+  },
+  "precedent_spectral_local": {
+    "reference_count": 32,
+    "detection_count": 41,
+    "matches_within_30_seconds": 13,
+    "missing": 19,
+    "surplus": 28,
+    "mean_absolute_error_seconds_on_matches": 5.6029,
+    "median_absolute_error_seconds_on_matches": 1.3665,
+    "matches_under_1_second": 5,
+    "matches_under_5_seconds": 11,
+    "matches_under_10_seconds": 11,
+    "matches_under_30_seconds": 13,
+    "threshold_denominator": 13
+  },
+  "method_change": {
+    "new_anchor_constrained_transitions": 9,
+    "new_fallback_transitions": 24,
+    "baseline_local_transitions": 37
+  },
+  "recognition": {
+    "candidate_titles": 32,
+    "previews_available": 17,
+    "previews_missing": 15,
+    "interval_candidate_requests": 160,
+    "accepted_assisted_presences": 14,
+    "assisted_presence_timing_plausible": 13,
+    "assisted_interval_candidate_abstentions": 146,
+    "independent_titles_identified": 0,
+    "independent_titles_abstentions": 32
+  },
+  "causal_conclusion": "Comparaison descriptive seulement: les ancres modifient des choix mais ne prouvent pas que les voix causent un gain. Aucun gain ne doit etre annonce sans test supplementaire."
+}
