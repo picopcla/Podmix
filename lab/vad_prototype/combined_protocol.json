@@ -1,0 +1,83 @@
+{
+  "frozen_at": "2026-10-10T16:59:00+02:00",
+  "frozen_before_combined_evaluation": true,
+  "scope": "laboratoire uniquement",
+  "purpose": "Completer les frontieres explicites de la methode Podmix par une fin de voix fiable et locale, sans creer, supprimer ni reordonner de frontiere.",
+  "base": {
+    "production_code_read_only": [
+      "server/tracklist.py::parse_tracklist",
+      "server/tracklist.py::align_tracklist",
+      "server/feeds.py::import_feed"
+    ],
+    "rule": "Conserver les timestamps explicites publies. Si un timestamp manque, le laisser en attente; ne jamais inventer ni recalibrer une position audio.",
+    "ptr_source": "CueNation cuesheets deja consignees dans lab/vad_prototype/episodes.json",
+    "ptr_boundary_counts": {
+      "pure-trance-radio-492": 22,
+      "pure-trance-radio-493": 20
+    },
+    "recalibration": "aucune",
+    "preservation": "Tous les identifiants, titres, numeros, temps et l'ordre de la base brute sont conserves avant le complement."
+  },
+  "detection_input": {
+    "source_commit": "6ada6c121a3397dc26055d9f3886efcda3bc6b3b",
+    "file": "results/full-episode-detections.json",
+    "models": [
+      "inaSpeechSegmenter",
+      "Silero VAD"
+    ],
+    "reuse_only": true,
+    "upstream_deduplication_seconds": 15.0,
+    "identity_warning": "INA+Silero detecte une fin de voix suivie de musique, mais ne prouve pas l'identite DJ; chant, rap, jingle et voice-over restent possibles."
+  },
+  "automatic_complement": {
+    "local_window_before_seconds": 5.0,
+    "local_window_after_seconds": 5.0,
+    "minimum_positive_displacement_seconds": 0.5,
+    "maximum_displacement_seconds": 5.0,
+    "required_direction": "after_base",
+    "minimum_internal_confidence": 0.95,
+    "ambiguity_rule": "Ajuster seulement si une seule detection satisfait simultanement fenetre, direction, deplacement et confiance. S'il y en a plusieurs, s'abstenir.",
+    "deduplication_rule": "Ne pas recalculer ni rededupliquer les detections deja dedupliquees a 15 s par le detecteur gele. Rejeter les identifiants/temps dupliques; une detection ne peut servir qu'une frontiere et tout conflit provoque une abstention pour les frontieres concernees.",
+    "order_protection": "Le temps propose doit rester strictement superieur au temps combine precedent et strictement inferieur au temps de base suivant; sinon abstention.",
+    "no_detection_rule": "Sans detection admissible et unique, conserver exactement le temps de base.",
+    "boundary_cardinality_rule": "Aucune creation ni suppression de frontiere."
+  },
+  "human_corrections": {
+    "separate_layer": true,
+    "source": "Emmanuel, validation d'ecoute du 2026-10-10 a 16:07 Europe/Paris, laboratoire uniquement",
+    "boundaries": [
+      {
+        "boundary_id": "pure-trance-radio-492-t02",
+        "base_time_seconds": 82.0,
+        "human_time_seconds": 82.74
+      },
+      {
+        "boundary_id": "pure-trance-radio-493-t09",
+        "base_time_seconds": 2350.0,
+        "human_time_seconds": 2353.08
+      }
+    ],
+    "attribution_rule": "Publier separement base brute, complement automatique et couche humaine; ne jamais attribuer au VAD un changement impose par la couche humaine."
+  },
+  "evaluation": {
+    "reference": "Les memes temps CueNation que la base brute",
+    "maximum_matching_tolerance_seconds": 20.0,
+    "matching": "Appariement un-a-un par frontiere de reference croissante avec la frontiere candidate libre la plus proche dans +/-20 s; egalite par temps puis identifiant.",
+    "signed_error": "temps_scenario - temps_reference",
+    "metrics": [
+      "matched",
+      "missing_references",
+      "unmatched_boundaries",
+      "signed_errors",
+      "median_absolute_error",
+      "mean_absolute_error",
+      "share_abs_lt_1s",
+      "share_abs_lt_3s",
+      "share_abs_lt_10s",
+      "constant_offset",
+      "linear_drift"
+    ],
+    "validity_warning": "Evaluation circulaire de concordance a la source CueNation, pas mesure de precision audio. L'alignement CueNation/audio RSS et une reference humaine exhaustive independante manquent."
+  },
+  "non_tuning_statement": "Les seuils sont figes avant la nouvelle evaluation combinee. Ils ne sont pas ajustes sur CueNation ni sur les deux cas humains connus, qui ne constituent ni une reference exhaustive ni un test aveugle."
+}

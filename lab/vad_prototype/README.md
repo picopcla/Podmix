@@ -90,3 +90,24 @@ aucun temps Podmix. Si les segmentations globales ignorees par Git ne sont plus
 presentes, elle reutilise les detections versionnees et recalcule seulement la
 comparaison ainsi que les vues avec/sans corrections validees. L'alignement
 cuesheet/audio RSS reste non verifie dans les deux vues.
+
+## Complément conservateur de la base existante
+
+`combined_protocol.json` fige une couche locale qui conserve les 42 frontières
+CueNation de PTR492/PTR493 et ne les ajuste que devant une fin de voix unique,
+postérieure de 0,5 à 5 secondes et de confiance interne au moins égale à 0,95.
+Sans cette preuve technique, le temps de base est recopié exactement. Le VAD ne
+crée, ne supprime et ne réordonne jamais une frontière. INA+Silero ne prouve pas
+l'identité DJ : chant, rap, jingle et voice-over restent possibles.
+
+Les détections globales déjà versionnées sont réutilisées sans relire l'audio :
+
+```bash
+python3 -m unittest -v test_combine_with_vad.py
+nice -n 10 python3 combine_with_vad.py
+```
+
+Les sorties `results/combined-*` séparent la base brute, le complément
+automatique et les deux corrections humaines existantes. Leur comparaison à
+CueNation est explicitement une concordance circulaire à la source, pas une
+mesure de précision audio.

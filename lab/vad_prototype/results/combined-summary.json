@@ -1,0 +1,911 @@
+{
+  "protocol_file": "lab/vad_prototype/combined_protocol.json",
+  "input_detection_file": "lab/vad_prototype/results/full-episode-detections.json",
+  "input_detection_commit": "6ada6c121a3397dc26055d9f3886efcda3bc6b3b",
+  "audio_recomputed": false,
+  "base_method": {
+    "production_code_read_only": [
+      "server/tracklist.py::parse_tracklist",
+      "server/tracklist.py::align_tracklist",
+      "server/feeds.py::import_feed"
+    ],
+    "rule": "Conserver les timestamps explicites publies. Si un timestamp manque, le laisser en attente; ne jamais inventer ni recalibrer une position audio.",
+    "ptr_source": "CueNation cuesheets deja consignees dans lab/vad_prototype/episodes.json",
+    "ptr_boundary_counts": {
+      "pure-trance-radio-492": 22,
+      "pure-trance-radio-493": 20
+    },
+    "recalibration": "aucune",
+    "preservation": "Tous les identifiants, titres, numeros, temps et l'ordre de la base brute sont conserves avant le complement."
+  },
+  "evaluation_validity": {
+    "reference_is_same_cuenation_source_as_base": true,
+    "classification": "concordance_a_la_source_circulaire",
+    "audio_precision_claim_allowed": false,
+    "cuenation_rss_audio_alignment_verified": false,
+    "independent_exhaustive_human_reference_available": false,
+    "known_human_cases_are_blind_test_set": false,
+    "warning": "Evaluation circulaire de concordance a la source CueNation, pas mesure de precision audio. L'alignement CueNation/audio RSS et une reference humaine exhaustive independante manquent."
+  },
+  "boundary_invariants": {
+    "raw_count": 42,
+    "automatic_count": 42,
+    "created": 0,
+    "deleted": 0,
+    "reordered": 0,
+    "titles_changed": 0
+  },
+  "automatic_decisions": {
+    "adjusted": 1,
+    "unchanged": 41,
+    "adjusted_boundary_ids": [
+      "pure-trance-radio-492-t02"
+    ],
+    "reason_counts": {
+      "abstention_confidence_below_minimum": 4,
+      "abstention_no_detection_in_forward_interval": 6,
+      "abstention_no_detection_in_local_window": 31,
+      "adjusted_unique_reliable_voice_end_then_music": 1
+    }
+  },
+  "existing_human_corrections": [
+    {
+      "boundary_id": "pure-trance-radio-492-t02",
+      "base_time_seconds": 82.0,
+      "human_time_seconds": 82.74,
+      "also_selected_by_automatic_policy": true
+    },
+    {
+      "boundary_id": "pure-trance-radio-493-t09",
+      "base_time_seconds": 2350.0,
+      "human_time_seconds": 2353.08,
+      "also_selected_by_automatic_policy": false
+    }
+  ],
+  "scenarios": {
+    "raw_base": {
+      "overall": {
+        "candidate_time_field": "base_time_seconds",
+        "reference_boundaries": 42,
+        "candidate_boundaries": 42,
+        "matched_boundaries": 42,
+        "missing_references": 0,
+        "unmatched_boundaries": 0,
+        "missing_reference_ids": [],
+        "unmatched_boundary_ids": [],
+        "signed_errors_seconds": [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "median_absolute_error_seconds": 0.0,
+        "mean_absolute_error_seconds": 0.0,
+        "share_absolute_error_lt_1": 1.0,
+        "share_absolute_error_lt_3": 1.0,
+        "share_absolute_error_lt_10": 1.0,
+        "offset_and_drift": {
+          "available": true,
+          "n": 42,
+          "mean_signed_offset_seconds": 0.0,
+          "mean_signed_offset_ci95_seconds": [
+            0.0,
+            0.0
+          ],
+          "constant_offset_detected": false,
+          "intercept_seconds": 0.0,
+          "intercept_ci95_seconds": [
+            0.0,
+            0.0
+          ],
+          "slope_seconds_per_second": 0.0,
+          "slope_seconds_per_hour": 0.0,
+          "slope_ci95_seconds_per_hour": [
+            0.0,
+            0.0
+          ],
+          "drift_detected": false,
+          "r_squared": 0.0,
+          "test_limit": "OLS et intervalles normaux 95 %, exploratoires."
+        }
+      },
+      "episodes": {
+        "pure-trance-radio-492": {
+          "candidate_time_field": "base_time_seconds",
+          "reference_boundaries": 22,
+          "candidate_boundaries": 22,
+          "matched_boundaries": 22,
+          "missing_references": 0,
+          "unmatched_boundaries": 0,
+          "missing_reference_ids": [],
+          "unmatched_boundary_ids": [],
+          "signed_errors_seconds": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "median_absolute_error_seconds": 0.0,
+          "mean_absolute_error_seconds": 0.0,
+          "share_absolute_error_lt_1": 1.0,
+          "share_absolute_error_lt_3": 1.0,
+          "share_absolute_error_lt_10": 1.0,
+          "offset_and_drift": {
+            "available": true,
+            "n": 22,
+            "mean_signed_offset_seconds": 0.0,
+            "mean_signed_offset_ci95_seconds": [
+              0.0,
+              0.0
+            ],
+            "constant_offset_detected": false,
+            "intercept_seconds": 0.0,
+            "intercept_ci95_seconds": [
+              0.0,
+              0.0
+            ],
+            "slope_seconds_per_second": 0.0,
+            "slope_seconds_per_hour": 0.0,
+            "slope_ci95_seconds_per_hour": [
+              0.0,
+              0.0
+            ],
+            "drift_detected": false,
+            "r_squared": 0.0,
+            "test_limit": "OLS et intervalles normaux 95 %, exploratoires."
+          }
+        },
+        "pure-trance-radio-493": {
+          "candidate_time_field": "base_time_seconds",
+          "reference_boundaries": 20,
+          "candidate_boundaries": 20,
+          "matched_boundaries": 20,
+          "missing_references": 0,
+          "unmatched_boundaries": 0,
+          "missing_reference_ids": [],
+          "unmatched_boundary_ids": [],
+          "signed_errors_seconds": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "median_absolute_error_seconds": 0.0,
+          "mean_absolute_error_seconds": 0.0,
+          "share_absolute_error_lt_1": 1.0,
+          "share_absolute_error_lt_3": 1.0,
+          "share_absolute_error_lt_10": 1.0,
+          "offset_and_drift": {
+            "available": true,
+            "n": 20,
+            "mean_signed_offset_seconds": 0.0,
+            "mean_signed_offset_ci95_seconds": [
+              0.0,
+              0.0
+            ],
+            "constant_offset_detected": false,
+            "intercept_seconds": 0.0,
+            "intercept_ci95_seconds": [
+              0.0,
+              0.0
+            ],
+            "slope_seconds_per_second": 0.0,
+            "slope_seconds_per_hour": 0.0,
+            "slope_ci95_seconds_per_hour": [
+              0.0,
+              0.0
+            ],
+            "drift_detected": false,
+            "r_squared": 0.0,
+            "test_limit": "OLS et intervalles normaux 95 %, exploratoires."
+          }
+        }
+      }
+    },
+    "automatic_combined": {
+      "overall": {
+        "candidate_time_field": "automatic_combined_time_seconds",
+        "reference_boundaries": 42,
+        "candidate_boundaries": 42,
+        "matched_boundaries": 42,
+        "missing_references": 0,
+        "unmatched_boundaries": 0,
+        "missing_reference_ids": [],
+        "unmatched_boundary_ids": [],
+        "signed_errors_seconds": [
+          0.74,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "median_absolute_error_seconds": 0.0,
+        "mean_absolute_error_seconds": 0.017619,
+        "share_absolute_error_lt_1": 1.0,
+        "share_absolute_error_lt_3": 1.0,
+        "share_absolute_error_lt_10": 1.0,
+        "offset_and_drift": {
+          "available": true,
+          "n": 42,
+          "mean_signed_offset_seconds": 0.017619,
+          "mean_signed_offset_ci95_seconds": [
+            -0.016914,
+            0.052152
+          ],
+          "constant_offset_detected": false,
+          "intercept_seconds": 0.066866,
+          "intercept_ci95_seconds": [
+            0.000455,
+            0.133277
+          ],
+          "slope_seconds_per_second": -1.4683e-05,
+          "slope_seconds_per_hour": -0.052859,
+          "slope_ci95_seconds_per_hour": [
+            -0.1152,
+            0.0072
+          ],
+          "drift_detected": false,
+          "r_squared": 0.066507,
+          "test_limit": "OLS et intervalles normaux 95 %, exploratoires."
+        }
+      },
+      "episodes": {
+        "pure-trance-radio-492": {
+          "candidate_time_field": "automatic_combined_time_seconds",
+          "reference_boundaries": 22,
+          "candidate_boundaries": 22,
+          "matched_boundaries": 22,
+          "missing_references": 0,
+          "unmatched_boundaries": 0,
+          "missing_reference_ids": [],
+          "unmatched_boundary_ids": [],
+          "signed_errors_seconds": [
+            0.74,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "median_absolute_error_seconds": 0.0,
+          "mean_absolute_error_seconds": 0.033636,
+          "share_absolute_error_lt_1": 1.0,
+          "share_absolute_error_lt_3": 1.0,
+          "share_absolute_error_lt_10": 1.0,
+          "offset_and_drift": {
+            "available": true,
+            "n": 22,
+            "mean_signed_offset_seconds": 0.033636,
+            "mean_signed_offset_ci95_seconds": [
+              -0.032291,
+              0.099564
+            ],
+            "constant_offset_detected": false,
+            "intercept_seconds": 0.125534,
+            "intercept_ci95_seconds": [
+              0.00252,
+              0.248548
+            ],
+            "slope_seconds_per_second": -2.6507e-05,
+            "slope_seconds_per_hour": -0.095424,
+            "slope_ci95_seconds_per_hour": [
+              -0.2052,
+              0.0144
+            ],
+            "drift_detected": false,
+            "r_squared": 0.127023,
+            "test_limit": "OLS et intervalles normaux 95 %, exploratoires."
+          }
+        },
+        "pure-trance-radio-493": {
+          "candidate_time_field": "automatic_combined_time_seconds",
+          "reference_boundaries": 20,
+          "candidate_boundaries": 20,
+          "matched_boundaries": 20,
+          "missing_references": 0,
+          "unmatched_boundaries": 0,
+          "missing_reference_ids": [],
+          "unmatched_boundary_ids": [],
+          "signed_errors_seconds": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "median_absolute_error_seconds": 0.0,
+          "mean_absolute_error_seconds": 0.0,
+          "share_absolute_error_lt_1": 1.0,
+          "share_absolute_error_lt_3": 1.0,
+          "share_absolute_error_lt_10": 1.0,
+          "offset_and_drift": {
+            "available": true,
+            "n": 20,
+            "mean_signed_offset_seconds": 0.0,
+            "mean_signed_offset_ci95_seconds": [
+              0.0,
+              0.0
+            ],
+            "constant_offset_detected": false,
+            "intercept_seconds": 0.0,
+            "intercept_ci95_seconds": [
+              0.0,
+              0.0
+            ],
+            "slope_seconds_per_second": 0.0,
+            "slope_seconds_per_hour": 0.0,
+            "slope_ci95_seconds_per_hour": [
+              0.0,
+              0.0
+            ],
+            "drift_detected": false,
+            "r_squared": 0.0,
+            "test_limit": "OLS et intervalles normaux 95 %, exploratoires."
+          }
+        }
+      }
+    },
+    "existing_human_corrections_only": {
+      "overall": {
+        "candidate_time_field": "human_only_time_seconds",
+        "reference_boundaries": 42,
+        "candidate_boundaries": 42,
+        "matched_boundaries": 42,
+        "missing_references": 0,
+        "unmatched_boundaries": 0,
+        "missing_reference_ids": [],
+        "unmatched_boundary_ids": [],
+        "signed_errors_seconds": [
+          0.74,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          3.08,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "median_absolute_error_seconds": 0.0,
+        "mean_absolute_error_seconds": 0.090952,
+        "share_absolute_error_lt_1": 0.97619,
+        "share_absolute_error_lt_3": 0.97619,
+        "share_absolute_error_lt_10": 1.0,
+        "offset_and_drift": {
+          "available": true,
+          "n": 42,
+          "mean_signed_offset_seconds": 0.090952,
+          "mean_signed_offset_ci95_seconds": [
+            -0.05605,
+            0.237955
+          ],
+          "constant_offset_detected": false,
+          "intercept_seconds": 0.203097,
+          "intercept_ci95_seconds": [
+            -0.086703,
+            0.492896
+          ],
+          "slope_seconds_per_second": -3.3436e-05,
+          "slope_seconds_per_hour": -0.120369,
+          "slope_ci95_seconds_per_hour": [
+            -0.3888,
+            0.1476
+          ],
+          "drift_detected": false,
+          "r_squared": 0.019032,
+          "test_limit": "OLS et intervalles normaux 95 %, exploratoires."
+        }
+      },
+      "episodes": {
+        "pure-trance-radio-492": {
+          "candidate_time_field": "human_only_time_seconds",
+          "reference_boundaries": 22,
+          "candidate_boundaries": 22,
+          "matched_boundaries": 22,
+          "missing_references": 0,
+          "unmatched_boundaries": 0,
+          "missing_reference_ids": [],
+          "unmatched_boundary_ids": [],
+          "signed_errors_seconds": [
+            0.74,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "median_absolute_error_seconds": 0.0,
+          "mean_absolute_error_seconds": 0.033636,
+          "share_absolute_error_lt_1": 1.0,
+          "share_absolute_error_lt_3": 1.0,
+          "share_absolute_error_lt_10": 1.0,
+          "offset_and_drift": {
+            "available": true,
+            "n": 22,
+            "mean_signed_offset_seconds": 0.033636,
+            "mean_signed_offset_ci95_seconds": [
+              -0.032291,
+              0.099564
+            ],
+            "constant_offset_detected": false,
+            "intercept_seconds": 0.125534,
+            "intercept_ci95_seconds": [
+              0.00252,
+              0.248548
+            ],
+            "slope_seconds_per_second": -2.6507e-05,
+            "slope_seconds_per_hour": -0.095424,
+            "slope_ci95_seconds_per_hour": [
+              -0.2052,
+              0.0144
+            ],
+            "drift_detected": false,
+            "r_squared": 0.127023,
+            "test_limit": "OLS et intervalles normaux 95 %, exploratoires."
+          }
+        },
+        "pure-trance-radio-493": {
+          "candidate_time_field": "human_only_time_seconds",
+          "reference_boundaries": 20,
+          "candidate_boundaries": 20,
+          "matched_boundaries": 20,
+          "missing_references": 0,
+          "unmatched_boundaries": 0,
+          "missing_reference_ids": [],
+          "unmatched_boundary_ids": [],
+          "signed_errors_seconds": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            3.08,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "median_absolute_error_seconds": 0.0,
+          "mean_absolute_error_seconds": 0.154,
+          "share_absolute_error_lt_1": 0.95,
+          "share_absolute_error_lt_3": 0.95,
+          "share_absolute_error_lt_10": 1.0,
+          "offset_and_drift": {
+            "available": true,
+            "n": 20,
+            "mean_signed_offset_seconds": 0.154,
+            "mean_signed_offset_ci95_seconds": [
+              -0.14784,
+              0.45584
+            ],
+            "constant_offset_detected": false,
+            "intercept_seconds": 0.279359,
+            "intercept_ci95_seconds": [
+              -0.336332,
+              0.895051
+            ],
+            "slope_seconds_per_second": -3.8813e-05,
+            "slope_seconds_per_hour": -0.139728,
+            "slope_ci95_seconds_per_hour": [
+              -0.7344,
+              0.4536
+            ],
+            "drift_detected": false,
+            "r_squared": 0.011671,
+            "test_limit": "OLS et intervalles normaux 95 %, exploratoires."
+          }
+        }
+      }
+    },
+    "automatic_plus_existing_human": {
+      "overall": {
+        "candidate_time_field": "automatic_plus_human_time_seconds",
+        "reference_boundaries": 42,
+        "candidate_boundaries": 42,
+        "matched_boundaries": 42,
+        "missing_references": 0,
+        "unmatched_boundaries": 0,
+        "missing_reference_ids": [],
+        "unmatched_boundary_ids": [],
+        "signed_errors_seconds": [
+          0.74,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          3.08,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "median_absolute_error_seconds": 0.0,
+        "mean_absolute_error_seconds": 0.090952,
+        "share_absolute_error_lt_1": 0.97619,
+        "share_absolute_error_lt_3": 0.97619,
+        "share_absolute_error_lt_10": 1.0,
+        "offset_and_drift": {
+          "available": true,
+          "n": 42,
+          "mean_signed_offset_seconds": 0.090952,
+          "mean_signed_offset_ci95_seconds": [
+            -0.05605,
+            0.237955
+          ],
+          "constant_offset_detected": false,
+          "intercept_seconds": 0.203097,
+          "intercept_ci95_seconds": [
+            -0.086703,
+            0.492896
+          ],
+          "slope_seconds_per_second": -3.3436e-05,
+          "slope_seconds_per_hour": -0.120369,
+          "slope_ci95_seconds_per_hour": [
+            -0.3888,
+            0.1476
+          ],
+          "drift_detected": false,
+          "r_squared": 0.019032,
+          "test_limit": "OLS et intervalles normaux 95 %, exploratoires."
+        }
+      },
+      "episodes": {
+        "pure-trance-radio-492": {
+          "candidate_time_field": "automatic_plus_human_time_seconds",
+          "reference_boundaries": 22,
+          "candidate_boundaries": 22,
+          "matched_boundaries": 22,
+          "missing_references": 0,
+          "unmatched_boundaries": 0,
+          "missing_reference_ids": [],
+          "unmatched_boundary_ids": [],
+          "signed_errors_seconds": [
+            0.74,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "median_absolute_error_seconds": 0.0,
+          "mean_absolute_error_seconds": 0.033636,
+          "share_absolute_error_lt_1": 1.0,
+          "share_absolute_error_lt_3": 1.0,
+          "share_absolute_error_lt_10": 1.0,
+          "offset_and_drift": {
+            "available": true,
+            "n": 22,
+            "mean_signed_offset_seconds": 0.033636,
+            "mean_signed_offset_ci95_seconds": [
+              -0.032291,
+              0.099564
+            ],
+            "constant_offset_detected": false,
+            "intercept_seconds": 0.125534,
+            "intercept_ci95_seconds": [
+              0.00252,
+              0.248548
+            ],
+            "slope_seconds_per_second": -2.6507e-05,
+            "slope_seconds_per_hour": -0.095424,
+            "slope_ci95_seconds_per_hour": [
+              -0.2052,
+              0.0144
+            ],
+            "drift_detected": false,
+            "r_squared": 0.127023,
+            "test_limit": "OLS et intervalles normaux 95 %, exploratoires."
+          }
+        },
+        "pure-trance-radio-493": {
+          "candidate_time_field": "automatic_plus_human_time_seconds",
+          "reference_boundaries": 20,
+          "candidate_boundaries": 20,
+          "matched_boundaries": 20,
+          "missing_references": 0,
+          "unmatched_boundaries": 0,
+          "missing_reference_ids": [],
+          "unmatched_boundary_ids": [],
+          "signed_errors_seconds": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            3.08,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "median_absolute_error_seconds": 0.0,
+          "mean_absolute_error_seconds": 0.154,
+          "share_absolute_error_lt_1": 0.95,
+          "share_absolute_error_lt_3": 0.95,
+          "share_absolute_error_lt_10": 1.0,
+          "offset_and_drift": {
+            "available": true,
+            "n": 20,
+            "mean_signed_offset_seconds": 0.154,
+            "mean_signed_offset_ci95_seconds": [
+              -0.14784,
+              0.45584
+            ],
+            "constant_offset_detected": false,
+            "intercept_seconds": 0.279359,
+            "intercept_ci95_seconds": [
+              -0.336332,
+              0.895051
+            ],
+            "slope_seconds_per_second": -3.8813e-05,
+            "slope_seconds_per_hour": -0.139728,
+            "slope_ci95_seconds_per_hour": [
+              -0.7344,
+              0.4536
+            ],
+            "drift_detected": false,
+            "r_squared": 0.011671,
+            "test_limit": "OLS et intervalles normaux 95 %, exploratoires."
+          }
+        }
+      }
+    }
+  }
+}
