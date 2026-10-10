@@ -6,7 +6,9 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import os
 from pathlib import Path
+import shutil
 import subprocess
 import tempfile
 
@@ -37,6 +39,9 @@ def main() -> int:
     from faster_whisper import WhisperModel
 
     model = WhisperModel(args.model, device="cpu", compute_type="int8", cpu_threads=2)
+    ffmpeg = os.environ.get("PODMIX_FFMPEG", "").strip() or shutil.which("ffmpeg")
+    if not ffmpeg:
+        raise RuntimeError("FFmpeg absent")
     rows = []
     with tempfile.TemporaryDirectory(prefix="fyh512-asr-") as directory:
         root = Path(directory)
@@ -47,7 +52,7 @@ def main() -> int:
             end = float(voice["ina_speech_end_seconds"])
             sample = root / f'{voice["detection_id"]}.wav'
             subprocess.run([
-                "ffmpeg", "-nostdin", "-hide_banner", "-loglevel", "error", "-y",
+                ffmpeg, "-nostdin", "-hide_banner", "-loglevel", "error", "-y",
                 "-ss", str(start), "-to", str(end), "-i", str(media),
                 "-ac", "1", "-ar", "16000", str(sample),
             ], check=True)
