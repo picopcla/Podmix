@@ -55,6 +55,15 @@ musique, l'agrégateur conserve désormais le temps/delta comme candidat
 automatique mais produit une abstention. Chant, rap, jingle et voice-over ne
 sont pas des confirmations suffisantes.
 
+Mise a jour du 10 octobre 2026 a 16:07 : Emmanuel a valide par ecoute deux
+frontieres, exclusivement pour les sorties du laboratoire : PTR492 piste 2
+(`82,000 -> 82,740 s`) et PTR493 piste 9 (`2 350,000 -> 2 353,080 s`). Les
+temps originaux, corriges, la source et l'horodatage restent cote a cote dans
+`results/boundary-results.*`, `results/consensus-results.*` et
+`results/summary.json`. Les candidats PTR493 `+4,140`, `+1,160`, `+2,780 s`
+et JOC `+2,500 s` restent non valides. Cette mise a jour ne raccorde toujours
+pas le prototype a Podmix et ne modifie aucun chapitre reel.
+
 ## Segmentation globale PTR492 / PTR493
 
 Le protocole indépendant des temps CueNation est gelé dans
@@ -77,4 +86,7 @@ nice -n 10 ../.venv-vad/bin/python lab/vad_prototype/run_full_episode.py \
 La dernière commande produit les CSV/JSON `results/full-episode-*` et le
 rapport français dans `reponses/`. Elle compare après coup les détections aux
 temps CueNation avec une tolérance maximale de 20 secondes. Elle ne modifie
-aucun temps Podmix.
+aucun temps Podmix. Si les segmentations globales ignorees par Git ne sont plus
+presentes, elle reutilise les detections versionnees et recalcule seulement la
+comparaison ainsi que les vues avec/sans corrections validees. L'alignement
+cuesheet/audio RSS reste non verifie dans les deux vues.

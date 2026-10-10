@@ -5,13 +5,54 @@
   "counts": {
     "ina:abstention": 67,
     "silero:abstention": 67,
-    "consensus_ina_silero:abstention": 67
+    "consensus_ina_silero:abstention": 65,
+    "consensus_ina_silero:correction_validee_labo": 2
   },
   "automatic_candidates": {
     "ina": 6,
     "silero": 0,
     "consensus_ina_silero": 2
   },
+  "human_validation": {
+    "validated_corrections_lab_only": 2,
+    "source": "Emmanuel",
+    "validated_at": "2026-10-10T16:07:00+02:00",
+    "corrections": [
+      {
+        "boundary_id": "pure-trance-radio-492-t02",
+        "original_time_seconds": 82.0,
+        "corrected_time_seconds": 82.74,
+        "delta_seconds": 0.74,
+        "scope": "lab_only"
+      },
+      {
+        "boundary_id": "pure-trance-radio-493-t09",
+        "original_time_seconds": 2350.0,
+        "corrected_time_seconds": 2353.08,
+        "delta_seconds": 3.08,
+        "scope": "lab_only"
+      }
+    ],
+    "explicitly_non_validated_candidates": [
+      {
+        "boundary_id": "pure-trance-radio-493-t02",
+        "delta_seconds": 4.14
+      },
+      {
+        "boundary_id": "pure-trance-radio-493-t03",
+        "delta_seconds": 1.16
+      },
+      {
+        "boundary_id": "pure-trance-radio-493-t14",
+        "delta_seconds": 2.78
+      },
+      {
+        "boundary_id": "joc-subculture-melbourne-2022-t01",
+        "delta_seconds": 2.5
+      }
+    ]
+  },
   "precision": null,
-  "precision_limit": "Non mesurable: aucune reference humaine par ecoute n'est disponible."
+  "precision_limit": "Non mesurable: deux candidats ont ete valides par ecoute, mais le corpus ne dispose pas d'une annotation humaine exhaustive permettant de mesurer la precision.",
+  "alignment_warning": "L'alignement cuesheet CueNation / audio RSS reste non verifie; les deux corrections sont donc des validations d'ecoute limitees au laboratoire."
 }

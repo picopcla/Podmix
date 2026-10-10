@@ -1,6 +1,6 @@
 {
   "request": "podmix-vad-corpus-fyh-puretrance-2026-10-10-1420",
-  "status": "completed_without_activation",
+  "status": "completed_with_two_lab_only_human_validations",
   "catalog": {
     "fyh": {
       "verified_catalog_title": "Find Your Harmony Radioshow",
@@ -27,7 +27,8 @@
       "boundaries": 20,
       "ina_automatic_candidates": 4,
       "consensus_automatic_candidates": 1,
-      "published_suggestions": 0
+      "published_suggestions": 0,
+      "validated_lab_corrections": 1
     },
     {
       "id": "pure-trance-radio-492",
@@ -39,7 +40,8 @@
       "boundaries": 22,
       "ina_automatic_candidates": 1,
       "consensus_automatic_candidates": 1,
-      "published_suggestions": 0
+      "published_suggestions": 0,
+      "validated_lab_corrections": 1
     }
   ],
   "window": {
@@ -73,7 +75,8 @@
   "new_corpus_results": {
     "boundaries": 42,
     "published_suggestions": 0,
-    "consensus_abstentions": 42,
+    "validated_lab_corrections": 2,
+    "consensus_abstentions": 40,
     "ina_automatic_candidates": 5,
     "consensus_automatic_candidates": 2,
     "speech_presence_agreement": {
@@ -87,22 +90,46 @@
     },
     "human_precision": null,
     "false_shifts": null,
-    "measurement_limit": "Aucune ecoute humaine; tout candidat est donc retenu comme faux deplacement potentiel et non applique."
+    "measurement_limit": "Deux candidats de consensus ont ete valides par ecoute humaine, sans annotation exhaustive des 42 frontieres; precision et rappel globaux restent non mesurables."
   },
-  "automatic_consensus_candidates_withheld": [
+  "automatic_consensus_candidates_reviewed": [
     {
       "boundary_id": "pure-trance-radio-492-t02",
       "original_time_seconds": 82.0,
       "candidate_time_seconds": 82.74,
       "candidate_delta_seconds": 0.74,
-      "reason": "INA et Silero detectent la parole a la frontiere et leurs fins sont proches; INA classe ensuite de la musique. Abstention faute d'ecoute excluant chant, rap, jingle et voice-over."
+      "status": "validated_for_lab_only",
+      "source": "Emmanuel",
+      "validated_at": "2026-10-10T16:07:00+02:00",
+      "reason": "INA et Silero detectent la parole a la frontiere et leurs fins sont proches; INA classe ensuite de la musique. Correction validee par ecoute humaine pour le laboratoire uniquement."
     },
     {
       "boundary_id": "pure-trance-radio-493-t09",
       "original_time_seconds": 2350.0,
       "candidate_time_seconds": 2353.08,
       "candidate_delta_seconds": 3.08,
-      "reason": "INA et Silero detectent la parole a la frontiere et leurs fins sont proches; INA classe ensuite de la musique. Abstention faute d'ecoute excluant chant, rap, jingle et voice-over."
+      "status": "validated_for_lab_only",
+      "source": "Emmanuel",
+      "validated_at": "2026-10-10T16:07:00+02:00",
+      "reason": "INA et Silero detectent la parole a la frontiere et leurs fins sont proches; INA classe ensuite de la musique. Correction validee par ecoute humaine pour le laboratoire uniquement."
+    }
+  ],
+  "explicitly_non_validated_candidates": [
+    {
+      "boundary_id": "pure-trance-radio-493-t02",
+      "candidate_delta_seconds": 4.14
+    },
+    {
+      "boundary_id": "pure-trance-radio-493-t03",
+      "candidate_delta_seconds": 1.16
+    },
+    {
+      "boundary_id": "pure-trance-radio-493-t14",
+      "candidate_delta_seconds": 2.78
+    },
+    {
+      "boundary_id": "joc-subculture-melbourne-2022-t01",
+      "candidate_delta_seconds": 2.5
     }
   ],
   "disk_bytes": {

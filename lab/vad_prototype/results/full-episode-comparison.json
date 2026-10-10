@@ -9,7 +9,14 @@
     "algorithm_time_seconds": 82.74,
     "confidence": 0.9962,
     "signed_error_seconds": 0.74,
-    "absolute_error_seconds": 0.74
+    "absolute_error_seconds": 0.74,
+    "human_validation_status": "validated_for_lab_only",
+    "human_validation_source": "Emmanuel",
+    "human_validation_at": "2026-10-10T16:07:00+02:00",
+    "validated_corrected_time_seconds": 82.74,
+    "lab_reference_time_seconds": 82.74,
+    "signed_error_with_validated_corrections_seconds": 0.0,
+    "absolute_error_with_validated_corrections_seconds": 0.0
   },
   {
     "episode_id": "pure-trance-radio-492",
@@ -21,7 +28,14 @@
     "algorithm_time_seconds": 387.76,
     "confidence": 0.8204,
     "signed_error_seconds": -0.24,
-    "absolute_error_seconds": 0.24
+    "absolute_error_seconds": 0.24,
+    "human_validation_status": "not_applicable",
+    "human_validation_source": null,
+    "human_validation_at": null,
+    "validated_corrected_time_seconds": null,
+    "lab_reference_time_seconds": 388.0,
+    "signed_error_with_validated_corrections_seconds": -0.24,
+    "absolute_error_with_validated_corrections_seconds": 0.24
   },
   {
     "episode_id": "pure-trance-radio-492",
@@ -33,7 +47,14 @@
     "algorithm_time_seconds": 653.28,
     "confidence": 0.8754,
     "signed_error_seconds": -4.72,
-    "absolute_error_seconds": 4.72
+    "absolute_error_seconds": 4.72,
+    "human_validation_status": "not_applicable",
+    "human_validation_source": null,
+    "human_validation_at": null,
+    "validated_corrected_time_seconds": null,
+    "lab_reference_time_seconds": 658.0,
+    "signed_error_with_validated_corrections_seconds": -4.72,
+    "absolute_error_with_validated_corrections_seconds": 4.72
   },
   {
     "episode_id": "pure-trance-radio-492",
@@ -45,7 +66,14 @@
     "algorithm_time_seconds": 1022.9,
     "confidence": 0.8003,
     "signed_error_seconds": -11.1,
-    "absolute_error_seconds": 11.1
+    "absolute_error_seconds": 11.1,
+    "human_validation_status": "not_applicable",
+    "human_validation_source": null,
+    "human_validation_at": null,
+    "validated_corrected_time_seconds": null,
+    "lab_reference_time_seconds": 1034.0,
+    "signed_error_with_validated_corrections_seconds": -11.1,
+    "absolute_error_with_validated_corrections_seconds": 11.1
   },
   {
     "episode_id": "pure-trance-radio-492",
@@ -57,7 +85,14 @@
     "algorithm_time_seconds": null,
     "confidence": null,
     "signed_error_seconds": null,
-    "absolute_error_seconds": null
+    "absolute_error_seconds": null,
+    "human_validation_status": "not_applicable",
+    "human_validation_source": null,
+    "human_validation_at": null,
+    "validated_corrected_time_seconds": null,
+    "lab_reference_time_seconds": 1380.0,
+    "signed_error_with_validated_corrections_seconds": null,
+    "absolute_error_with_validated_corrections_seconds": null
   },
   {
     "episode_id": "pure-trance-radio-492",
@@ -69,7 +104,14 @@
     "algorithm_time_seconds": null,
     "confidence": null,
     "signed_error_seconds": null,
-    "absolute_error_seconds": null
+    "absolute_error_seconds": null,
+    "human_validation_status": "not_applicable",
+    "human_validation_source": null,
+    "human_validation_at": null,
+    "validated_corrected_time_seconds": null,
+    "lab_reference_time_seconds": 1710.0,
+    "signed_error_with_validated_corrections_seconds": null,
+    "absolute_error_with_validated_corrections_seconds": null
   },
   {
     "episode_id": "pure-trance-radio-492",
@@ -81,7 +123,14 @@
     "algorithm_time_seconds": null,
     "confidence": null,
     "signed_error_seconds": null,
-    "absolute_error_seconds": null
+    "absolute_error_seconds": null,
+    "human_validation_status": "not_applicable",
+    "human_validation_source": null,
+    "human_validation_at": null,
+    "validated_corrected_time_seconds": null,
+    "lab_reference_time_seconds": 2040.0,
+    "signed_error_with_validated_corrections_seconds": null,
+    "absolute_error_with_validated_corrections_seconds": null
   },
   {
     "episode_id": "pure-trance-radio-492",
@@ -93,7 +142,14 @@
     "algorithm_time_seconds": null,
     "confidence": null,
     "signed_error_seconds": null,
-    "absolute_error_seconds": null
+    "absolute_error_seconds": null,
+    "human_validation_status": "not_applicable",
+    "human_validation_source": null,
+    "human_validation_at": null,
+    "validated_corrected_time_seconds": null,
+    "lab_reference_time_seconds": 2323.0,
+    "signed_error_with_validated_corrections_seconds": null,
+    "absolute_error_with_validated_corrections_seconds": null
   },
   {
     "episode_id": "pure-trance-radio-492",
@@ -105,7 +161,14 @@
     "algorithm_time_seconds": null,
     "confidence": null,
     "signed_error_seconds": null,
-    "absolute_error_seconds": null
+    "absolute_error_seconds": null,
+    "human_validation_status": "not_applicable",
+    "human_validation_source": null,
+    "human_validation_at": null,
+    "validated_corrected_time_seconds": null,
+    "lab_reference_time_seconds": 2679.0,
+    "signed_error_with_validated_corrections_seconds": null,
+    "absolute_error_with_validated_corrections_seconds": null
   },
   {
     "episode_id": "pure-trance-radio-492",
@@ -117,7 +180,14 @@
     "algorithm_time_seconds": null,
     "confidence": null,
     "signed_error_seconds": null,
-    "absolute_error_seconds": null
+    "absolute_error_seconds": null,
+    "human_validation_status": "not_applicable",
+    "human_validation_source": null,
+    "human_validation_at": null,
+    "validated_corrected_time_seconds": null,
+    "lab_reference_time_seconds": 2974.0,
+    "signed_error_with_validated_corrections_seconds": null,
+    "absolute_error_with_validated_corrections_seconds": null
   },
   {
     "episode_id": "pure-trance-radio-492",
@@ -129,7 +199,14 @@
     "algorithm_time_seconds": 3197.58,
     "confidence": 0.6326,
     "signed_error_seconds": -12.42,
-    "absolute_error_seconds": 12.42
+    "absolute_error_seconds": 12.42,
+    "human_validation_status": "not_applicable",
+    "human_validation_source": null,
+    "human_validation_at": null,
+    "validated_corrected_time_seconds": null,
+    "lab_reference_time_seconds": 3210.0,
+    "signed_error_with_validated_corrections_seconds": -12.42,
+    "absolute_error_with_validated_corrections_seconds": 12.42
   },
   {
     "episode_id": "pure-trance-radio-492",
@@ -141,7 +218,14 @@
     "algorithm_time_seconds": 3646.02,
     "confidence": 0.9928,
     "signed_error_seconds": -2.98,
-    "absolute_error_seconds": 2.98
+    "absolute_error_seconds": 2.98,
+    "human_validation_status": "not_applicable",
+    "human_validation_source": null,
+    "human_validation_at": null,
+    "validated_corrected_time_seconds": null,
+    "lab_reference_time_seconds": 3649.0,
+    "signed_error_with_validated_corrections_seconds": -2.98,
+    "absolute_error_with_validated_corrections_seconds": 2.98
   },
   {
     "episode_id": "pure-trance-radio-492",
@@ -153,7 +237,14 @@
     "algorithm_time_seconds": 3952.9,
     "confidence": 0.83,
     "signed_error_seconds": -0.1,
-    "absolute_error_seconds": 0.1
+    "absolute_error_seconds": 0.1,
+    "human_validation_status": "not_applicable",
+    "human_validation_source": null,
+    "human_validation_at": null,
+    "validated_corrected_time_seconds": null,
+    "lab_reference_time_seconds": 3953.0,
+    "signed_error_with_validated_corrections_seconds": -0.1,
+    "absolute_error_with_validated_corrections_seconds": 0.1
   },
   {
     "episode_id": "pure-trance-radio-492",
@@ -165,7 +256,14 @@
     "algorithm_time_seconds": null,
     "confidence": null,
     "signed_error_seconds": null,
-    "absolute_error_seconds": null
+    "absolute_error_seconds": null,
+    "human_validation_status": "not_applicable",
+    "human_validation_source": null,
+    "human_validation_at": null,
+    "validated_corrected_time_seconds": null,
+    "lab_reference_time_seconds": 4212.0,
+    "signed_error_with_validated_corrections_seconds": null,
+    "absolute_error_with_validated_corrections_seconds": null
   },
   {
     "episode_id": "pure-trance-radio-492",
@@ -177,7 +275,14 @@
     "algorithm_time_seconds": null,
     "confidence": null,
     "signed_error_seconds": null,
-    "absolute_error_seconds": null
+    "absolute_error_seconds": null,
+    "human_validation_status": "not_applicable",
+    "human_validation_source": null,
+    "human_validation_at": null,
+    "validated_corrected_time_seconds": null,
+    "lab_reference_time_seconds": 4448.0,
+    "signed_error_with_validated_corrections_seconds": null,
+    "absolute_error_with_validated_corrections_seconds": null
   },
   {
     "episode_id": "pure-trance-radio-492",
@@ -189,7 +294,14 @@
     "algorithm_time_seconds": 4789.38,
     "confidence": 0.8331,
     "signed_error_seconds": -6.62,
-    "absolute_error_seconds": 6.62
+    "absolute_error_seconds": 6.62,
+    "human_validation_status": "not_applicable",
+    "human_validation_source": null,
+    "human_validation_at": null,
+    "validated_corrected_time_seconds": null,
+    "lab_reference_time_seconds": 4796.0,
+    "signed_error_with_validated_corrections_seconds": -6.62,
+    "absolute_error_with_validated_corrections_seconds": 6.62
   },
   {
     "episode_id": "pure-trance-radio-492",
@@ -201,7 +313,14 @@
     "algorithm_time_seconds": 5222.98,
     "confidence": 0.955,
     "signed_error_seconds": -9.02,
-    "absolute_error_seconds": 9.02
+    "absolute_error_seconds": 9.02,
+    "human_validation_status": "not_applicable",
+    "human_validation_source": null,
+    "human_validation_at": null,
+    "validated_corrected_time_seconds": null,
+    "lab_reference_time_seconds": 5232.0,
+    "signed_error_with_validated_corrections_seconds": -9.02,
+    "absolute_error_with_validated_corrections_seconds": 9.02
   },
   {
     "episode_id": "pure-trance-radio-492",
@@ -213,7 +332,14 @@
     "algorithm_time_seconds": 5581.66,
     "confidence": 0.8295,
     "signed_error_seconds": -17.34,
-    "absolute_error_seconds": 17.34
+    "absolute_error_seconds": 17.34,
+    "human_validation_status": "not_applicable",
+    "human_validation_source": null,
+    "human_validation_at": null,
+    "validated_corrected_time_seconds": null,
+    "lab_reference_time_seconds": 5599.0,
+    "signed_error_with_validated_corrections_seconds": -17.34,
+    "absolute_error_with_validated_corrections_seconds": 17.34
   },
   {
     "episode_id": "pure-trance-radio-492",
@@ -225,7 +351,14 @@
     "algorithm_time_seconds": null,
     "confidence": null,
     "signed_error_seconds": null,
-    "absolute_error_seconds": null
+    "absolute_error_seconds": null,
+    "human_validation_status": "not_applicable",
+    "human_validation_source": null,
+    "human_validation_at": null,
+    "validated_corrected_time_seconds": null,
+    "lab_reference_time_seconds": 5981.0,
+    "signed_error_with_validated_corrections_seconds": null,
+    "absolute_error_with_validated_corrections_seconds": null
   },
   {
     "episode_id": "pure-trance-radio-492",
@@ -237,7 +370,14 @@
     "algorithm_time_seconds": null,
     "confidence": null,
     "signed_error_seconds": null,
-    "absolute_error_seconds": null
+    "absolute_error_seconds": null,
+    "human_validation_status": "not_applicable",
+    "human_validation_source": null,
+    "human_validation_at": null,
+    "validated_corrected_time_seconds": null,
+    "lab_reference_time_seconds": 6275.0,
+    "signed_error_with_validated_corrections_seconds": null,
+    "absolute_error_with_validated_corrections_seconds": null
   },
   {
     "episode_id": "pure-trance-radio-492",
@@ -249,7 +389,14 @@
     "algorithm_time_seconds": 6647.58,
     "confidence": 0.8541,
     "signed_error_seconds": -1.42,
-    "absolute_error_seconds": 1.42
+    "absolute_error_seconds": 1.42,
+    "human_validation_status": "not_applicable",
+    "human_validation_source": null,
+    "human_validation_at": null,
+    "validated_corrected_time_seconds": null,
+    "lab_reference_time_seconds": 6649.0,
+    "signed_error_with_validated_corrections_seconds": -1.42,
+    "absolute_error_with_validated_corrections_seconds": 1.42
   },
   {
     "episode_id": "pure-trance-radio-492",
@@ -261,7 +408,14 @@
     "algorithm_time_seconds": null,
     "confidence": null,
     "signed_error_seconds": null,
-    "absolute_error_seconds": null
+    "absolute_error_seconds": null,
+    "human_validation_status": "not_applicable",
+    "human_validation_source": null,
+    "human_validation_at": null,
+    "validated_corrected_time_seconds": null,
+    "lab_reference_time_seconds": 7001.0,
+    "signed_error_with_validated_corrections_seconds": null,
+    "absolute_error_with_validated_corrections_seconds": null
   },
   {
     "episode_id": "pure-trance-radio-493",
@@ -273,7 +427,14 @@
     "algorithm_time_seconds": 115.14,
     "confidence": 0.85,
     "signed_error_seconds": 4.14,
-    "absolute_error_seconds": 4.14
+    "absolute_error_seconds": 4.14,
+    "human_validation_status": "explicitly_not_validated",
+    "human_validation_source": null,
+    "human_validation_at": null,
+    "validated_corrected_time_seconds": null,
+    "lab_reference_time_seconds": 111.0,
+    "signed_error_with_validated_corrections_seconds": 4.14,
+    "absolute_error_with_validated_corrections_seconds": 4.14
   },
   {
     "episode_id": "pure-trance-radio-493",
@@ -285,7 +446,14 @@
     "algorithm_time_seconds": null,
     "confidence": null,
     "signed_error_seconds": null,
-    "absolute_error_seconds": null
+    "absolute_error_seconds": null,
+    "human_validation_status": "explicitly_not_validated",
+    "human_validation_source": null,
+    "human_validation_at": null,
+    "validated_corrected_time_seconds": null,
+    "lab_reference_time_seconds": 534.0,
+    "signed_error_with_validated_corrections_seconds": null,
+    "absolute_error_with_validated_corrections_seconds": null
   },
   {
     "episode_id": "pure-trance-radio-493",
@@ -297,7 +465,14 @@
     "algorithm_time_seconds": null,
     "confidence": null,
     "signed_error_seconds": null,
-    "absolute_error_seconds": null
+    "absolute_error_seconds": null,
+    "human_validation_status": "not_applicable",
+    "human_validation_source": null,
+    "human_validation_at": null,
+    "validated_corrected_time_seconds": null,
+    "lab_reference_time_seconds": 822.0,
+    "signed_error_with_validated_corrections_seconds": null,
+    "absolute_error_with_validated_corrections_seconds": null
   },
   {
     "episode_id": "pure-trance-radio-493",
@@ -309,7 +484,14 @@
     "algorithm_time_seconds": null,
     "confidence": null,
     "signed_error_seconds": null,
-    "absolute_error_seconds": null
+    "absolute_error_seconds": null,
+    "human_validation_status": "not_applicable",
+    "human_validation_source": null,
+    "human_validation_at": null,
+    "validated_corrected_time_seconds": null,
+    "lab_reference_time_seconds": 1212.0,
+    "signed_error_with_validated_corrections_seconds": null,
+    "absolute_error_with_validated_corrections_seconds": null
   },
   {
     "episode_id": "pure-trance-radio-493",
@@ -321,7 +503,14 @@
     "algorithm_time_seconds": 1435.86,
     "confidence": 0.8134,
     "signed_error_seconds": -5.14,
-    "absolute_error_seconds": 5.14
+    "absolute_error_seconds": 5.14,
+    "human_validation_status": "not_applicable",
+    "human_validation_source": null,
+    "human_validation_at": null,
+    "validated_corrected_time_seconds": null,
+    "lab_reference_time_seconds": 1441.0,
+    "signed_error_with_validated_corrections_seconds": -5.14,
+    "absolute_error_with_validated_corrections_seconds": 5.14
   },
   {
     "episode_id": "pure-trance-radio-493",
@@ -333,7 +522,14 @@
     "algorithm_time_seconds": 1760.18,
     "confidence": 0.7978,
     "signed_error_seconds": 3.18,
-    "absolute_error_seconds": 3.18
+    "absolute_error_seconds": 3.18,
+    "human_validation_status": "not_applicable",
+    "human_validation_source": null,
+    "human_validation_at": null,
+    "validated_corrected_time_seconds": null,
+    "lab_reference_time_seconds": 1757.0,
+    "signed_error_with_validated_corrections_seconds": 3.18,
+    "absolute_error_with_validated_corrections_seconds": 3.18
   },
   {
     "episode_id": "pure-trance-radio-493",
@@ -345,7 +541,14 @@
     "algorithm_time_seconds": null,
     "confidence": null,
     "signed_error_seconds": null,
-    "absolute_error_seconds": null
+    "absolute_error_seconds": null,
+    "human_validation_status": "not_applicable",
+    "human_validation_source": null,
+    "human_validation_at": null,
+    "validated_corrected_time_seconds": null,
+    "lab_reference_time_seconds": 2001.0,
+    "signed_error_with_validated_corrections_seconds": null,
+    "absolute_error_with_validated_corrections_seconds": null
   },
   {
     "episode_id": "pure-trance-radio-493",
@@ -357,7 +560,14 @@
     "algorithm_time_seconds": 2353.08,
     "confidence": 0.8925,
     "signed_error_seconds": 3.08,
-    "absolute_error_seconds": 3.08
+    "absolute_error_seconds": 3.08,
+    "human_validation_status": "validated_for_lab_only",
+    "human_validation_source": "Emmanuel",
+    "human_validation_at": "2026-10-10T16:07:00+02:00",
+    "validated_corrected_time_seconds": 2353.08,
+    "lab_reference_time_seconds": 2353.08,
+    "signed_error_with_validated_corrections_seconds": 0.0,
+    "absolute_error_with_validated_corrections_seconds": 0.0
   },
   {
     "episode_id": "pure-trance-radio-493",
@@ -369,7 +579,14 @@
     "algorithm_time_seconds": 2727.58,
     "confidence": 0.7531,
     "signed_error_seconds": -6.42,
-    "absolute_error_seconds": 6.42
+    "absolute_error_seconds": 6.42,
+    "human_validation_status": "not_applicable",
+    "human_validation_source": null,
+    "human_validation_at": null,
+    "validated_corrected_time_seconds": null,
+    "lab_reference_time_seconds": 2734.0,
+    "signed_error_with_validated_corrections_seconds": -6.42,
+    "absolute_error_with_validated_corrections_seconds": 6.42
   },
   {
     "episode_id": "pure-trance-radio-493",
@@ -381,7 +598,14 @@
     "algorithm_time_seconds": null,
     "confidence": null,
     "signed_error_seconds": null,
-    "absolute_error_seconds": null
+    "absolute_error_seconds": null,
+    "human_validation_status": "not_applicable",
+    "human_validation_source": null,
+    "human_validation_at": null,
+    "validated_corrected_time_seconds": null,
+    "lab_reference_time_seconds": 3021.0,
+    "signed_error_with_validated_corrections_seconds": null,
+    "absolute_error_with_validated_corrections_seconds": null
   },
   {
     "episode_id": "pure-trance-radio-493",
@@ -393,7 +617,14 @@
     "algorithm_time_seconds": 3339.96,
     "confidence": 0.9765,
     "signed_error_seconds": -4.04,
-    "absolute_error_seconds": 4.04
+    "absolute_error_seconds": 4.04,
+    "human_validation_status": "not_applicable",
+    "human_validation_source": null,
+    "human_validation_at": null,
+    "validated_corrected_time_seconds": null,
+    "lab_reference_time_seconds": 3344.0,
+    "signed_error_with_validated_corrections_seconds": -4.04,
+    "absolute_error_with_validated_corrections_seconds": 4.04
   },
   {
     "episode_id": "pure-trance-radio-493",
@@ -405,7 +636,14 @@
     "algorithm_time_seconds": null,
     "confidence": null,
     "signed_error_seconds": null,
-    "absolute_error_seconds": null
+    "absolute_error_seconds": null,
+    "human_validation_status": "not_applicable",
+    "human_validation_source": null,
+    "human_validation_at": null,
+    "validated_corrected_time_seconds": null,
+    "lab_reference_time_seconds": 3747.0,
+    "signed_error_with_validated_corrections_seconds": null,
+    "absolute_error_with_validated_corrections_seconds": null
   },
   {
     "episode_id": "pure-trance-radio-493",
@@ -417,7 +655,14 @@
     "algorithm_time_seconds": 4146.78,
     "confidence": 0.8821,
     "signed_error_seconds": 2.78,
-    "absolute_error_seconds": 2.78
+    "absolute_error_seconds": 2.78,
+    "human_validation_status": "explicitly_not_validated",
+    "human_validation_source": null,
+    "human_validation_at": null,
+    "validated_corrected_time_seconds": null,
+    "lab_reference_time_seconds": 4144.0,
+    "signed_error_with_validated_corrections_seconds": 2.78,
+    "absolute_error_with_validated_corrections_seconds": 2.78
   },
   {
     "episode_id": "pure-trance-radio-493",
@@ -429,7 +674,14 @@
     "algorithm_time_seconds": 4392.64,
     "confidence": 0.7549,
     "signed_error_seconds": -8.36,
-    "absolute_error_seconds": 8.36
+    "absolute_error_seconds": 8.36,
+    "human_validation_status": "not_applicable",
+    "human_validation_source": null,
+    "human_validation_at": null,
+    "validated_corrected_time_seconds": null,
+    "lab_reference_time_seconds": 4401.0,
+    "signed_error_with_validated_corrections_seconds": -8.36,
+    "absolute_error_with_validated_corrections_seconds": 8.36
   },
   {
     "episode_id": "pure-trance-radio-493",
@@ -441,7 +693,14 @@
     "algorithm_time_seconds": null,
     "confidence": null,
     "signed_error_seconds": null,
-    "absolute_error_seconds": null
+    "absolute_error_seconds": null,
+    "human_validation_status": "not_applicable",
+    "human_validation_source": null,
+    "human_validation_at": null,
+    "validated_corrected_time_seconds": null,
+    "lab_reference_time_seconds": 4696.0,
+    "signed_error_with_validated_corrections_seconds": null,
+    "absolute_error_with_validated_corrections_seconds": null
   },
   {
     "episode_id": "pure-trance-radio-493",
@@ -453,7 +712,14 @@
     "algorithm_time_seconds": null,
     "confidence": null,
     "signed_error_seconds": null,
-    "absolute_error_seconds": null
+    "absolute_error_seconds": null,
+    "human_validation_status": "not_applicable",
+    "human_validation_source": null,
+    "human_validation_at": null,
+    "validated_corrected_time_seconds": null,
+    "lab_reference_time_seconds": 5035.0,
+    "signed_error_with_validated_corrections_seconds": null,
+    "absolute_error_with_validated_corrections_seconds": null
   },
   {
     "episode_id": "pure-trance-radio-493",
@@ -465,7 +731,14 @@
     "algorithm_time_seconds": null,
     "confidence": null,
     "signed_error_seconds": null,
-    "absolute_error_seconds": null
+    "absolute_error_seconds": null,
+    "human_validation_status": "not_applicable",
+    "human_validation_source": null,
+    "human_validation_at": null,
+    "validated_corrected_time_seconds": null,
+    "lab_reference_time_seconds": 5350.0,
+    "signed_error_with_validated_corrections_seconds": null,
+    "absolute_error_with_validated_corrections_seconds": null
   },
   {
     "episode_id": "pure-trance-radio-493",
@@ -477,7 +750,14 @@
     "algorithm_time_seconds": null,
     "confidence": null,
     "signed_error_seconds": null,
-    "absolute_error_seconds": null
+    "absolute_error_seconds": null,
+    "human_validation_status": "not_applicable",
+    "human_validation_source": null,
+    "human_validation_at": null,
+    "validated_corrected_time_seconds": null,
+    "lab_reference_time_seconds": 5663.0,
+    "signed_error_with_validated_corrections_seconds": null,
+    "absolute_error_with_validated_corrections_seconds": null
   },
   {
     "episode_id": "pure-trance-radio-493",
@@ -489,7 +769,14 @@
     "algorithm_time_seconds": null,
     "confidence": null,
     "signed_error_seconds": null,
-    "absolute_error_seconds": null
+    "absolute_error_seconds": null,
+    "human_validation_status": "not_applicable",
+    "human_validation_source": null,
+    "human_validation_at": null,
+    "validated_corrected_time_seconds": null,
+    "lab_reference_time_seconds": 5990.0,
+    "signed_error_with_validated_corrections_seconds": null,
+    "absolute_error_with_validated_corrections_seconds": null
   },
   {
     "episode_id": "pure-trance-radio-493",
@@ -501,6 +788,13 @@
     "algorithm_time_seconds": 6235.38,
     "confidence": 0.953,
     "signed_error_seconds": -7.62,
-    "absolute_error_seconds": 7.62
+    "absolute_error_seconds": 7.62,
+    "human_validation_status": "not_applicable",
+    "human_validation_source": null,
+    "human_validation_at": null,
+    "validated_corrected_time_seconds": null,
+    "lab_reference_time_seconds": 6243.0,
+    "signed_error_with_validated_corrections_seconds": -7.62,
+    "absolute_error_with_validated_corrections_seconds": 7.62
   }
 ]

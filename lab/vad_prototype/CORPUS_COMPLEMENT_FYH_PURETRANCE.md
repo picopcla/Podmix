@@ -1,5 +1,12 @@
 # Complément corpus FYH / Pure Trance Radio — 10 octobre 2026
 
+> **Mise à jour 16:07 — laboratoire uniquement.** Ce rapport conserve l'état
+> de l'expérience avant revue humaine. Emmanuel a depuis validé PTR492 piste 2
+> (`82,000 → 82,740 s`) et PTR493 piste 9 (`2 350,000 → 2 353,080 s`). Les
+> deux lignes de consensus correspondantes sont désormais marquées
+> `correction_validee_labo`; les autres candidats restent non validés. Voir
+> `reponses/podmix-vad-complement-corrections-lab-2026-10-10-1610.md`.
+
 ## Statut et lien avec le premier essai
 
 **Complément terminé, hors production, sans activation.** Il complète le

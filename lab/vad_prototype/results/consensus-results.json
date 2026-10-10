@@ -1,0 +1,5926 @@
+[
+  {
+    "boundary_id": "joc-subculture-melbourne-2022-t01",
+    "episode_id": "joc-subculture-melbourne-2022",
+    "episode_title": "Joint Operations Centre LIVE @ Subculture Festival Melbourne 2022",
+    "source_url": "https://soundcloud.com/johnocallaghan/jointops-melbourne",
+    "tracklist_url": "https://set79.com/tracklist/soundcloud.com/johnocallaghan/jointops-melbourne",
+    "track_number": 1,
+    "track_title": "Joint Operations Centre - Gizmo",
+    "split": "evaluation",
+    "original_time_seconds": 300.0,
+    "window_start_seconds": 255.0,
+    "window_end_seconds": 345.0,
+    "method": "consensus_ina_silero",
+    "excerpt_before": "output/excerpts/joc-subculture-melbourne-2022-t01-before.ogg",
+    "excerpt_after": "output/excerpts/joc-subculture-melbourne-2022-t01-after.ogg",
+    "automatic_candidate": false,
+    "candidate_time_seconds": null,
+    "candidate_delta_seconds": null,
+    "human_validation_status": "not_applicable",
+    "human_validation_source": null,
+    "human_validation_at": null,
+    "validated_original_time_seconds": null,
+    "validated_corrected_time_seconds": null,
+    "validated_delta_seconds": null,
+    "application_scope": null,
+    "segments": {
+      "ina": [
+        {
+          "label": "music",
+          "start": 255.0,
+          "end": 297.74
+        },
+        {
+          "label": "speech",
+          "start": 297.74,
+          "end": 302.5
+        },
+        {
+          "label": "music",
+          "start": 302.5,
+          "end": 344.98
+        }
+      ],
+      "silero": [
+        {
+          "label": "non_speech",
+          "start": 255.0,
+          "end": 345.0
+        }
+      ]
+    },
+    "decision": "abstention",
+    "new_time_seconds": null,
+    "delta_seconds": null,
+    "reason": "Silero ne voit pas de parole englobante",
+    "uncertainty": "moyenne_a_elevee"
+  },
+  {
+    "boundary_id": "joc-subculture-melbourne-2022-t02",
+    "episode_id": "joc-subculture-melbourne-2022",
+    "episode_title": "Joint Operations Centre LIVE @ Subculture Festival Melbourne 2022",
+    "source_url": "https://soundcloud.com/johnocallaghan/jointops-melbourne",
+    "tracklist_url": "https://set79.com/tracklist/soundcloud.com/johnocallaghan/jointops-melbourne",
+    "track_number": 2,
+    "track_title": "John O'Callaghan feat. Audrey Gallagher - Big Sky",
+    "split": "evaluation",
+    "original_time_seconds": 912.0,
+    "window_start_seconds": 867.0,
+    "window_end_seconds": 957.0,
+    "method": "consensus_ina_silero",
+    "excerpt_before": "output/excerpts/joc-subculture-melbourne-2022-t02-before.ogg",
+    "excerpt_after": "output/excerpts/joc-subculture-melbourne-2022-t02-after.ogg",
+    "automatic_candidate": false,
+    "candidate_time_seconds": null,
+    "candidate_delta_seconds": null,
+    "human_validation_status": "not_applicable",
+    "human_validation_source": null,
+    "human_validation_at": null,
+    "validated_original_time_seconds": null,
+    "validated_corrected_time_seconds": null,
+    "validated_delta_seconds": null,
+    "application_scope": null,
+    "segments": {
+      "ina": [
+        {
+          "label": "music",
+          "start": 867.0,
+          "end": 879.36
+        },
+        {
+          "label": "speech",
+          "start": 879.36,
+          "end": 884.96
+        },
+        {
+          "label": "music",
+          "start": 884.96,
+          "end": 894.7
+        },
+        {
+          "label": "speech",
+          "start": 894.7,
+          "end": 897.58
+        },
+        {
+          "label": "music",
+          "start": 897.58,
+          "end": 956.98
+        }
+      ],
+      "silero": [
+        {
+          "label": "non_speech",
+          "start": 867.0,
+          "end": 957.0
+        }
+      ]
+    },
+    "decision": "abstention",
+    "new_time_seconds": null,
+    "delta_seconds": null,
+    "reason": "INA ne voit pas de parole englobante; Silero ne voit pas de parole englobante; retour musique INA insuffisant",
+    "uncertainty": "moyenne_a_elevee"
+  },
+  {
+    "boundary_id": "joc-subculture-melbourne-2022-t03",
+    "episode_id": "joc-subculture-melbourne-2022",
+    "episode_title": "Joint Operations Centre LIVE @ Subculture Festival Melbourne 2022",
+    "source_url": "https://soundcloud.com/johnocallaghan/jointops-melbourne",
+    "tracklist_url": "https://set79.com/tracklist/soundcloud.com/johnocallaghan/jointops-melbourne",
+    "track_number": 3,
+    "track_title": "Joint Operations Centre & Kate Miles - Behind the Silence",
+    "split": "evaluation",
+    "original_time_seconds": 1200.0,
+    "window_start_seconds": 1155.0,
+    "window_end_seconds": 1245.0,
+    "method": "consensus_ina_silero",
+    "excerpt_before": "output/excerpts/joc-subculture-melbourne-2022-t03-before.ogg",
+    "excerpt_after": "output/excerpts/joc-subculture-melbourne-2022-t03-after.ogg",
+    "automatic_candidate": false,
+    "candidate_time_seconds": null,
+    "candidate_delta_seconds": null,
+    "human_validation_status": "not_applicable",
+    "human_validation_source": null,
+    "human_validation_at": null,
+    "validated_original_time_seconds": null,
+    "validated_corrected_time_seconds": null,
+    "validated_delta_seconds": null,
+    "application_scope": null,
+    "segments": {
+      "ina": [
+        {
+          "label": "music",
+          "start": 1155.0,
+          "end": 1244.98
+        }
+      ],
+      "silero": [
+        {
+          "label": "non_speech",
+          "start": 1155.0,
+          "end": 1245.0
+        }
+      ]
+    },
+    "decision": "abstention",
+    "new_time_seconds": null,
+    "delta_seconds": null,
+    "reason": "INA ne voit pas de parole englobante; Silero ne voit pas de parole englobante; retour musique INA insuffisant",
+    "uncertainty": "moyenne_a_elevee"
+  },
+  {
+    "boundary_id": "joc-subculture-melbourne-2022-t04",
+    "episode_id": "joc-subculture-melbourne-2022",
+    "episode_title": "Joint Operations Centre LIVE @ Subculture Festival Melbourne 2022",
+    "source_url": "https://soundcloud.com/johnocallaghan/jointops-melbourne",
+    "tracklist_url": "https://set79.com/tracklist/soundcloud.com/johnocallaghan/jointops-melbourne",
+    "track_number": 4,
+    "track_title": "Unknown",
+    "split": "evaluation",
+    "original_time_seconds": 1356.0,
+    "window_start_seconds": 1311.0,
+    "window_end_seconds": 1401.0,
+    "method": "consensus_ina_silero",
+    "excerpt_before": "output/excerpts/joc-subculture-melbourne-2022-t04-before.ogg",
+    "excerpt_after": "output/excerpts/joc-subculture-melbourne-2022-t04-after.ogg",
+    "automatic_candidate": false,
+    "candidate_time_seconds": null,
+    "candidate_delta_seconds": null,
+    "human_validation_status": "not_applicable",
+    "human_validation_source": null,
+    "human_validation_at": null,
+    "validated_original_time_seconds": null,
+    "validated_corrected_time_seconds": null,
+    "validated_delta_seconds": null,
+    "application_scope": null,
+    "segments": {
+      "ina": [
+        {
+          "label": "speech",
+          "start": 1311.0,
+          "end": 1314.6
+        },
+        {
+          "label": "music",
+          "start": 1314.6,
+          "end": 1380.04
+        },
+        {
+          "label": "speech",
+          "start": 1380.04,
+          "end": 1384.72
+        },
+        {
+          "label": "music",
+          "start": 1384.72,
+          "end": 1400.98
+        }
+      ],
+      "silero": [
+        {
+          "label": "non_speech",
+          "start": 1311.0,
+          "end": 1401.0
+        }
+      ]
+    },
+    "decision": "abstention",
+    "new_time_seconds": null,
+    "delta_seconds": null,
+    "reason": "INA ne voit pas de parole englobante; Silero ne voit pas de parole englobante; retour musique INA insuffisant",
+    "uncertainty": "moyenne_a_elevee"
+  },
+  {
+    "boundary_id": "joc-subculture-melbourne-2022-t05",
+    "episode_id": "joc-subculture-melbourne-2022",
+    "episode_title": "Joint Operations Centre LIVE @ Subculture Festival Melbourne 2022",
+    "source_url": "https://soundcloud.com/johnocallaghan/jointops-melbourne",
+    "tracklist_url": "https://set79.com/tracklist/soundcloud.com/johnocallaghan/jointops-melbourne",
+    "track_number": 5,
+    "track_title": "Green Velvet - Flash",
+    "split": "evaluation",
+    "original_time_seconds": 1824.0,
+    "window_start_seconds": 1779.0,
+    "window_end_seconds": 1869.0,
+    "method": "consensus_ina_silero",
+    "excerpt_before": "output/excerpts/joc-subculture-melbourne-2022-t05-before.ogg",
+    "excerpt_after": "output/excerpts/joc-subculture-melbourne-2022-t05-after.ogg",
+    "automatic_candidate": false,
+    "candidate_time_seconds": null,
+    "candidate_delta_seconds": null,
+    "human_validation_status": "not_applicable",
+    "human_validation_source": null,
+    "human_validation_at": null,
+    "validated_original_time_seconds": null,
+    "validated_corrected_time_seconds": null,
+    "validated_delta_seconds": null,
+    "application_scope": null,
+    "segments": {
+      "ina": [
+        {
+          "label": "music",
+          "start": 1779.0,
+          "end": 1868.98
+        }
+      ],
+      "silero": [
+        {
+          "label": "non_speech",
+          "start": 1779.0,
+          "end": 1869.0
+        }
+      ]
+    },
+    "decision": "abstention",
+    "new_time_seconds": null,
+    "delta_seconds": null,
+    "reason": "INA ne voit pas de parole englobante; Silero ne voit pas de parole englobante; retour musique INA insuffisant",
+    "uncertainty": "moyenne_a_elevee"
+  },
+  {
+    "boundary_id": "joc-subculture-melbourne-2022-t06",
+    "episode_id": "joc-subculture-melbourne-2022",
+    "episode_title": "Joint Operations Centre LIVE @ Subculture Festival Melbourne 2022",
+    "source_url": "https://soundcloud.com/johnocallaghan/jointops-melbourne",
+    "tracklist_url": "https://set79.com/tracklist/soundcloud.com/johnocallaghan/jointops-melbourne",
+    "track_number": 6,
+    "track_title": "John Askew - Vandalism (Joint Operations Centre Remix)",
+    "split": "evaluation",
+    "original_time_seconds": 2100.0,
+    "window_start_seconds": 2055.0,
+    "window_end_seconds": 2145.0,
+    "method": "consensus_ina_silero",
+    "excerpt_before": "output/excerpts/joc-subculture-melbourne-2022-t06-before.ogg",
+    "excerpt_after": "output/excerpts/joc-subculture-melbourne-2022-t06-after.ogg",
+    "automatic_candidate": false,
+    "candidate_time_seconds": null,
+    "candidate_delta_seconds": null,
+    "human_validation_status": "not_applicable",
+    "human_validation_source": null,
+    "human_validation_at": null,
+    "validated_original_time_seconds": null,
+    "validated_corrected_time_seconds": null,
+    "validated_delta_seconds": null,
+    "application_scope": null,
+    "segments": {
+      "ina": [
+        {
+          "label": "music",
+          "start": 2055.0,
+          "end": 2144.98
+        }
+      ],
+      "silero": [
+        {
+          "label": "non_speech",
+          "start": 2055.0,
+          "end": 2145.0
+        }
+      ]
+    },
+    "decision": "abstention",
+    "new_time_seconds": null,
+    "delta_seconds": null,
+    "reason": "INA ne voit pas de parole englobante; Silero ne voit pas de parole englobante; retour musique INA insuffisant",
+    "uncertainty": "moyenne_a_elevee"
+  },
+  {
+    "boundary_id": "joc-subculture-melbourne-2022-t07",
+    "episode_id": "joc-subculture-melbourne-2022",
+    "episode_title": "Joint Operations Centre LIVE @ Subculture Festival Melbourne 2022",
+    "source_url": "https://soundcloud.com/johnocallaghan/jointops-melbourne",
+    "tracklist_url": "https://set79.com/tracklist/soundcloud.com/johnocallaghan/jointops-melbourne",
+    "track_number": 7,
+    "track_title": "Joint Operations Centre - Hunter",
+    "split": "evaluation",
+    "original_time_seconds": 2256.0,
+    "window_start_seconds": 2211.0,
+    "window_end_seconds": 2301.0,
+    "method": "consensus_ina_silero",
+    "excerpt_before": "output/excerpts/joc-subculture-melbourne-2022-t07-before.ogg",
+    "excerpt_after": "output/excerpts/joc-subculture-melbourne-2022-t07-after.ogg",
+    "automatic_candidate": false,
+    "candidate_time_seconds": null,
+    "candidate_delta_seconds": null,
+    "human_validation_status": "not_applicable",
+    "human_validation_source": null,
+    "human_validation_at": null,
+    "validated_original_time_seconds": null,
+    "validated_corrected_time_seconds": null,
+    "validated_delta_seconds": null,
+    "application_scope": null,
+    "segments": {
+      "ina": [
+        {
+          "label": "music",
+          "start": 2211.0,
+          "end": 2300.98
+        }
+      ],
+      "silero": [
+        {
+          "label": "non_speech",
+          "start": 2211.0,
+          "end": 2301.0
+        }
+      ]
+    },
+    "decision": "abstention",
+    "new_time_seconds": null,
+    "delta_seconds": null,
+    "reason": "INA ne voit pas de parole englobante; Silero ne voit pas de parole englobante; retour musique INA insuffisant",
+    "uncertainty": "moyenne_a_elevee"
+  },
+  {
+    "boundary_id": "joc-subculture-melbourne-2022-t08",
+    "episode_id": "joc-subculture-melbourne-2022",
+    "episode_title": "Joint Operations Centre LIVE @ Subculture Festival Melbourne 2022",
+    "source_url": "https://soundcloud.com/johnocallaghan/jointops-melbourne",
+    "tracklist_url": "https://set79.com/tracklist/soundcloud.com/johnocallaghan/jointops-melbourne",
+    "track_number": 8,
+    "track_title": "Mauro Picotto - Iguana",
+    "split": "evaluation",
+    "original_time_seconds": 2508.0,
+    "window_start_seconds": 2463.0,
+    "window_end_seconds": 2553.0,
+    "method": "consensus_ina_silero",
+    "excerpt_before": "output/excerpts/joc-subculture-melbourne-2022-t08-before.ogg",
+    "excerpt_after": "output/excerpts/joc-subculture-melbourne-2022-t08-after.ogg",
+    "automatic_candidate": false,
+    "candidate_time_seconds": null,
+    "candidate_delta_seconds": null,
+    "human_validation_status": "not_applicable",
+    "human_validation_source": null,
+    "human_validation_at": null,
+    "validated_original_time_seconds": null,
+    "validated_corrected_time_seconds": null,
+    "validated_delta_seconds": null,
+    "application_scope": null,
+    "segments": {
+      "ina": [
+        {
+          "label": "music",
+          "start": 2463.0,
+          "end": 2552.98
+        }
+      ],
+      "silero": [
+        {
+          "label": "non_speech",
+          "start": 2463.0,
+          "end": 2553.0
+        }
+      ]
+    },
+    "decision": "abstention",
+    "new_time_seconds": null,
+    "delta_seconds": null,
+    "reason": "INA ne voit pas de parole englobante; Silero ne voit pas de parole englobante; retour musique INA insuffisant",
+    "uncertainty": "moyenne_a_elevee"
+  },
+  {
+    "boundary_id": "joc-subculture-melbourne-2022-t09",
+    "episode_id": "joc-subculture-melbourne-2022",
+    "episode_title": "Joint Operations Centre LIVE @ Subculture Festival Melbourne 2022",
+    "source_url": "https://soundcloud.com/johnocallaghan/jointops-melbourne",
+    "tracklist_url": "https://set79.com/tracklist/soundcloud.com/johnocallaghan/jointops-melbourne",
+    "track_number": 9,
+    "track_title": "Wippenberg - U R (John O'Callaghan edit)",
+    "split": "evaluation",
+    "original_time_seconds": 2712.0,
+    "window_start_seconds": 2667.0,
+    "window_end_seconds": 2757.0,
+    "method": "consensus_ina_silero",
+    "excerpt_before": "output/excerpts/joc-subculture-melbourne-2022-t09-before.ogg",
+    "excerpt_after": "output/excerpts/joc-subculture-melbourne-2022-t09-after.ogg",
+    "automatic_candidate": false,
+    "candidate_time_seconds": null,
+    "candidate_delta_seconds": null,
+    "human_validation_status": "not_applicable",
+    "human_validation_source": null,
+    "human_validation_at": null,
+    "validated_original_time_seconds": null,
+    "validated_corrected_time_seconds": null,
+    "validated_delta_seconds": null,
+    "application_scope": null,
+    "segments": {
+      "ina": [
+        {
+          "label": "music",
+          "start": 2667.0,
+          "end": 2756.98
+        }
+      ],
+      "silero": [
+        {
+          "label": "non_speech",
+          "start": 2667.0,
+          "end": 2757.0
+        }
+      ]
+    },
+    "decision": "abstention",
+    "new_time_seconds": null,
+    "delta_seconds": null,
+    "reason": "INA ne voit pas de parole englobante; Silero ne voit pas de parole englobante; retour musique INA insuffisant",
+    "uncertainty": "moyenne_a_elevee"
+  },
+  {
+    "boundary_id": "joc-subculture-melbourne-2022-t10",
+    "episode_id": "joc-subculture-melbourne-2022",
+    "episode_title": "Joint Operations Centre LIVE @ Subculture Festival Melbourne 2022",
+    "source_url": "https://soundcloud.com/johnocallaghan/jointops-melbourne",
+    "tracklist_url": "https://set79.com/tracklist/soundcloud.com/johnocallaghan/jointops-melbourne",
+    "track_number": 10,
+    "track_title": "Jon O'Bir feat. Fisher - Found A Way (Joint Operations Centre Remix)",
+    "split": "evaluation",
+    "original_time_seconds": 2880.0,
+    "window_start_seconds": 2835.0,
+    "window_end_seconds": 2925.0,
+    "method": "consensus_ina_silero",
+    "excerpt_before": "output/excerpts/joc-subculture-melbourne-2022-t10-before.ogg",
+    "excerpt_after": "output/excerpts/joc-subculture-melbourne-2022-t10-after.ogg",
+    "automatic_candidate": false,
+    "candidate_time_seconds": null,
+    "candidate_delta_seconds": null,
+    "human_validation_status": "not_applicable",
+    "human_validation_source": null,
+    "human_validation_at": null,
+    "validated_original_time_seconds": null,
+    "validated_corrected_time_seconds": null,
+    "validated_delta_seconds": null,
+    "application_scope": null,
+    "segments": {
+      "ina": [
+        {
+          "label": "music",
+          "start": 2835.0,
+          "end": 2921.72
+        },
+        {
+          "label": "speech",
+          "start": 2921.72,
+          "end": 2924.98
+        }
+      ],
+      "silero": [
+        {
+          "label": "non_speech",
+          "start": 2835.0,
+          "end": 2925.0
+        }
+      ]
+    },
+    "decision": "abstention",
+    "new_time_seconds": null,
+    "delta_seconds": null,
+    "reason": "INA ne voit pas de parole englobante; Silero ne voit pas de parole englobante; retour musique INA insuffisant",
+    "uncertainty": "moyenne_a_elevee"
+  },
+  {
+    "boundary_id": "joc-subculture-melbourne-2022-t11",
+    "episode_id": "joc-subculture-melbourne-2022",
+    "episode_title": "Joint Operations Centre LIVE @ Subculture Festival Melbourne 2022",
+    "source_url": "https://soundcloud.com/johnocallaghan/jointops-melbourne",
+    "tracklist_url": "https://set79.com/tracklist/soundcloud.com/johnocallaghan/jointops-melbourne",
+    "track_number": 11,
+    "track_title": "Axel Karakasis - Pull the Trigger (Joint Operations Centre Remix)",
+    "split": "evaluation",
+    "original_time_seconds": 3168.0,
+    "window_start_seconds": 3123.0,
+    "window_end_seconds": 3213.0,
+    "method": "consensus_ina_silero",
+    "excerpt_before": "output/excerpts/joc-subculture-melbourne-2022-t11-before.ogg",
+    "excerpt_after": "output/excerpts/joc-subculture-melbourne-2022-t11-after.ogg",
+    "automatic_candidate": false,
+    "candidate_time_seconds": null,
+    "candidate_delta_seconds": null,
+    "human_validation_status": "not_applicable",
+    "human_validation_source": null,
+    "human_validation_at": null,
+    "validated_original_time_seconds": null,
+    "validated_corrected_time_seconds": null,
+    "validated_delta_seconds": null,
+    "application_scope": null,
+    "segments": {
+      "ina": [
+        {
+          "label": "music",
+          "start": 3123.0,
+          "end": 3212.98
+        }
+      ],
+      "silero": [
+        {
+          "label": "non_speech",
+          "start": 3123.0,
+          "end": 3213.0
+        }
+      ]
+    },
+    "decision": "abstention",
+    "new_time_seconds": null,
+    "delta_seconds": null,
+    "reason": "INA ne voit pas de parole englobante; Silero ne voit pas de parole englobante; retour musique INA insuffisant",
+    "uncertainty": "moyenne_a_elevee"
+  },
+  {
+    "boundary_id": "joc-subculture-melbourne-2022-t12",
+    "episode_id": "joc-subculture-melbourne-2022",
+    "episode_title": "Joint Operations Centre LIVE @ Subculture Festival Melbourne 2022",
+    "source_url": "https://soundcloud.com/johnocallaghan/jointops-melbourne",
+    "tracklist_url": "https://set79.com/tracklist/soundcloud.com/johnocallaghan/jointops-melbourne",
+    "track_number": 12,
+    "track_title": "Lorenzo Chi - Off",
+    "split": "evaluation",
+    "original_time_seconds": 3324.0,
+    "window_start_seconds": 3279.0,
+    "window_end_seconds": 3369.0,
+    "method": "consensus_ina_silero",
+    "excerpt_before": "output/excerpts/joc-subculture-melbourne-2022-t12-before.ogg",
+    "excerpt_after": "output/excerpts/joc-subculture-melbourne-2022-t12-after.ogg",
+    "automatic_candidate": false,
+    "candidate_time_seconds": null,
+    "candidate_delta_seconds": null,
+    "human_validation_status": "not_applicable",
+    "human_validation_source": null,
+    "human_validation_at": null,
+    "validated_original_time_seconds": null,
+    "validated_corrected_time_seconds": null,
+    "validated_delta_seconds": null,
+    "application_scope": null,
+    "segments": {
+      "ina": [
+        {
+          "label": "music",
+          "start": 3279.0,
+          "end": 3368.98
+        }
+      ],
+      "silero": [
+        {
+          "label": "non_speech",
+          "start": 3279.0,
+          "end": 3369.0
+        }
+      ]
+    },
+    "decision": "abstention",
+    "new_time_seconds": null,
+    "delta_seconds": null,
+    "reason": "INA ne voit pas de parole englobante; Silero ne voit pas de parole englobante; retour musique INA insuffisant",
+    "uncertainty": "moyenne_a_elevee"
+  },
+  {
+    "boundary_id": "key4050-transmission-bangkok-2024-t02",
+    "episode_id": "key4050-transmission-bangkok-2024",
+    "episode_title": "John O'Callaghan & Bryan Kearney pres. Key4050 - Live @ Transmission Bangkok 2024",
+    "source_url": "https://soundcloud.com/unitedmusicevents/john-ocallaghan-bryan-kearney",
+    "tracklist_url": "https://set79.com/tracklist/soundcloud.com/unitedmusicevents/john-ocallaghan-bryan-kearney",
+    "track_number": 2,
+    "track_title": "Rank 1 - Airwave (Radio Vocal Edit)",
+    "split": "tuning",
+    "original_time_seconds": 252.0,
+    "window_start_seconds": 207.0,
+    "window_end_seconds": 297.0,
+    "method": "consensus_ina_silero",
+    "excerpt_before": "output/excerpts/key4050-transmission-bangkok-2024-t02-before.ogg",
+    "excerpt_after": "output/excerpts/key4050-transmission-bangkok-2024-t02-after.ogg",
+    "automatic_candidate": false,
+    "candidate_time_seconds": null,
+    "candidate_delta_seconds": null,
+    "human_validation_status": "not_applicable",
+    "human_validation_source": null,
+    "human_validation_at": null,
+    "validated_original_time_seconds": null,
+    "validated_corrected_time_seconds": null,
+    "validated_delta_seconds": null,
+    "application_scope": null,
+    "segments": {
+      "ina": [
+        {
+          "label": "music",
+          "start": 207.0,
+          "end": 209.02
+        },
+        {
+          "label": "speech",
+          "start": 209.02,
+          "end": 212.08
+        },
+        {
+          "label": "noEnergy",
+          "start": 212.08,
+          "end": 213.76
+        },
+        {
+          "label": "speech",
+          "start": 213.76,
+          "end": 218.28
+        },
+        {
+          "label": "music",
+          "start": 218.28,
+          "end": 296.98
+        }
+      ],
+      "silero": [
+        {
+          "label": "non_speech",
+          "start": 207.0,
+          "end": 215.546
+        },
+        {
+          "label": "speech",
+          "start": 215.546,
+          "end": 217.334
+        },
+        {
+          "label": "non_speech",
+          "start": 217.334,
+          "end": 217.658
+        },
+        {
+          "label": "speech",
+          "start": 217.658,
+          "end": 218.294
+        },
+        {
+          "label": "non_speech",
+          "start": 218.294,
+          "end": 237.626
+        },
+        {
+          "label": "speech",
+          "start": 237.626,
+          "end": 238.326
+        },
+        {
+          "label": "non_speech",
+          "start": 238.326,
+          "end": 297.0
+        }
+      ]
+    },
+    "decision": "abstention",
+    "new_time_seconds": null,
+    "delta_seconds": null,
+    "reason": "INA ne voit pas de parole englobante; Silero ne voit pas de parole englobante; retour musique INA insuffisant",
+    "uncertainty": "moyenne_a_elevee"
+  },
+  {
+    "boundary_id": "key4050-transmission-bangkok-2024-t03",
+    "episode_id": "key4050-transmission-bangkok-2024",
+    "episode_title": "John O'Callaghan & Bryan Kearney pres. Key4050 - Live @ Transmission Bangkok 2024",
+    "source_url": "https://soundcloud.com/unitedmusicevents/john-ocallaghan-bryan-kearney",
+    "tracklist_url": "https://set79.com/tracklist/soundcloud.com/unitedmusicevents/john-ocallaghan-bryan-kearney",
+    "track_number": 3,
+    "track_title": "Key4050 - Want More",
+    "split": "tuning",
+    "original_time_seconds": 456.0,
+    "window_start_seconds": 411.0,
+    "window_end_seconds": 501.0,
+    "method": "consensus_ina_silero",
+    "excerpt_before": "output/excerpts/key4050-transmission-bangkok-2024-t03-before.ogg",
+    "excerpt_after": "output/excerpts/key4050-transmission-bangkok-2024-t03-after.ogg",
+    "automatic_candidate": false,
+    "candidate_time_seconds": null,
+    "candidate_delta_seconds": null,
+    "human_validation_status": "not_applicable",
+    "human_validation_source": null,
+    "human_validation_at": null,
+    "validated_original_time_seconds": null,
+    "validated_corrected_time_seconds": null,
+    "validated_delta_seconds": null,
+    "application_scope": null,
+    "segments": {
+      "ina": [
+        {
+          "label": "speech",
+          "start": 411.0,
+          "end": 441.68
+        },
+        {
+          "label": "music",
+          "start": 441.68,
+          "end": 500.98
+        }
+      ],
+      "silero": [
+        {
+          "label": "non_speech",
+          "start": 411.0,
+          "end": 501.0
+        }
+      ]
+    },
+    "decision": "abstention",
+    "new_time_seconds": null,
+    "delta_seconds": null,
+    "reason": "INA ne voit pas de parole englobante; Silero ne voit pas de parole englobante; retour musique INA insuffisant",
+    "uncertainty": "moyenne_a_elevee"
+  },
+  {
+    "boundary_id": "key4050-transmission-bangkok-2024-t04",
+    "episode_id": "key4050-transmission-bangkok-2024",
+    "episode_title": "John O'Callaghan & Bryan Kearney pres. Key4050 - Live @ Transmission Bangkok 2024",
+    "source_url": "https://soundcloud.com/unitedmusicevents/john-ocallaghan-bryan-kearney",
+    "tracklist_url": "https://set79.com/tracklist/soundcloud.com/unitedmusicevents/john-ocallaghan-bryan-kearney",
+    "track_number": 4,
+    "track_title": "Armin van Buuren feat. Susana - Shivers (Rising Star Mix)",
+    "split": "tuning",
+    "original_time_seconds": 684.0,
+    "window_start_seconds": 639.0,
+    "window_end_seconds": 729.0,
+    "method": "consensus_ina_silero",
+    "excerpt_before": "output/excerpts/key4050-transmission-bangkok-2024-t04-before.ogg",
+    "excerpt_after": "output/excerpts/key4050-transmission-bangkok-2024-t04-after.ogg",
+    "automatic_candidate": false,
+    "candidate_time_seconds": null,
+    "candidate_delta_seconds": null,
+    "human_validation_status": "not_applicable",
+    "human_validation_source": null,
+    "human_validation_at": null,
+    "validated_original_time_seconds": null,
+    "validated_corrected_time_seconds": null,
+    "validated_delta_seconds": null,
+    "application_scope": null,
+    "segments": {
+      "ina": [
+        {
+          "label": "music",
+          "start": 639.0,
+          "end": 728.98
+        }
+      ],
+      "silero": [
+        {
+          "label": "non_speech",
+          "start": 639.0,
+          "end": 729.0
+        }
+      ]
+    },
+    "decision": "abstention",
+    "new_time_seconds": null,
+    "delta_seconds": null,
+    "reason": "INA ne voit pas de parole englobante; Silero ne voit pas de parole englobante; retour musique INA insuffisant",
+    "uncertainty": "moyenne_a_elevee"
+  },
+  {
+    "boundary_id": "key4050-transmission-bangkok-2024-t05",
+    "episode_id": "key4050-transmission-bangkok-2024",
+    "episode_title": "John O'Callaghan & Bryan Kearney pres. Key4050 - Live @ Transmission Bangkok 2024",
+    "source_url": "https://soundcloud.com/unitedmusicevents/john-ocallaghan-bryan-kearney",
+    "tracklist_url": "https://set79.com/tracklist/soundcloud.com/unitedmusicevents/john-ocallaghan-bryan-kearney",
+    "track_number": 5,
+    "track_title": "Key4050 - Feel Less",
+    "split": "tuning",
+    "original_time_seconds": 1092.0,
+    "window_start_seconds": 1047.0,
+    "window_end_seconds": 1137.0,
+    "method": "consensus_ina_silero",
+    "excerpt_before": "output/excerpts/key4050-transmission-bangkok-2024-t05-before.ogg",
+    "excerpt_after": "output/excerpts/key4050-transmission-bangkok-2024-t05-after.ogg",
+    "automatic_candidate": false,
+    "candidate_time_seconds": null,
+    "candidate_delta_seconds": null,
+    "human_validation_status": "not_applicable",
+    "human_validation_source": null,
+    "human_validation_at": null,
+    "validated_original_time_seconds": null,
+    "validated_corrected_time_seconds": null,
+    "validated_delta_seconds": null,
+    "application_scope": null,
+    "segments": {
+      "ina": [
+        {
+          "label": "music",
+          "start": 1047.0,
+          "end": 1136.98
+        }
+      ],
+      "silero": [
+        {
+          "label": "non_speech",
+          "start": 1047.0,
+          "end": 1137.0
+        }
+      ]
+    },
+    "decision": "abstention",
+    "new_time_seconds": null,
+    "delta_seconds": null,
+    "reason": "INA ne voit pas de parole englobante; Silero ne voit pas de parole englobante; retour musique INA insuffisant",
+    "uncertainty": "moyenne_a_elevee"
+  },
+  {
+    "boundary_id": "key4050-transmission-bangkok-2024-t06",
+    "episode_id": "key4050-transmission-bangkok-2024",
+    "episode_title": "John O'Callaghan & Bryan Kearney pres. Key4050 - Live @ Transmission Bangkok 2024",
+    "source_url": "https://soundcloud.com/unitedmusicevents/john-ocallaghan-bryan-kearney",
+    "tracklist_url": "https://set79.com/tracklist/soundcloud.com/unitedmusicevents/john-ocallaghan-bryan-kearney",
+    "track_number": 6,
+    "track_title": "Unknown",
+    "split": "tuning",
+    "original_time_seconds": 1260.0,
+    "window_start_seconds": 1215.0,
+    "window_end_seconds": 1305.0,
+    "method": "consensus_ina_silero",
+    "excerpt_before": "output/excerpts/key4050-transmission-bangkok-2024-t06-before.ogg",
+    "excerpt_after": "output/excerpts/key4050-transmission-bangkok-2024-t06-after.ogg",
+    "automatic_candidate": false,
+    "candidate_time_seconds": null,
+    "candidate_delta_seconds": null,
+    "human_validation_status": "not_applicable",
+    "human_validation_source": null,
+    "human_validation_at": null,
+    "validated_original_time_seconds": null,
+    "validated_corrected_time_seconds": null,
+    "validated_delta_seconds": null,
+    "application_scope": null,
+    "segments": {
+      "ina": [
+        {
+          "label": "music",
+          "start": 1215.0,
+          "end": 1304.98
+        }
+      ],
+      "silero": [
+        {
+          "label": "non_speech",
+          "start": 1215.0,
+          "end": 1305.0
+        }
+      ]
+    },
+    "decision": "abstention",
+    "new_time_seconds": null,
+    "delta_seconds": null,
+    "reason": "INA ne voit pas de parole englobante; Silero ne voit pas de parole englobante; retour musique INA insuffisant",
+    "uncertainty": "moyenne_a_elevee"
+  },
+  {
+    "boundary_id": "key4050-transmission-bangkok-2024-t07",
+    "episode_id": "key4050-transmission-bangkok-2024",
+    "episode_title": "John O'Callaghan & Bryan Kearney pres. Key4050 - Live @ Transmission Bangkok 2024",
+    "source_url": "https://soundcloud.com/unitedmusicevents/john-ocallaghan-bryan-kearney",
+    "tracklist_url": "https://set79.com/tracklist/soundcloud.com/unitedmusicevents/john-ocallaghan-bryan-kearney",
+    "track_number": 7,
+    "track_title": "Bryan Kearney & Bo Bruce - Shine a Light (Sean Tyas Remix)",
+    "split": "evaluation",
+    "original_time_seconds": 1476.0,
+    "window_start_seconds": 1431.0,
+    "window_end_seconds": 1521.0,
+    "method": "consensus_ina_silero",
+    "excerpt_before": "output/excerpts/key4050-transmission-bangkok-2024-t07-before.ogg",
+    "excerpt_after": "output/excerpts/key4050-transmission-bangkok-2024-t07-after.ogg",
+    "automatic_candidate": false,
+    "candidate_time_seconds": null,
+    "candidate_delta_seconds": null,
+    "human_validation_status": "not_applicable",
+    "human_validation_source": null,
+    "human_validation_at": null,
+    "validated_original_time_seconds": null,
+    "validated_corrected_time_seconds": null,
+    "validated_delta_seconds": null,
+    "application_scope": null,
+    "segments": {
+      "ina": [
+        {
+          "label": "music",
+          "start": 1431.0,
+          "end": 1492.8
+        },
+        {
+          "label": "speech",
+          "start": 1492.8,
+          "end": 1495.56
+        },
+        {
+          "label": "music",
+          "start": 1495.56,
+          "end": 1520.98
+        }
+      ],
+      "silero": [
+        {
+          "label": "non_speech",
+          "start": 1431.0,
+          "end": 1521.0
+        }
+      ]
+    },
+    "decision": "abstention",
+    "new_time_seconds": null,
+    "delta_seconds": null,
+    "reason": "INA ne voit pas de parole englobante; Silero ne voit pas de parole englobante; retour musique INA insuffisant",
+    "uncertainty": "moyenne_a_elevee"
+  },
+  {
+    "boundary_id": "key4050-transmission-bangkok-2024-t08",
+    "episode_id": "key4050-transmission-bangkok-2024",
+    "episode_title": "John O'Callaghan & Bryan Kearney pres. Key4050 - Live @ Transmission Bangkok 2024",
+    "source_url": "https://soundcloud.com/unitedmusicevents/john-ocallaghan-bryan-kearney",
+    "tracklist_url": "https://set79.com/tracklist/soundcloud.com/unitedmusicevents/john-ocallaghan-bryan-kearney",
+    "track_number": 8,
+    "track_title": "Key4050 - Just a Dream",
+    "split": "evaluation",
+    "original_time_seconds": 1764.0,
+    "window_start_seconds": 1719.0,
+    "window_end_seconds": 1809.0,
+    "method": "consensus_ina_silero",
+    "excerpt_before": "output/excerpts/key4050-transmission-bangkok-2024-t08-before.ogg",
+    "excerpt_after": "output/excerpts/key4050-transmission-bangkok-2024-t08-after.ogg",
+    "automatic_candidate": false,
+    "candidate_time_seconds": null,
+    "candidate_delta_seconds": null,
+    "human_validation_status": "not_applicable",
+    "human_validation_source": null,
+    "human_validation_at": null,
+    "validated_original_time_seconds": null,
+    "validated_corrected_time_seconds": null,
+    "validated_delta_seconds": null,
+    "application_scope": null,
+    "segments": {
+      "ina": [
+        {
+          "label": "music",
+          "start": 1719.0,
+          "end": 1805.24
+        },
+        {
+          "label": "speech",
+          "start": 1805.24,
+          "end": 1808.98
+        }
+      ],
+      "silero": [
+        {
+          "label": "non_speech",
+          "start": 1719.0,
+          "end": 1809.0
+        }
+      ]
+    },
+    "decision": "abstention",
+    "new_time_seconds": null,
+    "delta_seconds": null,
+    "reason": "INA ne voit pas de parole englobante; Silero ne voit pas de parole englobante; retour musique INA insuffisant",
+    "uncertainty": "moyenne_a_elevee"
+  },
+  {
+    "boundary_id": "key4050-transmission-bangkok-2024-t09",
+    "episode_id": "key4050-transmission-bangkok-2024",
+    "episode_title": "John O'Callaghan & Bryan Kearney pres. Key4050 - Live @ Transmission Bangkok 2024",
+    "source_url": "https://soundcloud.com/unitedmusicevents/john-ocallaghan-bryan-kearney",
+    "tracklist_url": "https://set79.com/tracklist/soundcloud.com/unitedmusicevents/john-ocallaghan-bryan-kearney",
+    "track_number": 9,
+    "track_title": "Key4050 - Pikachu",
+    "split": "evaluation",
+    "original_time_seconds": 1932.0,
+    "window_start_seconds": 1887.0,
+    "window_end_seconds": 1977.0,
+    "method": "consensus_ina_silero",
+    "excerpt_before": "output/excerpts/key4050-transmission-bangkok-2024-t09-before.ogg",
+    "excerpt_after": "output/excerpts/key4050-transmission-bangkok-2024-t09-after.ogg",
+    "automatic_candidate": false,
+    "candidate_time_seconds": null,
+    "candidate_delta_seconds": null,
+    "human_validation_status": "not_applicable",
+    "human_validation_source": null,
+    "human_validation_at": null,
+    "validated_original_time_seconds": null,
+    "validated_corrected_time_seconds": null,
+    "validated_delta_seconds": null,
+    "application_scope": null,
+    "segments": {
+      "ina": [
+        {
+          "label": "music",
+          "start": 1887.0,
+          "end": 1976.98
+        }
+      ],
+      "silero": [
+        {
+          "label": "non_speech",
+          "start": 1887.0,
+          "end": 1977.0
+        }
+      ]
+    },
+    "decision": "abstention",
+    "new_time_seconds": null,
+    "delta_seconds": null,
+    "reason": "INA ne voit pas de parole englobante; Silero ne voit pas de parole englobante; retour musique INA insuffisant",
+    "uncertainty": "moyenne_a_elevee"
+  },
+  {
+    "boundary_id": "key4050-transmission-bangkok-2024-t10",
+    "episode_id": "key4050-transmission-bangkok-2024",
+    "episode_title": "John O'Callaghan & Bryan Kearney pres. Key4050 - Live @ Transmission Bangkok 2024",
+    "source_url": "https://soundcloud.com/unitedmusicevents/john-ocallaghan-bryan-kearney",
+    "tracklist_url": "https://set79.com/tracklist/soundcloud.com/unitedmusicevents/john-ocallaghan-bryan-kearney",
+    "track_number": 10,
+    "track_title": "John O'Callaghan, Paul Skelton & Ren Faye - May the Road Rise",
+    "split": "evaluation",
+    "original_time_seconds": 2148.0,
+    "window_start_seconds": 2103.0,
+    "window_end_seconds": 2193.0,
+    "method": "consensus_ina_silero",
+    "excerpt_before": "output/excerpts/key4050-transmission-bangkok-2024-t10-before.ogg",
+    "excerpt_after": "output/excerpts/key4050-transmission-bangkok-2024-t10-after.ogg",
+    "automatic_candidate": false,
+    "candidate_time_seconds": null,
+    "candidate_delta_seconds": null,
+    "human_validation_status": "not_applicable",
+    "human_validation_source": null,
+    "human_validation_at": null,
+    "validated_original_time_seconds": null,
+    "validated_corrected_time_seconds": null,
+    "validated_delta_seconds": null,
+    "application_scope": null,
+    "segments": {
+      "ina": [
+        {
+          "label": "music",
+          "start": 2103.0,
+          "end": 2192.98
+        }
+      ],
+      "silero": [
+        {
+          "label": "non_speech",
+          "start": 2103.0,
+          "end": 2193.0
+        }
+      ]
+    },
+    "decision": "abstention",
+    "new_time_seconds": null,
+    "delta_seconds": null,
+    "reason": "INA ne voit pas de parole englobante; Silero ne voit pas de parole englobante; retour musique INA insuffisant",
+    "uncertainty": "moyenne_a_elevee"
+  },
+  {
+    "boundary_id": "key4050-transmission-bangkok-2024-t11",
+    "episode_id": "key4050-transmission-bangkok-2024",
+    "episode_title": "John O'Callaghan & Bryan Kearney pres. Key4050 - Live @ Transmission Bangkok 2024",
+    "source_url": "https://soundcloud.com/unitedmusicevents/john-ocallaghan-bryan-kearney",
+    "tracklist_url": "https://set79.com/tracklist/soundcloud.com/unitedmusicevents/john-ocallaghan-bryan-kearney",
+    "track_number": 11,
+    "track_title": "Bryan Kearney - Now Is the Time",
+    "split": "evaluation",
+    "original_time_seconds": 2484.0,
+    "window_start_seconds": 2439.0,
+    "window_end_seconds": 2529.0,
+    "method": "consensus_ina_silero",
+    "excerpt_before": "output/excerpts/key4050-transmission-bangkok-2024-t11-before.ogg",
+    "excerpt_after": "output/excerpts/key4050-transmission-bangkok-2024-t11-after.ogg",
+    "automatic_candidate": false,
+    "candidate_time_seconds": null,
+    "candidate_delta_seconds": null,
+    "human_validation_status": "not_applicable",
+    "human_validation_source": null,
+    "human_validation_at": null,
+    "validated_original_time_seconds": null,
+    "validated_corrected_time_seconds": null,
+    "validated_delta_seconds": null,
+    "application_scope": null,
+    "segments": {
+      "ina": [
+        {
+          "label": "music",
+          "start": 2439.0,
+          "end": 2528.98
+        }
+      ],
+      "silero": [
+        {
+          "label": "non_speech",
+          "start": 2439.0,
+          "end": 2529.0
+        }
+      ]
+    },
+    "decision": "abstention",
+    "new_time_seconds": null,
+    "delta_seconds": null,
+    "reason": "INA ne voit pas de parole englobante; Silero ne voit pas de parole englobante; retour musique INA insuffisant",
+    "uncertainty": "moyenne_a_elevee"
+  },
+  {
+    "boundary_id": "key4050-transmission-bangkok-2024-t12",
+    "episode_id": "key4050-transmission-bangkok-2024",
+    "episode_title": "John O'Callaghan & Bryan Kearney pres. Key4050 - Live @ Transmission Bangkok 2024",
+    "source_url": "https://soundcloud.com/unitedmusicevents/john-ocallaghan-bryan-kearney",
+    "tracklist_url": "https://set79.com/tracklist/soundcloud.com/unitedmusicevents/john-ocallaghan-bryan-kearney",
+    "track_number": 12,
+    "track_title": "Key4050 - Egon",
+    "split": "evaluation",
+    "original_time_seconds": 2832.0,
+    "window_start_seconds": 2787.0,
+    "window_end_seconds": 2877.0,
+    "method": "consensus_ina_silero",
+    "excerpt_before": "output/excerpts/key4050-transmission-bangkok-2024-t12-before.ogg",
+    "excerpt_after": "output/excerpts/key4050-transmission-bangkok-2024-t12-after.ogg",
+    "automatic_candidate": false,
+    "candidate_time_seconds": null,
+    "candidate_delta_seconds": null,
+    "human_validation_status": "not_applicable",
+    "human_validation_source": null,
+    "human_validation_at": null,
+    "validated_original_time_seconds": null,
+    "validated_corrected_time_seconds": null,
+    "validated_delta_seconds": null,
+    "application_scope": null,
+    "segments": {
+      "ina": [
+        {
+          "label": "music",
+          "start": 2787.0,
+          "end": 2835.44
+        },
+        {
+          "label": "speech",
+          "start": 2835.44,
+          "end": 2837.88
+        },
+        {
+          "label": "music",
+          "start": 2837.88,
+          "end": 2863.84
+        },
+        {
+          "label": "speech",
+          "start": 2863.84,
+          "end": 2876.98
+        }
+      ],
+      "silero": [
+        {
+          "label": "non_speech",
+          "start": 2787.0,
+          "end": 2877.0
+        }
+      ]
+    },
+    "decision": "abstention",
+    "new_time_seconds": null,
+    "delta_seconds": null,
+    "reason": "INA ne voit pas de parole englobante; Silero ne voit pas de parole englobante; retour musique INA insuffisant",
+    "uncertainty": "moyenne_a_elevee"
+  },
+  {
+    "boundary_id": "key4050-transmission-bangkok-2024-t13",
+    "episode_id": "key4050-transmission-bangkok-2024",
+    "episode_title": "John O'Callaghan & Bryan Kearney pres. Key4050 - Live @ Transmission Bangkok 2024",
+    "source_url": "https://soundcloud.com/unitedmusicevents/john-ocallaghan-bryan-kearney",
+    "tracklist_url": "https://set79.com/tracklist/soundcloud.com/unitedmusicevents/john-ocallaghan-bryan-kearney",
+    "track_number": 13,
+    "track_title": "John O'Callaghan & Bryan Kearney - Pendulum",
+    "split": "evaluation",
+    "original_time_seconds": 3012.0,
+    "window_start_seconds": 2967.0,
+    "window_end_seconds": 3057.0,
+    "method": "consensus_ina_silero",
+    "excerpt_before": "output/excerpts/key4050-transmission-bangkok-2024-t13-before.ogg",
+    "excerpt_after": "output/excerpts/key4050-transmission-bangkok-2024-t13-after.ogg",
+    "automatic_candidate": false,
+    "candidate_time_seconds": null,
+    "candidate_delta_seconds": null,
+    "human_validation_status": "not_applicable",
+    "human_validation_source": null,
+    "human_validation_at": null,
+    "validated_original_time_seconds": null,
+    "validated_corrected_time_seconds": null,
+    "validated_delta_seconds": null,
+    "application_scope": null,
+    "segments": {
+      "ina": [
+        {
+          "label": "speech",
+          "start": 2967.0,
+          "end": 2986.48
+        },
+        {
+          "label": "music",
+          "start": 2986.48,
+          "end": 3056.98
+        }
+      ],
+      "silero": [
+        {
+          "label": "non_speech",
+          "start": 2967.0,
+          "end": 2972.442
+        },
+        {
+          "label": "speech",
+          "start": 2972.442,
+          "end": 2973.238
+        },
+        {
+          "label": "non_speech",
+          "start": 2973.238,
+          "end": 3057.0
+        }
+      ]
+    },
+    "decision": "abstention",
+    "new_time_seconds": null,
+    "delta_seconds": null,
+    "reason": "INA ne voit pas de parole englobante; Silero ne voit pas de parole englobante; retour musique INA insuffisant",
+    "uncertainty": "moyenne_a_elevee"
+  },
+  {
+    "boundary_id": "key4050-transmission-bangkok-2024-t14",
+    "episode_id": "key4050-transmission-bangkok-2024",
+    "episode_title": "John O'Callaghan & Bryan Kearney pres. Key4050 - Live @ Transmission Bangkok 2024",
+    "source_url": "https://soundcloud.com/unitedmusicevents/john-ocallaghan-bryan-kearney",
+    "tracklist_url": "https://set79.com/tracklist/soundcloud.com/unitedmusicevents/john-ocallaghan-bryan-kearney",
+    "track_number": 14,
+    "track_title": "Key4050 & Plumb - I Love You",
+    "split": "evaluation",
+    "original_time_seconds": 3204.0,
+    "window_start_seconds": 3159.0,
+    "window_end_seconds": 3249.0,
+    "method": "consensus_ina_silero",
+    "excerpt_before": "output/excerpts/key4050-transmission-bangkok-2024-t14-before.ogg",
+    "excerpt_after": "output/excerpts/key4050-transmission-bangkok-2024-t14-after.ogg",
+    "automatic_candidate": false,
+    "candidate_time_seconds": null,
+    "candidate_delta_seconds": null,
+    "human_validation_status": "not_applicable",
+    "human_validation_source": null,
+    "human_validation_at": null,
+    "validated_original_time_seconds": null,
+    "validated_corrected_time_seconds": null,
+    "validated_delta_seconds": null,
+    "application_scope": null,
+    "segments": {
+      "ina": [
+        {
+          "label": "music",
+          "start": 3159.0,
+          "end": 3248.98
+        }
+      ],
+      "silero": [
+        {
+          "label": "non_speech",
+          "start": 3159.0,
+          "end": 3249.0
+        }
+      ]
+    },
+    "decision": "abstention",
+    "new_time_seconds": null,
+    "delta_seconds": null,
+    "reason": "INA ne voit pas de parole englobante; Silero ne voit pas de parole englobante; retour musique INA insuffisant",
+    "uncertainty": "moyenne_a_elevee"
+  },
+  {
+    "boundary_id": "pure-trance-radio-492-t02",
+    "episode_id": "pure-trance-radio-492",
+    "episode_title": "Pure Trance Radio Podcast 492",
+    "source_url": "https://richve.podbean.com/e/pure-trance-radio-podcast-492/",
+    "tracklist_url": "https://cuenation.com/?page=tracklist&folder=puretranceradio&filename=Solarstone+-+Pure+Trance+Radio+492.cue",
+    "track_number": 2,
+    "track_title": "Midnight Evolution - Dreams",
+    "split": "evaluation",
+    "original_time_seconds": 82.0,
+    "window_start_seconds": 37.0,
+    "window_end_seconds": 127.0,
+    "method": "consensus_ina_silero",
+    "excerpt_before": "output/excerpts/pure-trance-radio-492-t02-before.ogg",
+    "excerpt_after": "output/excerpts/pure-trance-radio-492-t02-after.ogg",
+    "automatic_candidate": true,
+    "candidate_time_seconds": 82.74,
+    "candidate_delta_seconds": 0.74,
+    "human_validation_status": "validated_for_lab_only",
+    "human_validation_source": "Emmanuel",
+    "human_validation_at": "2026-10-10T16:07:00+02:00",
+    "validated_original_time_seconds": 82.0,
+    "validated_corrected_time_seconds": 82.74,
+    "validated_delta_seconds": 0.74,
+    "application_scope": "lab_only",
+    "segments": {
+      "ina": [
+        {
+          "label": "speech",
+          "start": 37.0,
+          "end": 82.74
+        },
+        {
+          "label": "music",
+          "start": 82.74,
+          "end": 126.98
+        }
+      ],
+      "silero": [
+        {
+          "label": "non_speech",
+          "start": 37.0,
+          "end": 37.066
+        },
+        {
+          "label": "speech",
+          "start": 37.066,
+          "end": 41.99
+        },
+        {
+          "label": "non_speech",
+          "start": 41.99,
+          "end": 42.826
+        },
+        {
+          "label": "speech",
+          "start": 42.826,
+          "end": 44.838
+        },
+        {
+          "label": "non_speech",
+          "start": 44.838,
+          "end": 45.002
+        },
+        {
+          "label": "speech",
+          "start": 45.002,
+          "end": 50.854
+        },
+        {
+          "label": "non_speech",
+          "start": 50.854,
+          "end": 50.954
+        },
+        {
+          "label": "speech",
+          "start": 50.954,
+          "end": 54.758
+        },
+        {
+          "label": "non_speech",
+          "start": 54.758,
+          "end": 54.986
+        },
+        {
+          "label": "speech",
+          "start": 54.986,
+          "end": 59.014
+        },
+        {
+          "label": "non_speech",
+          "start": 59.014,
+          "end": 59.274
+        },
+        {
+          "label": "speech",
+          "start": 59.274,
+          "end": 62.854
+        },
+        {
+          "label": "non_speech",
+          "start": 62.854,
+          "end": 63.178
+        },
+        {
+          "label": "speech",
+          "start": 63.178,
+          "end": 67.526
+        },
+        {
+          "label": "non_speech",
+          "start": 67.526,
+          "end": 67.626
+        },
+        {
+          "label": "speech",
+          "start": 67.626,
+          "end": 69.766
+        },
+        {
+          "label": "non_speech",
+          "start": 69.766,
+          "end": 70.25
+        },
+        {
+          "label": "speech",
+          "start": 70.25,
+          "end": 71.43
+        },
+        {
+          "label": "non_speech",
+          "start": 71.43,
+          "end": 71.754
+        },
+        {
+          "label": "speech",
+          "start": 71.754,
+          "end": 72.262
+        },
+        {
+          "label": "non_speech",
+          "start": 72.262,
+          "end": 75.818
+        },
+        {
+          "label": "speech",
+          "start": 75.818,
+          "end": 83.014
+        },
+        {
+          "label": "non_speech",
+          "start": 83.014,
+          "end": 127.0
+        }
+      ]
+    },
+    "decision": "correction_validee_labo",
+    "new_time_seconds": 82.74,
+    "delta_seconds": 0.74,
+    "reason": "Consensus INA/Silero puis retour a la musique; correction validee par ecoute humaine et applicable au laboratoire uniquement.",
+    "uncertainty": "levee_par_ecoute_humaine"
+  },
+  {
+    "boundary_id": "pure-trance-radio-492-t03",
+    "episode_id": "pure-trance-radio-492",
+    "episode_title": "Pure Trance Radio Podcast 492",
+    "source_url": "https://richve.podbean.com/e/pure-trance-radio-podcast-492/",
+    "tracklist_url": "https://cuenation.com/?page=tracklist&folder=puretranceradio&filename=Solarstone+-+Pure+Trance+Radio+492.cue",
+    "track_number": 3,
+    "track_title": "metakomplex & Orkidea - Dream of You",
+    "split": "evaluation",
+    "original_time_seconds": 388.0,
+    "window_start_seconds": 343.0,
+    "window_end_seconds": 433.0,
+    "method": "consensus_ina_silero",
+    "excerpt_before": "output/excerpts/pure-trance-radio-492-t03-before.ogg",
+    "excerpt_after": "output/excerpts/pure-trance-radio-492-t03-after.ogg",
+    "automatic_candidate": false,
+    "candidate_time_seconds": null,
+    "candidate_delta_seconds": null,
+    "human_validation_status": "not_applicable",
+    "human_validation_source": null,
+    "human_validation_at": null,
+    "validated_original_time_seconds": null,
+    "validated_corrected_time_seconds": null,
+    "validated_delta_seconds": null,
+    "application_scope": null,
+    "segments": {
+      "ina": [
+        {
+          "label": "music",
+          "start": 343.0,
+          "end": 345.7
+        },
+        {
+          "label": "speech",
+          "start": 345.7,
+          "end": 387.76
+        },
+        {
+          "label": "music",
+          "start": 387.76,
+          "end": 432.98
+        }
+      ],
+      "silero": [
+        {
+          "label": "non_speech",
+          "start": 343.0,
+          "end": 346.426
+        },
+        {
+          "label": "speech",
+          "start": 346.426,
+          "end": 352.886
+        },
+        {
+          "label": "non_speech",
+          "start": 352.886,
+          "end": 353.082
+        },
+        {
+          "label": "speech",
+          "start": 353.082,
+          "end": 358.358
+        },
+        {
+          "label": "non_speech",
+          "start": 358.358,
+          "end": 358.618
+        },
+        {
+          "label": "speech",
+          "start": 358.618,
+          "end": 366.998
+        },
+        {
+          "label": "non_speech",
+          "start": 366.998,
+          "end": 367.866
+        },
+        {
+          "label": "speech",
+          "start": 367.866,
+          "end": 368.79
+        },
+        {
+          "label": "non_speech",
+          "start": 368.79,
+          "end": 369.018
+        },
+        {
+          "label": "speech",
+          "start": 369.018,
+          "end": 375.158
+        },
+        {
+          "label": "non_speech",
+          "start": 375.158,
+          "end": 375.322
+        },
+        {
+          "label": "speech",
+          "start": 375.322,
+          "end": 377.526
+        },
+        {
+          "label": "non_speech",
+          "start": 377.526,
+          "end": 378.202
+        },
+        {
+          "label": "speech",
+          "start": 378.202,
+          "end": 381.11
+        },
+        {
+          "label": "non_speech",
+          "start": 381.11,
+          "end": 381.21
+        },
+        {
+          "label": "speech",
+          "start": 381.21,
+          "end": 386.102
+        },
+        {
+          "label": "non_speech",
+          "start": 386.102,
+          "end": 386.234
+        },
+        {
+          "label": "speech",
+          "start": 386.234,
+          "end": 388.246
+        },
+        {
+          "label": "non_speech",
+          "start": 388.246,
+          "end": 433.0
+        }
+      ]
+    },
+    "decision": "abstention",
+    "new_time_seconds": null,
+    "delta_seconds": null,
+    "reason": "INA ne voit pas de parole englobante; retour musique INA insuffisant",
+    "uncertainty": "moyenne_a_elevee"
+  },
+  {
+    "boundary_id": "pure-trance-radio-492-t04",
+    "episode_id": "pure-trance-radio-492",
+    "episode_title": "Pure Trance Radio Podcast 492",
+    "source_url": "https://richve.podbean.com/e/pure-trance-radio-podcast-492/",
+    "tracklist_url": "https://cuenation.com/?page=tracklist&folder=puretranceradio&filename=Solarstone+-+Pure+Trance+Radio+492.cue",
+    "track_number": 4,
+    "track_title": "Emran Badalov - Scorpio Rider (Hazem Beltagui Remix)",
+    "split": "evaluation",
+    "original_time_seconds": 658.0,
+    "window_start_seconds": 613.0,
+    "window_end_seconds": 703.0,
+    "method": "consensus_ina_silero",
+    "excerpt_before": "output/excerpts/pure-trance-radio-492-t04-before.ogg",
+    "excerpt_after": "output/excerpts/pure-trance-radio-492-t04-after.ogg",
+    "automatic_candidate": false,
+    "candidate_time_seconds": null,
+    "candidate_delta_seconds": null,
+    "human_validation_status": "not_applicable",
+    "human_validation_source": null,
+    "human_validation_at": null,
+    "validated_original_time_seconds": null,
+    "validated_corrected_time_seconds": null,
+    "validated_delta_seconds": null,
+    "application_scope": null,
+    "segments": {
+      "ina": [
+        {
+          "label": "music",
+          "start": 613.0,
+          "end": 627.4
+        },
+        {
+          "label": "speech",
+          "start": 627.4,
+          "end": 638.08
+        },
+        {
+          "label": "music",
+          "start": 638.08,
+          "end": 651.12
+        },
+        {
+          "label": "speech",
+          "start": 651.12,
+          "end": 653.28
+        },
+        {
+          "label": "music",
+          "start": 653.28,
+          "end": 702.98
+        }
+      ],
+      "silero": [
+        {
+          "label": "non_speech",
+          "start": 613.0,
+          "end": 631.658
+        },
+        {
+          "label": "speech",
+          "start": 631.658,
+          "end": 635.526
+        },
+        {
+          "label": "non_speech",
+          "start": 635.526,
+          "end": 635.754
+        },
+        {
+          "label": "speech",
+          "start": 635.754,
+          "end": 637.414
+        },
+        {
+          "label": "non_speech",
+          "start": 637.414,
+          "end": 637.802
+        },
+        {
+          "label": "speech",
+          "start": 637.802,
+          "end": 641.478
+        },
+        {
+          "label": "non_speech",
+          "start": 641.478,
+          "end": 645.706
+        },
+        {
+          "label": "speech",
+          "start": 645.706,
+          "end": 647.974
+        },
+        {
+          "label": "non_speech",
+          "start": 647.974,
+          "end": 648.074
+        },
+        {
+          "label": "speech",
+          "start": 648.074,
+          "end": 650.694
+        },
+        {
+          "label": "non_speech",
+          "start": 650.694,
+          "end": 651.498
+        },
+        {
+          "label": "speech",
+          "start": 651.498,
+          "end": 653.478
+        },
+        {
+          "label": "non_speech",
+          "start": 653.478,
+          "end": 703.0
+        }
+      ]
+    },
+    "decision": "abstention",
+    "new_time_seconds": null,
+    "delta_seconds": null,
+    "reason": "INA ne voit pas de parole englobante; Silero ne voit pas de parole englobante; retour musique INA insuffisant",
+    "uncertainty": "moyenne_a_elevee"
+  },
+  {
+    "boundary_id": "pure-trance-radio-492-t05",
+    "episode_id": "pure-trance-radio-492",
+    "episode_title": "Pure Trance Radio Podcast 492",
+    "source_url": "https://richve.podbean.com/e/pure-trance-radio-podcast-492/",
+    "tracklist_url": "https://cuenation.com/?page=tracklist&folder=puretranceradio&filename=Solarstone+-+Pure+Trance+Radio+492.cue",
+    "track_number": 5,
+    "track_title": "Soul Alt Delete - Copycat",
+    "split": "evaluation",
+    "original_time_seconds": 1034.0,
+    "window_start_seconds": 989.0,
+    "window_end_seconds": 1079.0,
+    "method": "consensus_ina_silero",
+    "excerpt_before": "output/excerpts/pure-trance-radio-492-t05-before.ogg",
+    "excerpt_after": "output/excerpts/pure-trance-radio-492-t05-after.ogg",
+    "automatic_candidate": false,
+    "candidate_time_seconds": null,
+    "candidate_delta_seconds": null,
+    "human_validation_status": "not_applicable",
+    "human_validation_source": null,
+    "human_validation_at": null,
+    "validated_original_time_seconds": null,
+    "validated_corrected_time_seconds": null,
+    "validated_delta_seconds": null,
+    "application_scope": null,
+    "segments": {
+      "ina": [
+        {
+          "label": "music",
+          "start": 989.0,
+          "end": 1018.84
+        },
+        {
+          "label": "speech",
+          "start": 1018.84,
+          "end": 1022.9
+        },
+        {
+          "label": "music",
+          "start": 1022.9,
+          "end": 1078.98
+        }
+      ],
+      "silero": [
+        {
+          "label": "non_speech",
+          "start": 989.0,
+          "end": 1004.97
+        },
+        {
+          "label": "speech",
+          "start": 1004.97,
+          "end": 1024.294
+        },
+        {
+          "label": "non_speech",
+          "start": 1024.294,
+          "end": 1024.618
+        },
+        {
+          "label": "speech",
+          "start": 1024.618,
+          "end": 1026.502
+        },
+        {
+          "label": "non_speech",
+          "start": 1026.502,
+          "end": 1026.762
+        },
+        {
+          "label": "speech",
+          "start": 1026.762,
+          "end": 1034.438
+        },
+        {
+          "label": "non_speech",
+          "start": 1034.438,
+          "end": 1079.0
+        }
+      ]
+    },
+    "decision": "abstention",
+    "new_time_seconds": null,
+    "delta_seconds": null,
+    "reason": "INA ne voit pas de parole englobante; retour musique INA insuffisant",
+    "uncertainty": "moyenne_a_elevee"
+  },
+  {
+    "boundary_id": "pure-trance-radio-492-t06",
+    "episode_id": "pure-trance-radio-492",
+    "episode_title": "Pure Trance Radio Podcast 492",
+    "source_url": "https://richve.podbean.com/e/pure-trance-radio-podcast-492/",
+    "tracklist_url": "https://cuenation.com/?page=tracklist&folder=puretranceradio&filename=Solarstone+-+Pure+Trance+Radio+492.cue",
+    "track_number": 6,
+    "track_title": "Allende - The Weight",
+    "split": "evaluation",
+    "original_time_seconds": 1380.0,
+    "window_start_seconds": 1335.0,
+    "window_end_seconds": 1425.0,
+    "method": "consensus_ina_silero",
+    "excerpt_before": "output/excerpts/pure-trance-radio-492-t06-before.ogg",
+    "excerpt_after": "output/excerpts/pure-trance-radio-492-t06-after.ogg",
+    "automatic_candidate": false,
+    "candidate_time_seconds": null,
+    "candidate_delta_seconds": null,
+    "human_validation_status": "not_applicable",
+    "human_validation_source": null,
+    "human_validation_at": null,
+    "validated_original_time_seconds": null,
+    "validated_corrected_time_seconds": null,
+    "validated_delta_seconds": null,
+    "application_scope": null,
+    "segments": {
+      "ina": [
+        {
+          "label": "music",
+          "start": 1335.0,
+          "end": 1424.98
+        }
+      ],
+      "silero": [
+        {
+          "label": "non_speech",
+          "start": 1335.0,
+          "end": 1335.098
+        },
+        {
+          "label": "speech",
+          "start": 1335.098,
+          "end": 1338.038
+        },
+        {
+          "label": "non_speech",
+          "start": 1338.038,
+          "end": 1338.49
+        },
+        {
+          "label": "speech",
+          "start": 1338.49,
+          "end": 1344.854
+        },
+        {
+          "label": "non_speech",
+          "start": 1344.854,
+          "end": 1425.0
+        }
+      ]
+    },
+    "decision": "abstention",
+    "new_time_seconds": null,
+    "delta_seconds": null,
+    "reason": "INA ne voit pas de parole englobante; Silero ne voit pas de parole englobante; retour musique INA insuffisant",
+    "uncertainty": "moyenne_a_elevee"
+  },
+  {
+    "boundary_id": "pure-trance-radio-492-t07",
+    "episode_id": "pure-trance-radio-492",
+    "episode_title": "Pure Trance Radio Podcast 492",
+    "source_url": "https://richve.podbean.com/e/pure-trance-radio-podcast-492/",
+    "tracklist_url": "https://cuenation.com/?page=tracklist&folder=puretranceradio&filename=Solarstone+-+Pure+Trance+Radio+492.cue",
+    "track_number": 7,
+    "track_title": "Protoculture - Telemetry",
+    "split": "evaluation",
+    "original_time_seconds": 1710.0,
+    "window_start_seconds": 1665.0,
+    "window_end_seconds": 1755.0,
+    "method": "consensus_ina_silero",
+    "excerpt_before": "output/excerpts/pure-trance-radio-492-t07-before.ogg",
+    "excerpt_after": "output/excerpts/pure-trance-radio-492-t07-after.ogg",
+    "automatic_candidate": false,
+    "candidate_time_seconds": null,
+    "candidate_delta_seconds": null,
+    "human_validation_status": "not_applicable",
+    "human_validation_source": null,
+    "human_validation_at": null,
+    "validated_original_time_seconds": null,
+    "validated_corrected_time_seconds": null,
+    "validated_delta_seconds": null,
+    "application_scope": null,
+    "segments": {
+      "ina": [
+        {
+          "label": "speech",
+          "start": 1665.0,
+          "end": 1679.96
+        },
+        {
+          "label": "music",
+          "start": 1679.96,
+          "end": 1754.98
+        }
+      ],
+      "silero": [
+        {
+          "label": "non_speech",
+          "start": 1665.0,
+          "end": 1665.066
+        },
+        {
+          "label": "speech",
+          "start": 1665.066,
+          "end": 1669.574
+        },
+        {
+          "label": "non_speech",
+          "start": 1669.574,
+          "end": 1669.674
+        },
+        {
+          "label": "speech",
+          "start": 1669.674,
+          "end": 1672.07
+        },
+        {
+          "label": "non_speech",
+          "start": 1672.07,
+          "end": 1672.202
+        },
+        {
+          "label": "speech",
+          "start": 1672.202,
+          "end": 1680.198
+        },
+        {
+          "label": "non_speech",
+          "start": 1680.198,
+          "end": 1680.458
+        },
+        {
+          "label": "speech",
+          "start": 1680.458,
+          "end": 1682.886
+        },
+        {
+          "label": "non_speech",
+          "start": 1682.886,
+          "end": 1683.018
+        },
+        {
+          "label": "speech",
+          "start": 1683.018,
+          "end": 1684.87
+        },
+        {
+          "label": "non_speech",
+          "start": 1684.87,
+          "end": 1685.738
+        },
+        {
+          "label": "speech",
+          "start": 1685.738,
+          "end": 1692.742
+        },
+        {
+          "label": "non_speech",
+          "start": 1692.742,
+          "end": 1755.0
+        }
+      ]
+    },
+    "decision": "abstention",
+    "new_time_seconds": null,
+    "delta_seconds": null,
+    "reason": "INA ne voit pas de parole englobante; Silero ne voit pas de parole englobante; retour musique INA insuffisant",
+    "uncertainty": "moyenne_a_elevee"
+  },
+  {
+    "boundary_id": "pure-trance-radio-492-t08",
+    "episode_id": "pure-trance-radio-492",
+    "episode_title": "Pure Trance Radio Podcast 492",
+    "source_url": "https://richve.podbean.com/e/pure-trance-radio-podcast-492/",
+    "tracklist_url": "https://cuenation.com/?page=tracklist&folder=puretranceradio&filename=Solarstone+-+Pure+Trance+Radio+492.cue",
+    "track_number": 8,
+    "track_title": "Dusky - Lab",
+    "split": "evaluation",
+    "original_time_seconds": 2040.0,
+    "window_start_seconds": 1995.0,
+    "window_end_seconds": 2085.0,
+    "method": "consensus_ina_silero",
+    "excerpt_before": "output/excerpts/pure-trance-radio-492-t08-before.ogg",
+    "excerpt_after": "output/excerpts/pure-trance-radio-492-t08-after.ogg",
+    "automatic_candidate": false,
+    "candidate_time_seconds": null,
+    "candidate_delta_seconds": null,
+    "human_validation_status": "not_applicable",
+    "human_validation_source": null,
+    "human_validation_at": null,
+    "validated_original_time_seconds": null,
+    "validated_corrected_time_seconds": null,
+    "validated_delta_seconds": null,
+    "application_scope": null,
+    "segments": {
+      "ina": [
+        {
+          "label": "music",
+          "start": 1995.0,
+          "end": 2034.72
+        },
+        {
+          "label": "speech",
+          "start": 2034.72,
+          "end": 2038.6
+        },
+        {
+          "label": "music",
+          "start": 2038.6,
+          "end": 2084.98
+        }
+      ],
+      "silero": [
+        {
+          "label": "non_speech",
+          "start": 1995.0,
+          "end": 2085.0
+        }
+      ]
+    },
+    "decision": "abstention",
+    "new_time_seconds": null,
+    "delta_seconds": null,
+    "reason": "INA ne voit pas de parole englobante; Silero ne voit pas de parole englobante; retour musique INA insuffisant",
+    "uncertainty": "moyenne_a_elevee"
+  },
+  {
+    "boundary_id": "pure-trance-radio-492-t09",
+    "episode_id": "pure-trance-radio-492",
+    "episode_title": "Pure Trance Radio Podcast 492",
+    "source_url": "https://richve.podbean.com/e/pure-trance-radio-podcast-492/",
+    "tracklist_url": "https://cuenation.com/?page=tracklist&folder=puretranceradio&filename=Solarstone+-+Pure+Trance+Radio+492.cue",
+    "track_number": 9,
+    "track_title": "ARCHERY - KEEP IT GOIN'",
+    "split": "evaluation",
+    "original_time_seconds": 2323.0,
+    "window_start_seconds": 2278.0,
+    "window_end_seconds": 2368.0,
+    "method": "consensus_ina_silero",
+    "excerpt_before": "output/excerpts/pure-trance-radio-492-t09-before.ogg",
+    "excerpt_after": "output/excerpts/pure-trance-radio-492-t09-after.ogg",
+    "automatic_candidate": false,
+    "candidate_time_seconds": null,
+    "candidate_delta_seconds": null,
+    "human_validation_status": "not_applicable",
+    "human_validation_source": null,
+    "human_validation_at": null,
+    "validated_original_time_seconds": null,
+    "validated_corrected_time_seconds": null,
+    "validated_delta_seconds": null,
+    "application_scope": null,
+    "segments": {
+      "ina": [
+        {
+          "label": "music",
+          "start": 2278.0,
+          "end": 2367.98
+        }
+      ],
+      "silero": [
+        {
+          "label": "non_speech",
+          "start": 2278.0,
+          "end": 2279.218
+        },
+        {
+          "label": "speech",
+          "start": 2279.218,
+          "end": 2283.438
+        },
+        {
+          "label": "non_speech",
+          "start": 2283.438,
+          "end": 2286.29
+        },
+        {
+          "label": "speech",
+          "start": 2286.29,
+          "end": 2292.59
+        },
+        {
+          "label": "non_speech",
+          "start": 2292.59,
+          "end": 2292.914
+        },
+        {
+          "label": "speech",
+          "start": 2292.914,
+          "end": 2296.974
+        },
+        {
+          "label": "non_speech",
+          "start": 2296.974,
+          "end": 2322.29
+        },
+        {
+          "label": "speech",
+          "start": 2322.29,
+          "end": 2323.438
+        },
+        {
+          "label": "non_speech",
+          "start": 2323.438,
+          "end": 2368.0
+        }
+      ]
+    },
+    "decision": "abstention",
+    "new_time_seconds": null,
+    "delta_seconds": null,
+    "reason": "INA ne voit pas de parole englobante; retour musique INA insuffisant",
+    "uncertainty": "moyenne_a_elevee"
+  },
+  {
+    "boundary_id": "pure-trance-radio-492-t10",
+    "episode_id": "pure-trance-radio-492",
+    "episode_title": "Pure Trance Radio Podcast 492",
+    "source_url": "https://richve.podbean.com/e/pure-trance-radio-podcast-492/",
+    "tracklist_url": "https://cuenation.com/?page=tracklist&folder=puretranceradio&filename=Solarstone+-+Pure+Trance+Radio+492.cue",
+    "track_number": 10,
+    "track_title": "Peter Steele - Summer Breeze",
+    "split": "evaluation",
+    "original_time_seconds": 2679.0,
+    "window_start_seconds": 2634.0,
+    "window_end_seconds": 2724.0,
+    "method": "consensus_ina_silero",
+    "excerpt_before": "output/excerpts/pure-trance-radio-492-t10-before.ogg",
+    "excerpt_after": "output/excerpts/pure-trance-radio-492-t10-after.ogg",
+    "automatic_candidate": false,
+    "candidate_time_seconds": null,
+    "candidate_delta_seconds": null,
+    "human_validation_status": "not_applicable",
+    "human_validation_source": null,
+    "human_validation_at": null,
+    "validated_original_time_seconds": null,
+    "validated_corrected_time_seconds": null,
+    "validated_delta_seconds": null,
+    "application_scope": null,
+    "segments": {
+      "ina": [
+        {
+          "label": "music",
+          "start": 2634.0,
+          "end": 2723.98
+        }
+      ],
+      "silero": [
+        {
+          "label": "non_speech",
+          "start": 2634.0,
+          "end": 2659.538
+        },
+        {
+          "label": "speech",
+          "start": 2659.538,
+          "end": 2659.982
+        },
+        {
+          "label": "non_speech",
+          "start": 2659.982,
+          "end": 2660.466
+        },
+        {
+          "label": "speech",
+          "start": 2660.466,
+          "end": 2665.742
+        },
+        {
+          "label": "non_speech",
+          "start": 2665.742,
+          "end": 2665.874
+        },
+        {
+          "label": "speech",
+          "start": 2665.874,
+          "end": 2669.486
+        },
+        {
+          "label": "non_speech",
+          "start": 2669.486,
+          "end": 2669.746
+        },
+        {
+          "label": "speech",
+          "start": 2669.746,
+          "end": 2676.046
+        },
+        {
+          "label": "non_speech",
+          "start": 2676.046,
+          "end": 2676.434
+        },
+        {
+          "label": "speech",
+          "start": 2676.434,
+          "end": 2677.326
+        },
+        {
+          "label": "non_speech",
+          "start": 2677.326,
+          "end": 2677.586
+        },
+        {
+          "label": "speech",
+          "start": 2677.586,
+          "end": 2679.15
+        },
+        {
+          "label": "non_speech",
+          "start": 2679.15,
+          "end": 2724.0
+        }
+      ]
+    },
+    "decision": "abstention",
+    "new_time_seconds": null,
+    "delta_seconds": null,
+    "reason": "INA ne voit pas de parole englobante; retour musique INA insuffisant",
+    "uncertainty": "moyenne_a_elevee"
+  },
+  {
+    "boundary_id": "pure-trance-radio-492-t11",
+    "episode_id": "pure-trance-radio-492",
+    "episode_title": "Pure Trance Radio Podcast 492",
+    "source_url": "https://richve.podbean.com/e/pure-trance-radio-podcast-492/",
+    "tracklist_url": "https://cuenation.com/?page=tracklist&folder=puretranceradio&filename=Solarstone+-+Pure+Trance+Radio+492.cue",
+    "track_number": 11,
+    "track_title": "FKN & Tom Bro feat. Emily Orchard - Fading Blue",
+    "split": "evaluation",
+    "original_time_seconds": 2974.0,
+    "window_start_seconds": 2929.0,
+    "window_end_seconds": 3019.0,
+    "method": "consensus_ina_silero",
+    "excerpt_before": "output/excerpts/pure-trance-radio-492-t11-before.ogg",
+    "excerpt_after": "output/excerpts/pure-trance-radio-492-t11-after.ogg",
+    "automatic_candidate": false,
+    "candidate_time_seconds": null,
+    "candidate_delta_seconds": null,
+    "human_validation_status": "not_applicable",
+    "human_validation_source": null,
+    "human_validation_at": null,
+    "validated_original_time_seconds": null,
+    "validated_corrected_time_seconds": null,
+    "validated_delta_seconds": null,
+    "application_scope": null,
+    "segments": {
+      "ina": [
+        {
+          "label": "music",
+          "start": 2929.0,
+          "end": 2970.0
+        },
+        {
+          "label": "noEnergy",
+          "start": 2970.0,
+          "end": 2972.44
+        },
+        {
+          "label": "music",
+          "start": 2972.44,
+          "end": 3018.98
+        }
+      ],
+      "silero": [
+        {
+          "label": "non_speech",
+          "start": 2929.0,
+          "end": 2929.034
+        },
+        {
+          "label": "speech",
+          "start": 2929.034,
+          "end": 2929.894
+        },
+        {
+          "label": "non_speech",
+          "start": 2929.894,
+          "end": 2930.218
+        },
+        {
+          "label": "speech",
+          "start": 2930.218,
+          "end": 2931.462
+        },
+        {
+          "label": "non_speech",
+          "start": 2931.462,
+          "end": 2931.626
+        },
+        {
+          "label": "speech",
+          "start": 2931.626,
+          "end": 2934.054
+        },
+        {
+          "label": "non_speech",
+          "start": 2934.054,
+          "end": 2942.186
+        },
+        {
+          "label": "speech",
+          "start": 2942.186,
+          "end": 2947.686
+        },
+        {
+          "label": "non_speech",
+          "start": 2947.686,
+          "end": 2947.946
+        },
+        {
+          "label": "speech",
+          "start": 2947.946,
+          "end": 2953.51
+        },
+        {
+          "label": "non_speech",
+          "start": 2953.51,
+          "end": 2953.834
+        },
+        {
+          "label": "speech",
+          "start": 2953.834,
+          "end": 2960.326
+        },
+        {
+          "label": "non_speech",
+          "start": 2960.326,
+          "end": 3019.0
+        }
+      ]
+    },
+    "decision": "abstention",
+    "new_time_seconds": null,
+    "delta_seconds": null,
+    "reason": "INA ne voit pas de parole englobante; Silero ne voit pas de parole englobante; retour musique INA insuffisant",
+    "uncertainty": "moyenne_a_elevee"
+  },
+  {
+    "boundary_id": "pure-trance-radio-492-t12",
+    "episode_id": "pure-trance-radio-492",
+    "episode_title": "Pure Trance Radio Podcast 492",
+    "source_url": "https://richve.podbean.com/e/pure-trance-radio-podcast-492/",
+    "tracklist_url": "https://cuenation.com/?page=tracklist&folder=puretranceradio&filename=Solarstone+-+Pure+Trance+Radio+492.cue",
+    "track_number": 12,
+    "track_title": "Thrillseekers pres. Hydra - Amber (Asteroid Remix)",
+    "split": "evaluation",
+    "original_time_seconds": 3210.0,
+    "window_start_seconds": 3165.0,
+    "window_end_seconds": 3255.0,
+    "method": "consensus_ina_silero",
+    "excerpt_before": "output/excerpts/pure-trance-radio-492-t12-before.ogg",
+    "excerpt_after": "output/excerpts/pure-trance-radio-492-t12-after.ogg",
+    "automatic_candidate": false,
+    "candidate_time_seconds": null,
+    "candidate_delta_seconds": null,
+    "human_validation_status": "not_applicable",
+    "human_validation_source": null,
+    "human_validation_at": null,
+    "validated_original_time_seconds": null,
+    "validated_corrected_time_seconds": null,
+    "validated_delta_seconds": null,
+    "application_scope": null,
+    "segments": {
+      "ina": [
+        {
+          "label": "speech",
+          "start": 3165.0,
+          "end": 3167.66
+        },
+        {
+          "label": "music",
+          "start": 3167.66,
+          "end": 3192.88
+        },
+        {
+          "label": "speech",
+          "start": 3192.88,
+          "end": 3197.58
+        },
+        {
+          "label": "music",
+          "start": 3197.58,
+          "end": 3254.98
+        }
+      ],
+      "silero": [
+        {
+          "label": "non_speech",
+          "start": 3165.0,
+          "end": 3165.642
+        },
+        {
+          "label": "speech",
+          "start": 3165.642,
+          "end": 3167.686
+        },
+        {
+          "label": "non_speech",
+          "start": 3167.686,
+          "end": 3196.138
+        },
+        {
+          "label": "speech",
+          "start": 3196.138,
+          "end": 3199.11
+        },
+        {
+          "label": "non_speech",
+          "start": 3199.11,
+          "end": 3199.466
+        },
+        {
+          "label": "speech",
+          "start": 3199.466,
+          "end": 3200.87
+        },
+        {
+          "label": "non_speech",
+          "start": 3200.87,
+          "end": 3201.834
+        },
+        {
+          "label": "speech",
+          "start": 3201.834,
+          "end": 3205.446
+        },
+        {
+          "label": "non_speech",
+          "start": 3205.446,
+          "end": 3205.93
+        },
+        {
+          "label": "speech",
+          "start": 3205.93,
+          "end": 3210.918
+        },
+        {
+          "label": "non_speech",
+          "start": 3210.918,
+          "end": 3255.0
+        }
+      ]
+    },
+    "decision": "abstention",
+    "new_time_seconds": null,
+    "delta_seconds": null,
+    "reason": "INA ne voit pas de parole englobante; retour musique INA insuffisant",
+    "uncertainty": "moyenne_a_elevee"
+  },
+  {
+    "boundary_id": "pure-trance-radio-492-t13",
+    "episode_id": "pure-trance-radio-492",
+    "episode_title": "Pure Trance Radio Podcast 492",
+    "source_url": "https://richve.podbean.com/e/pure-trance-radio-podcast-492/",
+    "tracklist_url": "https://cuenation.com/?page=tracklist&folder=puretranceradio&filename=Solarstone+-+Pure+Trance+Radio+492.cue",
+    "track_number": 13,
+    "track_title": "Bryan Kearney & John O'Callaghan pres. Key4050 - Final Memory",
+    "split": "evaluation",
+    "original_time_seconds": 3649.0,
+    "window_start_seconds": 3604.0,
+    "window_end_seconds": 3694.0,
+    "method": "consensus_ina_silero",
+    "excerpt_before": "output/excerpts/pure-trance-radio-492-t13-before.ogg",
+    "excerpt_after": "output/excerpts/pure-trance-radio-492-t13-after.ogg",
+    "automatic_candidate": false,
+    "candidate_time_seconds": null,
+    "candidate_delta_seconds": null,
+    "human_validation_status": "not_applicable",
+    "human_validation_source": null,
+    "human_validation_at": null,
+    "validated_original_time_seconds": null,
+    "validated_corrected_time_seconds": null,
+    "validated_delta_seconds": null,
+    "application_scope": null,
+    "segments": {
+      "ina": [
+        {
+          "label": "music",
+          "start": 3604.0,
+          "end": 3636.2
+        },
+        {
+          "label": "speech",
+          "start": 3636.2,
+          "end": 3646.02
+        },
+        {
+          "label": "music",
+          "start": 3646.02,
+          "end": 3693.98
+        }
+      ],
+      "silero": [
+        {
+          "label": "non_speech",
+          "start": 3604.0,
+          "end": 3627.778
+        },
+        {
+          "label": "speech",
+          "start": 3627.778,
+          "end": 3629.598
+        },
+        {
+          "label": "non_speech",
+          "start": 3629.598,
+          "end": 3629.954
+        },
+        {
+          "label": "speech",
+          "start": 3629.954,
+          "end": 3635.422
+        },
+        {
+          "label": "non_speech",
+          "start": 3635.422,
+          "end": 3635.586
+        },
+        {
+          "label": "speech",
+          "start": 3635.586,
+          "end": 3640.03
+        },
+        {
+          "label": "non_speech",
+          "start": 3640.03,
+          "end": 3640.258
+        },
+        {
+          "label": "speech",
+          "start": 3640.258,
+          "end": 3641.214
+        },
+        {
+          "label": "non_speech",
+          "start": 3641.214,
+          "end": 3641.602
+        },
+        {
+          "label": "speech",
+          "start": 3641.602,
+          "end": 3642.526
+        },
+        {
+          "label": "non_speech",
+          "start": 3642.526,
+          "end": 3643.106
+        },
+        {
+          "label": "speech",
+          "start": 3643.106,
+          "end": 3646.046
+        },
+        {
+          "label": "non_speech",
+          "start": 3646.046,
+          "end": 3694.0
+        }
+      ]
+    },
+    "decision": "abstention",
+    "new_time_seconds": null,
+    "delta_seconds": null,
+    "reason": "INA ne voit pas de parole englobante; Silero ne voit pas de parole englobante; retour musique INA insuffisant",
+    "uncertainty": "moyenne_a_elevee"
+  },
+  {
+    "boundary_id": "pure-trance-radio-492-t14",
+    "episode_id": "pure-trance-radio-492",
+    "episode_title": "Pure Trance Radio Podcast 492",
+    "source_url": "https://richve.podbean.com/e/pure-trance-radio-podcast-492/",
+    "tracklist_url": "https://cuenation.com/?page=tracklist&folder=puretranceradio&filename=Solarstone+-+Pure+Trance+Radio+492.cue",
+    "track_number": 14,
+    "track_title": "Asteroid - Spectra",
+    "split": "evaluation",
+    "original_time_seconds": 3953.0,
+    "window_start_seconds": 3908.0,
+    "window_end_seconds": 3998.0,
+    "method": "consensus_ina_silero",
+    "excerpt_before": "output/excerpts/pure-trance-radio-492-t14-before.ogg",
+    "excerpt_after": "output/excerpts/pure-trance-radio-492-t14-after.ogg",
+    "automatic_candidate": false,
+    "candidate_time_seconds": null,
+    "candidate_delta_seconds": null,
+    "human_validation_status": "not_applicable",
+    "human_validation_source": null,
+    "human_validation_at": null,
+    "validated_original_time_seconds": null,
+    "validated_corrected_time_seconds": null,
+    "validated_delta_seconds": null,
+    "application_scope": null,
+    "segments": {
+      "ina": [
+        {
+          "label": "music",
+          "start": 3908.0,
+          "end": 3920.54
+        },
+        {
+          "label": "speech",
+          "start": 3920.54,
+          "end": 3921.82
+        },
+        {
+          "label": "music",
+          "start": 3921.82,
+          "end": 3931.8
+        },
+        {
+          "label": "speech",
+          "start": 3931.8,
+          "end": 3952.9
+        },
+        {
+          "label": "music",
+          "start": 3952.9,
+          "end": 3997.98
+        }
+      ],
+      "silero": [
+        {
+          "label": "non_speech",
+          "start": 3908.0,
+          "end": 3908.162
+        },
+        {
+          "label": "speech",
+          "start": 3908.162,
+          "end": 3913.246
+        },
+        {
+          "label": "non_speech",
+          "start": 3913.246,
+          "end": 3919.746
+        },
+        {
+          "label": "speech",
+          "start": 3919.746,
+          "end": 3922.11
+        },
+        {
+          "label": "non_speech",
+          "start": 3922.11,
+          "end": 3924.098
+        },
+        {
+          "label": "speech",
+          "start": 3924.098,
+          "end": 3925.406
+        },
+        {
+          "label": "non_speech",
+          "start": 3925.406,
+          "end": 3931.938
+        },
+        {
+          "label": "speech",
+          "start": 3931.938,
+          "end": 3937.118
+        },
+        {
+          "label": "non_speech",
+          "start": 3937.118,
+          "end": 3937.666
+        },
+        {
+          "label": "speech",
+          "start": 3937.666,
+          "end": 3945.438
+        },
+        {
+          "label": "non_speech",
+          "start": 3945.438,
+          "end": 3945.858
+        },
+        {
+          "label": "speech",
+          "start": 3945.858,
+          "end": 3950.526
+        },
+        {
+          "label": "non_speech",
+          "start": 3950.526,
+          "end": 3950.754
+        },
+        {
+          "label": "speech",
+          "start": 3950.754,
+          "end": 3955.262
+        },
+        {
+          "label": "non_speech",
+          "start": 3955.262,
+          "end": 3955.458
+        },
+        {
+          "label": "speech",
+          "start": 3955.458,
+          "end": 3955.838
+        },
+        {
+          "label": "non_speech",
+          "start": 3955.838,
+          "end": 3998.0
+        }
+      ]
+    },
+    "decision": "abstention",
+    "new_time_seconds": null,
+    "delta_seconds": null,
+    "reason": "INA ne voit pas de parole englobante; retour musique INA insuffisant",
+    "uncertainty": "moyenne_a_elevee"
+  },
+  {
+    "boundary_id": "pure-trance-radio-492-t15",
+    "episode_id": "pure-trance-radio-492",
+    "episode_title": "Pure Trance Radio Podcast 492",
+    "source_url": "https://richve.podbean.com/e/pure-trance-radio-podcast-492/",
+    "tracklist_url": "https://cuenation.com/?page=tracklist&folder=puretranceradio&filename=Solarstone+-+Pure+Trance+Radio+492.cue",
+    "track_number": 15,
+    "track_title": "C-Systems - Pillars of Light",
+    "split": "evaluation",
+    "original_time_seconds": 4212.0,
+    "window_start_seconds": 4167.0,
+    "window_end_seconds": 4257.0,
+    "method": "consensus_ina_silero",
+    "excerpt_before": "output/excerpts/pure-trance-radio-492-t15-before.ogg",
+    "excerpt_after": "output/excerpts/pure-trance-radio-492-t15-after.ogg",
+    "automatic_candidate": false,
+    "candidate_time_seconds": null,
+    "candidate_delta_seconds": null,
+    "human_validation_status": "not_applicable",
+    "human_validation_source": null,
+    "human_validation_at": null,
+    "validated_original_time_seconds": null,
+    "validated_corrected_time_seconds": null,
+    "validated_delta_seconds": null,
+    "application_scope": null,
+    "segments": {
+      "ina": [
+        {
+          "label": "music",
+          "start": 4167.0,
+          "end": 4256.98
+        }
+      ],
+      "silero": [
+        {
+          "label": "non_speech",
+          "start": 4167.0,
+          "end": 4193.53
+        },
+        {
+          "label": "speech",
+          "start": 4193.53,
+          "end": 4193.878
+        },
+        {
+          "label": "non_speech",
+          "start": 4193.878,
+          "end": 4257.0
+        }
+      ]
+    },
+    "decision": "abstention",
+    "new_time_seconds": null,
+    "delta_seconds": null,
+    "reason": "INA ne voit pas de parole englobante; Silero ne voit pas de parole englobante; retour musique INA insuffisant",
+    "uncertainty": "moyenne_a_elevee"
+  },
+  {
+    "boundary_id": "pure-trance-radio-492-t16",
+    "episode_id": "pure-trance-radio-492",
+    "episode_title": "Pure Trance Radio Podcast 492",
+    "source_url": "https://richve.podbean.com/e/pure-trance-radio-podcast-492/",
+    "tracklist_url": "https://cuenation.com/?page=tracklist&folder=puretranceradio&filename=Solarstone+-+Pure+Trance+Radio+492.cue",
+    "track_number": 16,
+    "track_title": "Ferkingge & Emma Wang feat. Adria Du & Nini - Blooming",
+    "split": "evaluation",
+    "original_time_seconds": 4448.0,
+    "window_start_seconds": 4403.0,
+    "window_end_seconds": 4493.0,
+    "method": "consensus_ina_silero",
+    "excerpt_before": "output/excerpts/pure-trance-radio-492-t16-before.ogg",
+    "excerpt_after": "output/excerpts/pure-trance-radio-492-t16-after.ogg",
+    "automatic_candidate": false,
+    "candidate_time_seconds": null,
+    "candidate_delta_seconds": null,
+    "human_validation_status": "not_applicable",
+    "human_validation_source": null,
+    "human_validation_at": null,
+    "validated_original_time_seconds": null,
+    "validated_corrected_time_seconds": null,
+    "validated_delta_seconds": null,
+    "application_scope": null,
+    "segments": {
+      "ina": [
+        {
+          "label": "music",
+          "start": 4403.0,
+          "end": 4492.98
+        }
+      ],
+      "silero": [
+        {
+          "label": "non_speech",
+          "start": 4403.0,
+          "end": 4493.0
+        }
+      ]
+    },
+    "decision": "abstention",
+    "new_time_seconds": null,
+    "delta_seconds": null,
+    "reason": "INA ne voit pas de parole englobante; Silero ne voit pas de parole englobante; retour musique INA insuffisant",
+    "uncertainty": "moyenne_a_elevee"
+  },
+  {
+    "boundary_id": "pure-trance-radio-492-t17",
+    "episode_id": "pure-trance-radio-492",
+    "episode_title": "Pure Trance Radio Podcast 492",
+    "source_url": "https://richve.podbean.com/e/pure-trance-radio-podcast-492/",
+    "tracklist_url": "https://cuenation.com/?page=tracklist&folder=puretranceradio&filename=Solarstone+-+Pure+Trance+Radio+492.cue",
+    "track_number": 17,
+    "track_title": "Solarstone vs. Sirocco - Destination (Effen Remix)",
+    "split": "evaluation",
+    "original_time_seconds": 4796.0,
+    "window_start_seconds": 4751.0,
+    "window_end_seconds": 4841.0,
+    "method": "consensus_ina_silero",
+    "excerpt_before": "output/excerpts/pure-trance-radio-492-t17-before.ogg",
+    "excerpt_after": "output/excerpts/pure-trance-radio-492-t17-after.ogg",
+    "automatic_candidate": false,
+    "candidate_time_seconds": null,
+    "candidate_delta_seconds": null,
+    "human_validation_status": "not_applicable",
+    "human_validation_source": null,
+    "human_validation_at": null,
+    "validated_original_time_seconds": null,
+    "validated_corrected_time_seconds": null,
+    "validated_delta_seconds": null,
+    "application_scope": null,
+    "segments": {
+      "ina": [
+        {
+          "label": "music",
+          "start": 4751.0,
+          "end": 4765.92
+        },
+        {
+          "label": "speech",
+          "start": 4765.92,
+          "end": 4778.34
+        },
+        {
+          "label": "music",
+          "start": 4778.34,
+          "end": 4784.28
+        },
+        {
+          "label": "speech",
+          "start": 4784.28,
+          "end": 4789.38
+        },
+        {
+          "label": "music",
+          "start": 4789.38,
+          "end": 4840.98
+        }
+      ],
+      "silero": [
+        {
+          "label": "non_speech",
+          "start": 4751.0,
+          "end": 4765.978
+        },
+        {
+          "label": "speech",
+          "start": 4765.978,
+          "end": 4767.926
+        },
+        {
+          "label": "non_speech",
+          "start": 4767.926,
+          "end": 4768.25
+        },
+        {
+          "label": "speech",
+          "start": 4768.25,
+          "end": 4769.206
+        },
+        {
+          "label": "non_speech",
+          "start": 4769.206,
+          "end": 4769.434
+        },
+        {
+          "label": "speech",
+          "start": 4769.434,
+          "end": 4770.23
+        },
+        {
+          "label": "non_speech",
+          "start": 4770.23,
+          "end": 4770.586
+        },
+        {
+          "label": "speech",
+          "start": 4770.586,
+          "end": 4773.622
+        },
+        {
+          "label": "non_speech",
+          "start": 4773.622,
+          "end": 4773.786
+        },
+        {
+          "label": "speech",
+          "start": 4773.786,
+          "end": 4780.63
+        },
+        {
+          "label": "non_speech",
+          "start": 4780.63,
+          "end": 4784.314
+        },
+        {
+          "label": "speech",
+          "start": 4784.314,
+          "end": 4790.326
+        },
+        {
+          "label": "non_speech",
+          "start": 4790.326,
+          "end": 4841.0
+        }
+      ]
+    },
+    "decision": "abstention",
+    "new_time_seconds": null,
+    "delta_seconds": null,
+    "reason": "INA ne voit pas de parole englobante; Silero ne voit pas de parole englobante; retour musique INA insuffisant",
+    "uncertainty": "moyenne_a_elevee"
+  },
+  {
+    "boundary_id": "pure-trance-radio-492-t18",
+    "episode_id": "pure-trance-radio-492",
+    "episode_title": "Pure Trance Radio Podcast 492",
+    "source_url": "https://richve.podbean.com/e/pure-trance-radio-podcast-492/",
+    "tracklist_url": "https://cuenation.com/?page=tracklist&folder=puretranceradio&filename=Solarstone+-+Pure+Trance+Radio+492.cue",
+    "track_number": 18,
+    "track_title": "Stoneface & Terminal with Susanne Teutenberg - High As The Sun",
+    "split": "evaluation",
+    "original_time_seconds": 5232.0,
+    "window_start_seconds": 5187.0,
+    "window_end_seconds": 5277.0,
+    "method": "consensus_ina_silero",
+    "excerpt_before": "output/excerpts/pure-trance-radio-492-t18-before.ogg",
+    "excerpt_after": "output/excerpts/pure-trance-radio-492-t18-after.ogg",
+    "automatic_candidate": false,
+    "candidate_time_seconds": null,
+    "candidate_delta_seconds": null,
+    "human_validation_status": "not_applicable",
+    "human_validation_source": null,
+    "human_validation_at": null,
+    "validated_original_time_seconds": null,
+    "validated_corrected_time_seconds": null,
+    "validated_delta_seconds": null,
+    "application_scope": null,
+    "segments": {
+      "ina": [
+        {
+          "label": "music",
+          "start": 5187.0,
+          "end": 5191.88
+        },
+        {
+          "label": "speech",
+          "start": 5191.88,
+          "end": 5197.92
+        },
+        {
+          "label": "music",
+          "start": 5197.92,
+          "end": 5204.06
+        },
+        {
+          "label": "speech",
+          "start": 5204.06,
+          "end": 5209.66
+        },
+        {
+          "label": "music",
+          "start": 5209.66,
+          "end": 5219.16
+        },
+        {
+          "label": "speech",
+          "start": 5219.16,
+          "end": 5222.98
+        },
+        {
+          "label": "music",
+          "start": 5222.98,
+          "end": 5276.98
+        }
+      ],
+      "silero": [
+        {
+          "label": "non_speech",
+          "start": 5187.0,
+          "end": 5190.65
+        },
+        {
+          "label": "speech",
+          "start": 5190.65,
+          "end": 5195.126
+        },
+        {
+          "label": "non_speech",
+          "start": 5195.126,
+          "end": 5195.45
+        },
+        {
+          "label": "speech",
+          "start": 5195.45,
+          "end": 5198.07
+        },
+        {
+          "label": "non_speech",
+          "start": 5198.07,
+          "end": 5199.674
+        },
+        {
+          "label": "speech",
+          "start": 5199.674,
+          "end": 5201.334
+        },
+        {
+          "label": "non_speech",
+          "start": 5201.334,
+          "end": 5204.154
+        },
+        {
+          "label": "speech",
+          "start": 5204.154,
+          "end": 5208.374
+        },
+        {
+          "label": "non_speech",
+          "start": 5208.374,
+          "end": 5208.506
+        },
+        {
+          "label": "speech",
+          "start": 5208.506,
+          "end": 5210.166
+        },
+        {
+          "label": "non_speech",
+          "start": 5210.166,
+          "end": 5218.81
+        },
+        {
+          "label": "speech",
+          "start": 5218.81,
+          "end": 5223.67
+        },
+        {
+          "label": "non_speech",
+          "start": 5223.67,
+          "end": 5226.938
+        },
+        {
+          "label": "speech",
+          "start": 5226.938,
+          "end": 5232.79
+        },
+        {
+          "label": "non_speech",
+          "start": 5232.79,
+          "end": 5277.0
+        }
+      ]
+    },
+    "decision": "abstention",
+    "new_time_seconds": null,
+    "delta_seconds": null,
+    "reason": "INA ne voit pas de parole englobante; retour musique INA insuffisant",
+    "uncertainty": "moyenne_a_elevee"
+  },
+  {
+    "boundary_id": "pure-trance-radio-492-t19",
+    "episode_id": "pure-trance-radio-492",
+    "episode_title": "Pure Trance Radio Podcast 492",
+    "source_url": "https://richve.podbean.com/e/pure-trance-radio-podcast-492/",
+    "tracklist_url": "https://cuenation.com/?page=tracklist&folder=puretranceradio&filename=Solarstone+-+Pure+Trance+Radio+492.cue",
+    "track_number": 19,
+    "track_title": "Blackromeo - Ashanti",
+    "split": "evaluation",
+    "original_time_seconds": 5599.0,
+    "window_start_seconds": 5554.0,
+    "window_end_seconds": 5644.0,
+    "method": "consensus_ina_silero",
+    "excerpt_before": "output/excerpts/pure-trance-radio-492-t19-before.ogg",
+    "excerpt_after": "output/excerpts/pure-trance-radio-492-t19-after.ogg",
+    "automatic_candidate": false,
+    "candidate_time_seconds": null,
+    "candidate_delta_seconds": null,
+    "human_validation_status": "not_applicable",
+    "human_validation_source": null,
+    "human_validation_at": null,
+    "validated_original_time_seconds": null,
+    "validated_corrected_time_seconds": null,
+    "validated_delta_seconds": null,
+    "application_scope": null,
+    "segments": {
+      "ina": [
+        {
+          "label": "speech",
+          "start": 5554.0,
+          "end": 5575.68
+        },
+        {
+          "label": "music",
+          "start": 5575.68,
+          "end": 5578.64
+        },
+        {
+          "label": "speech",
+          "start": 5578.64,
+          "end": 5581.66
+        },
+        {
+          "label": "music",
+          "start": 5581.66,
+          "end": 5643.98
+        }
+      ],
+      "silero": [
+        {
+          "label": "non_speech",
+          "start": 5554.0,
+          "end": 5554.034
+        },
+        {
+          "label": "speech",
+          "start": 5554.034,
+          "end": 5556.526
+        },
+        {
+          "label": "non_speech",
+          "start": 5556.526,
+          "end": 5556.658
+        },
+        {
+          "label": "speech",
+          "start": 5556.658,
+          "end": 5568.238
+        },
+        {
+          "label": "non_speech",
+          "start": 5568.238,
+          "end": 5568.466
+        },
+        {
+          "label": "speech",
+          "start": 5568.466,
+          "end": 5576.27
+        },
+        {
+          "label": "non_speech",
+          "start": 5576.27,
+          "end": 5578.898
+        },
+        {
+          "label": "speech",
+          "start": 5578.898,
+          "end": 5581.614
+        },
+        {
+          "label": "non_speech",
+          "start": 5581.614,
+          "end": 5644.0
+        }
+      ]
+    },
+    "decision": "abstention",
+    "new_time_seconds": null,
+    "delta_seconds": null,
+    "reason": "INA ne voit pas de parole englobante; Silero ne voit pas de parole englobante; retour musique INA insuffisant",
+    "uncertainty": "moyenne_a_elevee"
+  },
+  {
+    "boundary_id": "pure-trance-radio-492-t20",
+    "episode_id": "pure-trance-radio-492",
+    "episode_title": "Pure Trance Radio Podcast 492",
+    "source_url": "https://richve.podbean.com/e/pure-trance-radio-podcast-492/",
+    "tracklist_url": "https://cuenation.com/?page=tracklist&folder=puretranceradio&filename=Solarstone+-+Pure+Trance+Radio+492.cue",
+    "track_number": 20,
+    "track_title": "Above & Beyond with Zoe Johnston - Quicksand (Ciaran McAuley Remix)",
+    "split": "evaluation",
+    "original_time_seconds": 5981.0,
+    "window_start_seconds": 5936.0,
+    "window_end_seconds": 6026.0,
+    "method": "consensus_ina_silero",
+    "excerpt_before": "output/excerpts/pure-trance-radio-492-t20-before.ogg",
+    "excerpt_after": "output/excerpts/pure-trance-radio-492-t20-after.ogg",
+    "automatic_candidate": false,
+    "candidate_time_seconds": null,
+    "candidate_delta_seconds": null,
+    "human_validation_status": "not_applicable",
+    "human_validation_source": null,
+    "human_validation_at": null,
+    "validated_original_time_seconds": null,
+    "validated_corrected_time_seconds": null,
+    "validated_delta_seconds": null,
+    "application_scope": null,
+    "segments": {
+      "ina": [
+        {
+          "label": "music",
+          "start": 5936.0,
+          "end": 5958.88
+        },
+        {
+          "label": "speech",
+          "start": 5958.88,
+          "end": 5966.34
+        },
+        {
+          "label": "music",
+          "start": 5966.34,
+          "end": 6025.98
+        }
+      ],
+      "silero": [
+        {
+          "label": "non_speech",
+          "start": 5936.0,
+          "end": 5949.826
+        },
+        {
+          "label": "speech",
+          "start": 5949.826,
+          "end": 5955.934
+        },
+        {
+          "label": "non_speech",
+          "start": 5955.934,
+          "end": 5956.482
+        },
+        {
+          "label": "speech",
+          "start": 5956.482,
+          "end": 5958.622
+        },
+        {
+          "label": "non_speech",
+          "start": 5958.622,
+          "end": 5958.914
+        },
+        {
+          "label": "speech",
+          "start": 5958.914,
+          "end": 5962.718
+        },
+        {
+          "label": "non_speech",
+          "start": 5962.718,
+          "end": 5962.85
+        },
+        {
+          "label": "speech",
+          "start": 5962.85,
+          "end": 5968.766
+        },
+        {
+          "label": "non_speech",
+          "start": 5968.766,
+          "end": 5970.946
+        },
+        {
+          "label": "speech",
+          "start": 5970.946,
+          "end": 5976.798
+        },
+        {
+          "label": "non_speech",
+          "start": 5976.798,
+          "end": 6026.0
+        }
+      ]
+    },
+    "decision": "abstention",
+    "new_time_seconds": null,
+    "delta_seconds": null,
+    "reason": "INA ne voit pas de parole englobante; Silero ne voit pas de parole englobante; retour musique INA insuffisant",
+    "uncertainty": "moyenne_a_elevee"
+  },
+  {
+    "boundary_id": "pure-trance-radio-492-t21",
+    "episode_id": "pure-trance-radio-492",
+    "episode_title": "Pure Trance Radio Podcast 492",
+    "source_url": "https://richve.podbean.com/e/pure-trance-radio-podcast-492/",
+    "tracklist_url": "https://cuenation.com/?page=tracklist&folder=puretranceradio&filename=Solarstone+-+Pure+Trance+Radio+492.cue",
+    "track_number": 21,
+    "track_title": "Armin van Buuren feat. Sharon Den Adel - In And Out of Love (Ben Hemsley Remix)",
+    "split": "evaluation",
+    "original_time_seconds": 6275.0,
+    "window_start_seconds": 6230.0,
+    "window_end_seconds": 6320.0,
+    "method": "consensus_ina_silero",
+    "excerpt_before": "output/excerpts/pure-trance-radio-492-t21-before.ogg",
+    "excerpt_after": "output/excerpts/pure-trance-radio-492-t21-after.ogg",
+    "automatic_candidate": false,
+    "candidate_time_seconds": null,
+    "candidate_delta_seconds": null,
+    "human_validation_status": "not_applicable",
+    "human_validation_source": null,
+    "human_validation_at": null,
+    "validated_original_time_seconds": null,
+    "validated_corrected_time_seconds": null,
+    "validated_delta_seconds": null,
+    "application_scope": null,
+    "segments": {
+      "ina": [
+        {
+          "label": "music",
+          "start": 6230.0,
+          "end": 6319.98
+        }
+      ],
+      "silero": [
+        {
+          "label": "non_speech",
+          "start": 6230.0,
+          "end": 6230.546
+        },
+        {
+          "label": "speech",
+          "start": 6230.546,
+          "end": 6234.766
+        },
+        {
+          "label": "non_speech",
+          "start": 6234.766,
+          "end": 6234.994
+        },
+        {
+          "label": "speech",
+          "start": 6234.994,
+          "end": 6241.838
+        },
+        {
+          "label": "non_speech",
+          "start": 6241.838,
+          "end": 6242.258
+        },
+        {
+          "label": "speech",
+          "start": 6242.258,
+          "end": 6243.502
+        },
+        {
+          "label": "non_speech",
+          "start": 6243.502,
+          "end": 6243.698
+        },
+        {
+          "label": "speech",
+          "start": 6243.698,
+          "end": 6252.846
+        },
+        {
+          "label": "non_speech",
+          "start": 6252.846,
+          "end": 6254.834
+        },
+        {
+          "label": "speech",
+          "start": 6254.834,
+          "end": 6265.518
+        },
+        {
+          "label": "non_speech",
+          "start": 6265.518,
+          "end": 6271.698
+        },
+        {
+          "label": "speech",
+          "start": 6271.698,
+          "end": 6274.83
+        },
+        {
+          "label": "non_speech",
+          "start": 6274.83,
+          "end": 6320.0
+        }
+      ]
+    },
+    "decision": "abstention",
+    "new_time_seconds": null,
+    "delta_seconds": null,
+    "reason": "INA ne voit pas de parole englobante; Silero ne voit pas de parole englobante; retour musique INA insuffisant",
+    "uncertainty": "moyenne_a_elevee"
+  },
+  {
+    "boundary_id": "pure-trance-radio-492-t22",
+    "episode_id": "pure-trance-radio-492",
+    "episode_title": "Pure Trance Radio Podcast 492",
+    "source_url": "https://richve.podbean.com/e/pure-trance-radio-podcast-492/",
+    "tracklist_url": "https://cuenation.com/?page=tracklist&folder=puretranceradio&filename=Solarstone+-+Pure+Trance+Radio+492.cue",
+    "track_number": 22,
+    "track_title": "Super-Frog Saves Tokyo - Jitterbug",
+    "split": "evaluation",
+    "original_time_seconds": 6649.0,
+    "window_start_seconds": 6604.0,
+    "window_end_seconds": 6694.0,
+    "method": "consensus_ina_silero",
+    "excerpt_before": "output/excerpts/pure-trance-radio-492-t22-before.ogg",
+    "excerpt_after": "output/excerpts/pure-trance-radio-492-t22-after.ogg",
+    "automatic_candidate": false,
+    "candidate_time_seconds": null,
+    "candidate_delta_seconds": null,
+    "human_validation_status": "not_applicable",
+    "human_validation_source": null,
+    "human_validation_at": null,
+    "validated_original_time_seconds": null,
+    "validated_corrected_time_seconds": null,
+    "validated_delta_seconds": null,
+    "application_scope": null,
+    "segments": {
+      "ina": [
+        {
+          "label": "music",
+          "start": 6604.0,
+          "end": 6634.74
+        },
+        {
+          "label": "speech",
+          "start": 6634.74,
+          "end": 6647.58
+        },
+        {
+          "label": "music",
+          "start": 6647.58,
+          "end": 6693.98
+        }
+      ],
+      "silero": [
+        {
+          "label": "non_speech",
+          "start": 6604.0,
+          "end": 6635.746
+        },
+        {
+          "label": "speech",
+          "start": 6635.746,
+          "end": 6637.662
+        },
+        {
+          "label": "non_speech",
+          "start": 6637.662,
+          "end": 6637.762
+        },
+        {
+          "label": "speech",
+          "start": 6637.762,
+          "end": 6638.462
+        },
+        {
+          "label": "non_speech",
+          "start": 6638.462,
+          "end": 6638.594
+        },
+        {
+          "label": "speech",
+          "start": 6638.594,
+          "end": 6641.63
+        },
+        {
+          "label": "non_speech",
+          "start": 6641.63,
+          "end": 6641.89
+        },
+        {
+          "label": "speech",
+          "start": 6641.89,
+          "end": 6648.414
+        },
+        {
+          "label": "non_speech",
+          "start": 6648.414,
+          "end": 6694.0
+        }
+      ]
+    },
+    "decision": "abstention",
+    "new_time_seconds": null,
+    "delta_seconds": null,
+    "reason": "INA ne voit pas de parole englobante; Silero ne voit pas de parole englobante; retour musique INA insuffisant",
+    "uncertainty": "moyenne_a_elevee"
+  },
+  {
+    "boundary_id": "pure-trance-radio-492-t23",
+    "episode_id": "pure-trance-radio-492",
+    "episode_title": "Pure Trance Radio Podcast 492",
+    "source_url": "https://richve.podbean.com/e/pure-trance-radio-podcast-492/",
+    "tracklist_url": "https://cuenation.com/?page=tracklist&folder=puretranceradio&filename=Solarstone+-+Pure+Trance+Radio+492.cue",
+    "track_number": 23,
+    "track_title": "Vangelis - West Across The Ocean Sea",
+    "split": "evaluation",
+    "original_time_seconds": 7001.0,
+    "window_start_seconds": 6956.0,
+    "window_end_seconds": 7046.0,
+    "method": "consensus_ina_silero",
+    "excerpt_before": "output/excerpts/pure-trance-radio-492-t23-before.ogg",
+    "excerpt_after": "output/excerpts/pure-trance-radio-492-t23-after.ogg",
+    "automatic_candidate": false,
+    "candidate_time_seconds": null,
+    "candidate_delta_seconds": null,
+    "human_validation_status": "not_applicable",
+    "human_validation_source": null,
+    "human_validation_at": null,
+    "validated_original_time_seconds": null,
+    "validated_corrected_time_seconds": null,
+    "validated_delta_seconds": null,
+    "application_scope": null,
+    "segments": {
+      "ina": [
+        {
+          "label": "speech",
+          "start": 6956.0,
+          "end": 6977.92
+        },
+        {
+          "label": "music",
+          "start": 6977.92,
+          "end": 6999.04
+        },
+        {
+          "label": "speech",
+          "start": 6999.04,
+          "end": 7001.26
+        },
+        {
+          "label": "music",
+          "start": 7001.26,
+          "end": 7039.58
+        },
+        {
+          "label": "noEnergy",
+          "start": 7039.58,
+          "end": 7040.3
+        },
+        {
+          "label": "music",
+          "start": 7040.3,
+          "end": 7045.98
+        }
+      ],
+      "silero": [
+        {
+          "label": "non_speech",
+          "start": 6956.0,
+          "end": 6956.066
+        },
+        {
+          "label": "speech",
+          "start": 6956.066,
+          "end": 6972.382
+        },
+        {
+          "label": "non_speech",
+          "start": 6972.382,
+          "end": 6972.866
+        },
+        {
+          "label": "speech",
+          "start": 6972.866,
+          "end": 6975.838
+        },
+        {
+          "label": "non_speech",
+          "start": 6975.838,
+          "end": 6976.066
+        },
+        {
+          "label": "speech",
+          "start": 6976.066,
+          "end": 6977.95
+        },
+        {
+          "label": "non_speech",
+          "start": 6977.95,
+          "end": 6978.05
+        },
+        {
+          "label": "speech",
+          "start": 6978.05,
+          "end": 6978.462
+        },
+        {
+          "label": "non_speech",
+          "start": 6978.462,
+          "end": 7046.0
+        }
+      ]
+    },
+    "decision": "abstention",
+    "new_time_seconds": null,
+    "delta_seconds": null,
+    "reason": "Silero ne voit pas de parole englobante; delta hors seuil",
+    "uncertainty": "moyenne_a_elevee"
+  },
+  {
+    "boundary_id": "pure-trance-radio-493-t02",
+    "episode_id": "pure-trance-radio-493",
+    "episode_title": "Pure Trance Radio Podcast 493",
+    "source_url": "https://richve.podbean.com/e/pure-trance-radio-podcast-493/",
+    "tracklist_url": "https://cuenation.com/?page=tracklist&folder=puretranceradio&filename=Solarstone+-+Pure+Trance+Radio+493.cue",
+    "track_number": 2,
+    "track_title": "Solarstone - Solarcoaster (Deestopia Remix)",
+    "split": "evaluation",
+    "original_time_seconds": 111.0,
+    "window_start_seconds": 66.0,
+    "window_end_seconds": 156.0,
+    "method": "consensus_ina_silero",
+    "excerpt_before": "output/excerpts/pure-trance-radio-493-t02-before.ogg",
+    "excerpt_after": "output/excerpts/pure-trance-radio-493-t02-after.ogg",
+    "automatic_candidate": false,
+    "candidate_time_seconds": null,
+    "candidate_delta_seconds": null,
+    "human_validation_status": "not_applicable",
+    "human_validation_source": null,
+    "human_validation_at": null,
+    "validated_original_time_seconds": null,
+    "validated_corrected_time_seconds": null,
+    "validated_delta_seconds": null,
+    "application_scope": null,
+    "segments": {
+      "ina": [
+        {
+          "label": "music",
+          "start": 66.0,
+          "end": 79.9
+        },
+        {
+          "label": "speech",
+          "start": 79.9,
+          "end": 115.14
+        },
+        {
+          "label": "music",
+          "start": 115.14,
+          "end": 155.98
+        }
+      ],
+      "silero": [
+        {
+          "label": "non_speech",
+          "start": 66.0,
+          "end": 66.066
+        },
+        {
+          "label": "speech",
+          "start": 66.066,
+          "end": 67.374
+        },
+        {
+          "label": "non_speech",
+          "start": 67.374,
+          "end": 70.386
+        },
+        {
+          "label": "speech",
+          "start": 70.386,
+          "end": 73.102
+        },
+        {
+          "label": "non_speech",
+          "start": 73.102,
+          "end": 73.266
+        },
+        {
+          "label": "speech",
+          "start": 73.266,
+          "end": 74.414
+        },
+        {
+          "label": "non_speech",
+          "start": 74.414,
+          "end": 80.722
+        },
+        {
+          "label": "speech",
+          "start": 80.722,
+          "end": 82.798
+        },
+        {
+          "label": "non_speech",
+          "start": 82.798,
+          "end": 83.058
+        },
+        {
+          "label": "speech",
+          "start": 83.058,
+          "end": 84.014
+        },
+        {
+          "label": "non_speech",
+          "start": 84.014,
+          "end": 84.37
+        },
+        {
+          "label": "speech",
+          "start": 84.37,
+          "end": 86.478
+        },
+        {
+          "label": "non_speech",
+          "start": 86.478,
+          "end": 87.698
+        },
+        {
+          "label": "speech",
+          "start": 87.698,
+          "end": 91.694
+        },
+        {
+          "label": "non_speech",
+          "start": 91.694,
+          "end": 92.21
+        },
+        {
+          "label": "speech",
+          "start": 92.21,
+          "end": 94.158
+        },
+        {
+          "label": "non_speech",
+          "start": 94.158,
+          "end": 94.29
+        },
+        {
+          "label": "speech",
+          "start": 94.29,
+          "end": 96.974
+        },
+        {
+          "label": "non_speech",
+          "start": 96.974,
+          "end": 97.17
+        },
+        {
+          "label": "speech",
+          "start": 97.17,
+          "end": 104.846
+        },
+        {
+          "label": "non_speech",
+          "start": 104.846,
+          "end": 105.138
+        },
+        {
+          "label": "speech",
+          "start": 105.138,
+          "end": 108.078
+        },
+        {
+          "label": "non_speech",
+          "start": 108.078,
+          "end": 108.242
+        },
+        {
+          "label": "speech",
+          "start": 108.242,
+          "end": 109.934
+        },
+        {
+          "label": "non_speech",
+          "start": 109.934,
+          "end": 110.418
+        },
+        {
+          "label": "speech",
+          "start": 110.418,
+          "end": 113.134
+        },
+        {
+          "label": "non_speech",
+          "start": 113.134,
+          "end": 113.97
+        },
+        {
+          "label": "speech",
+          "start": 113.97,
+          "end": 115.278
+        },
+        {
+          "label": "non_speech",
+          "start": 115.278,
+          "end": 115.506
+        },
+        {
+          "label": "speech",
+          "start": 115.506,
+          "end": 116.11
+        },
+        {
+          "label": "non_speech",
+          "start": 116.11,
+          "end": 156.0
+        }
+      ]
+    },
+    "decision": "abstention",
+    "new_time_seconds": null,
+    "delta_seconds": null,
+    "reason": "fins de parole en desaccord de plus de 2 s",
+    "uncertainty": "moyenne_a_elevee"
+  },
+  {
+    "boundary_id": "pure-trance-radio-493-t03",
+    "episode_id": "pure-trance-radio-493",
+    "episode_title": "Pure Trance Radio Podcast 493",
+    "source_url": "https://richve.podbean.com/e/pure-trance-radio-podcast-493/",
+    "tracklist_url": "https://cuenation.com/?page=tracklist&folder=puretranceradio&filename=Solarstone+-+Pure+Trance+Radio+493.cue",
+    "track_number": 3,
+    "track_title": "Nordfold - Tidal Shift",
+    "split": "evaluation",
+    "original_time_seconds": 534.0,
+    "window_start_seconds": 489.0,
+    "window_end_seconds": 579.0,
+    "method": "consensus_ina_silero",
+    "excerpt_before": "output/excerpts/pure-trance-radio-493-t03-before.ogg",
+    "excerpt_after": "output/excerpts/pure-trance-radio-493-t03-after.ogg",
+    "automatic_candidate": false,
+    "candidate_time_seconds": null,
+    "candidate_delta_seconds": null,
+    "human_validation_status": "not_applicable",
+    "human_validation_source": null,
+    "human_validation_at": null,
+    "validated_original_time_seconds": null,
+    "validated_corrected_time_seconds": null,
+    "validated_delta_seconds": null,
+    "application_scope": null,
+    "segments": {
+      "ina": [
+        {
+          "label": "music",
+          "start": 489.0,
+          "end": 530.98
+        },
+        {
+          "label": "speech",
+          "start": 530.98,
+          "end": 535.16
+        },
+        {
+          "label": "music",
+          "start": 535.16,
+          "end": 578.98
+        }
+      ],
+      "silero": [
+        {
+          "label": "non_speech",
+          "start": 489.0,
+          "end": 579.0
+        }
+      ]
+    },
+    "decision": "abstention",
+    "new_time_seconds": null,
+    "delta_seconds": null,
+    "reason": "Silero ne voit pas de parole englobante",
+    "uncertainty": "moyenne_a_elevee"
+  },
+  {
+    "boundary_id": "pure-trance-radio-493-t04",
+    "episode_id": "pure-trance-radio-493",
+    "episode_title": "Pure Trance Radio Podcast 493",
+    "source_url": "https://richve.podbean.com/e/pure-trance-radio-podcast-493/",
+    "tracklist_url": "https://cuenation.com/?page=tracklist&folder=puretranceradio&filename=Solarstone+-+Pure+Trance+Radio+493.cue",
+    "track_number": 4,
+    "track_title": "Exotek - Embrace",
+    "split": "evaluation",
+    "original_time_seconds": 822.0,
+    "window_start_seconds": 777.0,
+    "window_end_seconds": 867.0,
+    "method": "consensus_ina_silero",
+    "excerpt_before": "output/excerpts/pure-trance-radio-493-t04-before.ogg",
+    "excerpt_after": "output/excerpts/pure-trance-radio-493-t04-after.ogg",
+    "automatic_candidate": false,
+    "candidate_time_seconds": null,
+    "candidate_delta_seconds": null,
+    "human_validation_status": "not_applicable",
+    "human_validation_source": null,
+    "human_validation_at": null,
+    "validated_original_time_seconds": null,
+    "validated_corrected_time_seconds": null,
+    "validated_delta_seconds": null,
+    "application_scope": null,
+    "segments": {
+      "ina": [
+        {
+          "label": "music",
+          "start": 777.0,
+          "end": 866.98
+        }
+      ],
+      "silero": [
+        {
+          "label": "non_speech",
+          "start": 777.0,
+          "end": 782.154
+        },
+        {
+          "label": "speech",
+          "start": 782.154,
+          "end": 791.046
+        },
+        {
+          "label": "non_speech",
+          "start": 791.046,
+          "end": 809.162
+        },
+        {
+          "label": "speech",
+          "start": 809.162,
+          "end": 809.638
+        },
+        {
+          "label": "non_speech",
+          "start": 809.638,
+          "end": 809.77
+        },
+        {
+          "label": "speech",
+          "start": 809.77,
+          "end": 810.95
+        },
+        {
+          "label": "non_speech",
+          "start": 810.95,
+          "end": 811.498
+        },
+        {
+          "label": "speech",
+          "start": 811.498,
+          "end": 818.374
+        },
+        {
+          "label": "non_speech",
+          "start": 818.374,
+          "end": 818.986
+        },
+        {
+          "label": "speech",
+          "start": 818.986,
+          "end": 826.47
+        },
+        {
+          "label": "non_speech",
+          "start": 826.47,
+          "end": 867.0
+        }
+      ]
+    },
+    "decision": "abstention",
+    "new_time_seconds": null,
+    "delta_seconds": null,
+    "reason": "INA ne voit pas de parole englobante; retour musique INA insuffisant",
+    "uncertainty": "moyenne_a_elevee"
+  },
+  {
+    "boundary_id": "pure-trance-radio-493-t05",
+    "episode_id": "pure-trance-radio-493",
+    "episode_title": "Pure Trance Radio Podcast 493",
+    "source_url": "https://richve.podbean.com/e/pure-trance-radio-podcast-493/",
+    "tracklist_url": "https://cuenation.com/?page=tracklist&folder=puretranceradio&filename=Solarstone+-+Pure+Trance+Radio+493.cue",
+    "track_number": 5,
+    "track_title": "Kyau & Albert - Halo",
+    "split": "evaluation",
+    "original_time_seconds": 1212.0,
+    "window_start_seconds": 1167.0,
+    "window_end_seconds": 1257.0,
+    "method": "consensus_ina_silero",
+    "excerpt_before": "output/excerpts/pure-trance-radio-493-t05-before.ogg",
+    "excerpt_after": "output/excerpts/pure-trance-radio-493-t05-after.ogg",
+    "automatic_candidate": false,
+    "candidate_time_seconds": null,
+    "candidate_delta_seconds": null,
+    "human_validation_status": "not_applicable",
+    "human_validation_source": null,
+    "human_validation_at": null,
+    "validated_original_time_seconds": null,
+    "validated_corrected_time_seconds": null,
+    "validated_delta_seconds": null,
+    "application_scope": null,
+    "segments": {
+      "ina": [
+        {
+          "label": "music",
+          "start": 1167.0,
+          "end": 1256.98
+        }
+      ],
+      "silero": [
+        {
+          "label": "non_speech",
+          "start": 1167.0,
+          "end": 1203.642
+        },
+        {
+          "label": "speech",
+          "start": 1203.642,
+          "end": 1204.662
+        },
+        {
+          "label": "non_speech",
+          "start": 1204.662,
+          "end": 1205.05
+        },
+        {
+          "label": "speech",
+          "start": 1205.05,
+          "end": 1212.054
+        },
+        {
+          "label": "non_speech",
+          "start": 1212.054,
+          "end": 1212.218
+        },
+        {
+          "label": "speech",
+          "start": 1212.218,
+          "end": 1216.278
+        },
+        {
+          "label": "non_speech",
+          "start": 1216.278,
+          "end": 1257.0
+        }
+      ]
+    },
+    "decision": "abstention",
+    "new_time_seconds": null,
+    "delta_seconds": null,
+    "reason": "INA ne voit pas de parole englobante; retour musique INA insuffisant",
+    "uncertainty": "moyenne_a_elevee"
+  },
+  {
+    "boundary_id": "pure-trance-radio-493-t06",
+    "episode_id": "pure-trance-radio-493",
+    "episode_title": "Pure Trance Radio Podcast 493",
+    "source_url": "https://richve.podbean.com/e/pure-trance-radio-podcast-493/",
+    "tracklist_url": "https://cuenation.com/?page=tracklist&folder=puretranceradio&filename=Solarstone+-+Pure+Trance+Radio+493.cue",
+    "track_number": 6,
+    "track_title": "PARAFRAME - 3 Worlds",
+    "split": "evaluation",
+    "original_time_seconds": 1441.0,
+    "window_start_seconds": 1396.0,
+    "window_end_seconds": 1486.0,
+    "method": "consensus_ina_silero",
+    "excerpt_before": "output/excerpts/pure-trance-radio-493-t06-before.ogg",
+    "excerpt_after": "output/excerpts/pure-trance-radio-493-t06-after.ogg",
+    "automatic_candidate": false,
+    "candidate_time_seconds": null,
+    "candidate_delta_seconds": null,
+    "human_validation_status": "not_applicable",
+    "human_validation_source": null,
+    "human_validation_at": null,
+    "validated_original_time_seconds": null,
+    "validated_corrected_time_seconds": null,
+    "validated_delta_seconds": null,
+    "application_scope": null,
+    "segments": {
+      "ina": [
+        {
+          "label": "speech",
+          "start": 1396.0,
+          "end": 1397.28
+        },
+        {
+          "label": "music",
+          "start": 1397.28,
+          "end": 1428.12
+        },
+        {
+          "label": "speech",
+          "start": 1428.12,
+          "end": 1435.86
+        },
+        {
+          "label": "music",
+          "start": 1435.86,
+          "end": 1485.98
+        }
+      ],
+      "silero": [
+        {
+          "label": "non_speech",
+          "start": 1396.0,
+          "end": 1396.226
+        },
+        {
+          "label": "speech",
+          "start": 1396.226,
+          "end": 1407.23
+        },
+        {
+          "label": "non_speech",
+          "start": 1407.23,
+          "end": 1429.218
+        },
+        {
+          "label": "speech",
+          "start": 1429.218,
+          "end": 1431.198
+        },
+        {
+          "label": "non_speech",
+          "start": 1431.198,
+          "end": 1431.298
+        },
+        {
+          "label": "speech",
+          "start": 1431.298,
+          "end": 1437.278
+        },
+        {
+          "label": "non_speech",
+          "start": 1437.278,
+          "end": 1486.0
+        }
+      ]
+    },
+    "decision": "abstention",
+    "new_time_seconds": null,
+    "delta_seconds": null,
+    "reason": "INA ne voit pas de parole englobante; Silero ne voit pas de parole englobante; retour musique INA insuffisant",
+    "uncertainty": "moyenne_a_elevee"
+  },
+  {
+    "boundary_id": "pure-trance-radio-493-t07",
+    "episode_id": "pure-trance-radio-493",
+    "episode_title": "Pure Trance Radio Podcast 493",
+    "source_url": "https://richve.podbean.com/e/pure-trance-radio-podcast-493/",
+    "tracklist_url": "https://cuenation.com/?page=tracklist&folder=puretranceradio&filename=Solarstone+-+Pure+Trance+Radio+493.cue",
+    "track_number": 7,
+    "track_title": "Josh Caffe - Velvet Skin",
+    "split": "evaluation",
+    "original_time_seconds": 1757.0,
+    "window_start_seconds": 1712.0,
+    "window_end_seconds": 1802.0,
+    "method": "consensus_ina_silero",
+    "excerpt_before": "output/excerpts/pure-trance-radio-493-t07-before.ogg",
+    "excerpt_after": "output/excerpts/pure-trance-radio-493-t07-after.ogg",
+    "automatic_candidate": false,
+    "candidate_time_seconds": null,
+    "candidate_delta_seconds": null,
+    "human_validation_status": "not_applicable",
+    "human_validation_source": null,
+    "human_validation_at": null,
+    "validated_original_time_seconds": null,
+    "validated_corrected_time_seconds": null,
+    "validated_delta_seconds": null,
+    "application_scope": null,
+    "segments": {
+      "ina": [
+        {
+          "label": "speech",
+          "start": 1712.0,
+          "end": 1727.74
+        },
+        {
+          "label": "music",
+          "start": 1727.74,
+          "end": 1746.24
+        },
+        {
+          "label": "speech",
+          "start": 1746.24,
+          "end": 1755.6
+        },
+        {
+          "label": "music",
+          "start": 1755.6,
+          "end": 1757.48
+        },
+        {
+          "label": "speech",
+          "start": 1757.48,
+          "end": 1760.18
+        },
+        {
+          "label": "music",
+          "start": 1760.18,
+          "end": 1785.26
+        },
+        {
+          "label": "noEnergy",
+          "start": 1785.26,
+          "end": 1785.72
+        },
+        {
+          "label": "music",
+          "start": 1785.72,
+          "end": 1801.98
+        }
+      ],
+      "silero": [
+        {
+          "label": "non_speech",
+          "start": 1712.0,
+          "end": 1712.93
+        },
+        {
+          "label": "speech",
+          "start": 1712.93,
+          "end": 1720.03
+        },
+        {
+          "label": "non_speech",
+          "start": 1720.03,
+          "end": 1720.226
+        },
+        {
+          "label": "speech",
+          "start": 1720.226,
+          "end": 1727.934
+        },
+        {
+          "label": "non_speech",
+          "start": 1727.934,
+          "end": 1728.13
+        },
+        {
+          "label": "speech",
+          "start": 1728.13,
+          "end": 1728.958
+        },
+        {
+          "label": "non_speech",
+          "start": 1728.958,
+          "end": 1731.906
+        },
+        {
+          "label": "speech",
+          "start": 1731.906,
+          "end": 1732.574
+        },
+        {
+          "label": "non_speech",
+          "start": 1732.574,
+          "end": 1738.786
+        },
+        {
+          "label": "speech",
+          "start": 1738.786,
+          "end": 1742.206
+        },
+        {
+          "label": "non_speech",
+          "start": 1742.206,
+          "end": 1746.498
+        },
+        {
+          "label": "speech",
+          "start": 1746.498,
+          "end": 1750.238
+        },
+        {
+          "label": "non_speech",
+          "start": 1750.238,
+          "end": 1750.338
+        },
+        {
+          "label": "speech",
+          "start": 1750.338,
+          "end": 1753.566
+        },
+        {
+          "label": "non_speech",
+          "start": 1753.566,
+          "end": 1753.666
+        },
+        {
+          "label": "speech",
+          "start": 1753.666,
+          "end": 1757.182
+        },
+        {
+          "label": "non_speech",
+          "start": 1757.182,
+          "end": 1757.73
+        },
+        {
+          "label": "speech",
+          "start": 1757.73,
+          "end": 1761.374
+        },
+        {
+          "label": "non_speech",
+          "start": 1761.374,
+          "end": 1766.434
+        },
+        {
+          "label": "speech",
+          "start": 1766.434,
+          "end": 1767.166
+        },
+        {
+          "label": "non_speech",
+          "start": 1767.166,
+          "end": 1802.0
+        }
+      ]
+    },
+    "decision": "abstention",
+    "new_time_seconds": null,
+    "delta_seconds": null,
+    "reason": "INA ne voit pas de parole englobante; retour musique INA insuffisant",
+    "uncertainty": "moyenne_a_elevee"
+  },
+  {
+    "boundary_id": "pure-trance-radio-493-t08",
+    "episode_id": "pure-trance-radio-493",
+    "episode_title": "Pure Trance Radio Podcast 493",
+    "source_url": "https://richve.podbean.com/e/pure-trance-radio-podcast-493/",
+    "tracklist_url": "https://cuenation.com/?page=tracklist&folder=puretranceradio&filename=Solarstone+-+Pure+Trance+Radio+493.cue",
+    "track_number": 8,
+    "track_title": "Tre Turner - Archaos (CLOSE PROXIMITY Progressive Mix)",
+    "split": "evaluation",
+    "original_time_seconds": 2001.0,
+    "window_start_seconds": 1956.0,
+    "window_end_seconds": 2046.0,
+    "method": "consensus_ina_silero",
+    "excerpt_before": "output/excerpts/pure-trance-radio-493-t08-before.ogg",
+    "excerpt_after": "output/excerpts/pure-trance-radio-493-t08-after.ogg",
+    "automatic_candidate": false,
+    "candidate_time_seconds": null,
+    "candidate_delta_seconds": null,
+    "human_validation_status": "not_applicable",
+    "human_validation_source": null,
+    "human_validation_at": null,
+    "validated_original_time_seconds": null,
+    "validated_corrected_time_seconds": null,
+    "validated_delta_seconds": null,
+    "application_scope": null,
+    "segments": {
+      "ina": [
+        {
+          "label": "music",
+          "start": 1956.0,
+          "end": 1982.44
+        },
+        {
+          "label": "speech",
+          "start": 1982.44,
+          "end": 1985.48
+        },
+        {
+          "label": "music",
+          "start": 1985.48,
+          "end": 2045.98
+        }
+      ],
+      "silero": [
+        {
+          "label": "non_speech",
+          "start": 1956.0,
+          "end": 1982.754
+        },
+        {
+          "label": "speech",
+          "start": 1982.754,
+          "end": 1987.998
+        },
+        {
+          "label": "non_speech",
+          "start": 1987.998,
+          "end": 1988.386
+        },
+        {
+          "label": "speech",
+          "start": 1988.386,
+          "end": 1991.326
+        },
+        {
+          "label": "non_speech",
+          "start": 1991.326,
+          "end": 1991.65
+        },
+        {
+          "label": "speech",
+          "start": 1991.65,
+          "end": 1993.182
+        },
+        {
+          "label": "non_speech",
+          "start": 1993.182,
+          "end": 1993.378
+        },
+        {
+          "label": "speech",
+          "start": 1993.378,
+          "end": 2000.67
+        },
+        {
+          "label": "non_speech",
+          "start": 2000.67,
+          "end": 2000.866
+        },
+        {
+          "label": "speech",
+          "start": 2000.866,
+          "end": 2004.67
+        },
+        {
+          "label": "non_speech",
+          "start": 2004.67,
+          "end": 2046.0
+        }
+      ]
+    },
+    "decision": "abstention",
+    "new_time_seconds": null,
+    "delta_seconds": null,
+    "reason": "INA ne voit pas de parole englobante; retour musique INA insuffisant",
+    "uncertainty": "moyenne_a_elevee"
+  },
+  {
+    "boundary_id": "pure-trance-radio-493-t09",
+    "episode_id": "pure-trance-radio-493",
+    "episode_title": "Pure Trance Radio Podcast 493",
+    "source_url": "https://richve.podbean.com/e/pure-trance-radio-podcast-493/",
+    "tracklist_url": "https://cuenation.com/?page=tracklist&folder=puretranceradio&filename=Solarstone+-+Pure+Trance+Radio+493.cue",
+    "track_number": 9,
+    "track_title": "Private Taste - First (Ashtrax Rerub)",
+    "split": "evaluation",
+    "original_time_seconds": 2350.0,
+    "window_start_seconds": 2305.0,
+    "window_end_seconds": 2395.0,
+    "method": "consensus_ina_silero",
+    "excerpt_before": "output/excerpts/pure-trance-radio-493-t09-before.ogg",
+    "excerpt_after": "output/excerpts/pure-trance-radio-493-t09-after.ogg",
+    "automatic_candidate": true,
+    "candidate_time_seconds": 2353.08,
+    "candidate_delta_seconds": 3.08,
+    "human_validation_status": "validated_for_lab_only",
+    "human_validation_source": "Emmanuel",
+    "human_validation_at": "2026-10-10T16:07:00+02:00",
+    "validated_original_time_seconds": 2350.0,
+    "validated_corrected_time_seconds": 2353.08,
+    "validated_delta_seconds": 3.08,
+    "application_scope": "lab_only",
+    "segments": {
+      "ina": [
+        {
+          "label": "music",
+          "start": 2305.0,
+          "end": 2336.7
+        },
+        {
+          "label": "speech",
+          "start": 2336.7,
+          "end": 2353.08
+        },
+        {
+          "label": "music",
+          "start": 2353.08,
+          "end": 2394.98
+        }
+      ],
+      "silero": [
+        {
+          "label": "non_speech",
+          "start": 2305.0,
+          "end": 2342.666
+        },
+        {
+          "label": "speech",
+          "start": 2342.666,
+          "end": 2343.206
+        },
+        {
+          "label": "non_speech",
+          "start": 2343.206,
+          "end": 2344.202
+        },
+        {
+          "label": "speech",
+          "start": 2344.202,
+          "end": 2353.926
+        },
+        {
+          "label": "non_speech",
+          "start": 2353.926,
+          "end": 2395.0
+        }
+      ]
+    },
+    "decision": "correction_validee_labo",
+    "new_time_seconds": 2353.08,
+    "delta_seconds": 3.08,
+    "reason": "Consensus INA/Silero puis retour a la musique; correction validee par ecoute humaine et applicable au laboratoire uniquement.",
+    "uncertainty": "levee_par_ecoute_humaine"
+  },
+  {
+    "boundary_id": "pure-trance-radio-493-t10",
+    "episode_id": "pure-trance-radio-493",
+    "episode_title": "Pure Trance Radio Podcast 493",
+    "source_url": "https://richve.podbean.com/e/pure-trance-radio-podcast-493/",
+    "tracklist_url": "https://cuenation.com/?page=tracklist&folder=puretranceradio&filename=Solarstone+-+Pure+Trance+Radio+493.cue",
+    "track_number": 10,
+    "track_title": "SONIN x Orkidea - Avril",
+    "split": "evaluation",
+    "original_time_seconds": 2734.0,
+    "window_start_seconds": 2689.0,
+    "window_end_seconds": 2779.0,
+    "method": "consensus_ina_silero",
+    "excerpt_before": "output/excerpts/pure-trance-radio-493-t10-before.ogg",
+    "excerpt_after": "output/excerpts/pure-trance-radio-493-t10-after.ogg",
+    "automatic_candidate": false,
+    "candidate_time_seconds": null,
+    "candidate_delta_seconds": null,
+    "human_validation_status": "not_applicable",
+    "human_validation_source": null,
+    "human_validation_at": null,
+    "validated_original_time_seconds": null,
+    "validated_corrected_time_seconds": null,
+    "validated_delta_seconds": null,
+    "application_scope": null,
+    "segments": {
+      "ina": [
+        {
+          "label": "music",
+          "start": 2689.0,
+          "end": 2717.66
+        },
+        {
+          "label": "speech",
+          "start": 2717.66,
+          "end": 2727.58
+        },
+        {
+          "label": "music",
+          "start": 2727.58,
+          "end": 2778.98
+        }
+      ],
+      "silero": [
+        {
+          "label": "non_speech",
+          "start": 2689.0,
+          "end": 2707.946
+        },
+        {
+          "label": "speech",
+          "start": 2707.946,
+          "end": 2708.806
+        },
+        {
+          "label": "non_speech",
+          "start": 2708.806,
+          "end": 2714.73
+        },
+        {
+          "label": "speech",
+          "start": 2714.73,
+          "end": 2715.206
+        },
+        {
+          "label": "non_speech",
+          "start": 2715.206,
+          "end": 2715.402
+        },
+        {
+          "label": "speech",
+          "start": 2715.402,
+          "end": 2721.35
+        },
+        {
+          "label": "non_speech",
+          "start": 2721.35,
+          "end": 2721.642
+        },
+        {
+          "label": "speech",
+          "start": 2721.642,
+          "end": 2724.358
+        },
+        {
+          "label": "non_speech",
+          "start": 2724.358,
+          "end": 2724.778
+        },
+        {
+          "label": "speech",
+          "start": 2724.778,
+          "end": 2728.934
+        },
+        {
+          "label": "non_speech",
+          "start": 2728.934,
+          "end": 2732.138
+        },
+        {
+          "label": "speech",
+          "start": 2732.138,
+          "end": 2734.694
+        },
+        {
+          "label": "non_speech",
+          "start": 2734.694,
+          "end": 2779.0
+        }
+      ]
+    },
+    "decision": "abstention",
+    "new_time_seconds": null,
+    "delta_seconds": null,
+    "reason": "INA ne voit pas de parole englobante; retour musique INA insuffisant",
+    "uncertainty": "moyenne_a_elevee"
+  },
+  {
+    "boundary_id": "pure-trance-radio-493-t11",
+    "episode_id": "pure-trance-radio-493",
+    "episode_title": "Pure Trance Radio Podcast 493",
+    "source_url": "https://richve.podbean.com/e/pure-trance-radio-podcast-493/",
+    "tracklist_url": "https://cuenation.com/?page=tracklist&folder=puretranceradio&filename=Solarstone+-+Pure+Trance+Radio+493.cue",
+    "track_number": 11,
+    "track_title": "Push - Open The Night",
+    "split": "evaluation",
+    "original_time_seconds": 3021.0,
+    "window_start_seconds": 2976.0,
+    "window_end_seconds": 3066.0,
+    "method": "consensus_ina_silero",
+    "excerpt_before": "output/excerpts/pure-trance-radio-493-t11-before.ogg",
+    "excerpt_after": "output/excerpts/pure-trance-radio-493-t11-after.ogg",
+    "automatic_candidate": false,
+    "candidate_time_seconds": null,
+    "candidate_delta_seconds": null,
+    "human_validation_status": "not_applicable",
+    "human_validation_source": null,
+    "human_validation_at": null,
+    "validated_original_time_seconds": null,
+    "validated_corrected_time_seconds": null,
+    "validated_delta_seconds": null,
+    "application_scope": null,
+    "segments": {
+      "ina": [
+        {
+          "label": "music",
+          "start": 2976.0,
+          "end": 3065.98
+        }
+      ],
+      "silero": [
+        {
+          "label": "non_speech",
+          "start": 2976.0,
+          "end": 3005.346
+        },
+        {
+          "label": "speech",
+          "start": 3005.346,
+          "end": 3010.782
+        },
+        {
+          "label": "non_speech",
+          "start": 3010.782,
+          "end": 3012.194
+        },
+        {
+          "label": "speech",
+          "start": 3012.194,
+          "end": 3014.526
+        },
+        {
+          "label": "non_speech",
+          "start": 3014.526,
+          "end": 3015.49
+        },
+        {
+          "label": "speech",
+          "start": 3015.49,
+          "end": 3015.806
+        },
+        {
+          "label": "non_speech",
+          "start": 3015.806,
+          "end": 3066.0
+        }
+      ]
+    },
+    "decision": "abstention",
+    "new_time_seconds": null,
+    "delta_seconds": null,
+    "reason": "INA ne voit pas de parole englobante; Silero ne voit pas de parole englobante; retour musique INA insuffisant",
+    "uncertainty": "moyenne_a_elevee"
+  },
+  {
+    "boundary_id": "pure-trance-radio-493-t12",
+    "episode_id": "pure-trance-radio-493",
+    "episode_title": "Pure Trance Radio Podcast 493",
+    "source_url": "https://richve.podbean.com/e/pure-trance-radio-podcast-493/",
+    "tracklist_url": "https://cuenation.com/?page=tracklist&folder=puretranceradio&filename=Solarstone+-+Pure+Trance+Radio+493.cue",
+    "track_number": 12,
+    "track_title": "Factor B feat. Cat Martin - Crashing Over (Lost Minds Remix)",
+    "split": "evaluation",
+    "original_time_seconds": 3344.0,
+    "window_start_seconds": 3299.0,
+    "window_end_seconds": 3389.0,
+    "method": "consensus_ina_silero",
+    "excerpt_before": "output/excerpts/pure-trance-radio-493-t12-before.ogg",
+    "excerpt_after": "output/excerpts/pure-trance-radio-493-t12-after.ogg",
+    "automatic_candidate": false,
+    "candidate_time_seconds": null,
+    "candidate_delta_seconds": null,
+    "human_validation_status": "not_applicable",
+    "human_validation_source": null,
+    "human_validation_at": null,
+    "validated_original_time_seconds": null,
+    "validated_corrected_time_seconds": null,
+    "validated_delta_seconds": null,
+    "application_scope": null,
+    "segments": {
+      "ina": [
+        {
+          "label": "music",
+          "start": 3299.0,
+          "end": 3333.24
+        },
+        {
+          "label": "speech",
+          "start": 3333.24,
+          "end": 3339.96
+        },
+        {
+          "label": "music",
+          "start": 3339.96,
+          "end": 3360.56
+        },
+        {
+          "label": "noEnergy",
+          "start": 3360.56,
+          "end": 3361.64
+        },
+        {
+          "label": "music",
+          "start": 3361.64,
+          "end": 3388.98
+        }
+      ],
+      "silero": [
+        {
+          "label": "non_speech",
+          "start": 3299.0,
+          "end": 3325.05
+        },
+        {
+          "label": "speech",
+          "start": 3325.05,
+          "end": 3326.934
+        },
+        {
+          "label": "non_speech",
+          "start": 3326.934,
+          "end": 3327.258
+        },
+        {
+          "label": "speech",
+          "start": 3327.258,
+          "end": 3334.262
+        },
+        {
+          "label": "non_speech",
+          "start": 3334.262,
+          "end": 3334.586
+        },
+        {
+          "label": "speech",
+          "start": 3334.586,
+          "end": 3340.502
+        },
+        {
+          "label": "non_speech",
+          "start": 3340.502,
+          "end": 3345.274
+        },
+        {
+          "label": "speech",
+          "start": 3345.274,
+          "end": 3346.294
+        },
+        {
+          "label": "non_speech",
+          "start": 3346.294,
+          "end": 3347.098
+        },
+        {
+          "label": "speech",
+          "start": 3347.098,
+          "end": 3347.638
+        },
+        {
+          "label": "non_speech",
+          "start": 3347.638,
+          "end": 3347.898
+        },
+        {
+          "label": "speech",
+          "start": 3347.898,
+          "end": 3348.726
+        },
+        {
+          "label": "non_speech",
+          "start": 3348.726,
+          "end": 3348.922
+        },
+        {
+          "label": "speech",
+          "start": 3348.922,
+          "end": 3352.118
+        },
+        {
+          "label": "non_speech",
+          "start": 3352.118,
+          "end": 3352.314
+        },
+        {
+          "label": "speech",
+          "start": 3352.314,
+          "end": 3354.518
+        },
+        {
+          "label": "non_speech",
+          "start": 3354.518,
+          "end": 3389.0
+        }
+      ]
+    },
+    "decision": "abstention",
+    "new_time_seconds": null,
+    "delta_seconds": null,
+    "reason": "INA ne voit pas de parole englobante; Silero ne voit pas de parole englobante; retour musique INA insuffisant",
+    "uncertainty": "moyenne_a_elevee"
+  },
+  {
+    "boundary_id": "pure-trance-radio-493-t13",
+    "episode_id": "pure-trance-radio-493",
+    "episode_title": "Pure Trance Radio Podcast 493",
+    "source_url": "https://richve.podbean.com/e/pure-trance-radio-podcast-493/",
+    "tracklist_url": "https://cuenation.com/?page=tracklist&folder=puretranceradio&filename=Solarstone+-+Pure+Trance+Radio+493.cue",
+    "track_number": 13,
+    "track_title": "St. John & Scott Ramsay pres. ApexLOOP - Inspire",
+    "split": "evaluation",
+    "original_time_seconds": 3747.0,
+    "window_start_seconds": 3702.0,
+    "window_end_seconds": 3792.0,
+    "method": "consensus_ina_silero",
+    "excerpt_before": "output/excerpts/pure-trance-radio-493-t13-before.ogg",
+    "excerpt_after": "output/excerpts/pure-trance-radio-493-t13-after.ogg",
+    "automatic_candidate": false,
+    "candidate_time_seconds": null,
+    "candidate_delta_seconds": null,
+    "human_validation_status": "not_applicable",
+    "human_validation_source": null,
+    "human_validation_at": null,
+    "validated_original_time_seconds": null,
+    "validated_corrected_time_seconds": null,
+    "validated_delta_seconds": null,
+    "application_scope": null,
+    "segments": {
+      "ina": [
+        {
+          "label": "speech",
+          "start": 3702.0,
+          "end": 3706.26
+        },
+        {
+          "label": "music",
+          "start": 3706.26,
+          "end": 3791.98
+        }
+      ],
+      "silero": [
+        {
+          "label": "non_speech",
+          "start": 3702.0,
+          "end": 3702.482
+        },
+        {
+          "label": "speech",
+          "start": 3702.482,
+          "end": 3717.678
+        },
+        {
+          "label": "non_speech",
+          "start": 3717.678,
+          "end": 3727.41
+        },
+        {
+          "label": "speech",
+          "start": 3727.41,
+          "end": 3727.886
+        },
+        {
+          "label": "non_speech",
+          "start": 3727.886,
+          "end": 3728.338
+        },
+        {
+          "label": "speech",
+          "start": 3728.338,
+          "end": 3731.406
+        },
+        {
+          "label": "non_speech",
+          "start": 3731.406,
+          "end": 3792.0
+        }
+      ]
+    },
+    "decision": "abstention",
+    "new_time_seconds": null,
+    "delta_seconds": null,
+    "reason": "INA ne voit pas de parole englobante; Silero ne voit pas de parole englobante; retour musique INA insuffisant",
+    "uncertainty": "moyenne_a_elevee"
+  },
+  {
+    "boundary_id": "pure-trance-radio-493-t14",
+    "episode_id": "pure-trance-radio-493",
+    "episode_title": "Pure Trance Radio Podcast 493",
+    "source_url": "https://richve.podbean.com/e/pure-trance-radio-podcast-493/",
+    "tracklist_url": "https://cuenation.com/?page=tracklist&folder=puretranceradio&filename=Solarstone+-+Pure+Trance+Radio+493.cue",
+    "track_number": 14,
+    "track_title": "Factoria + Ross Baker - River of Light",
+    "split": "evaluation",
+    "original_time_seconds": 4144.0,
+    "window_start_seconds": 4099.0,
+    "window_end_seconds": 4189.0,
+    "method": "consensus_ina_silero",
+    "excerpt_before": "output/excerpts/pure-trance-radio-493-t14-before.ogg",
+    "excerpt_after": "output/excerpts/pure-trance-radio-493-t14-after.ogg",
+    "automatic_candidate": false,
+    "candidate_time_seconds": null,
+    "candidate_delta_seconds": null,
+    "human_validation_status": "not_applicable",
+    "human_validation_source": null,
+    "human_validation_at": null,
+    "validated_original_time_seconds": null,
+    "validated_corrected_time_seconds": null,
+    "validated_delta_seconds": null,
+    "application_scope": null,
+    "segments": {
+      "ina": [
+        {
+          "label": "music",
+          "start": 4099.0,
+          "end": 4136.0
+        },
+        {
+          "label": "speech",
+          "start": 4136.0,
+          "end": 4146.78
+        },
+        {
+          "label": "music",
+          "start": 4146.78,
+          "end": 4188.98
+        }
+      ],
+      "silero": [
+        {
+          "label": "non_speech",
+          "start": 4099.0,
+          "end": 4099.77
+        },
+        {
+          "label": "speech",
+          "start": 4099.77,
+          "end": 4105.11
+        },
+        {
+          "label": "non_speech",
+          "start": 4105.11,
+          "end": 4137.882
+        },
+        {
+          "label": "speech",
+          "start": 4137.882,
+          "end": 4138.23
+        },
+        {
+          "label": "non_speech",
+          "start": 4138.23,
+          "end": 4138.394
+        },
+        {
+          "label": "speech",
+          "start": 4138.394,
+          "end": 4143.894
+        },
+        {
+          "label": "non_speech",
+          "start": 4143.894,
+          "end": 4144.218
+        },
+        {
+          "label": "speech",
+          "start": 4144.218,
+          "end": 4147.542
+        },
+        {
+          "label": "non_speech",
+          "start": 4147.542,
+          "end": 4189.0
+        }
+      ]
+    },
+    "decision": "abstention",
+    "new_time_seconds": null,
+    "delta_seconds": null,
+    "reason": "Silero ne voit pas de parole englobante",
+    "uncertainty": "moyenne_a_elevee"
+  },
+  {
+    "boundary_id": "pure-trance-radio-493-t15",
+    "episode_id": "pure-trance-radio-493",
+    "episode_title": "Pure Trance Radio Podcast 493",
+    "source_url": "https://richve.podbean.com/e/pure-trance-radio-podcast-493/",
+    "tracklist_url": "https://cuenation.com/?page=tracklist&folder=puretranceradio&filename=Solarstone+-+Pure+Trance+Radio+493.cue",
+    "track_number": 15,
+    "track_title": "Sequence Six & Zara Taylor - Above",
+    "split": "evaluation",
+    "original_time_seconds": 4401.0,
+    "window_start_seconds": 4356.0,
+    "window_end_seconds": 4446.0,
+    "method": "consensus_ina_silero",
+    "excerpt_before": "output/excerpts/pure-trance-radio-493-t15-before.ogg",
+    "excerpt_after": "output/excerpts/pure-trance-radio-493-t15-after.ogg",
+    "automatic_candidate": false,
+    "candidate_time_seconds": null,
+    "candidate_delta_seconds": null,
+    "human_validation_status": "not_applicable",
+    "human_validation_source": null,
+    "human_validation_at": null,
+    "validated_original_time_seconds": null,
+    "validated_corrected_time_seconds": null,
+    "validated_delta_seconds": null,
+    "application_scope": null,
+    "segments": {
+      "ina": [
+        {
+          "label": "speech",
+          "start": 4356.0,
+          "end": 4376.2
+        },
+        {
+          "label": "music",
+          "start": 4376.2,
+          "end": 4378.3
+        },
+        {
+          "label": "speech",
+          "start": 4378.3,
+          "end": 4392.64
+        },
+        {
+          "label": "music",
+          "start": 4392.64,
+          "end": 4445.98
+        }
+      ],
+      "silero": [
+        {
+          "label": "non_speech",
+          "start": 4356.0,
+          "end": 4356.002
+        },
+        {
+          "label": "speech",
+          "start": 4356.002,
+          "end": 4372.67
+        },
+        {
+          "label": "non_speech",
+          "start": 4372.67,
+          "end": 4372.93
+        },
+        {
+          "label": "speech",
+          "start": 4372.93,
+          "end": 4376.702
+        },
+        {
+          "label": "non_speech",
+          "start": 4376.702,
+          "end": 4376.834
+        },
+        {
+          "label": "speech",
+          "start": 4376.834,
+          "end": 4377.214
+        },
+        {
+          "label": "non_speech",
+          "start": 4377.214,
+          "end": 4378.402
+        },
+        {
+          "label": "speech",
+          "start": 4378.402,
+          "end": 4393.438
+        },
+        {
+          "label": "non_speech",
+          "start": 4393.438,
+          "end": 4396.514
+        },
+        {
+          "label": "speech",
+          "start": 4396.514,
+          "end": 4398.782
+        },
+        {
+          "label": "non_speech",
+          "start": 4398.782,
+          "end": 4399.298
+        },
+        {
+          "label": "speech",
+          "start": 4399.298,
+          "end": 4401.438
+        },
+        {
+          "label": "non_speech",
+          "start": 4401.438,
+          "end": 4446.0
+        }
+      ]
+    },
+    "decision": "abstention",
+    "new_time_seconds": null,
+    "delta_seconds": null,
+    "reason": "INA ne voit pas de parole englobante; retour musique INA insuffisant",
+    "uncertainty": "moyenne_a_elevee"
+  },
+  {
+    "boundary_id": "pure-trance-radio-493-t16",
+    "episode_id": "pure-trance-radio-493",
+    "episode_title": "Pure Trance Radio Podcast 493",
+    "source_url": "https://richve.podbean.com/e/pure-trance-radio-podcast-493/",
+    "tracklist_url": "https://cuenation.com/?page=tracklist&folder=puretranceradio&filename=Solarstone+-+Pure+Trance+Radio+493.cue",
+    "track_number": 16,
+    "track_title": "Super8 & Tab feat. Julie Thompson - My Enemy (CVMRN Club Mix)",
+    "split": "evaluation",
+    "original_time_seconds": 4696.0,
+    "window_start_seconds": 4651.0,
+    "window_end_seconds": 4741.0,
+    "method": "consensus_ina_silero",
+    "excerpt_before": "output/excerpts/pure-trance-radio-493-t16-before.ogg",
+    "excerpt_after": "output/excerpts/pure-trance-radio-493-t16-after.ogg",
+    "automatic_candidate": false,
+    "candidate_time_seconds": null,
+    "candidate_delta_seconds": null,
+    "human_validation_status": "not_applicable",
+    "human_validation_source": null,
+    "human_validation_at": null,
+    "validated_original_time_seconds": null,
+    "validated_corrected_time_seconds": null,
+    "validated_delta_seconds": null,
+    "application_scope": null,
+    "segments": {
+      "ina": [
+        {
+          "label": "music",
+          "start": 4651.0,
+          "end": 4740.98
+        }
+      ],
+      "silero": [
+        {
+          "label": "non_speech",
+          "start": 4651.0,
+          "end": 4651.162
+        },
+        {
+          "label": "speech",
+          "start": 4651.162,
+          "end": 4657.526
+        },
+        {
+          "label": "non_speech",
+          "start": 4657.526,
+          "end": 4660.09
+        },
+        {
+          "label": "speech",
+          "start": 4660.09,
+          "end": 4666.198
+        },
+        {
+          "label": "non_speech",
+          "start": 4666.198,
+          "end": 4667.13
+        },
+        {
+          "label": "speech",
+          "start": 4667.13,
+          "end": 4669.558
+        },
+        {
+          "label": "non_speech",
+          "start": 4669.558,
+          "end": 4682.714
+        },
+        {
+          "label": "speech",
+          "start": 4682.714,
+          "end": 4688.694
+        },
+        {
+          "label": "non_speech",
+          "start": 4688.694,
+          "end": 4741.0
+        }
+      ]
+    },
+    "decision": "abstention",
+    "new_time_seconds": null,
+    "delta_seconds": null,
+    "reason": "INA ne voit pas de parole englobante; Silero ne voit pas de parole englobante; retour musique INA insuffisant",
+    "uncertainty": "moyenne_a_elevee"
+  },
+  {
+    "boundary_id": "pure-trance-radio-493-t17",
+    "episode_id": "pure-trance-radio-493",
+    "episode_title": "Pure Trance Radio Podcast 493",
+    "source_url": "https://richve.podbean.com/e/pure-trance-radio-podcast-493/",
+    "tracklist_url": "https://cuenation.com/?page=tracklist&folder=puretranceradio&filename=Solarstone+-+Pure+Trance+Radio+493.cue",
+    "track_number": 17,
+    "track_title": "Technology - Electronicly Entertained",
+    "split": "evaluation",
+    "original_time_seconds": 5035.0,
+    "window_start_seconds": 4990.0,
+    "window_end_seconds": 5080.0,
+    "method": "consensus_ina_silero",
+    "excerpt_before": "output/excerpts/pure-trance-radio-493-t17-before.ogg",
+    "excerpt_after": "output/excerpts/pure-trance-radio-493-t17-after.ogg",
+    "automatic_candidate": false,
+    "candidate_time_seconds": null,
+    "candidate_delta_seconds": null,
+    "human_validation_status": "not_applicable",
+    "human_validation_source": null,
+    "human_validation_at": null,
+    "validated_original_time_seconds": null,
+    "validated_corrected_time_seconds": null,
+    "validated_delta_seconds": null,
+    "application_scope": null,
+    "segments": {
+      "ina": [
+        {
+          "label": "music",
+          "start": 4990.0,
+          "end": 5079.98
+        }
+      ],
+      "silero": [
+        {
+          "label": "non_speech",
+          "start": 4990.0,
+          "end": 5002.13
+        },
+        {
+          "label": "speech",
+          "start": 5002.13,
+          "end": 5002.542
+        },
+        {
+          "label": "non_speech",
+          "start": 5002.542,
+          "end": 5002.738
+        },
+        {
+          "label": "speech",
+          "start": 5002.738,
+          "end": 5003.758
+        },
+        {
+          "label": "non_speech",
+          "start": 5003.758,
+          "end": 5003.858
+        },
+        {
+          "label": "speech",
+          "start": 5003.858,
+          "end": 5004.942
+        },
+        {
+          "label": "non_speech",
+          "start": 5004.942,
+          "end": 5005.426
+        },
+        {
+          "label": "speech",
+          "start": 5005.426,
+          "end": 5006.414
+        },
+        {
+          "label": "non_speech",
+          "start": 5006.414,
+          "end": 5006.546
+        },
+        {
+          "label": "speech",
+          "start": 5006.546,
+          "end": 5007.694
+        },
+        {
+          "label": "non_speech",
+          "start": 5007.694,
+          "end": 5007.954
+        },
+        {
+          "label": "speech",
+          "start": 5007.954,
+          "end": 5014.158
+        },
+        {
+          "label": "non_speech",
+          "start": 5014.158,
+          "end": 5014.61
+        },
+        {
+          "label": "speech",
+          "start": 5014.61,
+          "end": 5017.934
+        },
+        {
+          "label": "non_speech",
+          "start": 5017.934,
+          "end": 5018.194
+        },
+        {
+          "label": "speech",
+          "start": 5018.194,
+          "end": 5018.638
+        },
+        {
+          "label": "non_speech",
+          "start": 5018.638,
+          "end": 5019.058
+        },
+        {
+          "label": "speech",
+          "start": 5019.058,
+          "end": 5020.558
+        },
+        {
+          "label": "non_speech",
+          "start": 5020.558,
+          "end": 5021.298
+        },
+        {
+          "label": "speech",
+          "start": 5021.298,
+          "end": 5023.502
+        },
+        {
+          "label": "non_speech",
+          "start": 5023.502,
+          "end": 5023.794
+        },
+        {
+          "label": "speech",
+          "start": 5023.794,
+          "end": 5028.078
+        },
+        {
+          "label": "non_speech",
+          "start": 5028.078,
+          "end": 5028.658
+        },
+        {
+          "label": "speech",
+          "start": 5028.658,
+          "end": 5030.67
+        },
+        {
+          "label": "non_speech",
+          "start": 5030.67,
+          "end": 5031.25
+        },
+        {
+          "label": "speech",
+          "start": 5031.25,
+          "end": 5031.566
+        },
+        {
+          "label": "non_speech",
+          "start": 5031.566,
+          "end": 5032.722
+        },
+        {
+          "label": "speech",
+          "start": 5032.722,
+          "end": 5036.078
+        },
+        {
+          "label": "non_speech",
+          "start": 5036.078,
+          "end": 5045.426
+        },
+        {
+          "label": "speech",
+          "start": 5045.426,
+          "end": 5045.87
+        },
+        {
+          "label": "non_speech",
+          "start": 5045.87,
+          "end": 5046.002
+        },
+        {
+          "label": "speech",
+          "start": 5046.002,
+          "end": 5048.302
+        },
+        {
+          "label": "non_speech",
+          "start": 5048.302,
+          "end": 5080.0
+        }
+      ]
+    },
+    "decision": "abstention",
+    "new_time_seconds": null,
+    "delta_seconds": null,
+    "reason": "INA ne voit pas de parole englobante; retour musique INA insuffisant",
+    "uncertainty": "moyenne_a_elevee"
+  },
+  {
+    "boundary_id": "pure-trance-radio-493-t18",
+    "episode_id": "pure-trance-radio-493",
+    "episode_title": "Pure Trance Radio Podcast 493",
+    "source_url": "https://richve.podbean.com/e/pure-trance-radio-podcast-493/",
+    "tracklist_url": "https://cuenation.com/?page=tracklist&folder=puretranceradio&filename=Solarstone+-+Pure+Trance+Radio+493.cue",
+    "track_number": 18,
+    "track_title": "Ruben De Ronde pres. NRG2000 x York x Angel City - Slip Away",
+    "split": "evaluation",
+    "original_time_seconds": 5350.0,
+    "window_start_seconds": 5305.0,
+    "window_end_seconds": 5395.0,
+    "method": "consensus_ina_silero",
+    "excerpt_before": "output/excerpts/pure-trance-radio-493-t18-before.ogg",
+    "excerpt_after": "output/excerpts/pure-trance-radio-493-t18-after.ogg",
+    "automatic_candidate": false,
+    "candidate_time_seconds": null,
+    "candidate_delta_seconds": null,
+    "human_validation_status": "not_applicable",
+    "human_validation_source": null,
+    "human_validation_at": null,
+    "validated_original_time_seconds": null,
+    "validated_corrected_time_seconds": null,
+    "validated_delta_seconds": null,
+    "application_scope": null,
+    "segments": {
+      "ina": [
+        {
+          "label": "music",
+          "start": 5305.0,
+          "end": 5318.88
+        },
+        {
+          "label": "speech",
+          "start": 5318.88,
+          "end": 5324.0
+        },
+        {
+          "label": "music",
+          "start": 5324.0,
+          "end": 5330.0
+        },
+        {
+          "label": "speech",
+          "start": 5330.0,
+          "end": 5333.5
+        },
+        {
+          "label": "music",
+          "start": 5333.5,
+          "end": 5394.98
+        }
+      ],
+      "silero": [
+        {
+          "label": "non_speech",
+          "start": 5305.0,
+          "end": 5319.274
+        },
+        {
+          "label": "speech",
+          "start": 5319.274,
+          "end": 5320.902
+        },
+        {
+          "label": "non_speech",
+          "start": 5320.902,
+          "end": 5321.386
+        },
+        {
+          "label": "speech",
+          "start": 5321.386,
+          "end": 5324.326
+        },
+        {
+          "label": "non_speech",
+          "start": 5324.326,
+          "end": 5324.522
+        },
+        {
+          "label": "speech",
+          "start": 5324.522,
+          "end": 5330.886
+        },
+        {
+          "label": "non_speech",
+          "start": 5330.886,
+          "end": 5331.146
+        },
+        {
+          "label": "speech",
+          "start": 5331.146,
+          "end": 5336.102
+        },
+        {
+          "label": "non_speech",
+          "start": 5336.102,
+          "end": 5337.866
+        },
+        {
+          "label": "speech",
+          "start": 5337.866,
+          "end": 5338.374
+        },
+        {
+          "label": "non_speech",
+          "start": 5338.374,
+          "end": 5338.826
+        },
+        {
+          "label": "speech",
+          "start": 5338.826,
+          "end": 5340.614
+        },
+        {
+          "label": "non_speech",
+          "start": 5340.614,
+          "end": 5352.554
+        },
+        {
+          "label": "speech",
+          "start": 5352.554,
+          "end": 5353.702
+        },
+        {
+          "label": "non_speech",
+          "start": 5353.702,
+          "end": 5395.0
+        }
+      ]
+    },
+    "decision": "abstention",
+    "new_time_seconds": null,
+    "delta_seconds": null,
+    "reason": "INA ne voit pas de parole englobante; Silero ne voit pas de parole englobante; retour musique INA insuffisant",
+    "uncertainty": "moyenne_a_elevee"
+  },
+  {
+    "boundary_id": "pure-trance-radio-493-t19",
+    "episode_id": "pure-trance-radio-493",
+    "episode_title": "Pure Trance Radio Podcast 493",
+    "source_url": "https://richve.podbean.com/e/pure-trance-radio-podcast-493/",
+    "tracklist_url": "https://cuenation.com/?page=tracklist&folder=puretranceradio&filename=Solarstone+-+Pure+Trance+Radio+493.cue",
+    "track_number": 19,
+    "track_title": "Above & Beyond with Zoe Johnston - Quicksand (Don't Go) (Mark Sherry Remix)",
+    "split": "evaluation",
+    "original_time_seconds": 5663.0,
+    "window_start_seconds": 5618.0,
+    "window_end_seconds": 5708.0,
+    "method": "consensus_ina_silero",
+    "excerpt_before": "output/excerpts/pure-trance-radio-493-t19-before.ogg",
+    "excerpt_after": "output/excerpts/pure-trance-radio-493-t19-after.ogg",
+    "automatic_candidate": false,
+    "candidate_time_seconds": null,
+    "candidate_delta_seconds": null,
+    "human_validation_status": "not_applicable",
+    "human_validation_source": null,
+    "human_validation_at": null,
+    "validated_original_time_seconds": null,
+    "validated_corrected_time_seconds": null,
+    "validated_delta_seconds": null,
+    "application_scope": null,
+    "segments": {
+      "ina": [
+        {
+          "label": "music",
+          "start": 5618.0,
+          "end": 5629.28
+        },
+        {
+          "label": "speech",
+          "start": 5629.28,
+          "end": 5636.0
+        },
+        {
+          "label": "music",
+          "start": 5636.0,
+          "end": 5707.98
+        }
+      ],
+      "silero": [
+        {
+          "label": "non_speech",
+          "start": 5618.0,
+          "end": 5629.266
+        },
+        {
+          "label": "speech",
+          "start": 5629.266,
+          "end": 5637.934
+        },
+        {
+          "label": "non_speech",
+          "start": 5637.934,
+          "end": 5649.778
+        },
+        {
+          "label": "speech",
+          "start": 5649.778,
+          "end": 5651.598
+        },
+        {
+          "label": "non_speech",
+          "start": 5651.598,
+          "end": 5660.594
+        },
+        {
+          "label": "speech",
+          "start": 5660.594,
+          "end": 5663.374
+        },
+        {
+          "label": "non_speech",
+          "start": 5663.374,
+          "end": 5708.0
+        }
+      ]
+    },
+    "decision": "abstention",
+    "new_time_seconds": null,
+    "delta_seconds": null,
+    "reason": "INA ne voit pas de parole englobante; retour musique INA insuffisant",
+    "uncertainty": "moyenne_a_elevee"
+  },
+  {
+    "boundary_id": "pure-trance-radio-493-t20",
+    "episode_id": "pure-trance-radio-493",
+    "episode_title": "Pure Trance Radio Podcast 493",
+    "source_url": "https://richve.podbean.com/e/pure-trance-radio-podcast-493/",
+    "tracklist_url": "https://cuenation.com/?page=tracklist&folder=puretranceradio&filename=Solarstone+-+Pure+Trance+Radio+493.cue",
+    "track_number": 20,
+    "track_title": "David Forbes x Lostly - Echo Burn",
+    "split": "evaluation",
+    "original_time_seconds": 5990.0,
+    "window_start_seconds": 5945.0,
+    "window_end_seconds": 6035.0,
+    "method": "consensus_ina_silero",
+    "excerpt_before": "output/excerpts/pure-trance-radio-493-t20-before.ogg",
+    "excerpt_after": "output/excerpts/pure-trance-radio-493-t20-after.ogg",
+    "automatic_candidate": false,
+    "candidate_time_seconds": null,
+    "candidate_delta_seconds": null,
+    "human_validation_status": "not_applicable",
+    "human_validation_source": null,
+    "human_validation_at": null,
+    "validated_original_time_seconds": null,
+    "validated_corrected_time_seconds": null,
+    "validated_delta_seconds": null,
+    "application_scope": null,
+    "segments": {
+      "ina": [
+        {
+          "label": "music",
+          "start": 5945.0,
+          "end": 6034.98
+        }
+      ],
+      "silero": [
+        {
+          "label": "non_speech",
+          "start": 5945.0,
+          "end": 5956.97
+        },
+        {
+          "label": "speech",
+          "start": 5956.97,
+          "end": 5957.702
+        },
+        {
+          "label": "non_speech",
+          "start": 5957.702,
+          "end": 5984.842
+        },
+        {
+          "label": "speech",
+          "start": 5984.842,
+          "end": 5985.67
+        },
+        {
+          "label": "non_speech",
+          "start": 5985.67,
+          "end": 6035.0
+        }
+      ]
+    },
+    "decision": "abstention",
+    "new_time_seconds": null,
+    "delta_seconds": null,
+    "reason": "INA ne voit pas de parole englobante; Silero ne voit pas de parole englobante; retour musique INA insuffisant",
+    "uncertainty": "moyenne_a_elevee"
+  },
+  {
+    "boundary_id": "pure-trance-radio-493-t21",
+    "episode_id": "pure-trance-radio-493",
+    "episode_title": "Pure Trance Radio Podcast 493",
+    "source_url": "https://richve.podbean.com/e/pure-trance-radio-podcast-493/",
+    "tracklist_url": "https://cuenation.com/?page=tracklist&folder=puretranceradio&filename=Solarstone+-+Pure+Trance+Radio+493.cue",
+    "track_number": 21,
+    "track_title": "FKN & Tom Bro feat. Emily Orchard - Fading Blue (Ambient Mix)",
+    "split": "evaluation",
+    "original_time_seconds": 6243.0,
+    "window_start_seconds": 6198.0,
+    "window_end_seconds": 6288.0,
+    "method": "consensus_ina_silero",
+    "excerpt_before": "output/excerpts/pure-trance-radio-493-t21-before.ogg",
+    "excerpt_after": "output/excerpts/pure-trance-radio-493-t21-after.ogg",
+    "automatic_candidate": false,
+    "candidate_time_seconds": null,
+    "candidate_delta_seconds": null,
+    "human_validation_status": "not_applicable",
+    "human_validation_source": null,
+    "human_validation_at": null,
+    "validated_original_time_seconds": null,
+    "validated_corrected_time_seconds": null,
+    "validated_delta_seconds": null,
+    "application_scope": null,
+    "segments": {
+      "ina": [
+        {
+          "label": "music",
+          "start": 6198.0,
+          "end": 6210.44
+        },
+        {
+          "label": "speech",
+          "start": 6210.44,
+          "end": 6223.42
+        },
+        {
+          "label": "music",
+          "start": 6223.42,
+          "end": 6225.86
+        },
+        {
+          "label": "speech",
+          "start": 6225.86,
+          "end": 6235.38
+        },
+        {
+          "label": "music",
+          "start": 6235.38,
+          "end": 6287.98
+        }
+      ],
+      "silero": [
+        {
+          "label": "non_speech",
+          "start": 6198.0,
+          "end": 6198.354
+        },
+        {
+          "label": "speech",
+          "start": 6198.354,
+          "end": 6209.998
+        },
+        {
+          "label": "non_speech",
+          "start": 6209.998,
+          "end": 6210.418
+        },
+        {
+          "label": "speech",
+          "start": 6210.418,
+          "end": 6235.79
+        },
+        {
+          "label": "non_speech",
+          "start": 6235.79,
+          "end": 6235.954
+        },
+        {
+          "label": "speech",
+          "start": 6235.954,
+          "end": 6236.91
+        },
+        {
+          "label": "non_speech",
+          "start": 6236.91,
+          "end": 6237.01
+        },
+        {
+          "label": "speech",
+          "start": 6237.01,
+          "end": 6237.358
+        },
+        {
+          "label": "non_speech",
+          "start": 6237.358,
+          "end": 6239.57
+        },
+        {
+          "label": "speech",
+          "start": 6239.57,
+          "end": 6239.982
+        },
+        {
+          "label": "non_speech",
+          "start": 6239.982,
+          "end": 6241.074
+        },
+        {
+          "label": "speech",
+          "start": 6241.074,
+          "end": 6241.55
+        },
+        {
+          "label": "non_speech",
+          "start": 6241.55,
+          "end": 6288.0
+        }
+      ]
+    },
+    "decision": "abstention",
+    "new_time_seconds": null,
+    "delta_seconds": null,
+    "reason": "INA ne voit pas de parole englobante; Silero ne voit pas de parole englobante; retour musique INA insuffisant",
+    "uncertainty": "moyenne_a_elevee"
+  }
+]

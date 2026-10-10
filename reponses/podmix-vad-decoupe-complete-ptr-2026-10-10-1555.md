@@ -2,9 +2,9 @@
 
 ## Statut
 
-**Expérience de laboratoire terminée sur les deux épisodes, sans activation ni correction.** Les médias RSS complets ont été segmentés par INA puis Silero sur CPU. Les deux candidats historiques `PTR492 +0,740 s` et `PTR493 +3,080 s` réapparaissent comme sorties brutes de l'algorithme gelé, mais ils restent **non approuvés et non appliqués**. Aucune écoute d'Emmanuel n'est interprétée comme une validation.
+**Expérience de laboratoire terminée sur les deux épisodes; deux corrections sont validées dans les sorties du laboratoire uniquement.** Les médias RSS complets ont été segmentés par INA puis Silero sur CPU. Les deux candidats historiques `PTR492 +0,740 s` et `PTR493 +3,080 s` réapparaissent comme sorties brutes de l'algorithme gelé. Emmanuel a confirmé leur découpe à l'écoute puis répondu « Oui » à 16:07 le 10 octobre 2026 à la demande d'appliquer les deux corrections en labo. Elles sont donc marquées **validées pour le labo**, avec leurs temps originaux conservés.
 
-Aucune production, base SQLite, donnée applicative, chapitre, API, dépendance de production, service, conteneur, APK, configuration ou déploiement n'a été modifié. Aucun audio n'est ajouté au dépôt.
+Aucune production, base SQLite, donnée applicative, chapitre, API, dépendance de production, service, conteneur, APK, configuration, déploiement ou branche `main` n'a été modifié. Aucun audio n'est ajouté au dépôt et aucune fusion n'est effectuée.
 
 ## Méthode gelée avant comparaison
 
@@ -28,6 +28,17 @@ La comparaison est postérieure : pour chaque temps CueNation croissant, la dét
 | PTR493 | 20 | 18 | 9 | 11 | 9 | 4.140 s | 4.973 s | 0.0 % | 11.1 % | 100.0 % |
 
 Les parts et les moyennes utilisent seulement les frontières appariées : 11 pour PTR492 et 9 pour PTR493. Les non-détections ne sont donc pas transformées artificiellement en erreurs de 20 s.
+
+## Écarts avec et sans les deux corrections validées
+
+Les appariements et les sorties algorithmiques sont inchangés. Le scénario « avec » remplace uniquement les deux références validées par `82,740 s` et `2 353,080 s`; toutes les autres références restent les temps CueNation d'origine.
+
+| Épisode | Frontière validée | Écart sans correction | Écart avec correction | Moyenne abs. sans | Moyenne abs. avec | < 1 s sans | < 1 s avec | < 3 s sans | < 3 s avec |
+|---|---|---:|---:|---:|---:|---:|---:|---:|---:|
+| PTR492 | piste 2 : 82.000 → 82.740 s | +0.740 s | +0.000 s | 6.064 s | 5.996 s | 27.3 % | 27.3 % | 45.5 % | 45.5 % |
+| PTR493 | piste 9 : 2350.000 → 2353.080 s | +3.080 s | +0.000 s | 4.973 s | 4.631 s | 0.0 % | 11.1 % | 11.1 % | 22.2 % |
+
+Ces chiffres décrivent deux scénarios de référence dans le laboratoire; ils ne prouvent pas un alignement absolu entre CueNation et l'audio RSS.
 
 ## Toutes les frontières détectées
 
@@ -88,55 +99,55 @@ Les parts et les moyennes utilisent seulement les frontières appariées : 11 po
 
 ### PTR492
 
-| Piste | Titre | CueNation | Algorithme | Confiance | Écart signé |
-|---:|---|---:|---:|---:|---:|
-| 2 | Midnight Evolution - Dreams | 00:01:22.000 (82.000 s) | 00:01:22.740 (82.740 s) | 0.9962 | +0.740 s |
-| 3 | metakomplex & Orkidea - Dream of You | 00:06:28.000 (388.000 s) | 00:06:27.760 (387.760 s) | 0.8204 | -0.240 s |
-| 4 | Emran Badalov - Scorpio Rider (Hazem Beltagui Remix) | 00:10:58.000 (658.000 s) | 00:10:53.280 (653.280 s) | 0.8754 | -4.720 s |
-| 5 | Soul Alt Delete - Copycat | 00:17:14.000 (1034.000 s) | 00:17:02.900 (1022.900 s) | 0.8003 | -11.100 s |
-| 6 | Allende - The Weight | 00:23:00.000 (1380.000 s) | non détectée | — | — |
-| 7 | Protoculture - Telemetry | 00:28:30.000 (1710.000 s) | non détectée | — | — |
-| 8 | Dusky - Lab | 00:34:00.000 (2040.000 s) | non détectée | — | — |
-| 9 | ARCHERY - KEEP IT GOIN' | 00:38:43.000 (2323.000 s) | non détectée | — | — |
-| 10 | Peter Steele - Summer Breeze | 00:44:39.000 (2679.000 s) | non détectée | — | — |
-| 11 | FKN & Tom Bro feat. Emily Orchard - Fading Blue | 00:49:34.000 (2974.000 s) | non détectée | — | — |
-| 12 | Thrillseekers pres. Hydra - Amber (Asteroid Remix) | 00:53:30.000 (3210.000 s) | 00:53:17.580 (3197.580 s) | 0.6326 | -12.420 s |
-| 13 | Bryan Kearney & John O'Callaghan pres. Key4050 - Final Memory | 01:00:49.000 (3649.000 s) | 01:00:46.020 (3646.020 s) | 0.9928 | -2.980 s |
-| 14 | Asteroid - Spectra | 01:05:53.000 (3953.000 s) | 01:05:52.900 (3952.900 s) | 0.8300 | -0.100 s |
-| 15 | C-Systems - Pillars of Light | 01:10:12.000 (4212.000 s) | non détectée | — | — |
-| 16 | Ferkingge & Emma Wang feat. Adria Du & Nini - Blooming | 01:14:08.000 (4448.000 s) | non détectée | — | — |
-| 17 | Solarstone vs. Sirocco - Destination (Effen Remix) | 01:19:56.000 (4796.000 s) | 01:19:49.380 (4789.380 s) | 0.8331 | -6.620 s |
-| 18 | Stoneface & Terminal with Susanne Teutenberg - High As The Sun | 01:27:12.000 (5232.000 s) | 01:27:02.980 (5222.980 s) | 0.9550 | -9.020 s |
-| 19 | Blackromeo - Ashanti | 01:33:19.000 (5599.000 s) | 01:33:01.660 (5581.660 s) | 0.8295 | -17.340 s |
-| 20 | Above & Beyond with Zoe Johnston - Quicksand (Ciaran McAuley Remix) | 01:39:41.000 (5981.000 s) | non détectée | — | — |
-| 21 | Armin van Buuren feat. Sharon Den Adel - In And Out of Love (Ben Hemsley Remix) | 01:44:35.000 (6275.000 s) | non détectée | — | — |
-| 22 | Super-Frog Saves Tokyo - Jitterbug | 01:50:49.000 (6649.000 s) | 01:50:47.580 (6647.580 s) | 0.8541 | -1.420 s |
-| 23 | Vangelis - West Across The Ocean Sea | 01:56:41.000 (7001.000 s) | non détectée | — | — |
+| Piste | Titre | CueNation original | Correction labo | Algorithme | Confiance | Écart sans | Écart avec |
+|---:|---|---:|---:|---:|---:|---:|---:|
+| 2 | Midnight Evolution - Dreams | 00:01:22.000 (82.000 s) | 00:01:22.740 (82.740 s) | 00:01:22.740 (82.740 s) | 0.9962 | +0.740 s | +0.000 s |
+| 3 | metakomplex & Orkidea - Dream of You | 00:06:28.000 (388.000 s) | — | 00:06:27.760 (387.760 s) | 0.8204 | -0.240 s | -0.240 s |
+| 4 | Emran Badalov - Scorpio Rider (Hazem Beltagui Remix) | 00:10:58.000 (658.000 s) | — | 00:10:53.280 (653.280 s) | 0.8754 | -4.720 s | -4.720 s |
+| 5 | Soul Alt Delete - Copycat | 00:17:14.000 (1034.000 s) | — | 00:17:02.900 (1022.900 s) | 0.8003 | -11.100 s | -11.100 s |
+| 6 | Allende - The Weight | 00:23:00.000 (1380.000 s) | — | non détectée | — | — | — |
+| 7 | Protoculture - Telemetry | 00:28:30.000 (1710.000 s) | — | non détectée | — | — | — |
+| 8 | Dusky - Lab | 00:34:00.000 (2040.000 s) | — | non détectée | — | — | — |
+| 9 | ARCHERY - KEEP IT GOIN' | 00:38:43.000 (2323.000 s) | — | non détectée | — | — | — |
+| 10 | Peter Steele - Summer Breeze | 00:44:39.000 (2679.000 s) | — | non détectée | — | — | — |
+| 11 | FKN & Tom Bro feat. Emily Orchard - Fading Blue | 00:49:34.000 (2974.000 s) | — | non détectée | — | — | — |
+| 12 | Thrillseekers pres. Hydra - Amber (Asteroid Remix) | 00:53:30.000 (3210.000 s) | — | 00:53:17.580 (3197.580 s) | 0.6326 | -12.420 s | -12.420 s |
+| 13 | Bryan Kearney & John O'Callaghan pres. Key4050 - Final Memory | 01:00:49.000 (3649.000 s) | — | 01:00:46.020 (3646.020 s) | 0.9928 | -2.980 s | -2.980 s |
+| 14 | Asteroid - Spectra | 01:05:53.000 (3953.000 s) | — | 01:05:52.900 (3952.900 s) | 0.8300 | -0.100 s | -0.100 s |
+| 15 | C-Systems - Pillars of Light | 01:10:12.000 (4212.000 s) | — | non détectée | — | — | — |
+| 16 | Ferkingge & Emma Wang feat. Adria Du & Nini - Blooming | 01:14:08.000 (4448.000 s) | — | non détectée | — | — | — |
+| 17 | Solarstone vs. Sirocco - Destination (Effen Remix) | 01:19:56.000 (4796.000 s) | — | 01:19:49.380 (4789.380 s) | 0.8331 | -6.620 s | -6.620 s |
+| 18 | Stoneface & Terminal with Susanne Teutenberg - High As The Sun | 01:27:12.000 (5232.000 s) | — | 01:27:02.980 (5222.980 s) | 0.9550 | -9.020 s | -9.020 s |
+| 19 | Blackromeo - Ashanti | 01:33:19.000 (5599.000 s) | — | 01:33:01.660 (5581.660 s) | 0.8295 | -17.340 s | -17.340 s |
+| 20 | Above & Beyond with Zoe Johnston - Quicksand (Ciaran McAuley Remix) | 01:39:41.000 (5981.000 s) | — | non détectée | — | — | — |
+| 21 | Armin van Buuren feat. Sharon Den Adel - In And Out of Love (Ben Hemsley Remix) | 01:44:35.000 (6275.000 s) | — | non détectée | — | — | — |
+| 22 | Super-Frog Saves Tokyo - Jitterbug | 01:50:49.000 (6649.000 s) | — | 01:50:47.580 (6647.580 s) | 0.8541 | -1.420 s | -1.420 s |
+| 23 | Vangelis - West Across The Ocean Sea | 01:56:41.000 (7001.000 s) | — | non détectée | — | — | — |
 
 ### PTR493
 
-| Piste | Titre | CueNation | Algorithme | Confiance | Écart signé |
-|---:|---|---:|---:|---:|---:|
-| 2 | Solarstone - Solarcoaster (Deestopia Remix) | 00:01:51.000 (111.000 s) | 00:01:55.140 (115.140 s) | 0.8500 | +4.140 s |
-| 3 | Nordfold - Tidal Shift | 00:08:54.000 (534.000 s) | non détectée | — | — |
-| 4 | Exotek - Embrace | 00:13:42.000 (822.000 s) | non détectée | — | — |
-| 5 | Kyau & Albert - Halo | 00:20:12.000 (1212.000 s) | non détectée | — | — |
-| 6 | PARAFRAME - 3 Worlds | 00:24:01.000 (1441.000 s) | 00:23:55.860 (1435.860 s) | 0.8134 | -5.140 s |
-| 7 | Josh Caffe - Velvet Skin | 00:29:17.000 (1757.000 s) | 00:29:20.180 (1760.180 s) | 0.7978 | +3.180 s |
-| 8 | Tre Turner - Archaos (CLOSE PROXIMITY Progressive Mix) | 00:33:21.000 (2001.000 s) | non détectée | — | — |
-| 9 | Private Taste - First (Ashtrax Rerub) | 00:39:10.000 (2350.000 s) | 00:39:13.080 (2353.080 s) | 0.8925 | +3.080 s |
-| 10 | SONIN x Orkidea - Avril | 00:45:34.000 (2734.000 s) | 00:45:27.580 (2727.580 s) | 0.7531 | -6.420 s |
-| 11 | Push - Open The Night | 00:50:21.000 (3021.000 s) | non détectée | — | — |
-| 12 | Factor B feat. Cat Martin - Crashing Over (Lost Minds Remix) | 00:55:44.000 (3344.000 s) | 00:55:39.960 (3339.960 s) | 0.9765 | -4.040 s |
-| 13 | St. John & Scott Ramsay pres. ApexLOOP - Inspire | 01:02:27.000 (3747.000 s) | non détectée | — | — |
-| 14 | Factoria + Ross Baker - River of Light | 01:09:04.000 (4144.000 s) | 01:09:06.780 (4146.780 s) | 0.8821 | +2.780 s |
-| 15 | Sequence Six & Zara Taylor - Above | 01:13:21.000 (4401.000 s) | 01:13:12.640 (4392.640 s) | 0.7549 | -8.360 s |
-| 16 | Super8 & Tab feat. Julie Thompson - My Enemy (CVMRN Club Mix) | 01:18:16.000 (4696.000 s) | non détectée | — | — |
-| 17 | Technology - Electronicly Entertained | 01:23:55.000 (5035.000 s) | non détectée | — | — |
-| 18 | Ruben De Ronde pres. NRG2000 x York x Angel City - Slip Away | 01:29:10.000 (5350.000 s) | non détectée | — | — |
-| 19 | Above & Beyond with Zoe Johnston - Quicksand (Don't Go) (Mark Sherry Remix) | 01:34:23.000 (5663.000 s) | non détectée | — | — |
-| 20 | David Forbes x Lostly - Echo Burn | 01:39:50.000 (5990.000 s) | non détectée | — | — |
-| 21 | FKN & Tom Bro feat. Emily Orchard - Fading Blue (Ambient Mix) | 01:44:03.000 (6243.000 s) | 01:43:55.380 (6235.380 s) | 0.9530 | -7.620 s |
+| Piste | Titre | CueNation original | Correction labo | Algorithme | Confiance | Écart sans | Écart avec |
+|---:|---|---:|---:|---:|---:|---:|---:|
+| 2 | Solarstone - Solarcoaster (Deestopia Remix) | 00:01:51.000 (111.000 s) | — | 00:01:55.140 (115.140 s) | 0.8500 | +4.140 s | +4.140 s |
+| 3 | Nordfold - Tidal Shift | 00:08:54.000 (534.000 s) | — | non détectée | — | — | — |
+| 4 | Exotek - Embrace | 00:13:42.000 (822.000 s) | — | non détectée | — | — | — |
+| 5 | Kyau & Albert - Halo | 00:20:12.000 (1212.000 s) | — | non détectée | — | — | — |
+| 6 | PARAFRAME - 3 Worlds | 00:24:01.000 (1441.000 s) | — | 00:23:55.860 (1435.860 s) | 0.8134 | -5.140 s | -5.140 s |
+| 7 | Josh Caffe - Velvet Skin | 00:29:17.000 (1757.000 s) | — | 00:29:20.180 (1760.180 s) | 0.7978 | +3.180 s | +3.180 s |
+| 8 | Tre Turner - Archaos (CLOSE PROXIMITY Progressive Mix) | 00:33:21.000 (2001.000 s) | — | non détectée | — | — | — |
+| 9 | Private Taste - First (Ashtrax Rerub) | 00:39:10.000 (2350.000 s) | 00:39:13.080 (2353.080 s) | 00:39:13.080 (2353.080 s) | 0.8925 | +3.080 s | +0.000 s |
+| 10 | SONIN x Orkidea - Avril | 00:45:34.000 (2734.000 s) | — | 00:45:27.580 (2727.580 s) | 0.7531 | -6.420 s | -6.420 s |
+| 11 | Push - Open The Night | 00:50:21.000 (3021.000 s) | — | non détectée | — | — | — |
+| 12 | Factor B feat. Cat Martin - Crashing Over (Lost Minds Remix) | 00:55:44.000 (3344.000 s) | — | 00:55:39.960 (3339.960 s) | 0.9765 | -4.040 s | -4.040 s |
+| 13 | St. John & Scott Ramsay pres. ApexLOOP - Inspire | 01:02:27.000 (3747.000 s) | — | non détectée | — | — | — |
+| 14 | Factoria + Ross Baker - River of Light | 01:09:04.000 (4144.000 s) | — | 01:09:06.780 (4146.780 s) | 0.8821 | +2.780 s | +2.780 s |
+| 15 | Sequence Six & Zara Taylor - Above | 01:13:21.000 (4401.000 s) | — | 01:13:12.640 (4392.640 s) | 0.7549 | -8.360 s | -8.360 s |
+| 16 | Super8 & Tab feat. Julie Thompson - My Enemy (CVMRN Club Mix) | 01:18:16.000 (4696.000 s) | — | non détectée | — | — | — |
+| 17 | Technology - Electronicly Entertained | 01:23:55.000 (5035.000 s) | — | non détectée | — | — | — |
+| 18 | Ruben De Ronde pres. NRG2000 x York x Angel City - Slip Away | 01:29:10.000 (5350.000 s) | — | non détectée | — | — | — |
+| 19 | Above & Beyond with Zoe Johnston - Quicksand (Don't Go) (Mark Sherry Remix) | 01:34:23.000 (5663.000 s) | — | non détectée | — | — | — |
+| 20 | David Forbes x Lostly - Echo Burn | 01:39:50.000 (5990.000 s) | — | non détectée | — | — | — |
+| 21 | FKN & Tom Bro feat. Emily Orchard - Fading Blue (Ambient Mix) | 01:44:03.000 (6243.000 s) | — | 01:43:55.380 (6235.380 s) | 0.9530 | -7.620 s | -7.620 s |
 
 ## Décalage constant et dérive
 
@@ -149,7 +160,7 @@ Ces tests sont exploratoires, utilisent seulement les frontières détectées et
 
 L'alignement entre la cuesheet et l'enclosure RSS reste **non vérifié**. La durée RSS dépasse la durée CueNation d'environ 2,6 s pour PTR492 et 3,8 s pour PTR493. Un écart au temps CueNation ne peut donc pas être présenté sans réserve comme une erreur de l'algorithme. En outre, INA et Silero peuvent confondre voix DJ, chant, rap, jingle ou voice-over : les 14 et 9 détections sans équivalent sont potentielles, pas des faux positifs confirmés.
 
-Le détecteur retrouve notamment `82,740 s` sur PTR492 et `2 353,080 s` sur PTR493. Ces résultats reproduisent les deux candidats explicitement non approuvés; ils ne constituent ni une validation humaine ni une autorisation de modifier des chapitres.
+Le détecteur retrouve notamment `82,740 s` sur PTR492 et `2 353,080 s` sur PTR493. Ces deux frontières sont validées par l'écoute d'Emmanuel pour le laboratoire uniquement. Les autres candidats `PTR493 +4,140 s`, `+1,160 s`, `+2,780 s` et `JOC +2,500 s` restent explicitement non validés. Aucune de ces mentions n'autorise une modification des chapitres réels.
 
 ## Reproductibilité et livrables
 
@@ -164,4 +175,4 @@ Les checkpoints complets restent dans `lab/vad_prototype/output/full_episode/`, 
 
 ## Conclusion
 
-La découpe globale est techniquement reproductible mais insuffisante pour une activation : elle apparie 11/22 frontières de PTR492 et 9/20 de PTR493 à ±20 s, avec respectivement 14 et 9 détections supplémentaires potentielles. Le laboratoire reste désactivé et aucune correction n'est appliquée.
+La découpe globale est techniquement reproductible mais insuffisante pour une activation en production : elle apparie 11/22 frontières de PTR492 et 9/20 de PTR493 à ±20 s, avec respectivement 14 et 9 détections supplémentaires potentielles. Les deux corrections validées sont appliquées uniquement aux sorties comparatives du laboratoire; Podmix reste inchangé.

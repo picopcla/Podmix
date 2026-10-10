@@ -8,6 +8,61 @@
     "drift_test": "regression OLS ecart_signe = intercept + pente * temps_cuesheet; derive signalee si l'intervalle 95 % normal de la pente exclut zero"
   },
   "alignment_warning": "L'alignement cuesheet CueNation / audio RSS n'est pas verifie; les ecarts ne sont donc pas assimilables sans reserve a des erreurs de l'algorithme.",
+  "human_validation": {
+    "scope": "lab_only",
+    "corrections": [
+      {
+        "boundary_id": "pure-trance-radio-492-t02",
+        "episode_id": "pure-trance-radio-492",
+        "track_number": 2,
+        "track_title": "Midnight Evolution - Dreams",
+        "original_time_seconds": 82.0,
+        "corrected_time_seconds": 82.74,
+        "delta_seconds": 0.74,
+        "status": "validated_for_lab_only",
+        "source": "Emmanuel",
+        "validated_at": "2026-10-10T16:07:00+02:00"
+      },
+      {
+        "boundary_id": "pure-trance-radio-493-t09",
+        "episode_id": "pure-trance-radio-493",
+        "track_number": 9,
+        "track_title": "Private Taste - First (Ashtrax Rerub)",
+        "original_time_seconds": 2350.0,
+        "corrected_time_seconds": 2353.08,
+        "delta_seconds": 3.08,
+        "status": "validated_for_lab_only",
+        "source": "Emmanuel",
+        "validated_at": "2026-10-10T16:07:00+02:00"
+      }
+    ],
+    "explicitly_non_validated_candidates": [
+      {
+        "boundary_id": "pure-trance-radio-493-t02",
+        "episode_id": "pure-trance-radio-493",
+        "track_number": 2,
+        "delta_seconds": 4.14
+      },
+      {
+        "boundary_id": "pure-trance-radio-493-t03",
+        "episode_id": "pure-trance-radio-493",
+        "track_number": 3,
+        "delta_seconds": 1.16
+      },
+      {
+        "boundary_id": "pure-trance-radio-493-t14",
+        "episode_id": "pure-trance-radio-493",
+        "track_number": 14,
+        "delta_seconds": 2.78
+      },
+      {
+        "boundary_id": "joc-subculture-melbourne-2022-t01",
+        "episode_id": "joc-subculture-melbourne-2022",
+        "track_number": 1,
+        "delta_seconds": 2.5
+      }
+    ]
+  },
   "episodes": [
     {
       "episode_id": "pure-trance-radio-492",
@@ -117,6 +172,72 @@
         "drift_detected": false,
         "r_squared": 0.094427,
         "test_limit": "Intervalles normaux 95 %, exploratoires; les non-detections ne participent pas a la regression."
+      },
+      "comparison_scenarios": {
+        "without_validated_corrections": {
+          "mean_absolute_error_seconds": 6.064,
+          "median_absolute_error_seconds": 4.72,
+          "share_absolute_error_lt_1": 0.2727,
+          "share_absolute_error_lt_3": 0.4545,
+          "share_absolute_error_lt_10": 0.7273,
+          "error_share_denominator": 11,
+          "regression": {
+            "n": 11,
+            "available": true,
+            "mean_signed_offset_seconds": -5.929091,
+            "mean_signed_offset_ci95_seconds": [
+              -9.427377,
+              -2.430805
+            ],
+            "constant_offset_detected": true,
+            "intercept_seconds": -3.417761,
+            "intercept_ci95_seconds": [
+              -9.592769,
+              2.757248
+            ],
+            "slope_seconds_per_second": -0.000783678,
+            "slope_seconds_per_hour": -2.821239,
+            "slope_ci95_seconds_per_hour": [
+              -8.5284,
+              2.8872
+            ],
+            "drift_detected": false,
+            "r_squared": 0.094427,
+            "test_limit": "Intervalles normaux 95 %, exploratoires; les non-detections ne participent pas a la regression."
+          }
+        },
+        "with_validated_corrections": {
+          "mean_absolute_error_seconds": 5.996,
+          "median_absolute_error_seconds": 4.72,
+          "share_absolute_error_lt_1": 0.2727,
+          "share_absolute_error_lt_3": 0.4545,
+          "share_absolute_error_lt_10": 0.7273,
+          "error_share_denominator": 11,
+          "regression": {
+            "n": 11,
+            "available": true,
+            "mean_signed_offset_seconds": -5.996364,
+            "mean_signed_offset_ci95_seconds": [
+              -9.44755,
+              -2.545177
+            ],
+            "constant_offset_detected": true,
+            "intercept_seconds": -3.622478,
+            "intercept_ci95_seconds": [
+              -9.74061,
+              2.495654
+            ],
+            "slope_seconds_per_second": -0.000740771,
+            "slope_seconds_per_hour": -2.666777,
+            "slope_ci95_seconds_per_hour": [
+              -8.3232,
+              2.988
+            ],
+            "drift_detected": false,
+            "r_squared": 0.086681,
+            "test_limit": "Intervalles normaux 95 %, exploratoires; les non-detections ne participent pas a la regression."
+          }
+        }
       }
     },
     {
@@ -202,6 +323,72 @@
         "drift_detected": false,
         "r_squared": 0.328468,
         "test_limit": "Intervalles normaux 95 %, exploratoires; les non-detections ne participent pas a la regression."
+      },
+      "comparison_scenarios": {
+        "without_validated_corrections": {
+          "mean_absolute_error_seconds": 4.973,
+          "median_absolute_error_seconds": 4.14,
+          "share_absolute_error_lt_1": 0.0,
+          "share_absolute_error_lt_3": 0.1111,
+          "share_absolute_error_lt_10": 1.0,
+          "error_share_denominator": 9,
+          "regression": {
+            "n": 9,
+            "available": true,
+            "mean_signed_offset_seconds": -2.044444,
+            "mean_signed_offset_ci95_seconds": [
+              -5.460889,
+              1.372
+            ],
+            "constant_offset_detected": false,
+            "intercept_seconds": 2.790742,
+            "intercept_ci95_seconds": [
+              -3.141278,
+              8.722762
+            ],
+            "slope_seconds_per_second": -0.001640591,
+            "slope_seconds_per_hour": -5.906128,
+            "slope_ci95_seconds_per_hour": [
+              -12.1608,
+              0.3492
+            ],
+            "drift_detected": false,
+            "r_squared": 0.328468,
+            "test_limit": "Intervalles normaux 95 %, exploratoires; les non-detections ne participent pas a la regression."
+          }
+        },
+        "with_validated_corrections": {
+          "mean_absolute_error_seconds": 4.631,
+          "median_absolute_error_seconds": 4.14,
+          "share_absolute_error_lt_1": 0.1111,
+          "share_absolute_error_lt_3": 0.2222,
+          "share_absolute_error_lt_10": 1.0,
+          "error_share_denominator": 9,
+          "regression": {
+            "n": 9,
+            "available": true,
+            "mean_signed_offset_seconds": -2.386667,
+            "mean_signed_offset_ci95_seconds": [
+              -5.617418,
+              0.844085
+            ],
+            "constant_offset_detected": false,
+            "intercept_seconds": 2.245816,
+            "intercept_ci95_seconds": [
+              -3.328652,
+              7.820285
+            ],
+            "slope_seconds_per_second": -0.001571631,
+            "slope_seconds_per_hour": -5.657871,
+            "slope_ci95_seconds_per_hour": [
+              -11.538,
+              0.2196
+            ],
+            "drift_detected": false,
+            "r_squared": 0.337036,
+            "test_limit": "Intervalles normaux 95 %, exploratoires; les non-detections ne participent pas a la regression."
+          }
+        }
       }
     }
   ]

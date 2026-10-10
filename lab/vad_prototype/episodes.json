@@ -28,10 +28,51 @@
       "requires_ina_music_after_speech": true,
       "requires_silero_speech_confirmation": true,
       "requires_human_transition_confirmation": true,
-      "human_transition_confirmed_boundaries": []
+      "human_transition_confirmed_boundaries": [
+        "pure-trance-radio-492-t02",
+        "pure-trance-radio-493-t09"
+      ],
+      "human_validations": [
+        {
+          "boundary_id": "pure-trance-radio-492-t02",
+          "status": "validated_for_lab_only",
+          "original_time_seconds": 82.0,
+          "corrected_time_seconds": 82.74,
+          "delta_seconds": 0.74,
+          "source": "Emmanuel",
+          "validated_at": "2026-10-10T16:07:00+02:00"
+        },
+        {
+          "boundary_id": "pure-trance-radio-493-t09",
+          "status": "validated_for_lab_only",
+          "original_time_seconds": 2350.0,
+          "corrected_time_seconds": 2353.08,
+          "delta_seconds": 3.08,
+          "source": "Emmanuel",
+          "validated_at": "2026-10-10T16:07:00+02:00"
+        }
+      ],
+      "explicitly_non_validated_candidates": [
+        {
+          "boundary_id": "pure-trance-radio-493-t02",
+          "delta_seconds": 4.14
+        },
+        {
+          "boundary_id": "pure-trance-radio-493-t03",
+          "delta_seconds": 1.16
+        },
+        {
+          "boundary_id": "pure-trance-radio-493-t14",
+          "delta_seconds": 2.78
+        },
+        {
+          "boundary_id": "joc-subculture-melbourne-2022-t01",
+          "delta_seconds": 2.5
+        }
+      ]
     },
     "tuning_note": "Les 5 premieres frontieres Key4050 servent uniquement au test de bon fonctionnement. Les parametres amont et la politique conservatrice sont geles avant l'evaluation distincte.",
-    "human_reference": "Aucune ecoute humaine disponible dans cette execution."
+    "human_reference": "Validation partielle apres execution: Emmanuel a valide uniquement pure-trance-radio-492-t02 et pure-trance-radio-493-t09 le 2026-10-10 a 16:07 Europe/Paris. Cette validation est limitee au laboratoire et ne constitue pas une annotation exhaustive du corpus."
   },
   "catalog_verification": {
     "checked_at": "2026-10-10",

@@ -1,5 +1,13 @@
 # Rapport du prototype VAD Podmix — 10 octobre 2026
 
+> **Mise à jour 16:07 — laboratoire uniquement.** Après cet essai initial,
+> Emmanuel a validé à l'écoute PTR492 piste 2 (`82,000 → 82,740 s`) et PTR493
+> piste 9 (`2 350,000 → 2 353,080 s`). Les affirmations ci-dessous sur
+> l'absence totale de validation décrivent l'état initial avant cette réponse.
+> L'état courant est détaillé dans
+> `reponses/podmix-vad-complement-corrections-lab-2026-10-10-1610.md` et dans
+> `results/summary.json`. Aucune production n'a été modifiée.
+
 Complément corpus demandé :
 [FYH / Pure Trance Radio](CORPUS_COMPLEMENT_FYH_PURETRANCE.md).
 

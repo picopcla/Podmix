@@ -105,8 +105,16 @@ def normal_ci(value: float, standard_error: float) -> list[float | None]:
     return [round(value - 1.96 * standard_error, 6), round(value + 1.96 * standard_error, 6)]
 
 
-def regression(matched: list[dict]) -> dict:
-    pairs = [(row["cuesheet_time_seconds"], row["signed_error_seconds"]) for row in matched if row["detected"]]
+def regression(
+    matched: list[dict],
+    reference_key: str = "cuesheet_time_seconds",
+    error_key: str = "signed_error_seconds",
+) -> dict:
+    pairs = [
+        (row[reference_key], row[error_key])
+        for row in matched
+        if row["detected"]
+    ]
     n = len(pairs)
     if n < 3:
         return {"n": n, "available": False, "reason": "Moins de trois appariements."}
@@ -143,14 +151,39 @@ def regression(matched: list[dict]) -> dict:
     }
 
 
+def error_metrics(rows: list[dict], absolute_error_key: str) -> dict:
+    errors = [row[absolute_error_key] for row in rows if row["detected"]]
+    return {
+        "mean_absolute_error_seconds": round(statistics.mean(errors), 3) if errors else None,
+        "median_absolute_error_seconds": round(statistics.median(errors), 3) if errors else None,
+        "share_absolute_error_lt_1": round(sum(value < 1 for value in errors) / len(errors), 4) if errors else None,
+        "share_absolute_error_lt_3": round(sum(value < 3 for value in errors) / len(errors), 4) if errors else None,
+        "share_absolute_error_lt_10": round(sum(value < 10 for value in errors) / len(errors), 4) if errors else None,
+        "error_share_denominator": len(errors),
+    }
+
+
 def compare(episode: dict, detections: list[dict], protocol: dict) -> tuple[list[dict], dict]:
     tolerance = protocol["comparison"]["maximum_tolerance_seconds"]
+    validated = {
+        (item["episode_id"], item["track_number"]): item
+        for item in protocol.get("human_validated_corrections", [])
+    }
+    explicitly_non_validated = {
+        (item["episode_id"], item["track_number"]): item
+        for item in protocol.get("explicitly_non_validated_candidates", [])
+    }
     unused = {item["detection_id"]: item for item in detections}
     rows = []
     for track in sorted(episode["tracks"], key=lambda item: item["time"]):
         cue = float(track["time"])
+        validation = validated.get((episode["id"], track["number"]))
+        non_validation = explicitly_non_validated.get((episode["id"], track["number"]))
+        corrected_reference = validation["corrected_time_seconds"] if validation else cue
         eligible = [item for item in unused.values() if abs(item["algorithm_time_seconds"] - cue) <= tolerance]
         nearest = min(eligible, default=None, key=lambda item: (abs(item["algorithm_time_seconds"] - cue), -item["confidence"], item["algorithm_time_seconds"]))
+        signed_before = round(nearest["algorithm_time_seconds"] - cue, 3) if nearest else None
+        signed_after = round(nearest["algorithm_time_seconds"] - corrected_reference, 3) if nearest else None
         row = {
             "episode_id": episode["id"],
             "track_number": track["number"],
@@ -160,19 +193,31 @@ def compare(episode: dict, detections: list[dict], protocol: dict) -> tuple[list
             "detection_id": nearest["detection_id"] if nearest else None,
             "algorithm_time_seconds": nearest["algorithm_time_seconds"] if nearest else None,
             "confidence": nearest["confidence"] if nearest else None,
-            "signed_error_seconds": round(nearest["algorithm_time_seconds"] - cue, 3) if nearest else None,
-            "absolute_error_seconds": round(abs(nearest["algorithm_time_seconds"] - cue), 3) if nearest else None,
+            "signed_error_seconds": signed_before,
+            "absolute_error_seconds": abs(signed_before) if signed_before is not None else None,
+            "human_validation_status": (
+                validation["status"] if validation else
+                "explicitly_not_validated" if non_validation else
+                "not_applicable"
+            ),
+            "human_validation_source": validation["source"] if validation else None,
+            "human_validation_at": validation["validated_at"] if validation else None,
+            "validated_corrected_time_seconds": validation["corrected_time_seconds"] if validation else None,
+            "lab_reference_time_seconds": corrected_reference,
+            "signed_error_with_validated_corrections_seconds": signed_after,
+            "absolute_error_with_validated_corrections_seconds": abs(signed_after) if signed_after is not None else None,
         }
         rows.append(row)
         if nearest:
             unused.pop(nearest["detection_id"])
-    errors = [row["absolute_error_seconds"] for row in rows if row["detected"]]
+    baseline_metrics = error_metrics(rows, "absolute_error_seconds")
+    corrected_metrics = error_metrics(rows, "absolute_error_with_validated_corrections_seconds")
     summary = {
         "episode_id": episode["id"],
         "reference_boundaries": len(rows),
         "algorithm_detections": len(detections),
-        "matched_boundaries": len(errors),
-        "undetected_boundaries": len(rows) - len(errors),
+        "matched_boundaries": baseline_metrics["error_share_denominator"],
+        "undetected_boundaries": len(rows) - baseline_metrics["error_share_denominator"],
         "unmatched_algorithm_detections": len(unused),
         "potential_false_detections": [
             {
@@ -182,13 +227,22 @@ def compare(episode: dict, detections: list[dict], protocol: dict) -> tuple[list
             }
             for item in sorted(unused.values(), key=lambda value: value["algorithm_time_seconds"])
         ],
-        "mean_absolute_error_seconds": round(statistics.mean(errors), 3) if errors else None,
-        "median_absolute_error_seconds": round(statistics.median(errors), 3) if errors else None,
-        "share_absolute_error_lt_1": round(sum(value < 1 for value in errors) / len(errors), 4) if errors else None,
-        "share_absolute_error_lt_3": round(sum(value < 3 for value in errors) / len(errors), 4) if errors else None,
-        "share_absolute_error_lt_10": round(sum(value < 10 for value in errors) / len(errors), 4) if errors else None,
-        "error_share_denominator": len(errors),
+        **baseline_metrics,
         "regression": regression(rows),
+        "comparison_scenarios": {
+            "without_validated_corrections": {
+                **baseline_metrics,
+                "regression": regression(rows),
+            },
+            "with_validated_corrections": {
+                **corrected_metrics,
+                "regression": regression(
+                    rows,
+                    reference_key="lab_reference_time_seconds",
+                    error_key="signed_error_with_validated_corrections_seconds",
+                ),
+            },
+        },
     }
     return rows, summary
 
@@ -242,15 +296,17 @@ def build_report(
         "",
         "## Statut",
         "",
-        "**Expérience de laboratoire terminée sur les deux épisodes, sans activation ni correction.** "
+        "**Expérience de laboratoire terminée sur les deux épisodes; deux corrections sont validées "
+        "dans les sorties du laboratoire uniquement.** "
         "Les médias RSS complets ont été segmentés par INA puis Silero sur CPU. Les deux candidats "
         "historiques `PTR492 +0,740 s` et `PTR493 +3,080 s` réapparaissent comme sorties brutes de "
-        "l'algorithme gelé, mais ils restent **non approuvés et non appliqués**. Aucune écoute "
-        "d'Emmanuel n'est interprétée comme une validation.",
+        "l'algorithme gelé. Emmanuel a confirmé leur découpe à l'écoute puis répondu « Oui » à "
+        "16:07 le 10 octobre 2026 à la demande d'appliquer les deux corrections en labo. Elles sont "
+        "donc marquées **validées pour le labo**, avec leurs temps originaux conservés.",
         "",
         "Aucune production, base SQLite, donnée applicative, chapitre, API, dépendance de production, "
-        "service, conteneur, APK, configuration ou déploiement n'a été modifié. Aucun audio n'est "
-        "ajouté au dépôt.",
+        "service, conteneur, APK, configuration, déploiement ou branche `main` n'a été modifié. "
+        "Aucun audio n'est ajouté au dépôt et aucune fusion n'est effectuée.",
         "",
         "## Méthode gelée avant comparaison",
         "",
@@ -310,6 +366,40 @@ def build_report(
         "9 pour PTR493. Les non-détections ne sont donc pas transformées artificiellement en erreurs "
         "de 20 s.",
         "",
+        "## Écarts avec et sans les deux corrections validées",
+        "",
+        "Les appariements et les sorties algorithmiques sont inchangés. Le scénario « avec » remplace "
+        "uniquement les deux références validées par `82,740 s` et `2 353,080 s`; toutes les autres "
+        "références restent les temps CueNation d'origine.",
+        "",
+        "| Épisode | Frontière validée | Écart sans correction | Écart avec correction | Moyenne abs. sans | Moyenne abs. avec | < 1 s sans | < 1 s avec | < 3 s sans | < 3 s avec |",
+        "|---|---|---:|---:|---:|---:|---:|---:|---:|---:|",
+    ]
+    validated_by_episode = {
+        item["episode_id"]: item for item in protocol.get("human_validated_corrections", [])
+    }
+    for episode in episodes:
+        summary = summary_map[episode["id"]]
+        before = summary["comparison_scenarios"]["without_validated_corrections"]
+        after = summary["comparison_scenarios"]["with_validated_corrections"]
+        correction = validated_by_episode[episode["id"]]
+        lines.append(
+            f"| {episode['id'].replace('pure-trance-radio-', 'PTR')} | piste "
+            f"{correction['track_number']} : {correction['original_time_seconds']:.3f} → "
+            f"{correction['corrected_time_seconds']:.3f} s | "
+            f"{correction['delta_seconds']:+.3f} s | +0.000 s | "
+            f"{before['mean_absolute_error_seconds']:.3f} s | "
+            f"{after['mean_absolute_error_seconds']:.3f} s | "
+            f"{percent(before['share_absolute_error_lt_1'])} | "
+            f"{percent(after['share_absolute_error_lt_1'])} | "
+            f"{percent(before['share_absolute_error_lt_3'])} | "
+            f"{percent(after['share_absolute_error_lt_3'])} |"
+        )
+    lines += [
+        "",
+        "Ces chiffres décrivent deux scénarios de référence dans le laboratoire; ils ne prouvent pas "
+        "un alignement absolu entre CueNation et l'audio RSS.",
+        "",
         "## Toutes les frontières détectées",
         "",
     ]
@@ -343,20 +433,26 @@ def build_report(
         lines += [
             f"### {label}",
             "",
-            "| Piste | Titre | CueNation | Algorithme | Confiance | Écart signé |",
-            "|---:|---|---:|---:|---:|---:|",
+            "| Piste | Titre | CueNation original | Correction labo | Algorithme | Confiance | Écart sans | Écart avec |",
+            "|---:|---|---:|---:|---:|---:|---:|---:|",
         ]
         for row in (value for value in comparisons if value["episode_id"] == episode_id):
             if row["detected"]:
                 algorithm = f"{timestamp(row['algorithm_time_seconds'])} ({row['algorithm_time_seconds']:.3f} s)"
                 confidence_value = f"{row['confidence']:.4f}"
                 error = f"{row['signed_error_seconds']:+.3f} s"
+                corrected_error = f"{row['signed_error_with_validated_corrections_seconds']:+.3f} s"
             else:
-                algorithm, confidence_value, error = "non détectée", "—", "—"
+                algorithm, confidence_value, error, corrected_error = "non détectée", "—", "—", "—"
+            correction = (
+                f"{timestamp(row['validated_corrected_time_seconds'])} "
+                f"({row['validated_corrected_time_seconds']:.3f} s)"
+                if row["validated_corrected_time_seconds"] is not None else "—"
+            )
             lines.append(
                 f"| {row['track_number']} | {md(row['track_title'])} | "
                 f"{timestamp(row['cuesheet_time_seconds'])} ({row['cuesheet_time_seconds']:.3f} s) | "
-                f"{algorithm} | {confidence_value} | {error} |"
+                f"{correction} | {algorithm} | {confidence_value} | {error} | {corrected_error} |"
             )
         lines.append("")
     lines += [
@@ -392,9 +488,10 @@ def build_report(
         "outre, INA et Silero peuvent confondre voix DJ, chant, rap, jingle ou voice-over : les 14 et "
         "9 détections sans équivalent sont potentielles, pas des faux positifs confirmés.",
         "",
-        "Le détecteur retrouve notamment `82,740 s` sur PTR492 et `2 353,080 s` sur PTR493. Ces "
-        "résultats reproduisent les deux candidats explicitement non approuvés; ils ne constituent ni "
-        "une validation humaine ni une autorisation de modifier des chapitres.",
+        "Le détecteur retrouve notamment `82,740 s` sur PTR492 et `2 353,080 s` sur PTR493. Ces deux "
+        "frontières sont validées par l'écoute d'Emmanuel pour le laboratoire uniquement. Les autres "
+        "candidats `PTR493 +4,140 s`, `+1,160 s`, `+2,780 s` et `JOC +2,500 s` restent explicitement "
+        "non validés. Aucune de ces mentions n'autorise une modification des chapitres réels.",
         "",
         "## Reproductibilité et livrables",
         "",
@@ -412,10 +509,10 @@ def build_report(
         "",
         "## Conclusion",
         "",
-        "La découpe globale est techniquement reproductible mais insuffisante pour une activation : "
+        "La découpe globale est techniquement reproductible mais insuffisante pour une activation en production : "
         "elle apparie 11/22 frontières de PTR492 et 9/20 de PTR493 à ±20 s, avec respectivement 14 "
-        "et 9 détections supplémentaires potentielles. Le laboratoire reste désactivé et aucune "
-        "correction n'est appliquée.",
+        "et 9 détections supplémentaires potentielles. Les deux corrections validées sont appliquées "
+        "uniquement aux sorties comparatives du laboratoire; Podmix reste inchangé.",
         "",
     ]
     return "\n".join(lines)
@@ -426,11 +523,27 @@ def main() -> int:
     protocol = json.loads(PROTOCOL.read_text())
     selected = [episode for episode in episodes_config["episodes"] if episode["id"] in protocol["episodes"]]
     selected.sort(key=lambda episode: protocol["episodes"].index(episode["id"]))
+    tracked_detections_path = RESULTS / "full-episode-detections.json"
+    tracked_detections = (
+        json.loads(tracked_detections_path.read_text())
+        if tracked_detections_path.exists() else []
+    )
     all_detections = []
     all_comparisons = []
     summaries = []
     for episode in selected:
-        detections = detect(episode, protocol)
+        raw_available = all(
+            (OUTPUT / f"{episode['id']}-{method}.json").exists()
+            for method in ("ina", "silero")
+        )
+        detections = (
+            detect(episode, protocol) if raw_available else
+            [item for item in tracked_detections if item["episode_id"] == episode["id"]]
+        )
+        if not detections:
+            raise FileNotFoundError(
+                f"Aucune segmentation brute ou detection suivie pour {episode['id']}"
+            )
         comparisons, summary = compare(episode, detections, protocol)
         all_detections.extend(detections)
         all_comparisons.extend(comparisons)
@@ -442,6 +555,13 @@ def main() -> int:
         "protocol": "full_episode_protocol.json",
         "matching": protocol["comparison"],
         "alignment_warning": "L'alignement cuesheet CueNation / audio RSS n'est pas verifie; les ecarts ne sont donc pas assimilables sans reserve a des erreurs de l'algorithme.",
+        "human_validation": {
+            "scope": "lab_only",
+            "corrections": protocol.get("human_validated_corrections", []),
+            "explicitly_non_validated_candidates": protocol.get(
+                "explicitly_non_validated_candidates", []
+            ),
+        },
         "episodes": summaries,
     }
     (RESULTS / "full-episode-summary.json").write_text(json.dumps(summary_doc, ensure_ascii=False, indent=2) + "\n")

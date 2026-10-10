@@ -59,7 +59,52 @@ def base_row(record: dict, method: str) -> dict:
         "automatic_candidate": False,
         "candidate_time_seconds": None,
         "candidate_delta_seconds": None,
+        "human_validation_status": "not_applicable",
+        "human_validation_source": None,
+        "human_validation_at": None,
+        "validated_original_time_seconds": None,
+        "validated_corrected_time_seconds": None,
+        "validated_delta_seconds": None,
+        "application_scope": None,
     }
+
+
+def attach_human_validation(row: dict, policy: dict) -> None:
+    validations = {
+        item["boundary_id"]: item for item in policy.get("human_validations", [])
+    }
+    non_validated = {
+        item["boundary_id"]: item
+        for item in policy.get("explicitly_non_validated_candidates", [])
+    }
+    validation = validations.get(row["boundary_id"])
+    if validation:
+        row.update(
+            human_validation_status=validation["status"],
+            human_validation_source=validation["source"],
+            human_validation_at=validation["validated_at"],
+            validated_original_time_seconds=validation["original_time_seconds"],
+            validated_corrected_time_seconds=validation["corrected_time_seconds"],
+            validated_delta_seconds=validation["delta_seconds"],
+            application_scope="lab_only",
+        )
+    elif row["automatic_candidate"] and row["boundary_id"] in non_validated:
+        row.update(
+            human_validation_status="explicitly_not_validated",
+            application_scope="none",
+        )
+
+
+def write_rows(path_json: Path, path_csv: Path, rows: list[dict]) -> None:
+    path_json.write_text(json.dumps(rows, ensure_ascii=False, indent=2) + "\n")
+    fields = [k for k in rows[0] if k != "segments"] + ["segments"] if rows else []
+    with path_csv.open("w", newline="") as handle:
+        writer = csv.DictWriter(handle, fieldnames=fields, lineterminator="\n")
+        writer.writeheader()
+        for row in rows:
+            out = dict(row)
+            out["segments"] = json.dumps(out["segments"], ensure_ascii=False, separators=(",", ":"))
+            writer.writerow(out)
 
 
 def main() -> int:
@@ -92,12 +137,23 @@ def main() -> int:
                 if eligible:
                     candidate_time = round(record["original_time"] + delta, 3)
                     human_confirmed = record["id"] in policy.get("human_transition_confirmed_boundaries", [])
-                    if policy.get("requires_human_transition_confirmation", False) and not human_confirmed:
+                    row.update(
+                        automatic_candidate=True,
+                        candidate_time_seconds=candidate_time,
+                        candidate_delta_seconds=round(delta, 3),
+                    )
+                    if human_confirmed:
                         row.update(
                             decision="abstention", new_time_seconds=None, delta_seconds=None,
-                            automatic_candidate=True,
-                            candidate_time_seconds=candidate_time,
-                            candidate_delta_seconds=round(delta, 3),
+                            reason=(
+                                "Candidat INA confirme par ecoute humaine au niveau de la frontiere; "
+                                "la correction finale est portee uniquement par le consensus INA/Silero."
+                            ),
+                            uncertainty="moyenne_algorithme_seul",
+                        )
+                    elif policy.get("requires_human_transition_confirmation", False):
+                        row.update(
+                            decision="abstention", new_time_seconds=None, delta_seconds=None,
                             reason=(
                                 "Candidat automatique INA parole-vers-musique non confirme par ecoute humaine; "
                                 "chant, rap, jingle ou voice-over ne peuvent pas etre exclus."
@@ -134,6 +190,7 @@ def main() -> int:
                     reason="INA ne confirme pas une parole englobant le temps original suivie immediatement de musique.",
                     uncertainty="moyenne_sans_ecoute_humaine",
                 )
+            attach_human_validation(row, policy)
             rows.append(row)
 
         consensus = base_row(ina, "consensus_ina_silero")
@@ -158,12 +215,25 @@ def main() -> int:
         if eligible:
             candidate_time = round(ina["original_time"] + delta, 3)
             human_confirmed = ina["id"] in policy.get("human_transition_confirmed_boundaries", [])
-            if policy.get("requires_human_transition_confirmation", False) and not human_confirmed:
+            consensus.update(
+                automatic_candidate=True,
+                candidate_time_seconds=candidate_time,
+                candidate_delta_seconds=round(delta, 3),
+            )
+            if human_confirmed:
+                consensus.update(
+                    decision="correction_validee_labo",
+                    new_time_seconds=candidate_time,
+                    delta_seconds=round(delta, 3),
+                    reason=(
+                        "Consensus INA/Silero puis retour a la musique; correction validee par "
+                        "ecoute humaine et applicable au laboratoire uniquement."
+                    ),
+                    uncertainty="levee_par_ecoute_humaine",
+                )
+            elif policy.get("requires_human_transition_confirmation", False):
                 consensus.update(
                     decision="abstention", new_time_seconds=None, delta_seconds=None,
-                    automatic_candidate=True,
-                    candidate_time_seconds=candidate_time,
-                    candidate_delta_seconds=round(delta, 3),
                     reason=(
                         "Candidat automatique: parole englobante et fin proches pour INA/Silero, puis musique INA; "
                         "abstention sans ecoute humaine capable d'exclure chant, rap, jingle ou voice-over."
@@ -195,21 +265,27 @@ def main() -> int:
                 reason="; ".join(reasons) or "preuves insuffisantes",
                 uncertainty="moyenne_a_elevee",
             )
+        attach_human_validation(consensus, policy)
         rows.append(consensus)
 
     RESULTS.mkdir(exist_ok=True)
-    (RESULTS / "boundary-results.json").write_text(json.dumps(rows, ensure_ascii=False, indent=2) + "\n")
-    fields = [k for k in rows[0] if k != "segments"] + ["segments"] if rows else []
-    with (RESULTS / "boundary-results.csv").open("w", newline="") as handle:
-        writer = csv.DictWriter(handle, fieldnames=fields, lineterminator="\n")
-        writer.writeheader()
-        for row in rows:
-            out = dict(row)
-            out["segments"] = json.dumps(out["segments"], ensure_ascii=False, separators=(",", ":"))
-            writer.writerow(out)
+    write_rows(
+        RESULTS / "boundary-results.json",
+        RESULTS / "boundary-results.csv",
+        rows,
+    )
+    consensus_rows = [row for row in rows if row["method"] == "consensus_ina_silero"]
+    write_rows(
+        RESULTS / "consensus-results.json",
+        RESULTS / "consensus-results.csv",
+        consensus_rows,
+    )
     for row in rows:
         key = f'{row["method"]}:{row["decision"]}'
         counts[key] = counts.get(key, 0) + 1
+    validated_consensus = [
+        row for row in consensus_rows if row["decision"] == "correction_validee_labo"
+    ]
     summary = {
         "episodes": len({r["episode_id"] for r in rows}),
         "boundaries": len({r["boundary_id"] for r in rows}),
@@ -219,8 +295,33 @@ def main() -> int:
             method: sum(1 for row in rows if row["method"] == method and row["automatic_candidate"])
             for method in ("ina", "silero", "consensus_ina_silero")
         },
+        "human_validation": {
+            "validated_corrections_lab_only": len(validated_consensus),
+            "source": "Emmanuel",
+            "validated_at": "2026-10-10T16:07:00+02:00",
+            "corrections": [
+                {
+                    "boundary_id": row["boundary_id"],
+                    "original_time_seconds": row["validated_original_time_seconds"],
+                    "corrected_time_seconds": row["validated_corrected_time_seconds"],
+                    "delta_seconds": row["validated_delta_seconds"],
+                    "scope": row["application_scope"],
+                }
+                for row in validated_consensus
+            ],
+            "explicitly_non_validated_candidates": policy.get(
+                "explicitly_non_validated_candidates", []
+            ),
+        },
         "precision": None,
-        "precision_limit": "Non mesurable: aucune reference humaine par ecoute n'est disponible.",
+        "precision_limit": (
+            "Non mesurable: deux candidats ont ete valides par ecoute, mais le corpus ne dispose "
+            "pas d'une annotation humaine exhaustive permettant de mesurer la precision."
+        ),
+        "alignment_warning": (
+            "L'alignement cuesheet CueNation / audio RSS reste non verifie; les deux corrections "
+            "sont donc des validations d'ecoute limitees au laboratoire."
+        ),
     }
     (RESULTS / "summary.json").write_text(json.dumps(summary, ensure_ascii=False, indent=2) + "\n")
     print(json.dumps(summary, ensure_ascii=False, indent=2))

@@ -58,5 +58,58 @@
     "constant_offset_test": "moyenne signee et intervalle 95 % normal; decalage signale si l'intervalle exclut zero",
     "drift_test": "regression OLS ecart_signe = intercept + pente * temps_cuesheet; derive signalee si l'intervalle 95 % normal de la pente exclut zero"
   },
+  "human_validated_corrections": [
+    {
+      "boundary_id": "pure-trance-radio-492-t02",
+      "episode_id": "pure-trance-radio-492",
+      "track_number": 2,
+      "track_title": "Midnight Evolution - Dreams",
+      "original_time_seconds": 82.0,
+      "corrected_time_seconds": 82.74,
+      "delta_seconds": 0.74,
+      "status": "validated_for_lab_only",
+      "source": "Emmanuel",
+      "validated_at": "2026-10-10T16:07:00+02:00"
+    },
+    {
+      "boundary_id": "pure-trance-radio-493-t09",
+      "episode_id": "pure-trance-radio-493",
+      "track_number": 9,
+      "track_title": "Private Taste - First (Ashtrax Rerub)",
+      "original_time_seconds": 2350.0,
+      "corrected_time_seconds": 2353.08,
+      "delta_seconds": 3.08,
+      "status": "validated_for_lab_only",
+      "source": "Emmanuel",
+      "validated_at": "2026-10-10T16:07:00+02:00"
+    }
+  ],
+  "explicitly_non_validated_candidates": [
+    {
+      "boundary_id": "pure-trance-radio-493-t02",
+      "episode_id": "pure-trance-radio-493",
+      "track_number": 2,
+      "delta_seconds": 4.14
+    },
+    {
+      "boundary_id": "pure-trance-radio-493-t03",
+      "episode_id": "pure-trance-radio-493",
+      "track_number": 3,
+      "delta_seconds": 1.16
+    },
+    {
+      "boundary_id": "pure-trance-radio-493-t14",
+      "episode_id": "pure-trance-radio-493",
+      "track_number": 14,
+      "delta_seconds": 2.78
+    },
+    {
+      "boundary_id": "joc-subculture-melbourne-2022-t01",
+      "episode_id": "joc-subculture-melbourne-2022",
+      "track_number": 1,
+      "delta_seconds": 2.5
+    }
+  ],
+  "human_validation_scope": "Laboratoire uniquement. Aucun changement Podmix, SQLite, chapitre, API, APK, configuration, deploiement ou branche main.",
   "non_tuning_statement": "Les seuils reprennent le prototype fenetre et sont geles avant toute production des tableaux de comparaison. Ils ne seront pas ajustes apres lecture des ecarts CueNation."
 }

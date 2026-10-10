@@ -17,6 +17,13 @@
     "automatic_candidate": true,
     "candidate_time_seconds": 302.5,
     "candidate_delta_seconds": 2.5,
+    "human_validation_status": "explicitly_not_validated",
+    "human_validation_source": null,
+    "human_validation_at": null,
+    "validated_original_time_seconds": null,
+    "validated_corrected_time_seconds": null,
+    "validated_delta_seconds": null,
+    "application_scope": "none",
     "segments": [
       {
         "label": "music",
@@ -58,6 +65,13 @@
     "automatic_candidate": false,
     "candidate_time_seconds": null,
     "candidate_delta_seconds": null,
+    "human_validation_status": "not_applicable",
+    "human_validation_source": null,
+    "human_validation_at": null,
+    "validated_original_time_seconds": null,
+    "validated_corrected_time_seconds": null,
+    "validated_delta_seconds": null,
+    "application_scope": null,
     "segments": [
       {
         "label": "non_speech",
@@ -89,6 +103,13 @@
     "automatic_candidate": false,
     "candidate_time_seconds": null,
     "candidate_delta_seconds": null,
+    "human_validation_status": "not_applicable",
+    "human_validation_source": null,
+    "human_validation_at": null,
+    "validated_original_time_seconds": null,
+    "validated_corrected_time_seconds": null,
+    "validated_delta_seconds": null,
+    "application_scope": null,
     "segments": {
       "ina": [
         {
@@ -139,6 +160,13 @@
     "automatic_candidate": false,
     "candidate_time_seconds": null,
     "candidate_delta_seconds": null,
+    "human_validation_status": "not_applicable",
+    "human_validation_source": null,
+    "human_validation_at": null,
+    "validated_original_time_seconds": null,
+    "validated_corrected_time_seconds": null,
+    "validated_delta_seconds": null,
+    "application_scope": null,
     "segments": [
       {
         "label": "music",
@@ -190,6 +218,13 @@
     "automatic_candidate": false,
     "candidate_time_seconds": null,
     "candidate_delta_seconds": null,
+    "human_validation_status": "not_applicable",
+    "human_validation_source": null,
+    "human_validation_at": null,
+    "validated_original_time_seconds": null,
+    "validated_corrected_time_seconds": null,
+    "validated_delta_seconds": null,
+    "application_scope": null,
     "segments": [
       {
         "label": "non_speech",
@@ -221,6 +256,13 @@
     "automatic_candidate": false,
     "candidate_time_seconds": null,
     "candidate_delta_seconds": null,
+    "human_validation_status": "not_applicable",
+    "human_validation_source": null,
+    "human_validation_at": null,
+    "validated_original_time_seconds": null,
+    "validated_corrected_time_seconds": null,
+    "validated_delta_seconds": null,
+    "application_scope": null,
     "segments": {
       "ina": [
         {
@@ -281,6 +323,13 @@
     "automatic_candidate": false,
     "candidate_time_seconds": null,
     "candidate_delta_seconds": null,
+    "human_validation_status": "not_applicable",
+    "human_validation_source": null,
+    "human_validation_at": null,
+    "validated_original_time_seconds": null,
+    "validated_corrected_time_seconds": null,
+    "validated_delta_seconds": null,
+    "application_scope": null,
     "segments": [
       {
         "label": "music",
@@ -312,6 +361,13 @@
     "automatic_candidate": false,
     "candidate_time_seconds": null,
     "candidate_delta_seconds": null,
+    "human_validation_status": "not_applicable",
+    "human_validation_source": null,
+    "human_validation_at": null,
+    "validated_original_time_seconds": null,
+    "validated_corrected_time_seconds": null,
+    "validated_delta_seconds": null,
+    "application_scope": null,
     "segments": [
       {
         "label": "non_speech",
@@ -343,6 +399,13 @@
     "automatic_candidate": false,
     "candidate_time_seconds": null,
     "candidate_delta_seconds": null,
+    "human_validation_status": "not_applicable",
+    "human_validation_source": null,
+    "human_validation_at": null,
+    "validated_original_time_seconds": null,
+    "validated_corrected_time_seconds": null,
+    "validated_delta_seconds": null,
+    "application_scope": null,
     "segments": {
       "ina": [
         {
@@ -383,6 +446,13 @@
     "automatic_candidate": false,
     "candidate_time_seconds": null,
     "candidate_delta_seconds": null,
+    "human_validation_status": "not_applicable",
+    "human_validation_source": null,
+    "human_validation_at": null,
+    "validated_original_time_seconds": null,
+    "validated_corrected_time_seconds": null,
+    "validated_delta_seconds": null,
+    "application_scope": null,
     "segments": [
       {
         "label": "speech",
@@ -429,6 +499,13 @@
     "automatic_candidate": false,
     "candidate_time_seconds": null,
     "candidate_delta_seconds": null,
+    "human_validation_status": "not_applicable",
+    "human_validation_source": null,
+    "human_validation_at": null,
+    "validated_original_time_seconds": null,
+    "validated_corrected_time_seconds": null,
+    "validated_delta_seconds": null,
+    "application_scope": null,
     "segments": [
       {
         "label": "non_speech",
@@ -460,6 +537,13 @@
     "automatic_candidate": false,
     "candidate_time_seconds": null,
     "candidate_delta_seconds": null,
+    "human_validation_status": "not_applicable",
+    "human_validation_source": null,
+    "human_validation_at": null,
+    "validated_original_time_seconds": null,
+    "validated_corrected_time_seconds": null,
+    "validated_delta_seconds": null,
+    "application_scope": null,
     "segments": {
       "ina": [
         {
@@ -515,6 +599,13 @@
     "automatic_candidate": false,
     "candidate_time_seconds": null,
     "candidate_delta_seconds": null,
+    "human_validation_status": "not_applicable",
+    "human_validation_source": null,
+    "human_validation_at": null,
+    "validated_original_time_seconds": null,
+    "validated_corrected_time_seconds": null,
+    "validated_delta_seconds": null,
+    "application_scope": null,
     "segments": [
       {
         "label": "music",
@@ -546,6 +637,13 @@
     "automatic_candidate": false,
     "candidate_time_seconds": null,
     "candidate_delta_seconds": null,
+    "human_validation_status": "not_applicable",
+    "human_validation_source": null,
+    "human_validation_at": null,
+    "validated_original_time_seconds": null,
+    "validated_corrected_time_seconds": null,
+    "validated_delta_seconds": null,
+    "application_scope": null,
     "segments": [
       {
         "label": "non_speech",
@@ -577,6 +675,13 @@
     "automatic_candidate": false,
     "candidate_time_seconds": null,
     "candidate_delta_seconds": null,
+    "human_validation_status": "not_applicable",
+    "human_validation_source": null,
+    "human_validation_at": null,
+    "validated_original_time_seconds": null,
+    "validated_corrected_time_seconds": null,
+    "validated_delta_seconds": null,
+    "application_scope": null,
     "segments": {
       "ina": [
         {
@@ -617,6 +722,13 @@
     "automatic_candidate": false,
     "candidate_time_seconds": null,
     "candidate_delta_seconds": null,
+    "human_validation_status": "not_applicable",
+    "human_validation_source": null,
+    "human_validation_at": null,
+    "validated_original_time_seconds": null,
+    "validated_corrected_time_seconds": null,
+    "validated_delta_seconds": null,
+    "application_scope": null,
     "segments": [
       {
         "label": "music",
@@ -648,6 +760,13 @@
     "automatic_candidate": false,
     "candidate_time_seconds": null,
     "candidate_delta_seconds": null,
+    "human_validation_status": "not_applicable",
+    "human_validation_source": null,
+    "human_validation_at": null,
+    "validated_original_time_seconds": null,
+    "validated_corrected_time_seconds": null,
+    "validated_delta_seconds": null,
+    "application_scope": null,
     "segments": [
       {
         "label": "non_speech",
@@ -679,6 +798,13 @@
     "automatic_candidate": false,
     "candidate_time_seconds": null,
     "candidate_delta_seconds": null,
+    "human_validation_status": "not_applicable",
+    "human_validation_source": null,
+    "human_validation_at": null,
+    "validated_original_time_seconds": null,
+    "validated_corrected_time_seconds": null,
+    "validated_delta_seconds": null,
+    "application_scope": null,
     "segments": {
       "ina": [
         {
@@ -719,6 +845,13 @@
     "automatic_candidate": false,
     "candidate_time_seconds": null,
     "candidate_delta_seconds": null,
+    "human_validation_status": "not_applicable",
+    "human_validation_source": null,
+    "human_validation_at": null,
+    "validated_original_time_seconds": null,
+    "validated_corrected_time_seconds": null,
+    "validated_delta_seconds": null,
+    "application_scope": null,
     "segments": [
       {
         "label": "music",
@@ -750,6 +883,13 @@
     "automatic_candidate": false,
     "candidate_time_seconds": null,
     "candidate_delta_seconds": null,
+    "human_validation_status": "not_applicable",
+    "human_validation_source": null,
+    "human_validation_at": null,
+    "validated_original_time_seconds": null,
+    "validated_corrected_time_seconds": null,
+    "validated_delta_seconds": null,
+    "application_scope": null,
     "segments": [
       {
         "label": "non_speech",
@@ -781,6 +921,13 @@
     "automatic_candidate": false,
     "candidate_time_seconds": null,
     "candidate_delta_seconds": null,
+    "human_validation_status": "not_applicable",
+    "human_validation_source": null,
+    "human_validation_at": null,
+    "validated_original_time_seconds": null,
+    "validated_corrected_time_seconds": null,
+    "validated_delta_seconds": null,
+    "application_scope": null,
     "segments": {
       "ina": [
         {
@@ -821,6 +968,13 @@
     "automatic_candidate": false,
     "candidate_time_seconds": null,
     "candidate_delta_seconds": null,
+    "human_validation_status": "not_applicable",
+    "human_validation_source": null,
+    "human_validation_at": null,
+    "validated_original_time_seconds": null,
+    "validated_corrected_time_seconds": null,
+    "validated_delta_seconds": null,
+    "application_scope": null,
     "segments": [
       {
         "label": "music",
@@ -852,6 +1006,13 @@
     "automatic_candidate": false,
     "candidate_time_seconds": null,
     "candidate_delta_seconds": null,
+    "human_validation_status": "not_applicable",
+    "human_validation_source": null,
+    "human_validation_at": null,
+    "validated_original_time_seconds": null,
+    "validated_corrected_time_seconds": null,
+    "validated_delta_seconds": null,
+    "application_scope": null,
     "segments": [
       {
         "label": "non_speech",
@@ -883,6 +1044,13 @@
     "automatic_candidate": false,
     "candidate_time_seconds": null,
     "candidate_delta_seconds": null,
+    "human_validation_status": "not_applicable",
+    "human_validation_source": null,
+    "human_validation_at": null,
+    "validated_original_time_seconds": null,
+    "validated_corrected_time_seconds": null,
+    "validated_delta_seconds": null,
+    "application_scope": null,
     "segments": {
       "ina": [
         {
@@ -923,6 +1091,13 @@
     "automatic_candidate": false,
     "candidate_time_seconds": null,
     "candidate_delta_seconds": null,
+    "human_validation_status": "not_applicable",
+    "human_validation_source": null,
+    "human_validation_at": null,
+    "validated_original_time_seconds": null,
+    "validated_corrected_time_seconds": null,
+    "validated_delta_seconds": null,
+    "application_scope": null,
     "segments": [
       {
         "label": "music",
@@ -954,6 +1129,13 @@
     "automatic_candidate": false,
     "candidate_time_seconds": null,
     "candidate_delta_seconds": null,
+    "human_validation_status": "not_applicable",
+    "human_validation_source": null,
+    "human_validation_at": null,
+    "validated_original_time_seconds": null,
+    "validated_corrected_time_seconds": null,
+    "validated_delta_seconds": null,
+    "application_scope": null,
     "segments": [
       {
         "label": "non_speech",
@@ -985,6 +1167,13 @@
     "automatic_candidate": false,
     "candidate_time_seconds": null,
     "candidate_delta_seconds": null,
+    "human_validation_status": "not_applicable",
+    "human_validation_source": null,
+    "human_validation_at": null,
+    "validated_original_time_seconds": null,
+    "validated_corrected_time_seconds": null,
+    "validated_delta_seconds": null,
+    "application_scope": null,
     "segments": {
       "ina": [
         {
@@ -1025,6 +1214,13 @@
     "automatic_candidate": false,
     "candidate_time_seconds": null,
     "candidate_delta_seconds": null,
+    "human_validation_status": "not_applicable",
+    "human_validation_source": null,
+    "human_validation_at": null,
+    "validated_original_time_seconds": null,
+    "validated_corrected_time_seconds": null,
+    "validated_delta_seconds": null,
+    "application_scope": null,
     "segments": [
       {
         "label": "music",
@@ -1061,6 +1257,13 @@
     "automatic_candidate": false,
     "candidate_time_seconds": null,
     "candidate_delta_seconds": null,
+    "human_validation_status": "not_applicable",
+    "human_validation_source": null,
+    "human_validation_at": null,
+    "validated_original_time_seconds": null,
+    "validated_corrected_time_seconds": null,
+    "validated_delta_seconds": null,
+    "application_scope": null,
     "segments": [
       {
         "label": "non_speech",
@@ -1092,6 +1295,13 @@
     "automatic_candidate": false,
     "candidate_time_seconds": null,
     "candidate_delta_seconds": null,
+    "human_validation_status": "not_applicable",
+    "human_validation_source": null,
+    "human_validation_at": null,
+    "validated_original_time_seconds": null,
+    "validated_corrected_time_seconds": null,
+    "validated_delta_seconds": null,
+    "application_scope": null,
     "segments": {
       "ina": [
         {
@@ -1137,6 +1347,13 @@
     "automatic_candidate": false,
     "candidate_time_seconds": null,
     "candidate_delta_seconds": null,
+    "human_validation_status": "not_applicable",
+    "human_validation_source": null,
+    "human_validation_at": null,
+    "validated_original_time_seconds": null,
+    "validated_corrected_time_seconds": null,
+    "validated_delta_seconds": null,
+    "application_scope": null,
     "segments": [
       {
         "label": "music",
@@ -1168,6 +1385,13 @@
     "automatic_candidate": false,
     "candidate_time_seconds": null,
     "candidate_delta_seconds": null,
+    "human_validation_status": "not_applicable",
+    "human_validation_source": null,
+    "human_validation_at": null,
+    "validated_original_time_seconds": null,
+    "validated_corrected_time_seconds": null,
+    "validated_delta_seconds": null,
+    "application_scope": null,
     "segments": [
       {
         "label": "non_speech",
@@ -1199,6 +1423,13 @@
     "automatic_candidate": false,
     "candidate_time_seconds": null,
     "candidate_delta_seconds": null,
+    "human_validation_status": "not_applicable",
+    "human_validation_source": null,
+    "human_validation_at": null,
+    "validated_original_time_seconds": null,
+    "validated_corrected_time_seconds": null,
+    "validated_delta_seconds": null,
+    "application_scope": null,
     "segments": {
       "ina": [
         {
@@ -1239,6 +1470,13 @@
     "automatic_candidate": false,
     "candidate_time_seconds": null,
     "candidate_delta_seconds": null,
+    "human_validation_status": "not_applicable",
+    "human_validation_source": null,
+    "human_validation_at": null,
+    "validated_original_time_seconds": null,
+    "validated_corrected_time_seconds": null,
+    "validated_delta_seconds": null,
+    "application_scope": null,
     "segments": [
       {
         "label": "music",
@@ -1270,6 +1508,13 @@
     "automatic_candidate": false,
     "candidate_time_seconds": null,
     "candidate_delta_seconds": null,
+    "human_validation_status": "not_applicable",
+    "human_validation_source": null,
+    "human_validation_at": null,
+    "validated_original_time_seconds": null,
+    "validated_corrected_time_seconds": null,
+    "validated_delta_seconds": null,
+    "application_scope": null,
     "segments": [
       {
         "label": "non_speech",
@@ -1301,6 +1546,13 @@
     "automatic_candidate": false,
     "candidate_time_seconds": null,
     "candidate_delta_seconds": null,
+    "human_validation_status": "not_applicable",
+    "human_validation_source": null,
+    "human_validation_at": null,
+    "validated_original_time_seconds": null,
+    "validated_corrected_time_seconds": null,
+    "validated_delta_seconds": null,
+    "application_scope": null,
     "segments": {
       "ina": [
         {
@@ -1341,6 +1593,13 @@
     "automatic_candidate": false,
     "candidate_time_seconds": null,
     "candidate_delta_seconds": null,
+    "human_validation_status": "not_applicable",
+    "human_validation_source": null,
+    "human_validation_at": null,
+    "validated_original_time_seconds": null,
+    "validated_corrected_time_seconds": null,
+    "validated_delta_seconds": null,
+    "application_scope": null,
     "segments": [
       {
         "label": "music",
@@ -1392,6 +1651,13 @@
     "automatic_candidate": false,
     "candidate_time_seconds": null,
     "candidate_delta_seconds": null,
+    "human_validation_status": "not_applicable",
+    "human_validation_source": null,
+    "human_validation_at": null,
+    "validated_original_time_seconds": null,
+    "validated_corrected_time_seconds": null,
+    "validated_delta_seconds": null,
+    "application_scope": null,
     "segments": [
       {
         "label": "non_speech",
@@ -1453,6 +1719,13 @@
     "automatic_candidate": false,
     "candidate_time_seconds": null,
     "candidate_delta_seconds": null,
+    "human_validation_status": "not_applicable",
+    "human_validation_source": null,
+    "human_validation_at": null,
+    "validated_original_time_seconds": null,
+    "validated_corrected_time_seconds": null,
+    "validated_delta_seconds": null,
+    "application_scope": null,
     "segments": {
       "ina": [
         {
@@ -1543,6 +1816,13 @@
     "automatic_candidate": false,
     "candidate_time_seconds": null,
     "candidate_delta_seconds": null,
+    "human_validation_status": "not_applicable",
+    "human_validation_source": null,
+    "human_validation_at": null,
+    "validated_original_time_seconds": null,
+    "validated_corrected_time_seconds": null,
+    "validated_delta_seconds": null,
+    "application_scope": null,
     "segments": [
       {
         "label": "speech",
@@ -1579,6 +1859,13 @@
     "automatic_candidate": false,
     "candidate_time_seconds": null,
     "candidate_delta_seconds": null,
+    "human_validation_status": "not_applicable",
+    "human_validation_source": null,
+    "human_validation_at": null,
+    "validated_original_time_seconds": null,
+    "validated_corrected_time_seconds": null,
+    "validated_delta_seconds": null,
+    "application_scope": null,
     "segments": [
       {
         "label": "non_speech",
@@ -1610,6 +1897,13 @@
     "automatic_candidate": false,
     "candidate_time_seconds": null,
     "candidate_delta_seconds": null,
+    "human_validation_status": "not_applicable",
+    "human_validation_source": null,
+    "human_validation_at": null,
+    "validated_original_time_seconds": null,
+    "validated_corrected_time_seconds": null,
+    "validated_delta_seconds": null,
+    "application_scope": null,
     "segments": {
       "ina": [
         {
@@ -1655,6 +1949,13 @@
     "automatic_candidate": false,
     "candidate_time_seconds": null,
     "candidate_delta_seconds": null,
+    "human_validation_status": "not_applicable",
+    "human_validation_source": null,
+    "human_validation_at": null,
+    "validated_original_time_seconds": null,
+    "validated_corrected_time_seconds": null,
+    "validated_delta_seconds": null,
+    "application_scope": null,
     "segments": [
       {
         "label": "music",
@@ -1686,6 +1987,13 @@
     "automatic_candidate": false,
     "candidate_time_seconds": null,
     "candidate_delta_seconds": null,
+    "human_validation_status": "not_applicable",
+    "human_validation_source": null,
+    "human_validation_at": null,
+    "validated_original_time_seconds": null,
+    "validated_corrected_time_seconds": null,
+    "validated_delta_seconds": null,
+    "application_scope": null,
     "segments": [
       {
         "label": "non_speech",
@@ -1717,6 +2025,13 @@
     "automatic_candidate": false,
     "candidate_time_seconds": null,
     "candidate_delta_seconds": null,
+    "human_validation_status": "not_applicable",
+    "human_validation_source": null,
+    "human_validation_at": null,
+    "validated_original_time_seconds": null,
+    "validated_corrected_time_seconds": null,
+    "validated_delta_seconds": null,
+    "application_scope": null,
     "segments": {
       "ina": [
         {
@@ -1757,6 +2072,13 @@
     "automatic_candidate": false,
     "candidate_time_seconds": null,
     "candidate_delta_seconds": null,
+    "human_validation_status": "not_applicable",
+    "human_validation_source": null,
+    "human_validation_at": null,
+    "validated_original_time_seconds": null,
+    "validated_corrected_time_seconds": null,
+    "validated_delta_seconds": null,
+    "application_scope": null,
     "segments": [
       {
         "label": "music",
@@ -1788,6 +2110,13 @@
     "automatic_candidate": false,
     "candidate_time_seconds": null,
     "candidate_delta_seconds": null,
+    "human_validation_status": "not_applicable",
+    "human_validation_source": null,
+    "human_validation_at": null,
+    "validated_original_time_seconds": null,
+    "validated_corrected_time_seconds": null,
+    "validated_delta_seconds": null,
+    "application_scope": null,
     "segments": [
       {
         "label": "non_speech",
@@ -1819,6 +2148,13 @@
     "automatic_candidate": false,
     "candidate_time_seconds": null,
     "candidate_delta_seconds": null,
+    "human_validation_status": "not_applicable",
+    "human_validation_source": null,
+    "human_validation_at": null,
+    "validated_original_time_seconds": null,
+    "validated_corrected_time_seconds": null,
+    "validated_delta_seconds": null,
+    "application_scope": null,
     "segments": {
       "ina": [
         {
@@ -1859,6 +2195,13 @@
     "automatic_candidate": false,
     "candidate_time_seconds": null,
     "candidate_delta_seconds": null,
+    "human_validation_status": "not_applicable",
+    "human_validation_source": null,
+    "human_validation_at": null,
+    "validated_original_time_seconds": null,
+    "validated_corrected_time_seconds": null,
+    "validated_delta_seconds": null,
+    "application_scope": null,
     "segments": [
       {
         "label": "music",
@@ -1890,6 +2233,13 @@
     "automatic_candidate": false,
     "candidate_time_seconds": null,
     "candidate_delta_seconds": null,
+    "human_validation_status": "not_applicable",
+    "human_validation_source": null,
+    "human_validation_at": null,
+    "validated_original_time_seconds": null,
+    "validated_corrected_time_seconds": null,
+    "validated_delta_seconds": null,
+    "application_scope": null,
     "segments": [
       {
         "label": "non_speech",
@@ -1921,6 +2271,13 @@
     "automatic_candidate": false,
     "candidate_time_seconds": null,
     "candidate_delta_seconds": null,
+    "human_validation_status": "not_applicable",
+    "human_validation_source": null,
+    "human_validation_at": null,
+    "validated_original_time_seconds": null,
+    "validated_corrected_time_seconds": null,
+    "validated_delta_seconds": null,
+    "application_scope": null,
     "segments": {
       "ina": [
         {
@@ -1961,6 +2318,13 @@
     "automatic_candidate": false,
     "candidate_time_seconds": null,
     "candidate_delta_seconds": null,
+    "human_validation_status": "not_applicable",
+    "human_validation_source": null,
+    "human_validation_at": null,
+    "validated_original_time_seconds": null,
+    "validated_corrected_time_seconds": null,
+    "validated_delta_seconds": null,
+    "application_scope": null,
     "segments": [
       {
         "label": "music",
@@ -2002,6 +2366,13 @@
     "automatic_candidate": false,
     "candidate_time_seconds": null,
     "candidate_delta_seconds": null,
+    "human_validation_status": "not_applicable",
+    "human_validation_source": null,
+    "human_validation_at": null,
+    "validated_original_time_seconds": null,
+    "validated_corrected_time_seconds": null,
+    "validated_delta_seconds": null,
+    "application_scope": null,
     "segments": [
       {
         "label": "non_speech",
@@ -2033,6 +2404,13 @@
     "automatic_candidate": false,
     "candidate_time_seconds": null,
     "candidate_delta_seconds": null,
+    "human_validation_status": "not_applicable",
+    "human_validation_source": null,
+    "human_validation_at": null,
+    "validated_original_time_seconds": null,
+    "validated_corrected_time_seconds": null,
+    "validated_delta_seconds": null,
+    "application_scope": null,
     "segments": {
       "ina": [
         {
@@ -2083,6 +2461,13 @@
     "automatic_candidate": false,
     "candidate_time_seconds": null,
     "candidate_delta_seconds": null,
+    "human_validation_status": "not_applicable",
+    "human_validation_source": null,
+    "human_validation_at": null,
+    "validated_original_time_seconds": null,
+    "validated_corrected_time_seconds": null,
+    "validated_delta_seconds": null,
+    "application_scope": null,
     "segments": [
       {
         "label": "music",
@@ -2119,6 +2504,13 @@
     "automatic_candidate": false,
     "candidate_time_seconds": null,
     "candidate_delta_seconds": null,
+    "human_validation_status": "not_applicable",
+    "human_validation_source": null,
+    "human_validation_at": null,
+    "validated_original_time_seconds": null,
+    "validated_corrected_time_seconds": null,
+    "validated_delta_seconds": null,
+    "application_scope": null,
     "segments": [
       {
         "label": "non_speech",
@@ -2150,6 +2542,13 @@
     "automatic_candidate": false,
     "candidate_time_seconds": null,
     "candidate_delta_seconds": null,
+    "human_validation_status": "not_applicable",
+    "human_validation_source": null,
+    "human_validation_at": null,
+    "validated_original_time_seconds": null,
+    "validated_corrected_time_seconds": null,
+    "validated_delta_seconds": null,
+    "application_scope": null,
     "segments": {
       "ina": [
         {
@@ -2195,6 +2594,13 @@
     "automatic_candidate": false,
     "candidate_time_seconds": null,
     "candidate_delta_seconds": null,
+    "human_validation_status": "not_applicable",
+    "human_validation_source": null,
+    "human_validation_at": null,
+    "validated_original_time_seconds": null,
+    "validated_corrected_time_seconds": null,
+    "validated_delta_seconds": null,
+    "application_scope": null,
     "segments": [
       {
         "label": "music",
@@ -2226,6 +2632,13 @@
     "automatic_candidate": false,
     "candidate_time_seconds": null,
     "candidate_delta_seconds": null,
+    "human_validation_status": "not_applicable",
+    "human_validation_source": null,
+    "human_validation_at": null,
+    "validated_original_time_seconds": null,
+    "validated_corrected_time_seconds": null,
+    "validated_delta_seconds": null,
+    "application_scope": null,
     "segments": [
       {
         "label": "non_speech",
@@ -2257,6 +2670,13 @@
     "automatic_candidate": false,
     "candidate_time_seconds": null,
     "candidate_delta_seconds": null,
+    "human_validation_status": "not_applicable",
+    "human_validation_source": null,
+    "human_validation_at": null,
+    "validated_original_time_seconds": null,
+    "validated_corrected_time_seconds": null,
+    "validated_delta_seconds": null,
+    "application_scope": null,
     "segments": {
       "ina": [
         {
@@ -2297,6 +2717,13 @@
     "automatic_candidate": false,
     "candidate_time_seconds": null,
     "candidate_delta_seconds": null,
+    "human_validation_status": "not_applicable",
+    "human_validation_source": null,
+    "human_validation_at": null,
+    "validated_original_time_seconds": null,
+    "validated_corrected_time_seconds": null,
+    "validated_delta_seconds": null,
+    "application_scope": null,
     "segments": [
       {
         "label": "music",
@@ -2328,6 +2755,13 @@
     "automatic_candidate": false,
     "candidate_time_seconds": null,
     "candidate_delta_seconds": null,
+    "human_validation_status": "not_applicable",
+    "human_validation_source": null,
+    "human_validation_at": null,
+    "validated_original_time_seconds": null,
+    "validated_corrected_time_seconds": null,
+    "validated_delta_seconds": null,
+    "application_scope": null,
     "segments": [
       {
         "label": "non_speech",
@@ -2359,6 +2793,13 @@
     "automatic_candidate": false,
     "candidate_time_seconds": null,
     "candidate_delta_seconds": null,
+    "human_validation_status": "not_applicable",
+    "human_validation_source": null,
+    "human_validation_at": null,
+    "validated_original_time_seconds": null,
+    "validated_corrected_time_seconds": null,
+    "validated_delta_seconds": null,
+    "application_scope": null,
     "segments": {
       "ina": [
         {
@@ -2399,6 +2840,13 @@
     "automatic_candidate": false,
     "candidate_time_seconds": null,
     "candidate_delta_seconds": null,
+    "human_validation_status": "not_applicable",
+    "human_validation_source": null,
+    "human_validation_at": null,
+    "validated_original_time_seconds": null,
+    "validated_corrected_time_seconds": null,
+    "validated_delta_seconds": null,
+    "application_scope": null,
     "segments": [
       {
         "label": "music",
@@ -2430,6 +2878,13 @@
     "automatic_candidate": false,
     "candidate_time_seconds": null,
     "candidate_delta_seconds": null,
+    "human_validation_status": "not_applicable",
+    "human_validation_source": null,
+    "human_validation_at": null,
+    "validated_original_time_seconds": null,
+    "validated_corrected_time_seconds": null,
+    "validated_delta_seconds": null,
+    "application_scope": null,
     "segments": [
       {
         "label": "non_speech",
@@ -2461,6 +2916,13 @@
     "automatic_candidate": false,
     "candidate_time_seconds": null,
     "candidate_delta_seconds": null,
+    "human_validation_status": "not_applicable",
+    "human_validation_source": null,
+    "human_validation_at": null,
+    "validated_original_time_seconds": null,
+    "validated_corrected_time_seconds": null,
+    "validated_delta_seconds": null,
+    "application_scope": null,
     "segments": {
       "ina": [
         {
@@ -2501,6 +2963,13 @@
     "automatic_candidate": false,
     "candidate_time_seconds": null,
     "candidate_delta_seconds": null,
+    "human_validation_status": "not_applicable",
+    "human_validation_source": null,
+    "human_validation_at": null,
+    "validated_original_time_seconds": null,
+    "validated_corrected_time_seconds": null,
+    "validated_delta_seconds": null,
+    "application_scope": null,
     "segments": [
       {
         "label": "music",
@@ -2547,6 +3016,13 @@
     "automatic_candidate": false,
     "candidate_time_seconds": null,
     "candidate_delta_seconds": null,
+    "human_validation_status": "not_applicable",
+    "human_validation_source": null,
+    "human_validation_at": null,
+    "validated_original_time_seconds": null,
+    "validated_corrected_time_seconds": null,
+    "validated_delta_seconds": null,
+    "application_scope": null,
     "segments": [
       {
         "label": "non_speech",
@@ -2578,6 +3054,13 @@
     "automatic_candidate": false,
     "candidate_time_seconds": null,
     "candidate_delta_seconds": null,
+    "human_validation_status": "not_applicable",
+    "human_validation_source": null,
+    "human_validation_at": null,
+    "validated_original_time_seconds": null,
+    "validated_corrected_time_seconds": null,
+    "validated_delta_seconds": null,
+    "application_scope": null,
     "segments": {
       "ina": [
         {
@@ -2633,6 +3116,13 @@
     "automatic_candidate": false,
     "candidate_time_seconds": null,
     "candidate_delta_seconds": null,
+    "human_validation_status": "not_applicable",
+    "human_validation_source": null,
+    "human_validation_at": null,
+    "validated_original_time_seconds": null,
+    "validated_corrected_time_seconds": null,
+    "validated_delta_seconds": null,
+    "application_scope": null,
     "segments": [
       {
         "label": "speech",
@@ -2669,6 +3159,13 @@
     "automatic_candidate": false,
     "candidate_time_seconds": null,
     "candidate_delta_seconds": null,
+    "human_validation_status": "not_applicable",
+    "human_validation_source": null,
+    "human_validation_at": null,
+    "validated_original_time_seconds": null,
+    "validated_corrected_time_seconds": null,
+    "validated_delta_seconds": null,
+    "application_scope": null,
     "segments": [
       {
         "label": "non_speech",
@@ -2710,6 +3207,13 @@
     "automatic_candidate": false,
     "candidate_time_seconds": null,
     "candidate_delta_seconds": null,
+    "human_validation_status": "not_applicable",
+    "human_validation_source": null,
+    "human_validation_at": null,
+    "validated_original_time_seconds": null,
+    "validated_corrected_time_seconds": null,
+    "validated_delta_seconds": null,
+    "application_scope": null,
     "segments": {
       "ina": [
         {
@@ -2765,6 +3269,13 @@
     "automatic_candidate": false,
     "candidate_time_seconds": null,
     "candidate_delta_seconds": null,
+    "human_validation_status": "not_applicable",
+    "human_validation_source": null,
+    "human_validation_at": null,
+    "validated_original_time_seconds": null,
+    "validated_corrected_time_seconds": null,
+    "validated_delta_seconds": null,
+    "application_scope": null,
     "segments": [
       {
         "label": "music",
@@ -2796,6 +3307,13 @@
     "automatic_candidate": false,
     "candidate_time_seconds": null,
     "candidate_delta_seconds": null,
+    "human_validation_status": "not_applicable",
+    "human_validation_source": null,
+    "human_validation_at": null,
+    "validated_original_time_seconds": null,
+    "validated_corrected_time_seconds": null,
+    "validated_delta_seconds": null,
+    "application_scope": null,
     "segments": [
       {
         "label": "non_speech",
@@ -2827,6 +3345,13 @@
     "automatic_candidate": false,
     "candidate_time_seconds": null,
     "candidate_delta_seconds": null,
+    "human_validation_status": "not_applicable",
+    "human_validation_source": null,
+    "human_validation_at": null,
+    "validated_original_time_seconds": null,
+    "validated_corrected_time_seconds": null,
+    "validated_delta_seconds": null,
+    "application_scope": null,
     "segments": {
       "ina": [
         {
@@ -2867,6 +3392,13 @@
     "automatic_candidate": true,
     "candidate_time_seconds": 82.74,
     "candidate_delta_seconds": 0.74,
+    "human_validation_status": "validated_for_lab_only",
+    "human_validation_source": "Emmanuel",
+    "human_validation_at": "2026-10-10T16:07:00+02:00",
+    "validated_original_time_seconds": 82.0,
+    "validated_corrected_time_seconds": 82.74,
+    "validated_delta_seconds": 0.74,
+    "application_scope": "lab_only",
     "segments": [
       {
         "label": "speech",
@@ -2882,8 +3414,8 @@
     "decision": "abstention",
     "new_time_seconds": null,
     "delta_seconds": null,
-    "reason": "Candidat automatique INA parole-vers-musique non confirme par ecoute humaine; chant, rap, jingle ou voice-over ne peuvent pas etre exclus.",
-    "uncertainty": "elevee_sans_ecoute_humaine"
+    "reason": "Candidat INA confirme par ecoute humaine au niveau de la frontiere; la correction finale est portee uniquement par le consensus INA/Silero.",
+    "uncertainty": "moyenne_algorithme_seul"
   },
   {
     "boundary_id": "pure-trance-radio-492-t02",
@@ -2903,6 +3435,13 @@
     "automatic_candidate": false,
     "candidate_time_seconds": null,
     "candidate_delta_seconds": null,
+    "human_validation_status": "validated_for_lab_only",
+    "human_validation_source": "Emmanuel",
+    "human_validation_at": "2026-10-10T16:07:00+02:00",
+    "validated_original_time_seconds": 82.0,
+    "validated_corrected_time_seconds": 82.74,
+    "validated_delta_seconds": 0.74,
+    "application_scope": "lab_only",
     "segments": [
       {
         "label": "non_speech",
@@ -3044,6 +3583,13 @@
     "automatic_candidate": true,
     "candidate_time_seconds": 82.74,
     "candidate_delta_seconds": 0.74,
+    "human_validation_status": "validated_for_lab_only",
+    "human_validation_source": "Emmanuel",
+    "human_validation_at": "2026-10-10T16:07:00+02:00",
+    "validated_original_time_seconds": 82.0,
+    "validated_corrected_time_seconds": 82.74,
+    "validated_delta_seconds": 0.74,
+    "application_scope": "lab_only",
     "segments": {
       "ina": [
         {
@@ -3175,11 +3721,11 @@
         }
       ]
     },
-    "decision": "abstention",
-    "new_time_seconds": null,
-    "delta_seconds": null,
-    "reason": "Candidat automatique: parole englobante et fin proches pour INA/Silero, puis musique INA; abstention sans ecoute humaine capable d'exclure chant, rap, jingle ou voice-over.",
-    "uncertainty": "elevee_sans_ecoute_humaine"
+    "decision": "correction_validee_labo",
+    "new_time_seconds": 82.74,
+    "delta_seconds": 0.74,
+    "reason": "Consensus INA/Silero puis retour a la musique; correction validee par ecoute humaine et applicable au laboratoire uniquement.",
+    "uncertainty": "levee_par_ecoute_humaine"
   },
   {
     "boundary_id": "pure-trance-radio-492-t03",
@@ -3199,6 +3745,13 @@
     "automatic_candidate": false,
     "candidate_time_seconds": null,
     "candidate_delta_seconds": null,
+    "human_validation_status": "not_applicable",
+    "human_validation_source": null,
+    "human_validation_at": null,
+    "validated_original_time_seconds": null,
+    "validated_corrected_time_seconds": null,
+    "validated_delta_seconds": null,
+    "application_scope": null,
     "segments": [
       {
         "label": "music",
@@ -3240,6 +3793,13 @@
     "automatic_candidate": false,
     "candidate_time_seconds": null,
     "candidate_delta_seconds": null,
+    "human_validation_status": "not_applicable",
+    "human_validation_source": null,
+    "human_validation_at": null,
+    "validated_original_time_seconds": null,
+    "validated_corrected_time_seconds": null,
+    "validated_delta_seconds": null,
+    "application_scope": null,
     "segments": [
       {
         "label": "non_speech",
@@ -3361,6 +3921,13 @@
     "automatic_candidate": false,
     "candidate_time_seconds": null,
     "candidate_delta_seconds": null,
+    "human_validation_status": "not_applicable",
+    "human_validation_source": null,
+    "human_validation_at": null,
+    "validated_original_time_seconds": null,
+    "validated_corrected_time_seconds": null,
+    "validated_delta_seconds": null,
+    "application_scope": null,
     "segments": {
       "ina": [
         {
@@ -3501,6 +4068,13 @@
     "automatic_candidate": false,
     "candidate_time_seconds": null,
     "candidate_delta_seconds": null,
+    "human_validation_status": "not_applicable",
+    "human_validation_source": null,
+    "human_validation_at": null,
+    "validated_original_time_seconds": null,
+    "validated_corrected_time_seconds": null,
+    "validated_delta_seconds": null,
+    "application_scope": null,
     "segments": [
       {
         "label": "music",
@@ -3552,6 +4126,13 @@
     "automatic_candidate": false,
     "candidate_time_seconds": null,
     "candidate_delta_seconds": null,
+    "human_validation_status": "not_applicable",
+    "human_validation_source": null,
+    "human_validation_at": null,
+    "validated_original_time_seconds": null,
+    "validated_corrected_time_seconds": null,
+    "validated_delta_seconds": null,
+    "application_scope": null,
     "segments": [
       {
         "label": "non_speech",
@@ -3643,6 +4224,13 @@
     "automatic_candidate": false,
     "candidate_time_seconds": null,
     "candidate_delta_seconds": null,
+    "human_validation_status": "not_applicable",
+    "human_validation_source": null,
+    "human_validation_at": null,
+    "validated_original_time_seconds": null,
+    "validated_corrected_time_seconds": null,
+    "validated_delta_seconds": null,
+    "application_scope": null,
     "segments": {
       "ina": [
         {
@@ -3763,6 +4351,13 @@
     "automatic_candidate": false,
     "candidate_time_seconds": null,
     "candidate_delta_seconds": null,
+    "human_validation_status": "not_applicable",
+    "human_validation_source": null,
+    "human_validation_at": null,
+    "validated_original_time_seconds": null,
+    "validated_corrected_time_seconds": null,
+    "validated_delta_seconds": null,
+    "application_scope": null,
     "segments": [
       {
         "label": "music",
@@ -3804,6 +4399,13 @@
     "automatic_candidate": false,
     "candidate_time_seconds": null,
     "candidate_delta_seconds": null,
+    "human_validation_status": "not_applicable",
+    "human_validation_source": null,
+    "human_validation_at": null,
+    "validated_original_time_seconds": null,
+    "validated_corrected_time_seconds": null,
+    "validated_delta_seconds": null,
+    "application_scope": null,
     "segments": [
       {
         "label": "non_speech",
@@ -3865,6 +4467,13 @@
     "automatic_candidate": false,
     "candidate_time_seconds": null,
     "candidate_delta_seconds": null,
+    "human_validation_status": "not_applicable",
+    "human_validation_source": null,
+    "human_validation_at": null,
+    "validated_original_time_seconds": null,
+    "validated_corrected_time_seconds": null,
+    "validated_delta_seconds": null,
+    "application_scope": null,
     "segments": {
       "ina": [
         {
@@ -3945,6 +4554,13 @@
     "automatic_candidate": false,
     "candidate_time_seconds": null,
     "candidate_delta_seconds": null,
+    "human_validation_status": "not_applicable",
+    "human_validation_source": null,
+    "human_validation_at": null,
+    "validated_original_time_seconds": null,
+    "validated_corrected_time_seconds": null,
+    "validated_delta_seconds": null,
+    "application_scope": null,
     "segments": [
       {
         "label": "music",
@@ -3976,6 +4592,13 @@
     "automatic_candidate": false,
     "candidate_time_seconds": null,
     "candidate_delta_seconds": null,
+    "human_validation_status": "not_applicable",
+    "human_validation_source": null,
+    "human_validation_at": null,
+    "validated_original_time_seconds": null,
+    "validated_corrected_time_seconds": null,
+    "validated_delta_seconds": null,
+    "application_scope": null,
     "segments": [
       {
         "label": "non_speech",
@@ -4027,6 +4650,13 @@
     "automatic_candidate": false,
     "candidate_time_seconds": null,
     "candidate_delta_seconds": null,
+    "human_validation_status": "not_applicable",
+    "human_validation_source": null,
+    "human_validation_at": null,
+    "validated_original_time_seconds": null,
+    "validated_corrected_time_seconds": null,
+    "validated_delta_seconds": null,
+    "application_scope": null,
     "segments": {
       "ina": [
         {
@@ -4087,6 +4717,13 @@
     "automatic_candidate": false,
     "candidate_time_seconds": null,
     "candidate_delta_seconds": null,
+    "human_validation_status": "not_applicable",
+    "human_validation_source": null,
+    "human_validation_at": null,
+    "validated_original_time_seconds": null,
+    "validated_corrected_time_seconds": null,
+    "validated_delta_seconds": null,
+    "application_scope": null,
     "segments": [
       {
         "label": "speech",
@@ -4123,6 +4760,13 @@
     "automatic_candidate": false,
     "candidate_time_seconds": null,
     "candidate_delta_seconds": null,
+    "human_validation_status": "not_applicable",
+    "human_validation_source": null,
+    "human_validation_at": null,
+    "validated_original_time_seconds": null,
+    "validated_corrected_time_seconds": null,
+    "validated_delta_seconds": null,
+    "application_scope": null,
     "segments": [
       {
         "label": "non_speech",
@@ -4214,6 +4858,13 @@
     "automatic_candidate": false,
     "candidate_time_seconds": null,
     "candidate_delta_seconds": null,
+    "human_validation_status": "not_applicable",
+    "human_validation_source": null,
+    "human_validation_at": null,
+    "validated_original_time_seconds": null,
+    "validated_corrected_time_seconds": null,
+    "validated_delta_seconds": null,
+    "application_scope": null,
     "segments": {
       "ina": [
         {
@@ -4319,6 +4970,13 @@
     "automatic_candidate": false,
     "candidate_time_seconds": null,
     "candidate_delta_seconds": null,
+    "human_validation_status": "not_applicable",
+    "human_validation_source": null,
+    "human_validation_at": null,
+    "validated_original_time_seconds": null,
+    "validated_corrected_time_seconds": null,
+    "validated_delta_seconds": null,
+    "application_scope": null,
     "segments": [
       {
         "label": "music",
@@ -4360,6 +5018,13 @@
     "automatic_candidate": false,
     "candidate_time_seconds": null,
     "candidate_delta_seconds": null,
+    "human_validation_status": "not_applicable",
+    "human_validation_source": null,
+    "human_validation_at": null,
+    "validated_original_time_seconds": null,
+    "validated_corrected_time_seconds": null,
+    "validated_delta_seconds": null,
+    "application_scope": null,
     "segments": [
       {
         "label": "non_speech",
@@ -4391,6 +5056,13 @@
     "automatic_candidate": false,
     "candidate_time_seconds": null,
     "candidate_delta_seconds": null,
+    "human_validation_status": "not_applicable",
+    "human_validation_source": null,
+    "human_validation_at": null,
+    "validated_original_time_seconds": null,
+    "validated_corrected_time_seconds": null,
+    "validated_delta_seconds": null,
+    "application_scope": null,
     "segments": {
       "ina": [
         {
@@ -4441,6 +5113,13 @@
     "automatic_candidate": false,
     "candidate_time_seconds": null,
     "candidate_delta_seconds": null,
+    "human_validation_status": "not_applicable",
+    "human_validation_source": null,
+    "human_validation_at": null,
+    "validated_original_time_seconds": null,
+    "validated_corrected_time_seconds": null,
+    "validated_delta_seconds": null,
+    "application_scope": null,
     "segments": [
       {
         "label": "music",
@@ -4472,6 +5151,13 @@
     "automatic_candidate": false,
     "candidate_time_seconds": null,
     "candidate_delta_seconds": null,
+    "human_validation_status": "not_applicable",
+    "human_validation_source": null,
+    "human_validation_at": null,
+    "validated_original_time_seconds": null,
+    "validated_corrected_time_seconds": null,
+    "validated_delta_seconds": null,
+    "application_scope": null,
     "segments": [
       {
         "label": "non_speech",
@@ -4543,6 +5229,13 @@
     "automatic_candidate": false,
     "candidate_time_seconds": null,
     "candidate_delta_seconds": null,
+    "human_validation_status": "not_applicable",
+    "human_validation_source": null,
+    "human_validation_at": null,
+    "validated_original_time_seconds": null,
+    "validated_corrected_time_seconds": null,
+    "validated_delta_seconds": null,
+    "application_scope": null,
     "segments": {
       "ina": [
         {
@@ -4623,6 +5316,13 @@
     "automatic_candidate": false,
     "candidate_time_seconds": null,
     "candidate_delta_seconds": null,
+    "human_validation_status": "not_applicable",
+    "human_validation_source": null,
+    "human_validation_at": null,
+    "validated_original_time_seconds": null,
+    "validated_corrected_time_seconds": null,
+    "validated_delta_seconds": null,
+    "application_scope": null,
     "segments": [
       {
         "label": "music",
@@ -4654,6 +5354,13 @@
     "automatic_candidate": false,
     "candidate_time_seconds": null,
     "candidate_delta_seconds": null,
+    "human_validation_status": "not_applicable",
+    "human_validation_source": null,
+    "human_validation_at": null,
+    "validated_original_time_seconds": null,
+    "validated_corrected_time_seconds": null,
+    "validated_delta_seconds": null,
+    "application_scope": null,
     "segments": [
       {
         "label": "non_speech",
@@ -4745,6 +5452,13 @@
     "automatic_candidate": false,
     "candidate_time_seconds": null,
     "candidate_delta_seconds": null,
+    "human_validation_status": "not_applicable",
+    "human_validation_source": null,
+    "human_validation_at": null,
+    "validated_original_time_seconds": null,
+    "validated_corrected_time_seconds": null,
+    "validated_delta_seconds": null,
+    "application_scope": null,
     "segments": {
       "ina": [
         {
@@ -4845,6 +5559,13 @@
     "automatic_candidate": false,
     "candidate_time_seconds": null,
     "candidate_delta_seconds": null,
+    "human_validation_status": "not_applicable",
+    "human_validation_source": null,
+    "human_validation_at": null,
+    "validated_original_time_seconds": null,
+    "validated_corrected_time_seconds": null,
+    "validated_delta_seconds": null,
+    "application_scope": null,
     "segments": [
       {
         "label": "music",
@@ -4886,6 +5607,13 @@
     "automatic_candidate": false,
     "candidate_time_seconds": null,
     "candidate_delta_seconds": null,
+    "human_validation_status": "not_applicable",
+    "human_validation_source": null,
+    "human_validation_at": null,
+    "validated_original_time_seconds": null,
+    "validated_corrected_time_seconds": null,
+    "validated_delta_seconds": null,
+    "application_scope": null,
     "segments": [
       {
         "label": "non_speech",
@@ -4977,6 +5705,13 @@
     "automatic_candidate": false,
     "candidate_time_seconds": null,
     "candidate_delta_seconds": null,
+    "human_validation_status": "not_applicable",
+    "human_validation_source": null,
+    "human_validation_at": null,
+    "validated_original_time_seconds": null,
+    "validated_corrected_time_seconds": null,
+    "validated_delta_seconds": null,
+    "application_scope": null,
     "segments": {
       "ina": [
         {
@@ -5087,6 +5822,13 @@
     "automatic_candidate": false,
     "candidate_time_seconds": null,
     "candidate_delta_seconds": null,
+    "human_validation_status": "not_applicable",
+    "human_validation_source": null,
+    "human_validation_at": null,
+    "validated_original_time_seconds": null,
+    "validated_corrected_time_seconds": null,
+    "validated_delta_seconds": null,
+    "application_scope": null,
     "segments": [
       {
         "label": "speech",
@@ -5133,6 +5875,13 @@
     "automatic_candidate": false,
     "candidate_time_seconds": null,
     "candidate_delta_seconds": null,
+    "human_validation_status": "not_applicable",
+    "human_validation_source": null,
+    "human_validation_at": null,
+    "validated_original_time_seconds": null,
+    "validated_corrected_time_seconds": null,
+    "validated_delta_seconds": null,
+    "application_scope": null,
     "segments": [
       {
         "label": "non_speech",
@@ -5214,6 +5963,13 @@
     "automatic_candidate": false,
     "candidate_time_seconds": null,
     "candidate_delta_seconds": null,
+    "human_validation_status": "not_applicable",
+    "human_validation_source": null,
+    "human_validation_at": null,
+    "validated_original_time_seconds": null,
+    "validated_corrected_time_seconds": null,
+    "validated_delta_seconds": null,
+    "application_scope": null,
     "segments": {
       "ina": [
         {
@@ -5319,6 +6075,13 @@
     "automatic_candidate": false,
     "candidate_time_seconds": null,
     "candidate_delta_seconds": null,
+    "human_validation_status": "not_applicable",
+    "human_validation_source": null,
+    "human_validation_at": null,
+    "validated_original_time_seconds": null,
+    "validated_corrected_time_seconds": null,
+    "validated_delta_seconds": null,
+    "application_scope": null,
     "segments": [
       {
         "label": "music",
@@ -5360,6 +6123,13 @@
     "automatic_candidate": false,
     "candidate_time_seconds": null,
     "candidate_delta_seconds": null,
+    "human_validation_status": "not_applicable",
+    "human_validation_source": null,
+    "human_validation_at": null,
+    "validated_original_time_seconds": null,
+    "validated_corrected_time_seconds": null,
+    "validated_delta_seconds": null,
+    "application_scope": null,
     "segments": [
       {
         "label": "non_speech",
@@ -5451,6 +6221,13 @@
     "automatic_candidate": false,
     "candidate_time_seconds": null,
     "candidate_delta_seconds": null,
+    "human_validation_status": "not_applicable",
+    "human_validation_source": null,
+    "human_validation_at": null,
+    "validated_original_time_seconds": null,
+    "validated_corrected_time_seconds": null,
+    "validated_delta_seconds": null,
+    "application_scope": null,
     "segments": {
       "ina": [
         {
@@ -5561,6 +6338,13 @@
     "automatic_candidate": false,
     "candidate_time_seconds": null,
     "candidate_delta_seconds": null,
+    "human_validation_status": "not_applicable",
+    "human_validation_source": null,
+    "human_validation_at": null,
+    "validated_original_time_seconds": null,
+    "validated_corrected_time_seconds": null,
+    "validated_delta_seconds": null,
+    "application_scope": null,
     "segments": [
       {
         "label": "music",
@@ -5612,6 +6396,13 @@
     "automatic_candidate": false,
     "candidate_time_seconds": null,
     "candidate_delta_seconds": null,
+    "human_validation_status": "not_applicable",
+    "human_validation_source": null,
+    "human_validation_at": null,
+    "validated_original_time_seconds": null,
+    "validated_corrected_time_seconds": null,
+    "validated_delta_seconds": null,
+    "application_scope": null,
     "segments": [
       {
         "label": "non_speech",
@@ -5723,6 +6514,13 @@
     "automatic_candidate": false,
     "candidate_time_seconds": null,
     "candidate_delta_seconds": null,
+    "human_validation_status": "not_applicable",
+    "human_validation_source": null,
+    "human_validation_at": null,
+    "validated_original_time_seconds": null,
+    "validated_corrected_time_seconds": null,
+    "validated_delta_seconds": null,
+    "application_scope": null,
     "segments": {
       "ina": [
         {
@@ -5863,6 +6661,13 @@
     "automatic_candidate": false,
     "candidate_time_seconds": null,
     "candidate_delta_seconds": null,
+    "human_validation_status": "not_applicable",
+    "human_validation_source": null,
+    "human_validation_at": null,
+    "validated_original_time_seconds": null,
+    "validated_corrected_time_seconds": null,
+    "validated_delta_seconds": null,
+    "application_scope": null,
     "segments": [
       {
         "label": "music",
@@ -5894,6 +6699,13 @@
     "automatic_candidate": false,
     "candidate_time_seconds": null,
     "candidate_delta_seconds": null,
+    "human_validation_status": "not_applicable",
+    "human_validation_source": null,
+    "human_validation_at": null,
+    "validated_original_time_seconds": null,
+    "validated_corrected_time_seconds": null,
+    "validated_delta_seconds": null,
+    "application_scope": null,
     "segments": [
       {
         "label": "non_speech",
@@ -5935,6 +6747,13 @@
     "automatic_candidate": false,
     "candidate_time_seconds": null,
     "candidate_delta_seconds": null,
+    "human_validation_status": "not_applicable",
+    "human_validation_source": null,
+    "human_validation_at": null,
+    "validated_original_time_seconds": null,
+    "validated_corrected_time_seconds": null,
+    "validated_delta_seconds": null,
+    "application_scope": null,
     "segments": {
       "ina": [
         {
@@ -5985,6 +6804,13 @@
     "automatic_candidate": false,
     "candidate_time_seconds": null,
     "candidate_delta_seconds": null,
+    "human_validation_status": "not_applicable",
+    "human_validation_source": null,
+    "human_validation_at": null,
+    "validated_original_time_seconds": null,
+    "validated_corrected_time_seconds": null,
+    "validated_delta_seconds": null,
+    "application_scope": null,
     "segments": [
       {
         "label": "music",
@@ -6016,6 +6842,13 @@
     "automatic_candidate": false,
     "candidate_time_seconds": null,
     "candidate_delta_seconds": null,
+    "human_validation_status": "not_applicable",
+    "human_validation_source": null,
+    "human_validation_at": null,
+    "validated_original_time_seconds": null,
+    "validated_corrected_time_seconds": null,
+    "validated_delta_seconds": null,
+    "application_scope": null,
     "segments": [
       {
         "label": "non_speech",
@@ -6047,6 +6880,13 @@
     "automatic_candidate": false,
     "candidate_time_seconds": null,
     "candidate_delta_seconds": null,
+    "human_validation_status": "not_applicable",
+    "human_validation_source": null,
+    "human_validation_at": null,
+    "validated_original_time_seconds": null,
+    "validated_corrected_time_seconds": null,
+    "validated_delta_seconds": null,
+    "application_scope": null,
     "segments": {
       "ina": [
         {
@@ -6087,6 +6927,13 @@
     "automatic_candidate": false,
     "candidate_time_seconds": null,
     "candidate_delta_seconds": null,
+    "human_validation_status": "not_applicable",
+    "human_validation_source": null,
+    "human_validation_at": null,
+    "validated_original_time_seconds": null,
+    "validated_corrected_time_seconds": null,
+    "validated_delta_seconds": null,
+    "application_scope": null,
     "segments": [
       {
         "label": "music",
@@ -6138,6 +6985,13 @@
     "automatic_candidate": false,
     "candidate_time_seconds": null,
     "candidate_delta_seconds": null,
+    "human_validation_status": "not_applicable",
+    "human_validation_source": null,
+    "human_validation_at": null,
+    "validated_original_time_seconds": null,
+    "validated_corrected_time_seconds": null,
+    "validated_delta_seconds": null,
+    "application_scope": null,
     "segments": [
       {
         "label": "non_speech",
@@ -6229,6 +7083,13 @@
     "automatic_candidate": false,
     "candidate_time_seconds": null,
     "candidate_delta_seconds": null,
+    "human_validation_status": "not_applicable",
+    "human_validation_source": null,
+    "human_validation_at": null,
+    "validated_original_time_seconds": null,
+    "validated_corrected_time_seconds": null,
+    "validated_delta_seconds": null,
+    "application_scope": null,
     "segments": {
       "ina": [
         {
@@ -6349,6 +7210,13 @@
     "automatic_candidate": false,
     "candidate_time_seconds": null,
     "candidate_delta_seconds": null,
+    "human_validation_status": "not_applicable",
+    "human_validation_source": null,
+    "human_validation_at": null,
+    "validated_original_time_seconds": null,
+    "validated_corrected_time_seconds": null,
+    "validated_delta_seconds": null,
+    "application_scope": null,
     "segments": [
       {
         "label": "music",
@@ -6410,6 +7278,13 @@
     "automatic_candidate": false,
     "candidate_time_seconds": null,
     "candidate_delta_seconds": null,
+    "human_validation_status": "not_applicable",
+    "human_validation_source": null,
+    "human_validation_at": null,
+    "validated_original_time_seconds": null,
+    "validated_corrected_time_seconds": null,
+    "validated_delta_seconds": null,
+    "application_scope": null,
     "segments": [
       {
         "label": "non_speech",
@@ -6511,6 +7386,13 @@
     "automatic_candidate": false,
     "candidate_time_seconds": null,
     "candidate_delta_seconds": null,
+    "human_validation_status": "not_applicable",
+    "human_validation_source": null,
+    "human_validation_at": null,
+    "validated_original_time_seconds": null,
+    "validated_corrected_time_seconds": null,
+    "validated_delta_seconds": null,
+    "application_scope": null,
     "segments": {
       "ina": [
         {
@@ -6651,6 +7533,13 @@
     "automatic_candidate": false,
     "candidate_time_seconds": null,
     "candidate_delta_seconds": null,
+    "human_validation_status": "not_applicable",
+    "human_validation_source": null,
+    "human_validation_at": null,
+    "validated_original_time_seconds": null,
+    "validated_corrected_time_seconds": null,
+    "validated_delta_seconds": null,
+    "application_scope": null,
     "segments": [
       {
         "label": "speech",
@@ -6697,6 +7586,13 @@
     "automatic_candidate": false,
     "candidate_time_seconds": null,
     "candidate_delta_seconds": null,
+    "human_validation_status": "not_applicable",
+    "human_validation_source": null,
+    "human_validation_at": null,
+    "validated_original_time_seconds": null,
+    "validated_corrected_time_seconds": null,
+    "validated_delta_seconds": null,
+    "application_scope": null,
     "segments": [
       {
         "label": "non_speech",
@@ -6768,6 +7664,13 @@
     "automatic_candidate": false,
     "candidate_time_seconds": null,
     "candidate_delta_seconds": null,
+    "human_validation_status": "not_applicable",
+    "human_validation_source": null,
+    "human_validation_at": null,
+    "validated_original_time_seconds": null,
+    "validated_corrected_time_seconds": null,
+    "validated_delta_seconds": null,
+    "application_scope": null,
     "segments": {
       "ina": [
         {
@@ -6863,6 +7766,13 @@
     "automatic_candidate": false,
     "candidate_time_seconds": null,
     "candidate_delta_seconds": null,
+    "human_validation_status": "not_applicable",
+    "human_validation_source": null,
+    "human_validation_at": null,
+    "validated_original_time_seconds": null,
+    "validated_corrected_time_seconds": null,
+    "validated_delta_seconds": null,
+    "application_scope": null,
     "segments": [
       {
         "label": "music",
@@ -6904,6 +7814,13 @@
     "automatic_candidate": false,
     "candidate_time_seconds": null,
     "candidate_delta_seconds": null,
+    "human_validation_status": "not_applicable",
+    "human_validation_source": null,
+    "human_validation_at": null,
+    "validated_original_time_seconds": null,
+    "validated_corrected_time_seconds": null,
+    "validated_delta_seconds": null,
+    "application_scope": null,
     "segments": [
       {
         "label": "non_speech",
@@ -6985,6 +7902,13 @@
     "automatic_candidate": false,
     "candidate_time_seconds": null,
     "candidate_delta_seconds": null,
+    "human_validation_status": "not_applicable",
+    "human_validation_source": null,
+    "human_validation_at": null,
+    "validated_original_time_seconds": null,
+    "validated_corrected_time_seconds": null,
+    "validated_delta_seconds": null,
+    "application_scope": null,
     "segments": {
       "ina": [
         {
@@ -7085,6 +8009,13 @@
     "automatic_candidate": false,
     "candidate_time_seconds": null,
     "candidate_delta_seconds": null,
+    "human_validation_status": "not_applicable",
+    "human_validation_source": null,
+    "human_validation_at": null,
+    "validated_original_time_seconds": null,
+    "validated_corrected_time_seconds": null,
+    "validated_delta_seconds": null,
+    "application_scope": null,
     "segments": [
       {
         "label": "music",
@@ -7116,6 +8047,13 @@
     "automatic_candidate": false,
     "candidate_time_seconds": null,
     "candidate_delta_seconds": null,
+    "human_validation_status": "not_applicable",
+    "human_validation_source": null,
+    "human_validation_at": null,
+    "validated_original_time_seconds": null,
+    "validated_corrected_time_seconds": null,
+    "validated_delta_seconds": null,
+    "application_scope": null,
     "segments": [
       {
         "label": "non_speech",
@@ -7207,6 +8145,13 @@
     "automatic_candidate": false,
     "candidate_time_seconds": null,
     "candidate_delta_seconds": null,
+    "human_validation_status": "not_applicable",
+    "human_validation_source": null,
+    "human_validation_at": null,
+    "validated_original_time_seconds": null,
+    "validated_corrected_time_seconds": null,
+    "validated_delta_seconds": null,
+    "application_scope": null,
     "segments": {
       "ina": [
         {
@@ -7307,6 +8252,13 @@
     "automatic_candidate": false,
     "candidate_time_seconds": null,
     "candidate_delta_seconds": null,
+    "human_validation_status": "not_applicable",
+    "human_validation_source": null,
+    "human_validation_at": null,
+    "validated_original_time_seconds": null,
+    "validated_corrected_time_seconds": null,
+    "validated_delta_seconds": null,
+    "application_scope": null,
     "segments": [
       {
         "label": "music",
@@ -7348,6 +8300,13 @@
     "automatic_candidate": false,
     "candidate_time_seconds": null,
     "candidate_delta_seconds": null,
+    "human_validation_status": "not_applicable",
+    "human_validation_source": null,
+    "human_validation_at": null,
+    "validated_original_time_seconds": null,
+    "validated_corrected_time_seconds": null,
+    "validated_delta_seconds": null,
+    "application_scope": null,
     "segments": [
       {
         "label": "non_speech",
@@ -7419,6 +8378,13 @@
     "automatic_candidate": false,
     "candidate_time_seconds": null,
     "candidate_delta_seconds": null,
+    "human_validation_status": "not_applicable",
+    "human_validation_source": null,
+    "human_validation_at": null,
+    "validated_original_time_seconds": null,
+    "validated_corrected_time_seconds": null,
+    "validated_delta_seconds": null,
+    "application_scope": null,
     "segments": {
       "ina": [
         {
@@ -7509,6 +8475,13 @@
     "automatic_candidate": false,
     "candidate_time_seconds": null,
     "candidate_delta_seconds": null,
+    "human_validation_status": "not_applicable",
+    "human_validation_source": null,
+    "human_validation_at": null,
+    "validated_original_time_seconds": null,
+    "validated_corrected_time_seconds": null,
+    "validated_delta_seconds": null,
+    "application_scope": null,
     "segments": [
       {
         "label": "speech",
@@ -7565,6 +8538,13 @@
     "automatic_candidate": false,
     "candidate_time_seconds": null,
     "candidate_delta_seconds": null,
+    "human_validation_status": "not_applicable",
+    "human_validation_source": null,
+    "human_validation_at": null,
+    "validated_original_time_seconds": null,
+    "validated_corrected_time_seconds": null,
+    "validated_delta_seconds": null,
+    "application_scope": null,
     "segments": [
       {
         "label": "non_speech",
@@ -7636,6 +8616,13 @@
     "automatic_candidate": false,
     "candidate_time_seconds": null,
     "candidate_delta_seconds": null,
+    "human_validation_status": "not_applicable",
+    "human_validation_source": null,
+    "human_validation_at": null,
+    "validated_original_time_seconds": null,
+    "validated_corrected_time_seconds": null,
+    "validated_delta_seconds": null,
+    "application_scope": null,
     "segments": {
       "ina": [
         {
@@ -7741,6 +8728,13 @@
     "automatic_candidate": true,
     "candidate_time_seconds": 115.14,
     "candidate_delta_seconds": 4.14,
+    "human_validation_status": "explicitly_not_validated",
+    "human_validation_source": null,
+    "human_validation_at": null,
+    "validated_original_time_seconds": null,
+    "validated_corrected_time_seconds": null,
+    "validated_delta_seconds": null,
+    "application_scope": "none",
     "segments": [
       {
         "label": "music",
@@ -7782,6 +8776,13 @@
     "automatic_candidate": false,
     "candidate_time_seconds": null,
     "candidate_delta_seconds": null,
+    "human_validation_status": "not_applicable",
+    "human_validation_source": null,
+    "human_validation_at": null,
+    "validated_original_time_seconds": null,
+    "validated_corrected_time_seconds": null,
+    "validated_delta_seconds": null,
+    "application_scope": null,
     "segments": [
       {
         "label": "non_speech",
@@ -7963,6 +8964,13 @@
     "automatic_candidate": false,
     "candidate_time_seconds": null,
     "candidate_delta_seconds": null,
+    "human_validation_status": "not_applicable",
+    "human_validation_source": null,
+    "human_validation_at": null,
+    "validated_original_time_seconds": null,
+    "validated_corrected_time_seconds": null,
+    "validated_delta_seconds": null,
+    "application_scope": null,
     "segments": {
       "ina": [
         {
@@ -8163,6 +9171,13 @@
     "automatic_candidate": true,
     "candidate_time_seconds": 535.16,
     "candidate_delta_seconds": 1.16,
+    "human_validation_status": "explicitly_not_validated",
+    "human_validation_source": null,
+    "human_validation_at": null,
+    "validated_original_time_seconds": null,
+    "validated_corrected_time_seconds": null,
+    "validated_delta_seconds": null,
+    "application_scope": "none",
     "segments": [
       {
         "label": "music",
@@ -8204,6 +9219,13 @@
     "automatic_candidate": false,
     "candidate_time_seconds": null,
     "candidate_delta_seconds": null,
+    "human_validation_status": "not_applicable",
+    "human_validation_source": null,
+    "human_validation_at": null,
+    "validated_original_time_seconds": null,
+    "validated_corrected_time_seconds": null,
+    "validated_delta_seconds": null,
+    "application_scope": null,
     "segments": [
       {
         "label": "non_speech",
@@ -8235,6 +9257,13 @@
     "automatic_candidate": false,
     "candidate_time_seconds": null,
     "candidate_delta_seconds": null,
+    "human_validation_status": "not_applicable",
+    "human_validation_source": null,
+    "human_validation_at": null,
+    "validated_original_time_seconds": null,
+    "validated_corrected_time_seconds": null,
+    "validated_delta_seconds": null,
+    "application_scope": null,
     "segments": {
       "ina": [
         {
@@ -8285,6 +9314,13 @@
     "automatic_candidate": false,
     "candidate_time_seconds": null,
     "candidate_delta_seconds": null,
+    "human_validation_status": "not_applicable",
+    "human_validation_source": null,
+    "human_validation_at": null,
+    "validated_original_time_seconds": null,
+    "validated_corrected_time_seconds": null,
+    "validated_delta_seconds": null,
+    "application_scope": null,
     "segments": [
       {
         "label": "music",
@@ -8316,6 +9352,13 @@
     "automatic_candidate": false,
     "candidate_time_seconds": null,
     "candidate_delta_seconds": null,
+    "human_validation_status": "not_applicable",
+    "human_validation_source": null,
+    "human_validation_at": null,
+    "validated_original_time_seconds": null,
+    "validated_corrected_time_seconds": null,
+    "validated_delta_seconds": null,
+    "application_scope": null,
     "segments": [
       {
         "label": "non_speech",
@@ -8397,6 +9440,13 @@
     "automatic_candidate": false,
     "candidate_time_seconds": null,
     "candidate_delta_seconds": null,
+    "human_validation_status": "not_applicable",
+    "human_validation_source": null,
+    "human_validation_at": null,
+    "validated_original_time_seconds": null,
+    "validated_corrected_time_seconds": null,
+    "validated_delta_seconds": null,
+    "application_scope": null,
     "segments": {
       "ina": [
         {
@@ -8487,6 +9537,13 @@
     "automatic_candidate": false,
     "candidate_time_seconds": null,
     "candidate_delta_seconds": null,
+    "human_validation_status": "not_applicable",
+    "human_validation_source": null,
+    "human_validation_at": null,
+    "validated_original_time_seconds": null,
+    "validated_corrected_time_seconds": null,
+    "validated_delta_seconds": null,
+    "application_scope": null,
     "segments": [
       {
         "label": "music",
@@ -8518,6 +9575,13 @@
     "automatic_candidate": false,
     "candidate_time_seconds": null,
     "candidate_delta_seconds": null,
+    "human_validation_status": "not_applicable",
+    "human_validation_source": null,
+    "human_validation_at": null,
+    "validated_original_time_seconds": null,
+    "validated_corrected_time_seconds": null,
+    "validated_delta_seconds": null,
+    "application_scope": null,
     "segments": [
       {
         "label": "non_speech",
@@ -8579,6 +9643,13 @@
     "automatic_candidate": false,
     "candidate_time_seconds": null,
     "candidate_delta_seconds": null,
+    "human_validation_status": "not_applicable",
+    "human_validation_source": null,
+    "human_validation_at": null,
+    "validated_original_time_seconds": null,
+    "validated_corrected_time_seconds": null,
+    "validated_delta_seconds": null,
+    "application_scope": null,
     "segments": {
       "ina": [
         {
@@ -8649,6 +9720,13 @@
     "automatic_candidate": false,
     "candidate_time_seconds": null,
     "candidate_delta_seconds": null,
+    "human_validation_status": "not_applicable",
+    "human_validation_source": null,
+    "human_validation_at": null,
+    "validated_original_time_seconds": null,
+    "validated_corrected_time_seconds": null,
+    "validated_delta_seconds": null,
+    "application_scope": null,
     "segments": [
       {
         "label": "speech",
@@ -8695,6 +9773,13 @@
     "automatic_candidate": false,
     "candidate_time_seconds": null,
     "candidate_delta_seconds": null,
+    "human_validation_status": "not_applicable",
+    "human_validation_source": null,
+    "human_validation_at": null,
+    "validated_original_time_seconds": null,
+    "validated_corrected_time_seconds": null,
+    "validated_delta_seconds": null,
+    "application_scope": null,
     "segments": [
       {
         "label": "non_speech",
@@ -8756,6 +9841,13 @@
     "automatic_candidate": false,
     "candidate_time_seconds": null,
     "candidate_delta_seconds": null,
+    "human_validation_status": "not_applicable",
+    "human_validation_source": null,
+    "human_validation_at": null,
+    "validated_original_time_seconds": null,
+    "validated_corrected_time_seconds": null,
+    "validated_delta_seconds": null,
+    "application_scope": null,
     "segments": {
       "ina": [
         {
@@ -8841,6 +9933,13 @@
     "automatic_candidate": false,
     "candidate_time_seconds": null,
     "candidate_delta_seconds": null,
+    "human_validation_status": "not_applicable",
+    "human_validation_source": null,
+    "human_validation_at": null,
+    "validated_original_time_seconds": null,
+    "validated_corrected_time_seconds": null,
+    "validated_delta_seconds": null,
+    "application_scope": null,
     "segments": [
       {
         "label": "speech",
@@ -8907,6 +10006,13 @@
     "automatic_candidate": false,
     "candidate_time_seconds": null,
     "candidate_delta_seconds": null,
+    "human_validation_status": "not_applicable",
+    "human_validation_source": null,
+    "human_validation_at": null,
+    "validated_original_time_seconds": null,
+    "validated_corrected_time_seconds": null,
+    "validated_delta_seconds": null,
+    "application_scope": null,
     "segments": [
       {
         "label": "non_speech",
@@ -9038,6 +10144,13 @@
     "automatic_candidate": false,
     "candidate_time_seconds": null,
     "candidate_delta_seconds": null,
+    "human_validation_status": "not_applicable",
+    "human_validation_source": null,
+    "human_validation_at": null,
+    "validated_original_time_seconds": null,
+    "validated_corrected_time_seconds": null,
+    "validated_delta_seconds": null,
+    "application_scope": null,
     "segments": {
       "ina": [
         {
@@ -9213,6 +10326,13 @@
     "automatic_candidate": false,
     "candidate_time_seconds": null,
     "candidate_delta_seconds": null,
+    "human_validation_status": "not_applicable",
+    "human_validation_source": null,
+    "human_validation_at": null,
+    "validated_original_time_seconds": null,
+    "validated_corrected_time_seconds": null,
+    "validated_delta_seconds": null,
+    "application_scope": null,
     "segments": [
       {
         "label": "music",
@@ -9254,6 +10374,13 @@
     "automatic_candidate": false,
     "candidate_time_seconds": null,
     "candidate_delta_seconds": null,
+    "human_validation_status": "not_applicable",
+    "human_validation_source": null,
+    "human_validation_at": null,
+    "validated_original_time_seconds": null,
+    "validated_corrected_time_seconds": null,
+    "validated_delta_seconds": null,
+    "application_scope": null,
     "segments": [
       {
         "label": "non_speech",
@@ -9335,6 +10462,13 @@
     "automatic_candidate": false,
     "candidate_time_seconds": null,
     "candidate_delta_seconds": null,
+    "human_validation_status": "not_applicable",
+    "human_validation_source": null,
+    "human_validation_at": null,
+    "validated_original_time_seconds": null,
+    "validated_corrected_time_seconds": null,
+    "validated_delta_seconds": null,
+    "application_scope": null,
     "segments": {
       "ina": [
         {
@@ -9435,6 +10569,13 @@
     "automatic_candidate": true,
     "candidate_time_seconds": 2353.08,
     "candidate_delta_seconds": 3.08,
+    "human_validation_status": "validated_for_lab_only",
+    "human_validation_source": "Emmanuel",
+    "human_validation_at": "2026-10-10T16:07:00+02:00",
+    "validated_original_time_seconds": 2350.0,
+    "validated_corrected_time_seconds": 2353.08,
+    "validated_delta_seconds": 3.08,
+    "application_scope": "lab_only",
     "segments": [
       {
         "label": "music",
@@ -9455,8 +10596,8 @@
     "decision": "abstention",
     "new_time_seconds": null,
     "delta_seconds": null,
-    "reason": "Candidat automatique INA parole-vers-musique non confirme par ecoute humaine; chant, rap, jingle ou voice-over ne peuvent pas etre exclus.",
-    "uncertainty": "elevee_sans_ecoute_humaine"
+    "reason": "Candidat INA confirme par ecoute humaine au niveau de la frontiere; la correction finale est portee uniquement par le consensus INA/Silero.",
+    "uncertainty": "moyenne_algorithme_seul"
   },
   {
     "boundary_id": "pure-trance-radio-493-t09",
@@ -9476,6 +10617,13 @@
     "automatic_candidate": false,
     "candidate_time_seconds": null,
     "candidate_delta_seconds": null,
+    "human_validation_status": "validated_for_lab_only",
+    "human_validation_source": "Emmanuel",
+    "human_validation_at": "2026-10-10T16:07:00+02:00",
+    "validated_original_time_seconds": 2350.0,
+    "validated_corrected_time_seconds": 2353.08,
+    "validated_delta_seconds": 3.08,
+    "application_scope": "lab_only",
     "segments": [
       {
         "label": "non_speech",
@@ -9527,6 +10675,13 @@
     "automatic_candidate": true,
     "candidate_time_seconds": 2353.08,
     "candidate_delta_seconds": 3.08,
+    "human_validation_status": "validated_for_lab_only",
+    "human_validation_source": "Emmanuel",
+    "human_validation_at": "2026-10-10T16:07:00+02:00",
+    "validated_original_time_seconds": 2350.0,
+    "validated_corrected_time_seconds": 2353.08,
+    "validated_delta_seconds": 3.08,
+    "application_scope": "lab_only",
     "segments": {
       "ina": [
         {
@@ -9573,11 +10728,11 @@
         }
       ]
     },
-    "decision": "abstention",
-    "new_time_seconds": null,
-    "delta_seconds": null,
-    "reason": "Candidat automatique: parole englobante et fin proches pour INA/Silero, puis musique INA; abstention sans ecoute humaine capable d'exclure chant, rap, jingle ou voice-over.",
-    "uncertainty": "elevee_sans_ecoute_humaine"
+    "decision": "correction_validee_labo",
+    "new_time_seconds": 2353.08,
+    "delta_seconds": 3.08,
+    "reason": "Consensus INA/Silero puis retour a la musique; correction validee par ecoute humaine et applicable au laboratoire uniquement.",
+    "uncertainty": "levee_par_ecoute_humaine"
   },
   {
     "boundary_id": "pure-trance-radio-493-t10",
@@ -9597,6 +10752,13 @@
     "automatic_candidate": false,
     "candidate_time_seconds": null,
     "candidate_delta_seconds": null,
+    "human_validation_status": "not_applicable",
+    "human_validation_source": null,
+    "human_validation_at": null,
+    "validated_original_time_seconds": null,
+    "validated_corrected_time_seconds": null,
+    "validated_delta_seconds": null,
+    "application_scope": null,
     "segments": [
       {
         "label": "music",
@@ -9638,6 +10800,13 @@
     "automatic_candidate": false,
     "candidate_time_seconds": null,
     "candidate_delta_seconds": null,
+    "human_validation_status": "not_applicable",
+    "human_validation_source": null,
+    "human_validation_at": null,
+    "validated_original_time_seconds": null,
+    "validated_corrected_time_seconds": null,
+    "validated_delta_seconds": null,
+    "application_scope": null,
     "segments": [
       {
         "label": "non_speech",
@@ -9729,6 +10898,13 @@
     "automatic_candidate": false,
     "candidate_time_seconds": null,
     "candidate_delta_seconds": null,
+    "human_validation_status": "not_applicable",
+    "human_validation_source": null,
+    "human_validation_at": null,
+    "validated_original_time_seconds": null,
+    "validated_corrected_time_seconds": null,
+    "validated_delta_seconds": null,
+    "application_scope": null,
     "segments": {
       "ina": [
         {
@@ -9839,6 +11015,13 @@
     "automatic_candidate": false,
     "candidate_time_seconds": null,
     "candidate_delta_seconds": null,
+    "human_validation_status": "not_applicable",
+    "human_validation_source": null,
+    "human_validation_at": null,
+    "validated_original_time_seconds": null,
+    "validated_corrected_time_seconds": null,
+    "validated_delta_seconds": null,
+    "application_scope": null,
     "segments": [
       {
         "label": "music",
@@ -9870,6 +11053,13 @@
     "automatic_candidate": false,
     "candidate_time_seconds": null,
     "candidate_delta_seconds": null,
+    "human_validation_status": "not_applicable",
+    "human_validation_source": null,
+    "human_validation_at": null,
+    "validated_original_time_seconds": null,
+    "validated_corrected_time_seconds": null,
+    "validated_delta_seconds": null,
+    "application_scope": null,
     "segments": [
       {
         "label": "non_speech",
@@ -9931,6 +11121,13 @@
     "automatic_candidate": false,
     "candidate_time_seconds": null,
     "candidate_delta_seconds": null,
+    "human_validation_status": "not_applicable",
+    "human_validation_source": null,
+    "human_validation_at": null,
+    "validated_original_time_seconds": null,
+    "validated_corrected_time_seconds": null,
+    "validated_delta_seconds": null,
+    "application_scope": null,
     "segments": {
       "ina": [
         {
@@ -10001,6 +11198,13 @@
     "automatic_candidate": false,
     "candidate_time_seconds": null,
     "candidate_delta_seconds": null,
+    "human_validation_status": "not_applicable",
+    "human_validation_source": null,
+    "human_validation_at": null,
+    "validated_original_time_seconds": null,
+    "validated_corrected_time_seconds": null,
+    "validated_delta_seconds": null,
+    "application_scope": null,
     "segments": [
       {
         "label": "music",
@@ -10052,6 +11256,13 @@
     "automatic_candidate": false,
     "candidate_time_seconds": null,
     "candidate_delta_seconds": null,
+    "human_validation_status": "not_applicable",
+    "human_validation_source": null,
+    "human_validation_at": null,
+    "validated_original_time_seconds": null,
+    "validated_corrected_time_seconds": null,
+    "validated_delta_seconds": null,
+    "application_scope": null,
     "segments": [
       {
         "label": "non_speech",
@@ -10163,6 +11374,13 @@
     "automatic_candidate": false,
     "candidate_time_seconds": null,
     "candidate_delta_seconds": null,
+    "human_validation_status": "not_applicable",
+    "human_validation_source": null,
+    "human_validation_at": null,
+    "validated_original_time_seconds": null,
+    "validated_corrected_time_seconds": null,
+    "validated_delta_seconds": null,
+    "application_scope": null,
     "segments": {
       "ina": [
         {
@@ -10303,6 +11521,13 @@
     "automatic_candidate": false,
     "candidate_time_seconds": null,
     "candidate_delta_seconds": null,
+    "human_validation_status": "not_applicable",
+    "human_validation_source": null,
+    "human_validation_at": null,
+    "validated_original_time_seconds": null,
+    "validated_corrected_time_seconds": null,
+    "validated_delta_seconds": null,
+    "application_scope": null,
     "segments": [
       {
         "label": "speech",
@@ -10339,6 +11564,13 @@
     "automatic_candidate": false,
     "candidate_time_seconds": null,
     "candidate_delta_seconds": null,
+    "human_validation_status": "not_applicable",
+    "human_validation_source": null,
+    "human_validation_at": null,
+    "validated_original_time_seconds": null,
+    "validated_corrected_time_seconds": null,
+    "validated_delta_seconds": null,
+    "application_scope": null,
     "segments": [
       {
         "label": "non_speech",
@@ -10400,6 +11632,13 @@
     "automatic_candidate": false,
     "candidate_time_seconds": null,
     "candidate_delta_seconds": null,
+    "human_validation_status": "not_applicable",
+    "human_validation_source": null,
+    "human_validation_at": null,
+    "validated_original_time_seconds": null,
+    "validated_corrected_time_seconds": null,
+    "validated_delta_seconds": null,
+    "application_scope": null,
     "segments": {
       "ina": [
         {
@@ -10475,6 +11714,13 @@
     "automatic_candidate": true,
     "candidate_time_seconds": 4146.78,
     "candidate_delta_seconds": 2.78,
+    "human_validation_status": "explicitly_not_validated",
+    "human_validation_source": null,
+    "human_validation_at": null,
+    "validated_original_time_seconds": null,
+    "validated_corrected_time_seconds": null,
+    "validated_delta_seconds": null,
+    "application_scope": "none",
     "segments": [
       {
         "label": "music",
@@ -10516,6 +11762,13 @@
     "automatic_candidate": false,
     "candidate_time_seconds": null,
     "candidate_delta_seconds": null,
+    "human_validation_status": "not_applicable",
+    "human_validation_source": null,
+    "human_validation_at": null,
+    "validated_original_time_seconds": null,
+    "validated_corrected_time_seconds": null,
+    "validated_delta_seconds": null,
+    "application_scope": null,
     "segments": [
       {
         "label": "non_speech",
@@ -10587,6 +11840,13 @@
     "automatic_candidate": false,
     "candidate_time_seconds": null,
     "candidate_delta_seconds": null,
+    "human_validation_status": "not_applicable",
+    "human_validation_source": null,
+    "human_validation_at": null,
+    "validated_original_time_seconds": null,
+    "validated_corrected_time_seconds": null,
+    "validated_delta_seconds": null,
+    "application_scope": null,
     "segments": {
       "ina": [
         {
@@ -10677,6 +11937,13 @@
     "automatic_candidate": false,
     "candidate_time_seconds": null,
     "candidate_delta_seconds": null,
+    "human_validation_status": "not_applicable",
+    "human_validation_source": null,
+    "human_validation_at": null,
+    "validated_original_time_seconds": null,
+    "validated_corrected_time_seconds": null,
+    "validated_delta_seconds": null,
+    "application_scope": null,
     "segments": [
       {
         "label": "speech",
@@ -10723,6 +11990,13 @@
     "automatic_candidate": false,
     "candidate_time_seconds": null,
     "candidate_delta_seconds": null,
+    "human_validation_status": "not_applicable",
+    "human_validation_source": null,
+    "human_validation_at": null,
+    "validated_original_time_seconds": null,
+    "validated_corrected_time_seconds": null,
+    "validated_delta_seconds": null,
+    "application_scope": null,
     "segments": [
       {
         "label": "non_speech",
@@ -10814,6 +12088,13 @@
     "automatic_candidate": false,
     "candidate_time_seconds": null,
     "candidate_delta_seconds": null,
+    "human_validation_status": "not_applicable",
+    "human_validation_source": null,
+    "human_validation_at": null,
+    "validated_original_time_seconds": null,
+    "validated_corrected_time_seconds": null,
+    "validated_delta_seconds": null,
+    "application_scope": null,
     "segments": {
       "ina": [
         {
@@ -10929,6 +12210,13 @@
     "automatic_candidate": false,
     "candidate_time_seconds": null,
     "candidate_delta_seconds": null,
+    "human_validation_status": "not_applicable",
+    "human_validation_source": null,
+    "human_validation_at": null,
+    "validated_original_time_seconds": null,
+    "validated_corrected_time_seconds": null,
+    "validated_delta_seconds": null,
+    "application_scope": null,
     "segments": [
       {
         "label": "music",
@@ -10960,6 +12248,13 @@
     "automatic_candidate": false,
     "candidate_time_seconds": null,
     "candidate_delta_seconds": null,
+    "human_validation_status": "not_applicable",
+    "human_validation_source": null,
+    "human_validation_at": null,
+    "validated_original_time_seconds": null,
+    "validated_corrected_time_seconds": null,
+    "validated_delta_seconds": null,
+    "application_scope": null,
     "segments": [
       {
         "label": "non_speech",
@@ -11031,6 +12326,13 @@
     "automatic_candidate": false,
     "candidate_time_seconds": null,
     "candidate_delta_seconds": null,
+    "human_validation_status": "not_applicable",
+    "human_validation_source": null,
+    "human_validation_at": null,
+    "validated_original_time_seconds": null,
+    "validated_corrected_time_seconds": null,
+    "validated_delta_seconds": null,
+    "application_scope": null,
     "segments": {
       "ina": [
         {
@@ -11111,6 +12413,13 @@
     "automatic_candidate": false,
     "candidate_time_seconds": null,
     "candidate_delta_seconds": null,
+    "human_validation_status": "not_applicable",
+    "human_validation_source": null,
+    "human_validation_at": null,
+    "validated_original_time_seconds": null,
+    "validated_corrected_time_seconds": null,
+    "validated_delta_seconds": null,
+    "application_scope": null,
     "segments": [
       {
         "label": "music",
@@ -11142,6 +12451,13 @@
     "automatic_candidate": false,
     "candidate_time_seconds": null,
     "candidate_delta_seconds": null,
+    "human_validation_status": "not_applicable",
+    "human_validation_source": null,
+    "human_validation_at": null,
+    "validated_original_time_seconds": null,
+    "validated_corrected_time_seconds": null,
+    "validated_delta_seconds": null,
+    "application_scope": null,
     "segments": [
       {
         "label": "non_speech",
@@ -11333,6 +12649,13 @@
     "automatic_candidate": false,
     "candidate_time_seconds": null,
     "candidate_delta_seconds": null,
+    "human_validation_status": "not_applicable",
+    "human_validation_source": null,
+    "human_validation_at": null,
+    "validated_original_time_seconds": null,
+    "validated_corrected_time_seconds": null,
+    "validated_delta_seconds": null,
+    "application_scope": null,
     "segments": {
       "ina": [
         {
@@ -11533,6 +12856,13 @@
     "automatic_candidate": false,
     "candidate_time_seconds": null,
     "candidate_delta_seconds": null,
+    "human_validation_status": "not_applicable",
+    "human_validation_source": null,
+    "human_validation_at": null,
+    "validated_original_time_seconds": null,
+    "validated_corrected_time_seconds": null,
+    "validated_delta_seconds": null,
+    "application_scope": null,
     "segments": [
       {
         "label": "music",
@@ -11584,6 +12914,13 @@
     "automatic_candidate": false,
     "candidate_time_seconds": null,
     "candidate_delta_seconds": null,
+    "human_validation_status": "not_applicable",
+    "human_validation_source": null,
+    "human_validation_at": null,
+    "validated_original_time_seconds": null,
+    "validated_corrected_time_seconds": null,
+    "validated_delta_seconds": null,
+    "application_scope": null,
     "segments": [
       {
         "label": "non_speech",
@@ -11685,6 +13022,13 @@
     "automatic_candidate": false,
     "candidate_time_seconds": null,
     "candidate_delta_seconds": null,
+    "human_validation_status": "not_applicable",
+    "human_validation_source": null,
+    "human_validation_at": null,
+    "validated_original_time_seconds": null,
+    "validated_corrected_time_seconds": null,
+    "validated_delta_seconds": null,
+    "application_scope": null,
     "segments": {
       "ina": [
         {
@@ -11815,6 +13159,13 @@
     "automatic_candidate": false,
     "candidate_time_seconds": null,
     "candidate_delta_seconds": null,
+    "human_validation_status": "not_applicable",
+    "human_validation_source": null,
+    "human_validation_at": null,
+    "validated_original_time_seconds": null,
+    "validated_corrected_time_seconds": null,
+    "validated_delta_seconds": null,
+    "application_scope": null,
     "segments": [
       {
         "label": "music",
@@ -11856,6 +13207,13 @@
     "automatic_candidate": false,
     "candidate_time_seconds": null,
     "candidate_delta_seconds": null,
+    "human_validation_status": "not_applicable",
+    "human_validation_source": null,
+    "human_validation_at": null,
+    "validated_original_time_seconds": null,
+    "validated_corrected_time_seconds": null,
+    "validated_delta_seconds": null,
+    "application_scope": null,
     "segments": [
       {
         "label": "non_speech",
@@ -11917,6 +13275,13 @@
     "automatic_candidate": false,
     "candidate_time_seconds": null,
     "candidate_delta_seconds": null,
+    "human_validation_status": "not_applicable",
+    "human_validation_source": null,
+    "human_validation_at": null,
+    "validated_original_time_seconds": null,
+    "validated_corrected_time_seconds": null,
+    "validated_delta_seconds": null,
+    "application_scope": null,
     "segments": {
       "ina": [
         {
@@ -11997,6 +13362,13 @@
     "automatic_candidate": false,
     "candidate_time_seconds": null,
     "candidate_delta_seconds": null,
+    "human_validation_status": "not_applicable",
+    "human_validation_source": null,
+    "human_validation_at": null,
+    "validated_original_time_seconds": null,
+    "validated_corrected_time_seconds": null,
+    "validated_delta_seconds": null,
+    "application_scope": null,
     "segments": [
       {
         "label": "music",
@@ -12028,6 +13400,13 @@
     "automatic_candidate": false,
     "candidate_time_seconds": null,
     "candidate_delta_seconds": null,
+    "human_validation_status": "not_applicable",
+    "human_validation_source": null,
+    "human_validation_at": null,
+    "validated_original_time_seconds": null,
+    "validated_corrected_time_seconds": null,
+    "validated_delta_seconds": null,
+    "application_scope": null,
     "segments": [
       {
         "label": "non_speech",
@@ -12079,6 +13458,13 @@
     "automatic_candidate": false,
     "candidate_time_seconds": null,
     "candidate_delta_seconds": null,
+    "human_validation_status": "not_applicable",
+    "human_validation_source": null,
+    "human_validation_at": null,
+    "validated_original_time_seconds": null,
+    "validated_corrected_time_seconds": null,
+    "validated_delta_seconds": null,
+    "application_scope": null,
     "segments": {
       "ina": [
         {
@@ -12139,6 +13525,13 @@
     "automatic_candidate": false,
     "candidate_time_seconds": null,
     "candidate_delta_seconds": null,
+    "human_validation_status": "not_applicable",
+    "human_validation_source": null,
+    "human_validation_at": null,
+    "validated_original_time_seconds": null,
+    "validated_corrected_time_seconds": null,
+    "validated_delta_seconds": null,
+    "application_scope": null,
     "segments": [
       {
         "label": "music",
@@ -12190,6 +13583,13 @@
     "automatic_candidate": false,
     "candidate_time_seconds": null,
     "candidate_delta_seconds": null,
+    "human_validation_status": "not_applicable",
+    "human_validation_source": null,
+    "human_validation_at": null,
+    "validated_original_time_seconds": null,
+    "validated_corrected_time_seconds": null,
+    "validated_delta_seconds": null,
+    "application_scope": null,
     "segments": [
       {
         "label": "non_speech",
@@ -12281,6 +13681,13 @@
     "automatic_candidate": false,
     "candidate_time_seconds": null,
     "candidate_delta_seconds": null,
+    "human_validation_status": "not_applicable",
+    "human_validation_source": null,
+    "human_validation_at": null,
+    "validated_original_time_seconds": null,
+    "validated_corrected_time_seconds": null,
+    "validated_delta_seconds": null,
+    "application_scope": null,
     "segments": {
       "ina": [
         {
