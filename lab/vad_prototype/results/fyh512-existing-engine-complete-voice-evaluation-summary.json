@@ -1,0 +1,28 @@
+{
+  "frozen_outputs_verified_by_sha256": true,
+  "matching_rule": "appariement libre glouton un-a-un par erreur absolue croissante <= 30 s",
+  "immediate_base": {
+    "matched": 16,
+    "missing": 16,
+    "surplus": 16
+  },
+  "complete_voice_pass": {
+    "reference_count": 32,
+    "algorithm_output_count": 32,
+    "matched": 16,
+    "missing": 16,
+    "surplus": 16,
+    "mean_absolute_error_seconds_on_matched": 8.4816,
+    "median_absolute_error_seconds_on_matched": 1.625,
+    "under_1_second": 5,
+    "under_5_seconds": 11,
+    "under_10_seconds": 12,
+    "under_or_equal_30_seconds": 16,
+    "statistics_denominator": 16
+  },
+  "gained_reference_numbers": [],
+  "lost_reference_numbers": [],
+  "candidate_count": 10,
+  "transcribed_candidate_count": 10,
+  "verdict": "validated_no_regression"
+}

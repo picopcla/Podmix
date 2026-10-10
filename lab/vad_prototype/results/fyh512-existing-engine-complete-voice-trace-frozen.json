@@ -1,0 +1,1786 @@
+{
+  "voice_enabled": true,
+  "voice": {
+    "local_pass": {
+      "audio_sha256": "47814fb78f3f0236777b6c5ebf378d23e4938914c474df116c49f618b3fdaf69",
+      "duration_seconds": 7216.927375,
+      "coverage_start_seconds": 0.0,
+      "coverage_end_seconds": 7216.927375,
+      "coverage_complete": true,
+      "vad_execution_order": [
+        "ina",
+        "silero"
+      ],
+      "windowing": {
+        "window_seconds": 600,
+        "overlap_seconds": 60,
+        "ownership_rule": "Chaque fenetre ne conserve que son coeur, delimite par le milieu des recouvrements; la premiere et la derniere conservent les bords de l'episode."
+      },
+      "vad_parameters": {
+        "ina": {
+          "vad_engine": "sm",
+          "detect_gender": false,
+          "batch_size": 32,
+          "energy_ratio": 0.03,
+          "tensorflow_device": "CPU"
+        },
+        "silero": {
+          "sample_rate": 16000,
+          "threshold": 0.5,
+          "negative_threshold": 0.35,
+          "min_speech_ms": 250,
+          "min_silence_ms": 100,
+          "speech_pad_ms": 30,
+          "chunk_samples": 512,
+          "execution_provider": "CPUExecutionProvider"
+        }
+      },
+      "detector_parameters": {
+        "ina_speech_labels": [
+          "speech"
+        ],
+        "ina_music_labels": [
+          "music"
+        ],
+        "min_ina_speech_seconds": 0.75,
+        "min_return_to_music_seconds": 5.0,
+        "max_ina_silero_end_disagreement_seconds": 2.0,
+        "min_silero_overlap_seconds": 0.25,
+        "deduplication_seconds": 15.0,
+        "confidence_weights": {
+          "music_continuity": 0.35,
+          "model_end_agreement": 0.35,
+          "speech_overlap": 0.2,
+          "ina_speech_duration": 0.1
+        },
+        "confidence_scales": {
+          "music_continuity_seconds": 15.0,
+          "ina_speech_duration_seconds": 5.0
+        }
+      },
+      "transcription_parameters": {
+        "engine": "faster-whisper",
+        "model": "small",
+        "device": "cpu",
+        "compute_type": "int8",
+        "cpu_threads": 2,
+        "language": "en",
+        "beam_size": 5,
+        "vad_filter": false,
+        "condition_on_previous_text": false,
+        "scope": "every automatically detected candidate, including candidates below the anchor confidence threshold"
+      },
+      "versions": {
+        "inaSpeechSegmenter": "0.8.0",
+        "silero-vad": "6.2.3",
+        "onnxruntime": "1.31.0",
+        "faster-whisper": "1.2.1"
+      },
+      "windows": {
+        "ina": 14,
+        "silero": 14
+      },
+      "candidates": 10,
+      "transcribed_candidates": 10,
+      "commands": [
+        {
+          "stage": "vad_ina",
+          "argv_without_media": [
+            "python",
+            "run_external_full_episode.py",
+            "--method",
+            "ina",
+            "--episode",
+            "find-your-harmony-512-complete-voice",
+            "--title",
+            "Find Your Harmony Episode #512",
+            "--media",
+            "/tmp/podmix-audio-fallback-qqaymzyw/mix.audio",
+            "--output-root",
+            "/home/debian/pont-task-workspaces/0d00378d6dbc2fbf9c42b623/podmix-work/lab/vad_prototype/output/fyh512_complete_voice/vad"
+          ]
+        },
+        {
+          "stage": "vad_silero",
+          "argv_without_media": [
+            "python",
+            "run_external_full_episode.py",
+            "--method",
+            "silero",
+            "--episode",
+            "find-your-harmony-512-complete-voice",
+            "--title",
+            "Find Your Harmony Episode #512",
+            "--media",
+            "/tmp/podmix-audio-fallback-qqaymzyw/mix.audio",
+            "--output-root",
+            "/home/debian/pont-task-workspaces/0d00378d6dbc2fbf9c42b623/podmix-work/lab/vad_prototype/output/fyh512_complete_voice/vad"
+          ]
+        },
+        {
+          "stage": "asr",
+          "argv_without_media": [
+            "python",
+            "complete_voice_detector.py",
+            "--asr-worker",
+            "--media",
+            "/home/debian/pont-task-workspaces/0d00378d6dbc2fbf9c42b623/podmix-work/lab/vad_prototype/output/fyh512_complete_voice/candidates.json",
+            "--output",
+            "/home/debian/pont-task-workspaces/0d00378d6dbc2fbf9c42b623/podmix-work/lab/vad_prototype/output/fyh512_complete_voice/transcripts.json",
+            "--model",
+            "small"
+          ]
+        }
+      ],
+      "wall_seconds": 511.203,
+      "artifacts_sha256": {
+        "ina": "b4402c77aab8088eac13af88daa5d729b19ebd59db9876e8ff08a53d8903e4d4",
+        "silero": "276600236378510405414108ebc393fd2e8f6c271bd6f2dec80c6a8dd9da16fa",
+        "candidates": "df10823c0cf3232fa1af296681fd3f1e8880406d70bdc32764d3909fc97184f5",
+        "transcripts": "144fb814f1faad386c0f1451cdb038a584870a1e8ca703dc6c8a04a77e94a12f"
+      }
+    },
+    "events": [
+      {
+        "algorithm_time_seconds": 4.58,
+        "confidence": 0.9086,
+        "ina_speech_start_seconds": 0.0,
+        "ina_speech_end_seconds": 4.58,
+        "ina_speech_duration_seconds": 4.58,
+        "ina_music_end_seconds": 77.94,
+        "ina_music_duration_seconds": 73.36,
+        "silero_speech_start_seconds": 0.514,
+        "silero_speech_end_seconds": 5.054,
+        "model_end_gap_seconds": 0.474,
+        "speech_overlap_seconds": 4.066,
+        "confidence_components": {
+          "music_continuity": 1.0,
+          "model_end_agreement": 0.763,
+          "speech_overlap": 1.0,
+          "ina_speech_duration": 0.916
+        },
+        "detection_id": "find-your-harmony-512-complete-voice-d001",
+        "voice_start_seconds": 0.0,
+        "voice_end_seconds": 4.58,
+        "voice_internal_confidence": 0.9086,
+        "engine": "faster-whisper-small-local-cpu-int8",
+        "language": "en",
+        "language_probability": 1,
+        "segments": [
+          {
+            "absolute_start_seconds": 0.0,
+            "absolute_end_seconds": 4.56,
+            "text": "This is Find Your Harmony with me, your host, Andrew Ryan.",
+            "average_log_probability": -0.482683,
+            "no_speech_probability": 0.208696
+          }
+        ],
+        "transcript": "This is Find Your Harmony with me, your host, Andrew Ryan."
+      },
+      {
+        "algorithm_time_seconds": 120.0,
+        "confidence": 0.9884,
+        "ina_speech_start_seconds": 77.94,
+        "ina_speech_end_seconds": 120.0,
+        "ina_speech_duration_seconds": 42.06,
+        "ina_music_end_seconds": 154.54,
+        "ina_music_duration_seconds": 34.54,
+        "silero_speech_start_seconds": 113.218,
+        "silero_speech_end_seconds": 119.934,
+        "model_end_gap_seconds": 0.066,
+        "speech_overlap_seconds": 6.716,
+        "confidence_components": {
+          "music_continuity": 1.0,
+          "model_end_agreement": 0.967,
+          "speech_overlap": 1.0,
+          "ina_speech_duration": 1.0
+        },
+        "detection_id": "find-your-harmony-512-complete-voice-d002",
+        "voice_start_seconds": 77.94,
+        "voice_end_seconds": 120.0,
+        "voice_internal_confidence": 0.9884,
+        "engine": "faster-whisper-small-local-cpu-int8",
+        "language": "en",
+        "language_probability": 1,
+        "segments": [
+          {
+            "absolute_start_seconds": 77.94,
+            "absolute_end_seconds": 82.06,
+            "text": "Hey everyone, welcome to episode 512 of Find Your Harmony.",
+            "average_log_probability": -0.208408,
+            "no_speech_probability": 0.086794
+          },
+          {
+            "absolute_start_seconds": 82.06,
+            "absolute_end_seconds": 86.18,
+            "text": "Coming up tonight, music by Marco Schulz, Adriatic,",
+            "average_log_probability": -0.208408,
+            "no_speech_probability": 0.086794
+          },
+          {
+            "absolute_start_seconds": 86.18,
+            "absolute_end_seconds": 88.86,
+            "text": "Giuseppe Ottaviani and Ilan Bluestone,",
+            "average_log_probability": -0.208408,
+            "no_speech_probability": 0.086794
+          },
+          {
+            "absolute_start_seconds": 88.86,
+            "absolute_end_seconds": 92.18,
+            "text": "a new one by our resident, Vasmo,",
+            "average_log_probability": -0.208408,
+            "no_speech_probability": 0.086794
+          },
+          {
+            "absolute_start_seconds": 92.18,
+            "absolute_end_seconds": 94.98,
+            "text": "another play of my track, Acid on the Train,",
+            "average_log_probability": -0.208408,
+            "no_speech_probability": 0.086794
+          },
+          {
+            "absolute_start_seconds": 94.98,
+            "absolute_end_seconds": 96.78,
+            "text": "in the David Forbes remix.",
+            "average_log_probability": -0.208408,
+            "no_speech_probability": 0.086794
+          },
+          {
+            "absolute_start_seconds": 96.78,
+            "absolute_end_seconds": 98.42,
+            "text": "A world premiere for you tonight,",
+            "average_log_probability": -0.208408,
+            "no_speech_probability": 0.086794
+          },
+          {
+            "absolute_start_seconds": 98.42,
+            "absolute_end_seconds": 99.82,
+            "text": "the Giuseppe Ottaviani remix",
+            "average_log_probability": -0.208408,
+            "no_speech_probability": 0.086794
+          },
+          {
+            "absolute_start_seconds": 99.82,
+            "absolute_end_seconds": 102.1,
+            "text": "of my ecstasy track, Dreaming.",
+            "average_log_probability": -0.208408,
+            "no_speech_probability": 0.086794
+          },
+          {
+            "absolute_start_seconds": 102.1,
+            "absolute_end_seconds": 104.2,
+            "text": "Also, a big reminder for you guys,",
+            "average_log_probability": -0.208408,
+            "no_speech_probability": 0.086794
+          },
+          {
+            "absolute_start_seconds": 104.2,
+            "absolute_end_seconds": 110.56,
+            "text": "FYH 500 Amsterdam, tickets are running very low and this show will be sold out very soon",
+            "average_log_probability": -0.268137,
+            "no_speech_probability": 0.230134
+          },
+          {
+            "absolute_start_seconds": 110.56,
+            "absolute_end_seconds": 113.28,
+            "text": "so make sure to get yours right now.",
+            "average_log_probability": -0.268137,
+            "no_speech_probability": 0.230134
+          },
+          {
+            "absolute_start_seconds": 113.28,
+            "absolute_end_seconds": 118.12,
+            "text": "Kicking things off with a new release on Rising Harmony, this is Mohamed El Alami and Josie",
+            "average_log_probability": -0.268137,
+            "no_speech_probability": 0.230134
+          },
+          {
+            "absolute_start_seconds": 118.12,
+            "absolute_end_seconds": 119.12,
+            "text": "Sandfield.",
+            "average_log_probability": -0.268137,
+            "no_speech_probability": 0.230134
+          },
+          {
+            "absolute_start_seconds": 119.12,
+            "absolute_end_seconds": 119.84,
+            "text": "Keep on running.",
+            "average_log_probability": -0.268137,
+            "no_speech_probability": 0.230134
+          }
+        ],
+        "transcript": "Hey everyone, welcome to episode 512 of Find Your Harmony. Coming up tonight, music by Marco Schulz, Adriatic, Giuseppe Ottaviani and Ilan Bluestone, a new one by our resident, Vasmo, another play of my track, Acid on the Train, in the David Forbes remix. A world premiere for you tonight, the Giuseppe Ottaviani remix of my ecstasy track, Dreaming. Also, a big reminder for you guys, FYH 500 Amsterdam, tickets are running very low and this show will be sold out very soon so make sure to get yours right now. Kicking things off with a new release on Rising Harmony, this is Mohamed El Alami and Josie Sandfield. Keep on running."
+      },
+      {
+        "algorithm_time_seconds": 1389.16,
+        "confidence": 0.8166,
+        "ina_speech_start_seconds": 1383.18,
+        "ina_speech_end_seconds": 1389.16,
+        "ina_speech_duration_seconds": 5.98,
+        "ina_music_end_seconds": 1614.92,
+        "ina_music_duration_seconds": 225.76,
+        "silero_speech_start_seconds": 1388.77,
+        "silero_speech_end_seconds": 1389.214,
+        "model_end_gap_seconds": 0.054,
+        "speech_overlap_seconds": 0.39,
+        "confidence_components": {
+          "music_continuity": 1.0,
+          "model_end_agreement": 0.973,
+          "speech_overlap": 0.13,
+          "ina_speech_duration": 1.0
+        },
+        "detection_id": "find-your-harmony-512-complete-voice-d003",
+        "voice_start_seconds": 1383.18,
+        "voice_end_seconds": 1389.16,
+        "voice_internal_confidence": 0.8166,
+        "engine": "faster-whisper-small-local-cpu-int8",
+        "language": "en",
+        "language_probability": 1,
+        "segments": [
+          {
+            "absolute_start_seconds": 1383.18,
+            "absolute_end_seconds": 1387.6,
+            "text": "get back to the music with a new release on FYH and the lightsight track of this week.",
+            "average_log_probability": -0.328177,
+            "no_speech_probability": 0.101047
+          },
+          {
+            "absolute_start_seconds": 1387.6,
+            "absolute_end_seconds": 1389.14,
+            "text": "This is VASMO, stay!",
+            "average_log_probability": -0.328177,
+            "no_speech_probability": 0.101047
+          }
+        ],
+        "transcript": "get back to the music with a new release on FYH and the lightsight track of this week. This is VASMO, stay!"
+      },
+      {
+        "algorithm_time_seconds": 1651.52,
+        "confidence": 0.7694,
+        "ina_speech_start_seconds": 1614.92,
+        "ina_speech_end_seconds": 1651.52,
+        "ina_speech_duration_seconds": 36.6,
+        "ina_music_end_seconds": 2327.92,
+        "ina_music_duration_seconds": 676.4,
+        "silero_speech_start_seconds": 1650.0,
+        "silero_speech_end_seconds": 1650.974,
+        "model_end_gap_seconds": 0.546,
+        "speech_overlap_seconds": 0.974,
+        "confidence_components": {
+          "music_continuity": 1.0,
+          "model_end_agreement": 0.727,
+          "speech_overlap": 0.3247,
+          "ina_speech_duration": 1.0
+        },
+        "detection_id": "find-your-harmony-512-complete-voice-d004",
+        "voice_start_seconds": 1614.92,
+        "voice_end_seconds": 1651.52,
+        "voice_internal_confidence": 0.7694,
+        "engine": "faster-whisper-small-local-cpu-int8",
+        "language": "en",
+        "language_probability": 1,
+        "segments": [
+          {
+            "absolute_start_seconds": 1614.92,
+            "absolute_end_seconds": 1627.92,
+            "text": "There are moments when silence descends upon you like a heavy leaden rain.",
+            "average_log_probability": -0.196838,
+            "no_speech_probability": 0.354475
+          },
+          {
+            "absolute_start_seconds": 1627.92,
+            "absolute_end_seconds": 1634.92,
+            "text": "When breath is stolen from your chest the way the sea abandons a fish upon the shore.",
+            "average_log_probability": -0.196838,
+            "no_speech_probability": 0.354475
+          },
+          {
+            "absolute_start_seconds": 1634.92,
+            "absolute_end_seconds": 1641.92,
+            "text": "And in those moments you begin to long for the impenetrable wall of sound to break you open once more.",
+            "average_log_probability": -0.196838,
+            "no_speech_probability": 0.354475
+          },
+          {
+            "absolute_start_seconds": 1641.92,
+            "absolute_end_seconds": 1646.92,
+            "text": "For your body to become one with all things and a single trembling vibration.",
+            "average_log_probability": -0.33079,
+            "no_speech_probability": 0.302919
+          },
+          {
+            "absolute_start_seconds": 1646.92,
+            "absolute_end_seconds": 1650.92,
+            "text": "For everything to vanish and for you to be taken away on tour.",
+            "average_log_probability": -0.33079,
+            "no_speech_probability": 0.302919
+          }
+        ],
+        "transcript": "There are moments when silence descends upon you like a heavy leaden rain. When breath is stolen from your chest the way the sea abandons a fish upon the shore. And in those moments you begin to long for the impenetrable wall of sound to break you open once more. For your body to become one with all things and a single trembling vibration. For everything to vanish and for you to be taken away on tour."
+      },
+      {
+        "algorithm_time_seconds": 2365.68,
+        "confidence": 0.9864,
+        "ina_speech_start_seconds": 2352.34,
+        "ina_speech_end_seconds": 2365.68,
+        "ina_speech_duration_seconds": 13.34,
+        "ina_music_end_seconds": 2616.06,
+        "ina_music_duration_seconds": 250.38,
+        "silero_speech_start_seconds": 2360.93,
+        "silero_speech_end_seconds": 2365.758,
+        "model_end_gap_seconds": 0.078,
+        "speech_overlap_seconds": 4.75,
+        "confidence_components": {
+          "music_continuity": 1.0,
+          "model_end_agreement": 0.961,
+          "speech_overlap": 1.0,
+          "ina_speech_duration": 1.0
+        },
+        "detection_id": "find-your-harmony-512-complete-voice-d005",
+        "voice_start_seconds": 2352.34,
+        "voice_end_seconds": 2365.68,
+        "voice_internal_confidence": 0.9864,
+        "engine": "faster-whisper-small-local-cpu-int8",
+        "language": "en",
+        "language_probability": 1,
+        "segments": [
+          {
+            "absolute_start_seconds": 2352.34,
+            "absolute_end_seconds": 2356.18,
+            "text": "If you just tuned in, this is Find Your Harmony, episode 512.",
+            "average_log_probability": -0.290105,
+            "no_speech_probability": 0.074727
+          },
+          {
+            "absolute_start_seconds": 2356.18,
+            "absolute_end_seconds": 2359.62,
+            "text": "I'm Andrei Il, I hope you're enjoying the tracks I'm playing so far.",
+            "average_log_probability": -0.290105,
+            "no_speech_probability": 0.074727
+          },
+          {
+            "absolute_start_seconds": 2360.74,
+            "absolute_end_seconds": 2365.46,
+            "text": "I'm gonna move on with Spoiled and Zigo, this is more and more in the BLR remix.",
+            "average_log_probability": -0.290105,
+            "no_speech_probability": 0.074727
+          }
+        ],
+        "transcript": "If you just tuned in, this is Find Your Harmony, episode 512. I'm Andrei Il, I hope you're enjoying the tracks I'm playing so far. I'm gonna move on with Spoiled and Zigo, this is more and more in the BLR remix."
+      },
+      {
+        "algorithm_time_seconds": 3391.04,
+        "confidence": 0.8435,
+        "ina_speech_start_seconds": 3377.18,
+        "ina_speech_end_seconds": 3391.04,
+        "ina_speech_duration_seconds": 13.86,
+        "ina_music_end_seconds": 3472.32,
+        "ina_music_duration_seconds": 81.28,
+        "silero_speech_start_seconds": 3383.842,
+        "silero_speech_end_seconds": 3391.934,
+        "model_end_gap_seconds": 0.894,
+        "speech_overlap_seconds": 7.198,
+        "confidence_components": {
+          "music_continuity": 1.0,
+          "model_end_agreement": 0.553,
+          "speech_overlap": 1.0,
+          "ina_speech_duration": 1.0
+        },
+        "detection_id": "find-your-harmony-512-complete-voice-d006",
+        "voice_start_seconds": 3377.18,
+        "voice_end_seconds": 3391.04,
+        "voice_internal_confidence": 0.8435,
+        "engine": "faster-whisper-small-local-cpu-int8",
+        "language": "en",
+        "language_probability": 1,
+        "segments": [
+          {
+            "absolute_start_seconds": 3377.18,
+            "absolute_end_seconds": 3382.14,
+            "text": "I'll be closing the first hour with my remix of Max Stage and Fatem, the right place.",
+            "average_log_probability": -0.243489,
+            "no_speech_probability": 0.055115
+          },
+          {
+            "absolute_start_seconds": 3382.14,
+            "absolute_end_seconds": 3387.0,
+            "text": "But don't go anywhere, as I've got 60 more minutes for you with the best and most amazing",
+            "average_log_probability": -0.243489,
+            "no_speech_probability": 0.055115
+          },
+          {
+            "absolute_start_seconds": 3387.0,
+            "absolute_end_seconds": 3391.02,
+            "text": "uplifting and 138 tracks, but also some harder ones at the end.",
+            "average_log_probability": -0.243489,
+            "no_speech_probability": 0.055115
+          }
+        ],
+        "transcript": "I'll be closing the first hour with my remix of Max Stage and Fatem, the right place. But don't go anywhere, as I've got 60 more minutes for you with the best and most amazing uplifting and 138 tracks, but also some harder ones at the end."
+      },
+      {
+        "algorithm_time_seconds": 3632.38,
+        "confidence": 0.9269,
+        "ina_speech_start_seconds": 3582.46,
+        "ina_speech_end_seconds": 3632.38,
+        "ina_speech_duration_seconds": 49.92,
+        "ina_music_end_seconds": 5151.42,
+        "ina_music_duration_seconds": 1519.04,
+        "silero_speech_start_seconds": 3626.21,
+        "silero_speech_end_seconds": 3632.798,
+        "model_end_gap_seconds": 0.418,
+        "speech_overlap_seconds": 6.17,
+        "confidence_components": {
+          "music_continuity": 1.0,
+          "model_end_agreement": 0.791,
+          "speech_overlap": 1.0,
+          "ina_speech_duration": 1.0
+        },
+        "detection_id": "find-your-harmony-512-complete-voice-d007",
+        "voice_start_seconds": 3582.46,
+        "voice_end_seconds": 3632.38,
+        "voice_internal_confidence": 0.9269,
+        "engine": "faster-whisper-small-local-cpu-int8",
+        "language": "en",
+        "language_probability": 1,
+        "segments": [
+          {
+            "absolute_start_seconds": 3582.46,
+            "absolute_end_seconds": 3586.46,
+            "text": "Welcome back to Fungio Harmony. This is our number two.",
+            "average_log_probability": -0.173017,
+            "no_speech_probability": 0.266441
+          },
+          {
+            "absolute_start_seconds": 3586.46,
+            "absolute_end_seconds": 3589.46,
+            "text": "And now the moment I'll be waiting to share with you guys.",
+            "average_log_probability": -0.173017,
+            "no_speech_probability": 0.266441
+          },
+          {
+            "absolute_start_seconds": 3589.46,
+            "absolute_end_seconds": 3591.46,
+            "text": "My favorite of the moment this week.",
+            "average_log_probability": -0.173017,
+            "no_speech_probability": 0.266441
+          },
+          {
+            "absolute_start_seconds": 3591.46,
+            "absolute_end_seconds": 3594.46,
+            "text": "And honestly, this is a huge one for me.",
+            "average_log_probability": -0.173017,
+            "no_speech_probability": 0.266441
+          },
+          {
+            "absolute_start_seconds": 3594.46,
+            "absolute_end_seconds": 3599.46,
+            "text": "This is a massive remix from the Italian maestro himself Giuseppe Ottaviani",
+            "average_log_probability": -0.173017,
+            "no_speech_probability": 0.266441
+          },
+          {
+            "absolute_start_seconds": 3599.46,
+            "absolute_end_seconds": 3601.46,
+            "text": "of my Ecstasia track Dreaming.",
+            "average_log_probability": -0.173017,
+            "no_speech_probability": 0.266441
+          },
+          {
+            "absolute_start_seconds": 3601.46,
+            "absolute_end_seconds": 3606.46,
+            "text": "I actually premiered this remix during my Ecstasia set at Luminosity Beach Festival.",
+            "average_log_probability": -0.173017,
+            "no_speech_probability": 0.266441
+          },
+          {
+            "absolute_start_seconds": 3606.46,
+            "absolute_end_seconds": 3611.46,
+            "text": "And the reaction in that crowd told me everything that I needed to know.",
+            "average_log_probability": -0.173017,
+            "no_speech_probability": 0.266441
+          },
+          {
+            "absolute_start_seconds": 3611.46,
+            "absolute_end_seconds": 3616.22,
+            "text": "Giuseppe took this track somewhere completely new and I think you're going to feel it the",
+            "average_log_probability": -0.230496,
+            "no_speech_probability": 0.082089
+          },
+          {
+            "absolute_start_seconds": 3616.22,
+            "absolute_end_seconds": 3617.22,
+            "text": "moment it drops.",
+            "average_log_probability": -0.230496,
+            "no_speech_probability": 0.082089
+          },
+          {
+            "absolute_start_seconds": 3617.22,
+            "absolute_end_seconds": 3621.62,
+            "text": "I'd love to know what do you guys think of this one, let me know in the comments and",
+            "average_log_probability": -0.230496,
+            "no_speech_probability": 0.082089
+          },
+          {
+            "absolute_start_seconds": 3621.62,
+            "absolute_end_seconds": 3626.26,
+            "text": "mark your calendars because it's coming out this Friday on Find Your Harmony.",
+            "average_log_probability": -0.230496,
+            "no_speech_probability": 0.082089
+          },
+          {
+            "absolute_start_seconds": 3626.26,
+            "absolute_end_seconds": 3631.18,
+            "text": "Close your eyes and feel the harmony of Andrew I. Yell presents Ecstasia Dreaming in the",
+            "average_log_probability": -0.230496,
+            "no_speech_probability": 0.082089
+          },
+          {
+            "absolute_start_seconds": 3631.18,
+            "absolute_end_seconds": 3632.34,
+            "text": "Giuseppe Ottaviani.",
+            "average_log_probability": -0.230496,
+            "no_speech_probability": 0.082089
+          }
+        ],
+        "transcript": "Welcome back to Fungio Harmony. This is our number two. And now the moment I'll be waiting to share with you guys. My favorite of the moment this week. And honestly, this is a huge one for me. This is a massive remix from the Italian maestro himself Giuseppe Ottaviani of my Ecstasia track Dreaming. I actually premiered this remix during my Ecstasia set at Luminosity Beach Festival. And the reaction in that crowd told me everything that I needed to know. Giuseppe took this track somewhere completely new and I think you're going to feel it the moment it drops. I'd love to know what do you guys think of this one, let me know in the comments and mark your calendars because it's coming out this Friday on Find Your Harmony. Close your eyes and feel the harmony of Andrew I. Yell presents Ecstasia Dreaming in the Giuseppe Ottaviani."
+      },
+      {
+        "algorithm_time_seconds": 5349.38,
+        "confidence": 0.9698,
+        "ina_speech_start_seconds": 5345.28,
+        "ina_speech_end_seconds": 5349.38,
+        "ina_speech_duration_seconds": 4.1,
+        "ina_music_end_seconds": 5862.14,
+        "ina_music_duration_seconds": 512.76,
+        "silero_speech_start_seconds": 5345.378,
+        "silero_speech_end_seconds": 5349.31,
+        "model_end_gap_seconds": 0.07,
+        "speech_overlap_seconds": 3.932,
+        "confidence_components": {
+          "music_continuity": 1.0,
+          "model_end_agreement": 0.965,
+          "speech_overlap": 1.0,
+          "ina_speech_duration": 0.82
+        },
+        "detection_id": "find-your-harmony-512-complete-voice-d008",
+        "voice_start_seconds": 5345.28,
+        "voice_end_seconds": 5349.38,
+        "voice_internal_confidence": 0.9698,
+        "engine": "faster-whisper-small-local-cpu-int8",
+        "language": "en",
+        "language_probability": 1,
+        "segments": [
+          {
+            "absolute_start_seconds": 5345.28,
+            "absolute_end_seconds": 5349.28,
+            "text": "Back to the music with my track ACID on the train in the David Forbes remix.",
+            "average_log_probability": -0.201263,
+            "no_speech_probability": 0.011828
+          }
+        ],
+        "transcript": "Back to the music with my track ACID on the train in the David Forbes remix."
+      },
+      {
+        "algorithm_time_seconds": 6657.16,
+        "confidence": 0.5177,
+        "ina_speech_start_seconds": 6645.28,
+        "ina_speech_end_seconds": 6657.16,
+        "ina_speech_duration_seconds": 11.88,
+        "ina_music_end_seconds": 6836.96,
+        "ina_music_duration_seconds": 179.8,
+        "silero_speech_start_seconds": 6654.978,
+        "silero_speech_end_seconds": 6655.39,
+        "model_end_gap_seconds": 1.77,
+        "speech_overlap_seconds": 0.412,
+        "confidence_components": {
+          "music_continuity": 1.0,
+          "model_end_agreement": 0.115,
+          "speech_overlap": 0.1373,
+          "ina_speech_duration": 1.0
+        },
+        "detection_id": "find-your-harmony-512-complete-voice-d009",
+        "voice_start_seconds": 6645.28,
+        "voice_end_seconds": 6657.16,
+        "voice_internal_confidence": 0.5177,
+        "engine": "faster-whisper-small-local-cpu-int8",
+        "language": "en",
+        "language_probability": 1,
+        "segments": [
+          {
+            "absolute_start_seconds": 6645.28,
+            "absolute_end_seconds": 6649.18,
+            "text": "This year's get-together is expected to attract 1.7 million people.",
+            "average_log_probability": -0.30818,
+            "no_speech_probability": 0.362923
+          },
+          {
+            "absolute_start_seconds": 6649.18,
+            "absolute_end_seconds": 6654.58,
+            "text": "What began in 1989 as 150 people dancing up West Berlin as well to the world's biggest",
+            "average_log_probability": -0.30818,
+            "no_speech_probability": 0.362923
+          },
+          {
+            "absolute_start_seconds": 6654.58,
+            "absolute_end_seconds": 6657.12,
+            "text": "celebration of techno music and the party goes on.",
+            "average_log_probability": -0.30818,
+            "no_speech_probability": 0.362923
+          }
+        ],
+        "transcript": "This year's get-together is expected to attract 1.7 million people. What began in 1989 as 150 people dancing up West Berlin as well to the world's biggest celebration of techno music and the party goes on."
+      },
+      {
+        "algorithm_time_seconds": 6975.72,
+        "confidence": 0.9626,
+        "ina_speech_start_seconds": 6952.62,
+        "ina_speech_end_seconds": 6975.72,
+        "ina_speech_duration_seconds": 23.1,
+        "ina_music_end_seconds": 7211.92,
+        "ina_music_duration_seconds": 236.2,
+        "silero_speech_start_seconds": 6972.194,
+        "silero_speech_end_seconds": 6975.934,
+        "model_end_gap_seconds": 0.214,
+        "speech_overlap_seconds": 3.526,
+        "confidence_components": {
+          "music_continuity": 1.0,
+          "model_end_agreement": 0.893,
+          "speech_overlap": 1.0,
+          "ina_speech_duration": 1.0
+        },
+        "detection_id": "find-your-harmony-512-complete-voice-d010",
+        "voice_start_seconds": 6952.62,
+        "voice_end_seconds": 6975.72,
+        "voice_internal_confidence": 0.9626,
+        "engine": "faster-whisper-small-local-cpu-int8",
+        "language": "en",
+        "language_probability": 1,
+        "segments": [
+          {
+            "absolute_start_seconds": 6952.62,
+            "absolute_end_seconds": 6956.82,
+            "text": "Before we close, quick reminder, FOH 500 Amsterdam tickets are running low.",
+            "average_log_probability": -0.310562,
+            "no_speech_probability": 0.135137
+          },
+          {
+            "absolute_start_seconds": 6956.82,
+            "absolute_end_seconds": 6963.06,
+            "text": "Get yours now at findyourharmony.net and I'll see some of you very soon in Milan for my",
+            "average_log_probability": -0.310562,
+            "no_speech_probability": 0.135137
+          },
+          {
+            "absolute_start_seconds": 6963.06,
+            "absolute_end_seconds": 6966.06,
+            "text": "first ever club show in Italy.",
+            "average_log_probability": -0.310562,
+            "no_speech_probability": 0.135137
+          },
+          {
+            "absolute_start_seconds": 6966.06,
+            "absolute_end_seconds": 6970.48,
+            "text": "And now it's time for the Classic Selection, very course then, sweet sorrow in the Thrill",
+            "average_log_probability": -0.310562,
+            "no_speech_probability": 0.135137
+          },
+          {
+            "absolute_start_seconds": 6970.48,
+            "absolute_end_seconds": 6972.18,
+            "text": "Seekers remix.",
+            "average_log_probability": -0.310562,
+            "no_speech_probability": 0.135137
+          },
+          {
+            "absolute_start_seconds": 6972.18,
+            "absolute_end_seconds": 6975.62,
+            "text": "Thanks for tuning in and as always, may the harmony be with you.",
+            "average_log_probability": -0.310562,
+            "no_speech_probability": 0.135137
+          }
+        ],
+        "transcript": "Before we close, quick reminder, FOH 500 Amsterdam tickets are running low. Get yours now at findyourharmony.net and I'll see some of you very soon in Milan for my first ever club show in Italy. And now it's time for the Classic Selection, very course then, sweet sorrow in the Thrill Seekers remix. Thanks for tuning in and as always, may the harmony be with you."
+      }
+    ],
+    "interpretation": [
+      {
+        "detection_id": "find-your-harmony-512-complete-voice-d001",
+        "confidence": 0.9086,
+        "voice_start_seconds": 0.0,
+        "voice_end_seconds": 4.58,
+        "transcript": "This is Find Your Harmony with me, your host, Andrew Ryan.",
+        "decision": "abstain",
+        "reason": "voice_confidence_below_threshold"
+      },
+      {
+        "detection_id": "find-your-harmony-512-complete-voice-d002",
+        "confidence": 0.9884,
+        "voice_start_seconds": 77.94,
+        "voice_end_seconds": 120.0,
+        "transcript": "Hey everyone, welcome to episode 512 of Find Your Harmony. Coming up tonight, music by Marco Schulz, Adriatic, Giuseppe Ottaviani and Ilan Bluestone, a new one by our resident, Vasmo, another play of my track, Acid on the Train, in the David Forbes remix. A world premiere for you tonight, the Giuseppe Ottaviani remix of my ecstasy track, Dreaming. Also, a big reminder for you guys, FYH 500 Amsterdam, tickets are running very low and this show will be sold out very soon so make sure to get yours right now. Kicking things off with a new release on Rising Harmony, this is Mohamed El Alami and Josie Sandfield. Keep on running.",
+        "decision": "candidate_anchor",
+        "title_candidates": [
+          {
+            "track_index": 0,
+            "score": 0.925
+          },
+          {
+            "track_index": 23,
+            "score": 0.2021
+          },
+          {
+            "track_index": 24,
+            "score": 0.1766
+          }
+        ],
+        "relation": "next",
+        "track_index": 0,
+        "time_seconds": 120.0,
+        "internal_confidence": 0.9143
+      },
+      {
+        "detection_id": "find-your-harmony-512-complete-voice-d003",
+        "confidence": 0.8166,
+        "voice_start_seconds": 1383.18,
+        "voice_end_seconds": 1389.16,
+        "transcript": "get back to the music with a new release on FYH and the lightsight track of this week. This is VASMO, stay!",
+        "decision": "abstain",
+        "reason": "voice_confidence_below_threshold"
+      },
+      {
+        "detection_id": "find-your-harmony-512-complete-voice-d004",
+        "confidence": 0.7694,
+        "voice_start_seconds": 1614.92,
+        "voice_end_seconds": 1651.52,
+        "transcript": "There are moments when silence descends upon you like a heavy leaden rain. When breath is stolen from your chest the way the sea abandons a fish upon the shore. And in those moments you begin to long for the impenetrable wall of sound to break you open once more. For your body to become one with all things and a single trembling vibration. For everything to vanish and for you to be taken away on tour.",
+        "decision": "abstain",
+        "reason": "voice_confidence_below_threshold"
+      },
+      {
+        "detection_id": "find-your-harmony-512-complete-voice-d005",
+        "confidence": 0.9864,
+        "voice_start_seconds": 2352.34,
+        "voice_end_seconds": 2365.68,
+        "transcript": "If you just tuned in, this is Find Your Harmony, episode 512. I'm Andrei Il, I hope you're enjoying the tracks I'm playing so far. I'm gonna move on with Spoiled and Zigo, this is more and more in the BLR remix.",
+        "decision": "candidate_anchor",
+        "title_candidates": [
+          {
+            "track_index": 11,
+            "score": 0.8297
+          },
+          {
+            "track_index": 24,
+            "score": 0.3692
+          },
+          {
+            "track_index": 28,
+            "score": 0.3254
+          }
+        ],
+        "relation": "next",
+        "track_index": 11,
+        "time_seconds": 2365.68,
+        "internal_confidence": 0.8184
+      },
+      {
+        "detection_id": "find-your-harmony-512-complete-voice-d006",
+        "confidence": 0.8435,
+        "voice_start_seconds": 3377.18,
+        "voice_end_seconds": 3391.04,
+        "transcript": "I'll be closing the first hour with my remix of Max Stage and Fatem, the right place. But don't go anywhere, as I've got 60 more minutes for you with the best and most amazing uplifting and 138 tracks, but also some harder ones at the end.",
+        "decision": "abstain",
+        "reason": "voice_confidence_below_threshold"
+      },
+      {
+        "detection_id": "find-your-harmony-512-complete-voice-d007",
+        "confidence": 0.9269,
+        "voice_start_seconds": 3582.46,
+        "voice_end_seconds": 3632.38,
+        "transcript": "Welcome back to Fungio Harmony. This is our number two. And now the moment I'll be waiting to share with you guys. My favorite of the moment this week. And honestly, this is a huge one for me. This is a massive remix from the Italian maestro himself Giuseppe Ottaviani of my Ecstasia track Dreaming. I actually premiered this remix during my Ecstasia set at Luminosity Beach Festival. And the reaction in that crowd told me everything that I needed to know. Giuseppe took this track somewhere completely new and I think you're going to feel it the moment it drops. I'd love to know what do you guys think of this one, let me know in the comments and mark your calendars because it's coming out this Friday on Find Your Harmony. Close your eyes and feel the harmony of Andrew I. Yell presents Ecstasia Dreaming in the Giuseppe Ottaviani.",
+        "decision": "abstain",
+        "reason": "voice_confidence_below_threshold"
+      },
+      {
+        "detection_id": "find-your-harmony-512-complete-voice-d008",
+        "confidence": 0.9698,
+        "voice_start_seconds": 5345.28,
+        "voice_end_seconds": 5349.38,
+        "transcript": "Back to the music with my track ACID on the train in the David Forbes remix.",
+        "decision": "candidate_anchor",
+        "title_candidates": [
+          {
+            "track_index": 23,
+            "score": 0.85
+          },
+          {
+            "track_index": 15,
+            "score": 0.3173
+          },
+          {
+            "track_index": 28,
+            "score": 0.3065
+          }
+        ],
+        "relation": "next",
+        "track_index": 23,
+        "time_seconds": 5349.38,
+        "internal_confidence": 0.8243
+      },
+      {
+        "detection_id": "find-your-harmony-512-complete-voice-d009",
+        "confidence": 0.5177,
+        "voice_start_seconds": 6645.28,
+        "voice_end_seconds": 6657.16,
+        "transcript": "This year's get-together is expected to attract 1.7 million people. What began in 1989 as 150 people dancing up West Berlin as well to the world's biggest celebration of techno music and the party goes on.",
+        "decision": "abstain",
+        "reason": "voice_confidence_below_threshold"
+      },
+      {
+        "detection_id": "find-your-harmony-512-complete-voice-d010",
+        "confidence": 0.9626,
+        "voice_start_seconds": 6952.62,
+        "voice_end_seconds": 6975.72,
+        "transcript": "Before we close, quick reminder, FOH 500 Amsterdam tickets are running low. Get yours now at findyourharmony.net and I'll see some of you very soon in Milan for my first ever club show in Italy. And now it's time for the Classic Selection, very course then, sweet sorrow in the Thrill Seekers remix. Thanks for tuning in and as always, may the harmony be with you.",
+        "decision": "candidate_anchor",
+        "title_candidates": [
+          {
+            "track_index": 31,
+            "score": 0.85
+          },
+          {
+            "track_index": 28,
+            "score": 0.2868
+          },
+          {
+            "track_index": 24,
+            "score": 0.2551
+          }
+        ],
+        "relation": "next",
+        "track_index": 31,
+        "time_seconds": 6975.72,
+        "internal_confidence": 0.8182
+      }
+    ],
+    "validation": [
+      {
+        "detection_id": "find-your-harmony-512-complete-voice-d002",
+        "track_index": 0,
+        "time_seconds": 120.0,
+        "decision": "accepted",
+        "reason": null
+      },
+      {
+        "detection_id": "find-your-harmony-512-complete-voice-d005",
+        "track_index": 11,
+        "time_seconds": 2365.68,
+        "decision": "accepted",
+        "reason": null
+      },
+      {
+        "detection_id": "find-your-harmony-512-complete-voice-d008",
+        "track_index": 23,
+        "time_seconds": 5349.38,
+        "decision": "accepted",
+        "reason": null
+      },
+      {
+        "detection_id": "find-your-harmony-512-complete-voice-d010",
+        "track_index": 31,
+        "time_seconds": 6975.72,
+        "decision": "accepted",
+        "reason": null
+      }
+    ],
+    "boundary_anchors": {
+      "0": {
+        "track_index": 0,
+        "time_seconds": 120.0,
+        "confidence": 0.9143,
+        "relation": "next",
+        "evidence": "kicking things off with:  a new release on rising harmony this is mohamed el alami and josie sandfield keep on running",
+        "detection_id": "find-your-harmony-512-complete-voice-d002"
+      },
+      "11": {
+        "track_index": 11,
+        "time_seconds": 2365.68,
+        "confidence": 0.8184,
+        "relation": "next",
+        "evidence": "move on with:  spoiled and zigo this is more and more in the blr remix",
+        "detection_id": "find-your-harmony-512-complete-voice-d005"
+      },
+      "23": {
+        "track_index": 23,
+        "time_seconds": 5349.38,
+        "confidence": 0.8243,
+        "relation": "next",
+        "evidence": "back to the music with:  my track acid on the train in the david forbes remix",
+        "detection_id": "find-your-harmony-512-complete-voice-d008"
+      },
+      "31": {
+        "track_index": 31,
+        "time_seconds": 6975.72,
+        "confidence": 0.8182,
+        "relation": "next",
+        "evidence": "now it s time for:  the classic selection very course then sweet sorrow in the thrill seekers remix thanks for tuning in and as always may the harmony be with you",
+        "detection_id": "find-your-harmony-512-complete-voice-d010"
+      }
+    },
+    "preview_offset_applied_to_voice": false
+  },
+  "source_transport": {
+    "mode": "hash_verified_local_cache_copy",
+    "sha256": "47814fb78f3f0236777b6c5ebf378d23e4938914c474df116c49f618b3fdaf69",
+    "bytes": 288429012
+  },
+  "landmarks": {
+    "reference_feature_counts": [
+      0,
+      2,
+      0,
+      1,
+      1,
+      1,
+      0,
+      1,
+      1,
+      0,
+      1,
+      0,
+      1,
+      1,
+      1,
+      2,
+      0,
+      0,
+      0,
+      0,
+      1,
+      0,
+      2,
+      1,
+      1,
+      1,
+      0,
+      1,
+      0,
+      1,
+      1,
+      0
+    ],
+    "corrections": {
+      "5": 1114.49,
+      "15": 3338.08,
+      "30": 6694.46
+    },
+    "confidence": {
+      "5": "high",
+      "15": "medium",
+      "30": "low"
+    },
+    "matched_references": 11,
+    "presences": {
+      "31": {
+        "track": 31,
+        "anchor": 6823.424,
+        "start": 6831.36,
+        "end": 6850.82,
+        "score": 144.455,
+        "events": 372
+      },
+      "30": {
+        "track": 30,
+        "anchor": 6588.416,
+        "start": 6590.67,
+        "end": 6615.56,
+        "score": 12.793,
+        "events": 47
+      },
+      "25": {
+        "track": 25,
+        "anchor": 5694.464,
+        "start": 5697.54,
+        "end": 5723.42,
+        "score": 33.035,
+        "events": 161
+      },
+      "16": {
+        "track": 16,
+        "anchor": 3355.136,
+        "start": 3414.72,
+        "end": 3583.04,
+        "score": 26.275,
+        "events": 153
+      },
+      "15": {
+        "track": 15,
+        "anchor": 3020.288,
+        "start": 3052.44,
+        "end": 3261.44,
+        "score": 22.956,
+        "events": 127
+      },
+      "13": {
+        "track": 13,
+        "anchor": 2704.384,
+        "start": 2705.15,
+        "end": 2731.52,
+        "score": 31.546,
+        "events": 164
+      },
+      "11": {
+        "track": 11,
+        "anchor": 2166.784,
+        "start": 2173.18,
+        "end": 2191.62,
+        "score": 32.651,
+        "events": 184
+      },
+      "9": {
+        "track": 9,
+        "anchor": 1830.912,
+        "start": 1833.11,
+        "end": 1855.85,
+        "score": 19.766,
+        "events": 77
+      },
+      "6": {
+        "track": 6,
+        "anchor": 1111.04,
+        "start": 1140.99,
+        "end": 1329.15,
+        "score": 131.609,
+        "events": 1314
+      },
+      "5": {
+        "track": 5,
+        "anchor": 1059.84,
+        "start": 1060.82,
+        "end": 1088.0,
+        "score": 15.688,
+        "events": 81
+      },
+      "2": {
+        "track": 2,
+        "anchor": 307.2,
+        "start": 350.72,
+        "end": 531.71,
+        "score": 162.175,
+        "events": 1426
+      }
+    }
+  },
+  "constrained_detection": {
+    "boundaries_before_adjacent_corrections": [
+      120.0,
+      339.71,
+      525.44,
+      783.62,
+      1007.94,
+      1128.45,
+      1233.6,
+      1556.93,
+      1807.17,
+      1926.85,
+      2208.0,
+      2365.68,
+      2618.56,
+      2827.07,
+      2984.64,
+      3255.36,
+      3564.1,
+      3907.39,
+      4157.82,
+      4436.16,
+      4663.17,
+      4926.21,
+      5088.45,
+      5349.38,
+      5734.78,
+      5858.11,
+      5985.16,
+      6187.58,
+      6391.0,
+      6500.16,
+      6831.04,
+      6975.72
+    ],
+    "presence_track_numbers": [
+      2,
+      5,
+      6,
+      9,
+      11,
+      13,
+      15,
+      16,
+      25,
+      30,
+      31
+    ],
+    "voice_anchor_track_indexes": [
+      0,
+      11,
+      23,
+      31
+    ]
+  },
+  "coherence_verification": {
+    "accepted": true,
+    "candidate_boundaries": [
+      120.0,
+      339.71,
+      525.44,
+      783.62,
+      1007.94,
+      1114.49,
+      1233.6,
+      1556.93,
+      1807.17,
+      1926.85,
+      2208.0,
+      2365.68,
+      2618.56,
+      2827.07,
+      2984.64,
+      3338.08,
+      3564.1,
+      3907.39,
+      4157.82,
+      4436.16,
+      4663.17,
+      4926.21,
+      5088.45,
+      5349.38,
+      5734.78,
+      5858.11,
+      5985.16,
+      6187.58,
+      6391.0,
+      6500.16,
+      6694.46,
+      6975.72
+    ]
+  },
+  "references": [
+    {
+      "track_number": 1,
+      "urls_returned": [],
+      "downloads": []
+    },
+    {
+      "track_number": 2,
+      "urls_returned": [
+        "https://cdnt-preview.dzcdn.net/api/1/1/a/f/f/0/aff6b9cf82d43867bc019e698ea35bf2.mp3",
+        "https://soundcloud.com/zerothree-music/against-all-odds-save-me"
+      ],
+      "downloads": [
+        {
+          "url": "https://cdnt-preview.dzcdn.net/api/1/1/a/f/f/0/aff6b9cf82d43867bc019e698ea35bf2.mp3",
+          "query_parameters_recorded": false,
+          "transport": "frozen_local_reference_cache",
+          "status": "obtained",
+          "bytes": 479827,
+          "sha256": "6b378f425a9ad06c450ed398b1306532a0205e9a451fa52eccdbb2f8ada89aa4"
+        },
+        {
+          "url": "https://soundcloud.com/zerothree-music/against-all-odds-save-me",
+          "query_parameters_recorded": false,
+          "transport": "frozen_local_reference_cache",
+          "status": "obtained",
+          "bytes": 7051283,
+          "sha256": "905d37b76df80142316542f6f35c0754137edf1cdf26c67a23a576ae1eae346a"
+        }
+      ]
+    },
+    {
+      "track_number": 3,
+      "urls_returned": [],
+      "downloads": []
+    },
+    {
+      "track_number": 4,
+      "urls_returned": [
+        "https://cdnt-preview.dzcdn.net/api/1/1/a/6/e/0/a6e2f7fea8bfd044a9815311aa9402e7.mp3"
+      ],
+      "downloads": [
+        {
+          "url": "https://cdnt-preview.dzcdn.net/api/1/1/a/6/e/0/a6e2f7fea8bfd044a9815311aa9402e7.mp3",
+          "query_parameters_recorded": false,
+          "transport": "frozen_local_reference_cache",
+          "status": "obtained",
+          "bytes": 480245,
+          "sha256": "d1fe1885a6e6deadd953d51efc5a5204799f0bba4a09c3fdd444d8fff2b77e98"
+        }
+      ]
+    },
+    {
+      "track_number": 5,
+      "urls_returned": [
+        "https://cdnt-preview.dzcdn.net/api/1/1/4/1/9/0/419a66ca69ce2cbae35e0937a1837c7e.mp3"
+      ],
+      "downloads": [
+        {
+          "url": "https://cdnt-preview.dzcdn.net/api/1/1/4/1/9/0/419a66ca69ce2cbae35e0937a1837c7e.mp3",
+          "query_parameters_recorded": false,
+          "transport": "frozen_local_reference_cache",
+          "status": "obtained",
+          "bytes": 479827,
+          "sha256": "e3d019f683c512432deded831c63b6861bb7ee968fecba743a8f91c90806814a"
+        }
+      ]
+    },
+    {
+      "track_number": 6,
+      "urls_returned": [
+        "https://soundcloud.com/housextechno/palm_of_your_hands_adriatique_x_falling_slow_kasbo"
+      ],
+      "downloads": [
+        {
+          "url": "https://soundcloud.com/housextechno/palm_of_your_hands_adriatique_x_falling_slow_kasbo",
+          "query_parameters_recorded": false,
+          "transport": "frozen_local_reference_cache",
+          "status": "obtained",
+          "bytes": 10301020,
+          "sha256": "3052bef6990a5666f7565bf49ef476c30a2f89a5a361a1ca34f20fbaaba86352"
+        }
+      ]
+    },
+    {
+      "track_number": 7,
+      "urls_returned": [],
+      "downloads": []
+    },
+    {
+      "track_number": 8,
+      "urls_returned": [
+        "https://cdnt-preview.dzcdn.net/api/1/1/e/9/9/0/e99ce3f7a86a820d40c2f67c646ca8e2.mp3"
+      ],
+      "downloads": [
+        {
+          "url": "https://cdnt-preview.dzcdn.net/api/1/1/e/9/9/0/e99ce3f7a86a820d40c2f67c646ca8e2.mp3",
+          "query_parameters_recorded": false,
+          "transport": "frozen_local_reference_cache",
+          "status": "obtained",
+          "bytes": 479827,
+          "sha256": "1866581c7869272ba7b766248708215cc081a1faa2e10d34c06eefcab05a1a36"
+        }
+      ]
+    },
+    {
+      "track_number": 9,
+      "urls_returned": [
+        "https://cdnt-preview.dzcdn.net/api/1/1/a/9/3/0/a93941ec106fad9380bd790a942a2223.mp3",
+        "https://soundcloud.com/bennybenassi-sc/illusion-feat-sandy-chambers"
+      ],
+      "downloads": [
+        {
+          "url": "https://cdnt-preview.dzcdn.net/api/1/1/a/9/3/0/a93941ec106fad9380bd790a942a2223.mp3",
+          "query_parameters_recorded": false,
+          "transport": "frozen_local_reference_cache",
+          "status": "obtained",
+          "bytes": 480245,
+          "sha256": "d47515403e2f6245a79fcd4a6a30015be216eaff4e17c1b4addc87cb8d583564"
+        },
+        {
+          "url": "https://soundcloud.com/bennybenassi-sc/illusion-feat-sandy-chambers",
+          "query_parameters_recorded": false,
+          "status": "failed",
+          "error_type": "AudioFallbackError",
+          "error": "Téléchargement du mix impossible : ERROR: [soundcloud] 2378918009: This video is DRM protected"
+        }
+      ]
+    },
+    {
+      "track_number": 10,
+      "urls_returned": [
+        "https://soundcloud.com/mikewilliamsdj/greece-2000-extended-mix"
+      ],
+      "downloads": [
+        {
+          "url": "https://soundcloud.com/mikewilliamsdj/greece-2000-extended-mix",
+          "query_parameters_recorded": false,
+          "status": "failed",
+          "error_type": "AudioFallbackError",
+          "error": "Téléchargement du mix impossible : ERROR: [soundcloud] 2393721363: This video is DRM protected"
+        }
+      ]
+    },
+    {
+      "track_number": 11,
+      "urls_returned": [
+        "https://cdnt-preview.dzcdn.net/api/1/1/4/d/7/0/4d7e11878569c1708ba6cc9bc03d8a90.mp3",
+        "https://soundcloud.com/genix-1/transit-point-genix-mix"
+      ],
+      "downloads": [
+        {
+          "url": "https://cdnt-preview.dzcdn.net/api/1/1/4/d/7/0/4d7e11878569c1708ba6cc9bc03d8a90.mp3",
+          "query_parameters_recorded": false,
+          "transport": "frozen_local_reference_cache",
+          "status": "obtained",
+          "bytes": 479827,
+          "sha256": "9a0ba9b9c88689883f17777c5a44351fee229f277ce10799f8ecde24c15f029a"
+        },
+        {
+          "url": "https://soundcloud.com/genix-1/transit-point-genix-mix",
+          "query_parameters_recorded": false,
+          "status": "failed",
+          "error_type": "AudioFallbackError",
+          "error": "Téléchargement du mix impossible : ERROR: [soundcloud] 2387167593: This video is DRM protected"
+        }
+      ]
+    },
+    {
+      "track_number": 12,
+      "urls_returned": [
+        "https://soundcloud.com/spoiledandzigo/more-more-blr-remix"
+      ],
+      "downloads": [
+        {
+          "url": "https://soundcloud.com/spoiledandzigo/more-more-blr-remix",
+          "query_parameters_recorded": false,
+          "status": "failed",
+          "error_type": "AudioFallbackError",
+          "error": "Téléchargement du mix impossible : ERROR: [soundcloud] 2388613638: This video is DRM protected"
+        }
+      ]
+    },
+    {
+      "track_number": 13,
+      "urls_returned": [
+        "https://cdnt-preview.dzcdn.net/api/1/1/a/7/8/0/a78a7f759838ae7314bd266c31f9bc03.mp3"
+      ],
+      "downloads": [
+        {
+          "url": "https://cdnt-preview.dzcdn.net/api/1/1/a/7/8/0/a78a7f759838ae7314bd266c31f9bc03.mp3",
+          "query_parameters_recorded": false,
+          "transport": "frozen_local_reference_cache",
+          "status": "obtained",
+          "bytes": 479827,
+          "sha256": "16de054693a3754a833b14306e7e8ac605f9b7c9cba6b881e5477747ad9c7545"
+        }
+      ]
+    },
+    {
+      "track_number": 14,
+      "urls_returned": [
+        "https://cdnt-preview.dzcdn.net/api/1/1/d/f/a/0/dfaf7a6e23b483e7bddd351b101a8c0d.mp3",
+        "https://soundcloud.com/markusschulz/second-tomorrow-extended-mix"
+      ],
+      "downloads": [
+        {
+          "url": "https://cdnt-preview.dzcdn.net/api/1/1/d/f/a/0/dfaf7a6e23b483e7bddd351b101a8c0d.mp3",
+          "query_parameters_recorded": false,
+          "transport": "frozen_local_reference_cache",
+          "status": "obtained",
+          "bytes": 480245,
+          "sha256": "dc356408d93986455e28d1c0d16d8a24ad92f858dc409119a7b3aa50eb446a3c"
+        },
+        {
+          "url": "https://soundcloud.com/markusschulz/second-tomorrow-extended-mix",
+          "query_parameters_recorded": false,
+          "status": "failed",
+          "error_type": "AudioFallbackError",
+          "error": "Téléchargement du mix impossible : ERROR: [soundcloud] 2403002013: This video is DRM protected"
+        }
+      ]
+    },
+    {
+      "track_number": 15,
+      "urls_returned": [
+        "https://soundcloud.com/nightdiver-nightdiver/victor-ruiz-kura-fsu-southmind"
+      ],
+      "downloads": [
+        {
+          "url": "https://soundcloud.com/nightdiver-nightdiver/victor-ruiz-kura-fsu-southmind",
+          "query_parameters_recorded": false,
+          "transport": "frozen_local_reference_cache",
+          "status": "obtained",
+          "bytes": 7070521,
+          "sha256": "10cf8e1bbd0e01409580b23a4b5c4c9fd9be4d252a091c9de0241e0db091a9d3"
+        }
+      ]
+    },
+    {
+      "track_number": 16,
+      "urls_returned": [
+        "https://cdnt-preview.dzcdn.net/api/1/1/a/5/7/0/a57d24df885151ce7542c8a2be03dc07.mp3",
+        "https://soundcloud.com/fathommusicofficial/maxtage-fathom-eg-the-right"
+      ],
+      "downloads": [
+        {
+          "url": "https://cdnt-preview.dzcdn.net/api/1/1/a/5/7/0/a57d24df885151ce7542c8a2be03dc07.mp3",
+          "query_parameters_recorded": false,
+          "transport": "frozen_local_reference_cache",
+          "status": "obtained",
+          "bytes": 479827,
+          "sha256": "cfdea5aaefb977e7a63c0982adf65af8cc3118290d79d8236a46d7e7c620bede"
+        },
+        {
+          "url": "https://soundcloud.com/fathommusicofficial/maxtage-fathom-eg-the-right",
+          "query_parameters_recorded": false,
+          "transport": "frozen_local_reference_cache",
+          "status": "obtained",
+          "bytes": 5127986,
+          "sha256": "ffc6f1ac9fb1e2bedb4fd2889d6ffae7c4ec5930c20176158fe8b156cda84cfa"
+        }
+      ]
+    },
+    {
+      "track_number": 17,
+      "urls_returned": [],
+      "downloads": []
+    },
+    {
+      "track_number": 18,
+      "urls_returned": [],
+      "downloads": []
+    },
+    {
+      "track_number": 19,
+      "urls_returned": [
+        "https://soundcloud.com/djpauldenton/next-to-me-extended-club-mix"
+      ],
+      "downloads": [
+        {
+          "url": "https://soundcloud.com/djpauldenton/next-to-me-extended-club-mix",
+          "query_parameters_recorded": false,
+          "status": "failed",
+          "error_type": "AudioFallbackError",
+          "error": "Téléchargement du mix impossible : ERROR: [soundcloud] 2393801670: This video is DRM protected"
+        }
+      ]
+    },
+    {
+      "track_number": 20,
+      "urls_returned": [],
+      "downloads": []
+    },
+    {
+      "track_number": 21,
+      "urls_returned": [
+        "https://cdnt-preview.dzcdn.net/api/1/1/5/e/0/0/5e055ab06d66c72ba87524464cb3330a.mp3",
+        "https://soundcloud.com/giuseppeottaviani/together-again-extended-mix"
+      ],
+      "downloads": [
+        {
+          "url": "https://cdnt-preview.dzcdn.net/api/1/1/5/e/0/0/5e055ab06d66c72ba87524464cb3330a.mp3",
+          "query_parameters_recorded": false,
+          "transport": "frozen_local_reference_cache",
+          "status": "obtained",
+          "bytes": 480245,
+          "sha256": "58c1e076c4d9dbc1224d485f0c725e50d694ae5db7f2783938d8b34233361c65"
+        },
+        {
+          "url": "https://soundcloud.com/giuseppeottaviani/together-again-extended-mix",
+          "query_parameters_recorded": false,
+          "status": "failed",
+          "error_type": "AudioFallbackError",
+          "error": "Téléchargement du mix impossible : ERROR: [soundcloud] 2384924226: This video is DRM protected"
+        }
+      ]
+    },
+    {
+      "track_number": 22,
+      "urls_returned": [],
+      "downloads": []
+    },
+    {
+      "track_number": 23,
+      "urls_returned": [
+        "https://cdnt-preview.dzcdn.net/api/1/1/7/9/7/0/7975905e0abc1b64c0f09783df8306fa.mp3",
+        "https://soundcloud.com/theviicrew/john-askew-through-the-looking-glass-faders-wilder-remix"
+      ],
+      "downloads": [
+        {
+          "url": "https://cdnt-preview.dzcdn.net/api/1/1/7/9/7/0/7975905e0abc1b64c0f09783df8306fa.mp3",
+          "query_parameters_recorded": false,
+          "transport": "frozen_local_reference_cache",
+          "status": "obtained",
+          "bytes": 480245,
+          "sha256": "47c89e7445b905f4c8f7f92c1cf631745925b954b1d31a5b0cce7a119556f441"
+        },
+        {
+          "url": "https://soundcloud.com/theviicrew/john-askew-through-the-looking-glass-faders-wilder-remix",
+          "query_parameters_recorded": false,
+          "transport": "frozen_local_reference_cache",
+          "status": "obtained",
+          "bytes": 5500333,
+          "sha256": "c8d66d0fa0e02253e2e9f34e29907075d57369dd17165226b0b7653f16c0f993"
+        }
+      ]
+    },
+    {
+      "track_number": 24,
+      "urls_returned": [
+        "https://cdnt-preview.dzcdn.net/api/1/1/d/b/b/0/dbbc8ee4869998605b6d0c2f332db73d.mp3"
+      ],
+      "downloads": [
+        {
+          "url": "https://cdnt-preview.dzcdn.net/api/1/1/d/b/b/0/dbbc8ee4869998605b6d0c2f332db73d.mp3",
+          "query_parameters_recorded": false,
+          "transport": "frozen_local_reference_cache",
+          "status": "obtained",
+          "bytes": 479827,
+          "sha256": "5c3fc74c2ee6a2c190b7946ad7e3637a4ff03c7c41aebf078f0e3ac2976a58a9"
+        }
+      ]
+    },
+    {
+      "track_number": 25,
+      "urls_returned": [
+        "https://cdnt-preview.dzcdn.net/api/1/1/8/8/5/0/885595d36f9a07ca3901c70cb6ff8dd3.mp3"
+      ],
+      "downloads": [
+        {
+          "url": "https://cdnt-preview.dzcdn.net/api/1/1/8/8/5/0/885595d36f9a07ca3901c70cb6ff8dd3.mp3",
+          "query_parameters_recorded": false,
+          "transport": "frozen_local_reference_cache",
+          "status": "obtained",
+          "bytes": 479827,
+          "sha256": "f4158ab614243694d78543976fbef264b0967559bf30863f715342df090674e1"
+        }
+      ]
+    },
+    {
+      "track_number": 26,
+      "urls_returned": [
+        "https://cdnt-preview.dzcdn.net/api/1/1/1/0/0/0/100d9b142b3010cd64e0a29175bd293b.mp3"
+      ],
+      "downloads": [
+        {
+          "url": "https://cdnt-preview.dzcdn.net/api/1/1/1/0/0/0/100d9b142b3010cd64e0a29175bd293b.mp3",
+          "query_parameters_recorded": false,
+          "transport": "frozen_local_reference_cache",
+          "status": "obtained",
+          "bytes": 480245,
+          "sha256": "817b5747b967d96ffca72e432f722b58a851704f9a4c8783777c336d8392ec34"
+        }
+      ]
+    },
+    {
+      "track_number": 27,
+      "urls_returned": [],
+      "downloads": []
+    },
+    {
+      "track_number": 28,
+      "urls_returned": [
+        "https://cdnt-preview.dzcdn.net/api/1/1/a/0/c/0/a0ca29103d4e2c5a36bd63914e3632a6.mp3",
+        "https://soundcloud.com/mattbukovski/stars-extended-mix"
+      ],
+      "downloads": [
+        {
+          "url": "https://cdnt-preview.dzcdn.net/api/1/1/a/0/c/0/a0ca29103d4e2c5a36bd63914e3632a6.mp3",
+          "query_parameters_recorded": false,
+          "transport": "frozen_local_reference_cache",
+          "status": "obtained",
+          "bytes": 479827,
+          "sha256": "acdc49548773aedaa318fa9b248a04fd420261198b317bdc3d3b600e6a503513"
+        },
+        {
+          "url": "https://soundcloud.com/mattbukovski/stars-extended-mix",
+          "query_parameters_recorded": false,
+          "status": "failed",
+          "error_type": "AudioFallbackError",
+          "error": "Téléchargement du mix impossible : ERROR: [soundcloud] 2398420272: This video is DRM protected"
+        }
+      ]
+    },
+    {
+      "track_number": 29,
+      "urls_returned": [],
+      "downloads": []
+    },
+    {
+      "track_number": 30,
+      "urls_returned": [
+        "https://cdnt-preview.dzcdn.net/api/1/1/8/f/6/0/8f670583586fb0be391053622e38dc71.mp3",
+        "https://soundcloud.com/ollyjamesmusic/berlin-99-extended-mix"
+      ],
+      "downloads": [
+        {
+          "url": "https://cdnt-preview.dzcdn.net/api/1/1/8/f/6/0/8f670583586fb0be391053622e38dc71.mp3",
+          "query_parameters_recorded": false,
+          "transport": "frozen_local_reference_cache",
+          "status": "obtained",
+          "bytes": 479827,
+          "sha256": "565bf14afa449cfaa315672226e1043a3478b6ceb641935c4fa7b9427676f4e1"
+        },
+        {
+          "url": "https://soundcloud.com/ollyjamesmusic/berlin-99-extended-mix",
+          "query_parameters_recorded": false,
+          "status": "failed",
+          "error_type": "AudioFallbackError",
+          "error": "Téléchargement du mix impossible : ERROR: [soundcloud] 2396073321: This video is DRM protected"
+        }
+      ]
+    },
+    {
+      "track_number": 31,
+      "urls_returned": [
+        "https://cdnt-preview.dzcdn.net/api/1/1/0/3/a/0/03a4074791984fc8bbd7b6f3b0ab487a.mp3"
+      ],
+      "downloads": [
+        {
+          "url": "https://cdnt-preview.dzcdn.net/api/1/1/0/3/a/0/03a4074791984fc8bbd7b6f3b0ab487a.mp3",
+          "query_parameters_recorded": false,
+          "transport": "frozen_local_reference_cache",
+          "status": "obtained",
+          "bytes": 480245,
+          "sha256": "f6911cf3a4811b5f7f796943ca35bf382afd77e2c13fbac3e90cc475f3687cd1"
+        }
+      ]
+    },
+    {
+      "track_number": 32,
+      "urls_returned": [
+        "https://soundcloud.com/ferry-corsten/sweet-sorrow-thrillseekers-mix"
+      ],
+      "downloads": [
+        {
+          "url": "https://soundcloud.com/ferry-corsten/sweet-sorrow-thrillseekers-mix",
+          "query_parameters_recorded": false,
+          "status": "failed",
+          "error_type": "AudioFallbackError",
+          "error": "Téléchargement du mix impossible : ERROR: [soundcloud] 735542890: This video is DRM protected"
+        }
+      ]
+    }
+  ],
+  "progress": [
+    {
+      "stage": "Téléchargement audio du fallback",
+      "progress": 84
+    },
+    {
+      "stage": "Décodage audio techno/trance",
+      "progress": 86
+    },
+    {
+      "stage": "Détection et interprétation des annonces DJ",
+      "progress": 87
+    },
+    {
+      "stage": "Recherche des empreintes publiques gratuites",
+      "progress": 88
+    },
+    {
+      "stage": "Détection des transitions techno/trance",
+      "progress": 91
+    },
+    {
+      "stage": "Ancrage des empreintes et maillage théorique local",
+      "progress": 93
+    },
+    {
+      "stage": "Optimisation audio dans les couloirs locaux",
+      "progress": 95
+    },
+    {
+      "stage": "Fallback audio terminé",
+      "progress": 99
+    }
+  ]
+}

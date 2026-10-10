@@ -182,3 +182,23 @@ Le protocole et le code doivent être committés avant le calcul, puis toutes le
 sorties `fyh512-sequential-*-frozen.*` doivent être committées avant d'exécuter
 l'évaluation qui charge les temps officiels. AudD est seulement contrôlé par
 présence de configuration et n'est jamais appelé dans cette expérience.
+
+## FYH 512 : passe voix locale complète
+
+`fyh512_complete_voice_protocol.json` fige la passe complète avant évaluation.
+Le hook de la copie de `analyze_known_tracklist` exécute réellement INA puis
+Silero sur 14 fenêtres couvrant les 7 216,927375 secondes, transcrit avec
+faster-whisper `small` tous les candidats automatiques (même sous 0,95), puis
+laisse l'interpréteur et l'optimiseur existants accepter ou refuser les ancres.
+Il ne lit jamais les quatre événements voix gelés.
+
+```bash
+python lab/vad_prototype/run_fyh512_existing_engine_complete_voice.py \
+  --media /media/prive/fyh512.mp3 --vad-python /venv-vad/bin/python \
+  --asr-python /venv-faster-whisper/bin/python
+python lab/vad_prototype/evaluate_fyh512_complete_voice.py
+```
+
+Les fenêtres brutes et l'audio restent ignorés. Les transcriptions, décisions,
+hashes et preuves de couverture sont versionnés dans les sorties
+`fyh512-existing-engine-complete-voice-*`.

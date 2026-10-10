@@ -1,0 +1,31 @@
+{
+  "models_used": [
+    {
+      "name": "inaSpeechSegmenter speech/music CNN",
+      "package_version": "0.8.0",
+      "file": "keras_speech_music_cnn.hdf5",
+      "bytes": 5885888,
+      "sha256": "14379ba71352d8981bc24a15c069c84cf6f78ff2ffe7377d43b32465ebd06e01"
+    },
+    {
+      "name": "Silero VAD ONNX",
+      "package_version": "6.2.3",
+      "file": "silero_vad.onnx",
+      "bytes": 2327524,
+      "sha256": "1a153a22f4509e292a94e67d6f9b85e8deb25b4988682b7e174c65279d8788e3"
+    },
+    {
+      "name": "Systran faster-whisper-small CTranslate2",
+      "package_version": "faster-whisper 1.2.1 / ctranslate2 4.8.2",
+      "snapshot": "536b0662742c02347bc0e980a01041f333bce120",
+      "files": [
+        {"file":"model.bin","bytes":483546902,"sha256":"3e305921506d8872816023e4c273e75d2419fb89b24da97b4fe7bce14170d671"},
+        {"file":"config.json","bytes":2370,"sha256":"b55496ac7940a7ae47d2c01eab40edfd8701feec1229d9cce3b40014383fb828"},
+        {"file":"tokenizer.json","bytes":2203239,"sha256":"fb7b63191e9bb045082c79fd742a3106a12c99513ab30df4a0d47fa6cb6fd0ab"},
+        {"file":"vocabulary.txt","bytes":459861,"sha256":"34ce3fe1c5041027b3f8d42912270993f986dbc4bb34cf27f951e34a1e453913"}
+      ]
+    }
+  ],
+  "paths_omitted": true,
+  "secret_material_included": false
+}

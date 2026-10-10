@@ -32,6 +32,7 @@ def main() -> int:
     parser.add_argument("--title", required=True)
     parser.add_argument("--media", required=True, type=Path)
     parser.add_argument("--duration", required=True, type=float)
+    parser.add_argument("--output-root", type=Path, default=OUTPUT)
     parser.add_argument("--resume", action="store_true")
     args = parser.parse_args()
 
@@ -46,7 +47,8 @@ def main() -> int:
         raise ValueError("Le protocole global n'est pas gele")
     window_params = protocol["windowing"]
     work = list(windows(args.duration, window_params["window_seconds"], window_params["overlap_seconds"]))
-    raw_dir = OUTPUT / "windows" / args.method / args.episode
+    output_root = args.output_root.resolve()
+    raw_dir = output_root / "windows" / args.method / args.episode
     raw_dir.mkdir(parents=True, exist_ok=True)
     runner = SileroCPU(protocol["silero"]) if args.method == "silero" else InaCPU(protocol["ina"])
 
@@ -126,7 +128,7 @@ def main() -> int:
             },
         },
     }
-    target = OUTPUT / f"{args.episode}-{args.method}.json"
+    target = output_root / f"{args.episode}-{args.method}.json"
     target.parent.mkdir(parents=True, exist_ok=True)
     target.write_text(json.dumps(output, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     print(json.dumps(output["metrics"], ensure_ascii=False, indent=2))

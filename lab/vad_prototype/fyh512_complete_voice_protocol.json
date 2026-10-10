@@ -1,0 +1,31 @@
+{
+  "frozen_at": "2026-10-11T00:00:00+02:00",
+  "frozen_before_reference_evaluation": true,
+  "audio_sha256": "47814fb78f3f0236777b6c5ebf378d23e4938914c474df116c49f618b3fdaf69",
+  "duration_seconds": 7216.927375,
+  "vad_protocol": "full_episode_protocol.json",
+  "vad_methods_in_execution_order": ["ina", "silero"],
+  "candidate_rule": "all INA speech-to-music returns satisfying the frozen detector rules and corroborated by Silero",
+  "transcription": {
+    "engine": "faster-whisper",
+    "model": "small",
+    "device": "cpu",
+    "compute_type": "int8",
+    "cpu_threads": 2,
+    "language": "en",
+    "beam_size": 5,
+    "vad_filter": false,
+    "condition_on_previous_text": false,
+    "scope": "every automatically detected candidate, including candidates below the anchor confidence threshold"
+  },
+  "interpretation": {
+    "known_input": "artist and title strings only, without timestamps",
+    "voice_confidence_minimum": 0.95,
+    "title_score_and_uniqueness": "constants from audio_fallback_voice.py",
+    "relations": ["next", "current", "previous", "recap", "jingle", "ambiguous"],
+    "youtube_input": false,
+    "frozen_event_replay": false,
+    "preview_offset_applied_to_voice": false
+  },
+  "non_retuning_statement": "All parameters above are frozen before loading FYH512 reference timestamps; no YouTube-score retuning is permitted."
+}
