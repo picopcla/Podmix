@@ -145,6 +145,14 @@ offset de preview n'est appliqué aux voix. Le premier début peut être non nul
 Les conflits provoquent une abstention ciblée, sans masquer les autres erreurs ;
 si toutes les ancres sont refusées, la sortie redevient exactement le mode off.
 
+Diff livré contre `78375c0` : 26 fichiers, 5 397 insertions et 2 suppressions ;
+les volumes viennent principalement des traces et tableaux gelés. Le code
+ciblé se limite au runner voix, au détecteur, à l'évaluateur, à l'option
+`--output-root`, au protocole et aux tests, tous sous `lab/vad_prototype`.
+Contre le `main` original `eebd70c`, la branche compte 230 fichiers et 66 326
+insertions parce qu'elle conserve tout l'historique antérieur du laboratoire ;
+la présente étape n'ajoute rien hors `lab/vad_prototype` et ce rapport.
+
 ## Limites
 
 Ce test n'est ni indépendant des titres/artistes connus, ni aveugle : la
