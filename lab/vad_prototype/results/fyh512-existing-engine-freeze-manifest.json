@@ -1,0 +1,161 @@
+{
+  "episode_id": "find-your-harmony-512",
+  "reference_times_loaded": false,
+  "recognition_classification": "reconnaissance assistee par references connues",
+  "engine_commit": "eebd70c45e88e7a632992b0255f1b1d55501c9c2",
+  "engine_path": "server/audio_fallback.py::analyze_known_tracklist",
+  "engine_sha256": "03e23eba207aa06966d2e715220d68036654dbb6a95980145d54934f7f47501d",
+  "runner_executed_sha256": "db431a24c5f57953b0b798154857380e1d7c969df1b912b4a89950f8b835776c",
+  "runner_delivered_sha256": "56e131a105bde972dc6a41c7b86775de76f8f05ecbc5fe8823d885adb0329c77",
+  "instrumentation_post_run_sanitation": "Le runner livre retire les requetes signees avant serialisation; aucun calcul moteur ni resultat n'est modifie.",
+  "input_tracklist_sha256": "a525ef8565aab0d12282fa0e81d93eefae780c21b91ad9cdf510a3faedf6b8dc",
+  "input_runtime_keys": [
+    "artist",
+    "title"
+  ],
+  "input_track_count": 32,
+  "audio_sha256": "47814fb78f3f0236777b6c5ebf378d23e4938914c474df116c49f618b3fdaf69",
+  "audio_size_bytes": 288429012,
+  "call_arguments_without_callback": {
+    "audio_url": "https://mcdn.podbean.com/mf/web/yzbhdtpn68u3drwd/Andrew_Rayel_-_Find_Your_Harmony_Episode_512bhir7.mp3",
+    "source_url": "https://andrewrayel.podbean.com/e/find-your-harmony-episode-512/",
+    "tracks": [
+      {
+        "artist": "Mhammed El Alami & Josie Sandfeld",
+        "title": "Keep On Running"
+      },
+      {
+        "artist": "Against All Ødds",
+        "title": "Save Me"
+      },
+      {
+        "artist": "Elite Electronic",
+        "title": "Shadows"
+      },
+      {
+        "artist": "Phillip Castle & Aldor",
+        "title": "Embrace The Night"
+      },
+      {
+        "artist": "Freak E Beatz & JASSKALL",
+        "title": "No Escape"
+      },
+      {
+        "artist": "Adriatique",
+        "title": "Palm Of Your Hands"
+      },
+      {
+        "artist": "Vassmo",
+        "title": "Stay"
+      },
+      {
+        "artist": "Cubicore",
+        "title": "Black Light"
+      },
+      {
+        "artist": "Benny Benassi & Hypaton feat. Sandy Chambers",
+        "title": "Illusion"
+      },
+      {
+        "artist": "Mike Williams, Three Drives, ANTICALM",
+        "title": "Greece 2000"
+      },
+      {
+        "artist": "Genix, Dosem",
+        "title": "Transit Point (Genix Mix)"
+      },
+      {
+        "artist": "Spoiled and Zigo",
+        "title": "More & More (BLR Remix)"
+      },
+      {
+        "artist": "Ashley Wallbridge, The Paper Outlet",
+        "title": "Forever Young"
+      },
+      {
+        "artist": "Markus Schulz",
+        "title": "Second Tomorrow"
+      },
+      {
+        "artist": "Victor Ruiz & KURA",
+        "title": "FSU"
+      },
+      {
+        "artist": "MAXTAGE & Fathom (EG)",
+        "title": "The Right Place (RAYEL Remix)"
+      },
+      {
+        "artist": "Andrew Rayel pres. EXTASIA",
+        "title": "Dreaming (Giuseppe Ottaviani Remix)"
+      },
+      {
+        "artist": "MIDI Kitty and Derek Ryan",
+        "title": "Miles Away"
+      },
+      {
+        "artist": "Paul Denton & EKE",
+        "title": "Next To Me (Club Mix)"
+      },
+      {
+        "artist": "RAM & Susana pres. Tales Of Life",
+        "title": "The Power of Love (Alex M.O.R.P.H. Remix)"
+      },
+      {
+        "artist": "Giuseppe Ottaviani & Ilan Bluestone",
+        "title": "Together Again"
+      },
+      {
+        "artist": "Aly & Fila, Susie Ledge, Roman Messer, Anton Pallmer",
+        "title": "Carry Me Away"
+      },
+      {
+        "artist": "John Askew",
+        "title": "Through The Looking Glass (Nikolauss Remix)"
+      },
+      {
+        "artist": "Andrew Rayel",
+        "title": "Acid On The Train (David Forbes Remix)"
+      },
+      {
+        "artist": "Armin van Buuren feat. Sharon Den Adel",
+        "title": "In And Out Of Love (Ben Hemsley Remix)"
+      },
+      {
+        "artist": "Xincher & Rav3ver",
+        "title": "Echo"
+      },
+      {
+        "artist": "RAM & Richard Durand presents Digital Culture",
+        "title": "La La La"
+      },
+      {
+        "artist": "Matt Bukovski & CJ Stone",
+        "title": "Stars"
+      },
+      {
+        "artist": "LAWTON, Trancemaster Krause & Caroline Roxy",
+        "title": "Believe In"
+      },
+      {
+        "artist": "Olly James, Panteros666 & Evil Twiin",
+        "title": "Berlin '99"
+      },
+      {
+        "artist": "Maurya Sevak & Jake Ryan",
+        "title": "Sata Sata"
+      },
+      {
+        "artist": "Ferry Corsten",
+        "title": "Sweet Sorrow (The Thrillseekers Remix 2004)"
+      }
+    ],
+    "duration_seconds": 7210.0,
+    "source_urls": [
+      "https://andrewrayel.podbean.com/e/find-your-harmony-episode-512/"
+    ]
+  },
+  "output_sha256": {
+    "fyh512-existing-engine-results-frozen.json": "e0200bae398de872f1b861f5db4fc1781c302cf193acd27a6935d56a37b2e208",
+    "fyh512-existing-engine-trace-frozen.json": "6999fa5f7854bb82abb6e8356b115a62de91e04468740fdba8268cc73180ae21"
+  }
+}
