@@ -1,0 +1,79 @@
+{
+  "method": "produit scalaire de Pearson normalise par fenetre glissante, signaux mono 2 kHz",
+  "offset_convention": "temps_RSS = temps_YouTube + offset",
+  "search_range_seconds": [
+    0,
+    3.0
+  ],
+  "window_seconds": 30.0,
+  "rss_decoded_duration_seconds": 7216.9275,
+  "youtube_decoded_duration_seconds": 7212.3735,
+  "rss_reported_duration_seconds": 7210,
+  "rss_previous_container_measurement_seconds": 7210.7253,
+  "rss_decode_duration_divergence_warning": "Le decodage PCM inclut 7216,927 s; les timestamps/conteneur MP3 divergent. Les offsets sont donc conditionnels aux echantillons decodes.",
+  "observations": [
+    {
+      "rss_probe_seconds": 120,
+      "window_seconds": 30.0,
+      "rss_equals_youtube_plus_offset_seconds": 1.3455,
+      "normalized_correlation_coefficient": 0.992004,
+      "coefficient_bounds": "[-1,1]",
+      "sample_rate_hz": 2000,
+      "reported_precision_warning": "pas de precision au-dela de 0,01 s interpretable (encodage et timestamps publies)"
+    },
+    {
+      "rss_probe_seconds": 600,
+      "window_seconds": 30.0,
+      "rss_equals_youtube_plus_offset_seconds": 1.3455,
+      "normalized_correlation_coefficient": 0.988066,
+      "coefficient_bounds": "[-1,1]",
+      "sample_rate_hz": 2000,
+      "reported_precision_warning": "pas de precision au-dela de 0,01 s interpretable (encodage et timestamps publies)"
+    },
+    {
+      "rss_probe_seconds": 2500,
+      "window_seconds": 30.0,
+      "rss_equals_youtube_plus_offset_seconds": 1.3455,
+      "normalized_correlation_coefficient": 0.984823,
+      "coefficient_bounds": "[-1,1]",
+      "sample_rate_hz": 2000,
+      "reported_precision_warning": "pas de precision au-dela de 0,01 s interpretable (encodage et timestamps publies)"
+    },
+    {
+      "rss_probe_seconds": 3400,
+      "window_seconds": 30.0,
+      "rss_equals_youtube_plus_offset_seconds": 1.3455,
+      "normalized_correlation_coefficient": 0.992893,
+      "coefficient_bounds": "[-1,1]",
+      "sample_rate_hz": 2000,
+      "reported_precision_warning": "pas de precision au-dela de 0,01 s interpretable (encodage et timestamps publies)"
+    },
+    {
+      "rss_probe_seconds": 3600,
+      "window_seconds": 30.0,
+      "rss_equals_youtube_plus_offset_seconds": 1.7265,
+      "normalized_correlation_coefficient": 0.934508,
+      "coefficient_bounds": "[-1,1]",
+      "sample_rate_hz": 2000,
+      "reported_precision_warning": "pas de precision au-dela de 0,01 s interpretable (encodage et timestamps publies)"
+    },
+    {
+      "rss_probe_seconds": 5000,
+      "window_seconds": 30.0,
+      "rss_equals_youtube_plus_offset_seconds": 1.7265,
+      "normalized_correlation_coefficient": 0.969178,
+      "coefficient_bounds": "[-1,1]",
+      "sample_rate_hz": 2000,
+      "reported_precision_warning": "pas de precision au-dela de 0,01 s interpretable (encodage et timestamps publies)"
+    },
+    {
+      "rss_probe_seconds": 7100,
+      "window_seconds": 30.0,
+      "rss_equals_youtube_plus_offset_seconds": 1.7265,
+      "normalized_correlation_coefficient": 0.950906,
+      "coefficient_bounds": "[-1,1]",
+      "sample_rate_hz": 2000,
+      "reported_precision_warning": "pas de precision au-dela de 0,01 s interpretable (encodage et timestamps publies)"
+    }
+  ]
+}

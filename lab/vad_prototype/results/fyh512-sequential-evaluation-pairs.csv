@@ -1,0 +1,14 @@
+detection_id,detection_origin,detected_time_seconds,reference_track_number,reference_artist,reference_title,reference_audio_time_seconds,signed_error_seconds,absolute_error_seconds,matching_tolerance_seconds
+find-your-harmony-512-d002,reliable_voice_interval_boundary,120.0,1,Mhammed El Alami & Josie Sandfeld,Keep On Running,121.346,-1.346,1.346,30.0
+T002,interval_local_spectral,339.712,2,Against All Ødds,Save Me,338.346,1.366,1.366,30.0
+T005,interval_local_spectral,783.616,4,Phillip Castle & Aldor,Embrace The Night,781.346,2.27,2.27,30.0
+T007,interval_local_spectral,1007.872,5,Freak E Beatz & JASSKALL,No Escape,1007.346,0.526,0.526,30.0
+T009,interval_local_spectral,1556.864,8,Cubicore,Black Light,1555.345,1.519,1.519,30.0
+T011,interval_local_spectral,1926.848,10,"Mike Williams, Three Drives, ANTICALM",Greece 2000,1956.345,-29.497,29.497,30.0
+find-your-harmony-512-d005,reliable_voice_interval_boundary,2365.68,12,Spoiled and Zigo,More & More (BLR Remix),2367.345,-1.665,1.665,30.0
+T017,interval_local_spectral,2618.422421,13,"Ashley Wallbridge, The Paper Outlet",Forever Young,2615.345,3.077,3.077,30.0
+T018,interval_local_spectral,2827.12,14,Markus Schulz,Second Tomorrow,2826.345,0.775,0.775,30.0
+find-your-harmony-512-d008,reliable_voice_interval_boundary,5349.38,24,Andrew Rayel,Acid On The Train (David Forbes Remix),5349.726,-0.346,0.346,30.0
+T032,interval_local_spectral,5858.244,26,Xincher & Rav3ver,Echo,5828.726,29.518,29.518,30.0
+T034,interval_local_spectral,6187.652,28,Matt Bukovski & CJ Stone,Stars,6186.726,0.926,0.926,30.0
+find-your-harmony-512-d010,reliable_voice_interval_boundary,6975.72,32,Ferry Corsten,Sweet Sorrow (The Thrillseekers Remix 2004),6975.726,-0.006,0.006,30.0

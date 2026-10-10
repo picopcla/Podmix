@@ -1,0 +1,142 @@
+[
+  {
+    "detection_id": "T001",
+    "origin": "interval_local_spectral",
+    "time_seconds": 162.58121
+  },
+  {
+    "detection_id": "T003",
+    "origin": "interval_local_spectral",
+    "time_seconds": 399.936
+  },
+  {
+    "detection_id": "T004",
+    "origin": "interval_local_spectral",
+    "time_seconds": 525.376
+  },
+  {
+    "detection_id": "T006",
+    "origin": "interval_local_spectral",
+    "time_seconds": 881.28
+  },
+  {
+    "detection_id": "T008",
+    "origin": "interval_local_spectral",
+    "time_seconds": 1233.664
+  },
+  {
+    "detection_id": "T010",
+    "origin": "interval_local_spectral",
+    "time_seconds": 1814.234783
+  },
+  {
+    "detection_id": "T012",
+    "origin": "interval_local_spectral",
+    "time_seconds": 2005.968471
+  },
+  {
+    "detection_id": "T013",
+    "origin": "interval_local_spectral",
+    "time_seconds": 2207.936
+  },
+  {
+    "detection_id": "T014",
+    "origin": "interval_local_spectral",
+    "time_seconds": 2280.896
+  },
+  {
+    "detection_id": "T015",
+    "origin": "interval_local_spectral",
+    "time_seconds": 2409.648
+  },
+  {
+    "detection_id": "T016",
+    "origin": "interval_local_spectral",
+    "time_seconds": 2520.304
+  },
+  {
+    "detection_id": "T019",
+    "origin": "interval_local_spectral",
+    "time_seconds": 2919.728
+  },
+  {
+    "detection_id": "T020",
+    "origin": "interval_local_spectral",
+    "time_seconds": 2984.624
+  },
+  {
+    "detection_id": "T021",
+    "origin": "interval_local_spectral",
+    "time_seconds": 3184.56
+  },
+  {
+    "detection_id": "T022",
+    "origin": "interval_local_spectral",
+    "time_seconds": 3564.208
+  },
+  {
+    "detection_id": "T023",
+    "origin": "interval_local_spectral",
+    "time_seconds": 3907.376
+  },
+  {
+    "detection_id": "T024",
+    "origin": "interval_local_spectral",
+    "time_seconds": 4048.176
+  },
+  {
+    "detection_id": "T025",
+    "origin": "interval_local_spectral",
+    "time_seconds": 4164.057716
+  },
+  {
+    "detection_id": "T026",
+    "origin": "interval_local_spectral",
+    "time_seconds": 4436.208
+  },
+  {
+    "detection_id": "T027",
+    "origin": "interval_local_spectral",
+    "time_seconds": 4663.216
+  },
+  {
+    "detection_id": "T028",
+    "origin": "interval_local_spectral",
+    "time_seconds": 4742.384
+  },
+  {
+    "detection_id": "T029",
+    "origin": "interval_local_spectral",
+    "time_seconds": 5225.392
+  },
+  {
+    "detection_id": "T030",
+    "origin": "interval_local_spectral",
+    "time_seconds": 5643.076
+  },
+  {
+    "detection_id": "T031",
+    "origin": "interval_local_spectral",
+    "time_seconds": 5734.724
+  },
+  {
+    "detection_id": "T033",
+    "origin": "interval_local_spectral",
+    "time_seconds": 6107.204
+  },
+  {
+    "detection_id": "T035",
+    "origin": "interval_local_spectral",
+    "time_seconds": 6434.628
+  },
+  {
+    "detection_id": "T036",
+    "origin": "interval_local_spectral",
+    "time_seconds": 6639.108
+  },
+  {
+    "detection_id": "T037",
+    "origin": "interval_local_spectral",
+    "time_seconds": 7013.224
+  }
+]

@@ -1,0 +1,37 @@
+{
+  "episode_id": "find-your-harmony-512",
+  "known_reference_not_blind": true,
+  "frozen_outputs_verified_by_sha256": true,
+  "matching_tolerance_seconds": 30.0,
+  "normalized_alignment_used": {
+    "split_youtube_seconds": 3565,
+    "offset_before_seconds": 1.3455,
+    "offset_after_seconds": 1.7265
+  },
+  "alignment_precision_warning": "offsets medians conditionnels aux decodages PCM; valeurs publiees au centieme, pas a la milliseconde",
+  "reference_tracks": 32,
+  "detected_boundaries_excluding_audio_start": 41,
+  "matched_boundaries": 13,
+  "missing_reference_boundaries": 19,
+  "surplus_detected_boundaries": 28,
+  "mean_absolute_error_seconds_on_matched": 5.603,
+  "median_absolute_error_seconds_on_matched": 1.366,
+  "matched_under_1_second": 5,
+  "matched_under_3_seconds": 10,
+  "matched_under_10_seconds": 11,
+  "independent_titles_identified": 0,
+  "independent_titles_missing": 32,
+  "asr_candidate_mentions": 5,
+  "asr_titles_counted_as_identified": 0,
+  "assisted_candidate_landmark_presences": 8,
+  "assisted_candidate_labels_matching_reference": 8,
+  "old_global_spectral": {
+    "boundaries": 32,
+    "missing": 0,
+    "surplus": 0,
+    "mean_absolute_error_seconds_paired_by_forced_order": 144.153,
+    "median_absolute_error_seconds_paired_by_forced_order": 129.919,
+    "warning": "Ancienne cardinalite imposee a 32 et appariement par ordre; metriques non directement comparables au matching libre de la variante sequentielle."
+  },
+  "causal_conclusion": "Aucun gain causal attribuable aux voix n'est demontre: protocole, cardinalite et appariement different. Les voix garantissent seulement la partition effective et quatre bornes candidates conservees."
+}

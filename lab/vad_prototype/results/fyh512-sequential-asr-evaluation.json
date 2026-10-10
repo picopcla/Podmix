@@ -1,0 +1,108 @@
+[
+  {
+    "detection_id": "find-your-harmony-512-d002",
+    "voice_end_seconds": 120.0,
+    "candidate_number": 1,
+    "candidate_artist": "Mhammed El Alami & Josie Sandfeld",
+    "candidate_title": "Keep On Running",
+    "title_overlap": [
+      "keep",
+      "running"
+    ],
+    "artist_overlap": [
+      "alami",
+      "josie"
+    ],
+    "title_token_coverage": 1.0,
+    "classification": "asr_annonce_assiste_par_candidats",
+    "assignment": "abstention_orientation_precedent_suivant_ou_liste_multiple",
+    "candidate_exists_in_reference": true,
+    "reference_audio_time_seconds": 121.346,
+    "identification_counted": false,
+    "reason": "abstention gelee sur orientation precedent/suivant/liste multiple"
+  },
+  {
+    "detection_id": "find-your-harmony-512-d002",
+    "voice_end_seconds": 120.0,
+    "candidate_number": 17,
+    "candidate_artist": "Andrew Rayel pres. EXTASIA",
+    "candidate_title": "Dreaming (Giuseppe Ottaviani Remix)",
+    "title_overlap": [
+      "dreaming",
+      "giuseppe",
+      "ottaviani"
+    ],
+    "artist_overlap": [],
+    "title_token_coverage": 1.0,
+    "classification": "asr_annonce_assiste_par_candidats",
+    "assignment": "abstention_orientation_precedent_suivant_ou_liste_multiple",
+    "candidate_exists_in_reference": true,
+    "reference_audio_time_seconds": 3632.727,
+    "identification_counted": false,
+    "reason": "abstention gelee sur orientation precedent/suivant/liste multiple"
+  },
+  {
+    "detection_id": "find-your-harmony-512-d002",
+    "voice_end_seconds": 120.0,
+    "candidate_number": 24,
+    "candidate_artist": "Andrew Rayel",
+    "candidate_title": "Acid On The Train (David Forbes Remix)",
+    "title_overlap": [
+      "acid",
+      "david",
+      "forbes",
+      "train"
+    ],
+    "artist_overlap": [],
+    "title_token_coverage": 1.0,
+    "classification": "asr_annonce_assiste_par_candidats",
+    "assignment": "abstention_orientation_precedent_suivant_ou_liste_multiple",
+    "candidate_exists_in_reference": true,
+    "reference_audio_time_seconds": 5349.726,
+    "identification_counted": false,
+    "reason": "abstention gelee sur orientation precedent/suivant/liste multiple"
+  },
+  {
+    "detection_id": "find-your-harmony-512-d005",
+    "voice_end_seconds": 2365.68,
+    "candidate_number": 12,
+    "candidate_artist": "Spoiled and Zigo",
+    "candidate_title": "More & More (BLR Remix)",
+    "title_overlap": [
+      "blr",
+      "more"
+    ],
+    "artist_overlap": [
+      "spoiled",
+      "zigo"
+    ],
+    "title_token_coverage": 1.0,
+    "classification": "asr_annonce_assiste_par_candidats",
+    "assignment": "abstention_orientation_precedent_suivant_ou_liste_multiple",
+    "candidate_exists_in_reference": true,
+    "reference_audio_time_seconds": 2367.345,
+    "identification_counted": false,
+    "reason": "abstention gelee sur orientation precedent/suivant/liste multiple"
+  },
+  {
+    "detection_id": "find-your-harmony-512-d008",
+    "voice_end_seconds": 5349.38,
+    "candidate_number": 24,
+    "candidate_artist": "Andrew Rayel",
+    "candidate_title": "Acid On The Train (David Forbes Remix)",
+    "title_overlap": [
+      "acid",
+      "david",
+      "forbes",
+      "train"
+    ],
+    "artist_overlap": [],
+    "title_token_coverage": 1.0,
+    "classification": "asr_annonce_assiste_par_candidats",
+    "assignment": "abstention_orientation_precedent_suivant_ou_liste_multiple",
+    "candidate_exists_in_reference": true,
+    "reference_audio_time_seconds": 5349.726,
+    "identification_counted": false,
+    "reason": "abstention gelee sur orientation precedent/suivant/liste multiple"
+  }
+]
