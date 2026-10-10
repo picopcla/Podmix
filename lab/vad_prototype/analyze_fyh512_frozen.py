@@ -40,7 +40,11 @@ def write_csv(path: Path, rows: list[dict]) -> None:
     with path.open("w", encoding="utf-8", newline="") as handle:
         writer = csv.DictWriter(handle, fieldnames=list(rows[0]), lineterminator="\n")
         writer.writeheader()
-        writer.writerows(rows)
+        writer.writerows({
+            key: json.dumps(value, ensure_ascii=False, separators=(",", ":"))
+            if isinstance(value, (dict, list)) else value
+            for key, value in row.items()
+        } for row in rows)
 
 
 def sha256(path: Path) -> str:
@@ -108,6 +112,7 @@ def main() -> int:
     transitions_path = RESULTS / "fyh512-transitions-frozen.json"
     voice_path.write_text(json.dumps(voice_detections, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     transitions_path.write_text(json.dumps(transition_rows, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    write_csv(RESULTS / "fyh512-voice-detections-frozen.csv", voice_detections)
     write_csv(RESULTS / "fyh512-transitions-frozen.csv", transition_rows)
     candidate_rows = [
         {"candidate_time_seconds": round(time, 6), "internal_salience": round(score, 6)}
@@ -120,7 +125,7 @@ def main() -> int:
         "episode_id": source["episode_id"],
         "reference_times_loaded": False,
         "media_sha256": source["audio_sha256"],
-        "measured_decoded_duration_seconds": round(measured_duration, 6),
+        "decoded_sample_duration_seconds": round(measured_duration, 6),
         "models_run_sequentially": ["Silero VAD", "inaSpeechSegmenter", "spectral transition detector"],
         "voice_detections": len(voice_detections),
         "reliable_voice_candidates": sum(row["passes_reliable_threshold"] for row in voice_detections),
