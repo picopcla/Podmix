@@ -1,0 +1,52 @@
+{
+  "known_reference_not_blind": true,
+  "frozen_outputs_verified_by_sha256": true,
+  "recognition_classification": "moteur existant assiste par tracklist connue plus interpretation automatique des annonces",
+  "matching_rule": "appariement libre glouton un-a-un par erreur absolue croissante",
+  "matching_tolerance_seconds": 30.0,
+  "alignment": {
+    "split_youtube_seconds": 3565.0,
+    "offset_before_seconds": 1.3455,
+    "offset_after_seconds": 1.7265
+  },
+  "baseline": {
+    "matched": 12,
+    "missing": 20,
+    "surplus": 20
+  },
+  "existing_engine_plus_voice": {
+    "reference_count": 32,
+    "algorithm_output_count": 32,
+    "matched": 16,
+    "missing": 16,
+    "surplus": 16,
+    "mean_absolute_error_seconds_on_matched": 8.4816,
+    "median_absolute_error_seconds_on_matched": 1.625,
+    "matched_under_1_second": 5,
+    "matched_under_5_seconds": 11,
+    "matched_under_10_seconds": 12,
+    "matched_under_30_seconds": 16,
+    "statistics_denominator": 16
+  },
+  "gained_reference_numbers": [
+    1,
+    12,
+    23,
+    32
+  ],
+  "lost_reference_numbers": [],
+  "reference_inventory": {
+    "baseline_obtained_files": 22,
+    "current_obtained_files": 22,
+    "identical_hashes": false,
+    "changed_public_paths": [
+      "https://soundcloud.com/fathommusicofficial/maxtage-fathom-eg-the-right",
+      "https://soundcloud.com/housextechno/palm_of_your_hands_adriatique_x_falling_slow_kasbo",
+      "https://soundcloud.com/nightdiver-nightdiver/victor-ruiz-kura-fsu-southmind",
+      "https://soundcloud.com/theviicrew/john-askew-through-the-looking-glass-faders-wilder-remix",
+      "https://soundcloud.com/zerothree-music/against-all-odds-save-me"
+    ],
+    "causality_note": "Cinq fichiers SoundCloud ont change de hash; les deux modes de cette comparaison utilisent toutefois exactement le meme cache courant, et le mode desactive reproduit le JSON baseline au hash exact."
+  },
+  "verdict": "gain"
+}

@@ -1,0 +1,127 @@
+{
+  "reference_times_loaded": false,
+  "classification": "existing_engine_plus_automatic_voice_interpretation_from_known_tracklist",
+  "audio_sha256": "47814fb78f3f0236777b6c5ebf378d23e4938914c474df116c49f618b3fdaf69",
+  "baseline_sha256": "e0200bae398de872f1b861f5db4fc1781c302cf193acd27a6935d56a37b2e208",
+  "voice_asr_sha256": "57df3a05d8bc57f6fe30806afd9dd4cc84df10a1257c759e35cd90b9e38355ef",
+  "engine_copy_sha256": "274d4cad5cfd47af83918f1dd09212401f2292107daea58ff4d66c286fdb2905",
+  "runner_sha256": "0bd5915b5bec5aecb94e8acca6b3723da7825e9d41ea4644d95342b45c80042b",
+  "outputs": {
+    "fyh512-existing-engine-voice-disabled-frozen.json": "e0200bae398de872f1b861f5db4fc1781c302cf193acd27a6935d56a37b2e208",
+    "fyh512-existing-engine-plus-voice-frozen.json": "199c10e9c35552206a81ddf782e689986e7f36628415b5a18ae1bd033f37070a",
+    "fyh512-existing-engine-voice-disabled-trace-frozen.json": "c678183fca6ebec75de15a43d94244026444bfd81aeca93619ead1d12476e375",
+    "fyh512-existing-engine-plus-voice-trace-frozen.json": "f7c3981a521361a32eb50602323be8b45846bf8021521816f63407fd26cb6a28"
+  },
+  "reference_inventory": [
+    {
+      "url": "https://cdnt-preview.dzcdn.net/api/1/1/0/3/a/0/03a4074791984fc8bbd7b6f3b0ab487a.mp3",
+      "sha256": "f6911cf3a4811b5f7f796943ca35bf382afd77e2c13fbac3e90cc475f3687cd1",
+      "bytes": 480245
+    },
+    {
+      "url": "https://cdnt-preview.dzcdn.net/api/1/1/1/0/0/0/100d9b142b3010cd64e0a29175bd293b.mp3",
+      "sha256": "817b5747b967d96ffca72e432f722b58a851704f9a4c8783777c336d8392ec34",
+      "bytes": 480245
+    },
+    {
+      "url": "https://cdnt-preview.dzcdn.net/api/1/1/4/1/9/0/419a66ca69ce2cbae35e0937a1837c7e.mp3",
+      "sha256": "e3d019f683c512432deded831c63b6861bb7ee968fecba743a8f91c90806814a",
+      "bytes": 479827
+    },
+    {
+      "url": "https://cdnt-preview.dzcdn.net/api/1/1/4/d/7/0/4d7e11878569c1708ba6cc9bc03d8a90.mp3",
+      "sha256": "9a0ba9b9c88689883f17777c5a44351fee229f277ce10799f8ecde24c15f029a",
+      "bytes": 479827
+    },
+    {
+      "url": "https://cdnt-preview.dzcdn.net/api/1/1/5/e/0/0/5e055ab06d66c72ba87524464cb3330a.mp3",
+      "sha256": "58c1e076c4d9dbc1224d485f0c725e50d694ae5db7f2783938d8b34233361c65",
+      "bytes": 480245
+    },
+    {
+      "url": "https://cdnt-preview.dzcdn.net/api/1/1/7/9/7/0/7975905e0abc1b64c0f09783df8306fa.mp3",
+      "sha256": "47c89e7445b905f4c8f7f92c1cf631745925b954b1d31a5b0cce7a119556f441",
+      "bytes": 480245
+    },
+    {
+      "url": "https://cdnt-preview.dzcdn.net/api/1/1/8/8/5/0/885595d36f9a07ca3901c70cb6ff8dd3.mp3",
+      "sha256": "f4158ab614243694d78543976fbef264b0967559bf30863f715342df090674e1",
+      "bytes": 479827
+    },
+    {
+      "url": "https://cdnt-preview.dzcdn.net/api/1/1/8/f/6/0/8f670583586fb0be391053622e38dc71.mp3",
+      "sha256": "565bf14afa449cfaa315672226e1043a3478b6ceb641935c4fa7b9427676f4e1",
+      "bytes": 479827
+    },
+    {
+      "url": "https://cdnt-preview.dzcdn.net/api/1/1/a/0/c/0/a0ca29103d4e2c5a36bd63914e3632a6.mp3",
+      "sha256": "acdc49548773aedaa318fa9b248a04fd420261198b317bdc3d3b600e6a503513",
+      "bytes": 479827
+    },
+    {
+      "url": "https://cdnt-preview.dzcdn.net/api/1/1/a/5/7/0/a57d24df885151ce7542c8a2be03dc07.mp3",
+      "sha256": "cfdea5aaefb977e7a63c0982adf65af8cc3118290d79d8236a46d7e7c620bede",
+      "bytes": 479827
+    },
+    {
+      "url": "https://cdnt-preview.dzcdn.net/api/1/1/a/6/e/0/a6e2f7fea8bfd044a9815311aa9402e7.mp3",
+      "sha256": "d1fe1885a6e6deadd953d51efc5a5204799f0bba4a09c3fdd444d8fff2b77e98",
+      "bytes": 480245
+    },
+    {
+      "url": "https://cdnt-preview.dzcdn.net/api/1/1/a/7/8/0/a78a7f759838ae7314bd266c31f9bc03.mp3",
+      "sha256": "16de054693a3754a833b14306e7e8ac605f9b7c9cba6b881e5477747ad9c7545",
+      "bytes": 479827
+    },
+    {
+      "url": "https://cdnt-preview.dzcdn.net/api/1/1/a/9/3/0/a93941ec106fad9380bd790a942a2223.mp3",
+      "sha256": "d47515403e2f6245a79fcd4a6a30015be216eaff4e17c1b4addc87cb8d583564",
+      "bytes": 480245
+    },
+    {
+      "url": "https://cdnt-preview.dzcdn.net/api/1/1/a/f/f/0/aff6b9cf82d43867bc019e698ea35bf2.mp3",
+      "sha256": "6b378f425a9ad06c450ed398b1306532a0205e9a451fa52eccdbb2f8ada89aa4",
+      "bytes": 479827
+    },
+    {
+      "url": "https://cdnt-preview.dzcdn.net/api/1/1/d/b/b/0/dbbc8ee4869998605b6d0c2f332db73d.mp3",
+      "sha256": "5c3fc74c2ee6a2c190b7946ad7e3637a4ff03c7c41aebf078f0e3ac2976a58a9",
+      "bytes": 479827
+    },
+    {
+      "url": "https://cdnt-preview.dzcdn.net/api/1/1/d/f/a/0/dfaf7a6e23b483e7bddd351b101a8c0d.mp3",
+      "sha256": "dc356408d93986455e28d1c0d16d8a24ad92f858dc409119a7b3aa50eb446a3c",
+      "bytes": 480245
+    },
+    {
+      "url": "https://cdnt-preview.dzcdn.net/api/1/1/e/9/9/0/e99ce3f7a86a820d40c2f67c646ca8e2.mp3",
+      "sha256": "1866581c7869272ba7b766248708215cc081a1faa2e10d34c06eefcab05a1a36",
+      "bytes": 479827
+    },
+    {
+      "url": "https://soundcloud.com/fathommusicofficial/maxtage-fathom-eg-the-right",
+      "sha256": "ffc6f1ac9fb1e2bedb4fd2889d6ffae7c4ec5930c20176158fe8b156cda84cfa",
+      "bytes": 5127986
+    },
+    {
+      "url": "https://soundcloud.com/housextechno/palm_of_your_hands_adriatique_x_falling_slow_kasbo",
+      "sha256": "3052bef6990a5666f7565bf49ef476c30a2f89a5a361a1ca34f20fbaaba86352",
+      "bytes": 10301020
+    },
+    {
+      "url": "https://soundcloud.com/nightdiver-nightdiver/victor-ruiz-kura-fsu-southmind",
+      "sha256": "10cf8e1bbd0e01409580b23a4b5c4c9fd9be4d252a091c9de0241e0db091a9d3",
+      "bytes": 7070521
+    },
+    {
+      "url": "https://soundcloud.com/theviicrew/john-askew-through-the-looking-glass-faders-wilder-remix",
+      "sha256": "c8d66d0fa0e02253e2e9f34e29907075d57369dd17165226b0b7653f16c0f993",
+      "bytes": 5500333
+    },
+    {
+      "url": "https://soundcloud.com/zerothree-music/against-all-odds-save-me",
+      "sha256": "905d37b76df80142316542f6f35c0754137edf1cdf26c67a23a576ae1eae346a",
+      "bytes": 7051283
+    }
+  ]
+}

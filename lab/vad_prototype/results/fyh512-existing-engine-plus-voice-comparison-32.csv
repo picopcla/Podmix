@@ -1,0 +1,33 @@
+reference_number,artist,title,youtube_reference_seconds,algorithm_youtube_seconds,status,absolute_error_seconds,versus_baseline
+1,Mhammed El Alami & Josie Sandfeld,Keep On Running,120,118.6545,trouve,1.3455,gagne
+2,Against All Ødds,Save Me,337,338.3645,trouve,1.3645,conserve
+3,Elite Electronic,Shadows,585,,non trouve,,toujours_non_trouve
+4,Phillip Castle & Aldor,Embrace The Night,780,782.2745,trouve,2.2745,conserve
+5,Freak E Beatz & JASSKALL,No Escape,1006,1006.5945,trouve,0.5945,conserve
+6,Adriatique,Palm Of Your Hands,1142,1113.1445,trouve,28.8555,conserve
+7,Vassmo,Stay,1400,,non trouve,,toujours_non_trouve
+8,Cubicore,Black Light,1554,1555.5845,trouve,1.5845,conserve
+9,Benny Benassi & Hypaton feat. Sandy Chambers,Illusion,1775,,non trouve,,toujours_non_trouve
+10,"Mike Williams, Three Drives, ANTICALM",Greece 2000,1955,1925.5045,trouve,29.4955,conserve
+11,"Genix, Dosem",Transit Point (Genix Mix),2133,,non trouve,,toujours_non_trouve
+12,Spoiled and Zigo,More & More (BLR Remix),2366,2364.3345,trouve,1.6655,gagne
+13,"Ashley Wallbridge, The Paper Outlet",Forever Young,2614,2617.2145,trouve,3.2145,conserve
+14,Markus Schulz,Second Tomorrow,2825,2825.7245,trouve,0.7245,conserve
+15,Victor Ruiz & KURA,FSU,3062,,non trouve,,toujours_non_trouve
+16,MAXTAGE & Fathom (EG),The Right Place (RAYEL Remix),3390,,non trouve,,toujours_non_trouve
+17,Andrew Rayel pres. EXTASIA,Dreaming (Giuseppe Ottaviani Remix),3631,,non trouve,,toujours_non_trouve
+18,MIDI Kitty and Derek Ryan,Miles Away,3849,,non trouve,,toujours_non_trouve
+19,Paul Denton & EKE,Next To Me (Club Mix),4086,,non trouve,,toujours_non_trouve
+20,RAM & Susana pres. Tales Of Life,The Power of Love (Alex M.O.R.P.H. Remix),4310,,non trouve,,toujours_non_trouve
+21,Giuseppe Ottaviani & Ilan Bluestone,Together Again,4589,,non trouve,,toujours_non_trouve
+22,"Aly & Fila, Susie Ledge, Roman Messer, Anton Pallmer",Carry Me Away,4825,,non trouve,,toujours_non_trouve
+23,John Askew,Through The Looking Glass (Nikolauss Remix),5059,5086.7235,trouve,27.7235,gagne
+24,Andrew Rayel,Acid On The Train (David Forbes Remix),5348,5347.6535,trouve,0.3465,conserve
+25,Armin van Buuren feat. Sharon Den Adel,In And Out Of Love (Ben Hemsley Remix),5576,,non trouve,,toujours_non_trouve
+26,Xincher & Rav3ver,Echo,5827,5856.3835,trouve,29.3835,conserve
+27,RAM & Richard Durand presents Digital Culture,La La La,5951,,non trouve,,toujours_non_trouve
+28,Matt Bukovski & CJ Stone,Stars,6185,6185.8535,trouve,0.8535,conserve
+29,"LAWTON, Trancemaster Krause & Caroline Roxy",Believe In,6383,6389.2735,trouve,6.2735,conserve
+30,"Olly James, Panteros666 & Evil Twiin",Berlin '99,6587,,non trouve,,toujours_non_trouve
+31,Maurya Sevak & Jake Ryan,Sata Sata,6730,,non trouve,,toujours_non_trouve
+32,Ferry Corsten,Sweet Sorrow (The Thrillseekers Remix 2004),6974,6973.9935,trouve,0.0065,gagne
