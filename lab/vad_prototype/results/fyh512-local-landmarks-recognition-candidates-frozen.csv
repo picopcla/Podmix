@@ -1,0 +1,208 @@
+interval_id,candidate_number,artist,title,decision,independent,recognition_id,candidate_rank,local_anchor_seconds,absolute_anchor_seconds,presence_start_local_seconds,presence_end_local_seconds,presence_start_absolute_seconds,presence_end_absolute_seconds,landmark_score,landmark_votes,landmark_events,speed,confidence_kind,assisted
+I001,1,Mhammed El Alami & Josie Sandfeld,Keep On Running,abstention_sans_apercu,False,,,,,,,,,,,,,,
+I001,2,Against All Ødds,Save Me,abstention_aucun_landmark_qualifie,False,,,,,,,,,,,,,,
+I001,3,Elite Electronic,Shadows,abstention_sans_apercu,False,,,,,,,,,,,,,,
+I001,4,Phillip Castle & Aldor,Embrace The Night,abstention_plusieurs_positions_pour_meme_candidat,False,I001-C04-R1,1,74.752,74.752,75.01,101.1,75.01,101.1,14.367,22,34,1.06,score_interne_landmarks_pas_probabilite,True
+I001,4,Phillip Castle & Aldor,Embrace The Night,abstention_plusieurs_positions_pour_meme_candidat,False,I001-C04-R2,2,37.888,37.888,38.39,58.62,38.39,58.62,13.283,25,42,1.0,score_interne_landmarks_pas_probabilite,True
+I001,4,Phillip Castle & Aldor,Embrace The Night,abstention_plusieurs_positions_pour_meme_candidat,False,I001-C04-R3,3,88.064,88.064,91.99,115.46,91.99,115.46,11.417,18,33,1.06,score_interne_landmarks_pas_probabilite,True
+I001,5,Freak E Beatz & JASSKALL,No Escape,abstention_candidats_concurrents_contradictoires,False,I001-C05-R1,1,31.744,31.744,33.29,56.22,33.29,56.22,16.317,30,51,1.03,score_interne_landmarks_pas_probabilite,True
+I001,5,Freak E Beatz & JASSKALL,No Escape,abstention_position_secondaire,False,I001-C05-R2,2,41.984,41.984,46.96,69.94,46.96,69.94,13.667,21,32,0.97,score_interne_landmarks_pas_probabilite,True
+I001,6,Adriatique,Palm Of Your Hands,abstention_sans_apercu,False,,,,,,,,,,,,,,
+I001,7,Vassmo,Stay,abstention_sans_apercu,False,,,,,,,,,,,,,,
+I001,8,Cubicore,Black Light,abstention_candidats_concurrents_contradictoires,False,I001-C08-R1,1,80.896,80.896,81.55,109.06,81.55,109.06,13.25,21,37,1.0,score_interne_landmarks_pas_probabilite,True
+I001,8,Cubicore,Black Light,abstention_position_secondaire,False,I001-C08-R2,2,34.816,34.816,36.08,62.94,36.08,62.94,10.783,25,27,1.0,score_interne_landmarks_pas_probabilite,True
+I001,9,Benny Benassi & Hypaton feat. Sandy Chambers,Illusion,abstention_aucun_landmark_qualifie,False,,,,,,,,,,,,,,
+I001,10,"Mike Williams, Three Drives, ANTICALM",Greece 2000,abstention_sans_apercu,False,,,,,,,,,,,,,,
+I001,11,"Genix, Dosem",Transit Point (Genix Mix),abstention_aucun_landmark_qualifie,False,,,,,,,,,,,,,,
+I001,12,Spoiled and Zigo,More & More (BLR Remix),abstention_sans_apercu,False,,,,,,,,,,,,,,
+I001,13,"Ashley Wallbridge, The Paper Outlet",Forever Young,abstention_aucun_landmark_qualifie,False,,,,,,,,,,,,,,
+I001,14,Markus Schulz,Second Tomorrow,abstention_aucun_landmark_qualifie,False,,,,,,,,,,,,,,
+I001,15,Victor Ruiz & KURA,FSU,abstention_sans_apercu,False,,,,,,,,,,,,,,
+I001,16,MAXTAGE & Fathom (EG),The Right Place (RAYEL Remix),abstention_candidats_concurrents_contradictoires,False,I001-C16-R1,1,34.816,34.816,36.18,64.0,36.18,64.0,15.117,28,56,1.0,score_interne_landmarks_pas_probabilite,True
+I001,16,MAXTAGE & Fathom (EG),The Right Place (RAYEL Remix),abstention_position_secondaire,False,I001-C16-R2,2,43.008,43.008,42.74,66.82,42.74,66.82,13.367,22,50,1.0,score_interne_landmarks_pas_probabilite,True
+I001,17,Andrew Rayel pres. EXTASIA,Dreaming (Giuseppe Ottaviani Remix),abstention_sans_apercu,False,,,,,,,,,,,,,,
+I001,18,MIDI Kitty and Derek Ryan,Miles Away,abstention_sans_apercu,False,,,,,,,,,,,,,,
+I001,19,Paul Denton & EKE,Next To Me (Club Mix),abstention_sans_apercu,False,,,,,,,,,,,,,,
+I001,20,RAM & Susana pres. Tales Of Life,The Power of Love (Alex M.O.R.P.H. Remix),abstention_sans_apercu,False,,,,,,,,,,,,,,
+I001,21,Giuseppe Ottaviani & Ilan Bluestone,Together Again,abstention_candidats_concurrents_contradictoires,False,I001-C21-R1,1,39.936,39.936,42.24,66.82,42.24,66.82,33.66,61,122,0.97,score_interne_landmarks_pas_probabilite,True
+I001,21,Giuseppe Ottaviani & Ilan Bluestone,Together Again,abstention_position_secondaire,False,I001-C21-R2,2,26.624,26.624,35.77,56.32,35.77,56.32,25.652,45,115,0.97,score_interne_landmarks_pas_probabilite,True
+I001,21,Giuseppe Ottaviani & Ilan Bluestone,Together Again,abstention_position_secondaire,False,I001-C21-R3,3,51.2,51.2,51.2,66.3,51.2,66.3,20.867,37,65,0.94,score_interne_landmarks_pas_probabilite,True
+I001,21,Giuseppe Ottaviani & Ilan Bluestone,Together Again,abstention_position_secondaire,False,I001-C21-R4,4,79.872,79.872,81.66,109.06,81.66,109.06,17.75,28,58,1.0,score_interne_landmarks_pas_probabilite,True
+I001,21,Giuseppe Ottaviani & Ilan Bluestone,Together Again,abstention_position_secondaire,False,I001-C21-R5,5,89.088,89.088,91.82,113.28,91.82,113.28,17.033,30,81,1.0,score_interne_landmarks_pas_probabilite,True
+I001,21,Giuseppe Ottaviani & Ilan Bluestone,Together Again,abstention_position_secondaire,False,I001-C21-R6,6,20.48,20.48,37.79,47.87,37.79,47.87,11.417,19,44,1.06,score_interne_landmarks_pas_probabilite,True
+I001,21,Giuseppe Ottaviani & Ilan Bluestone,Together Again,abstention_position_secondaire,False,I001-C21-R7,7,32.768,32.768,38.14,57.25,38.14,57.25,10.626,20,52,1.03,score_interne_landmarks_pas_probabilite,True
+I001,22,"Aly & Fila, Susie Ledge, Roman Messer, Anton Pallmer",Carry Me Away,abstention_sans_apercu,False,,,,,,,,,,,,,,
+I001,23,John Askew,Through The Looking Glass (Nikolauss Remix),abstention_candidats_concurrents_contradictoires,False,I001-C23-R1,1,23.552,23.552,37.23,54.27,37.23,54.27,33.083,61,94,0.94,score_interne_landmarks_pas_probabilite,True
+I001,23,John Askew,Through The Looking Glass (Nikolauss Remix),abstention_position_secondaire,False,I001-C23-R2,2,30.72,30.72,37.63,58.62,37.63,58.62,32.321,63,140,1.03,score_interne_landmarks_pas_probabilite,True
+I001,23,John Askew,Through The Looking Glass (Nikolauss Remix),abstention_position_secondaire,False,I001-C23-R3,3,39.936,39.936,48.13,67.58,48.13,67.58,25.26,50,88,0.97,score_interne_landmarks_pas_probabilite,True
+I001,24,Andrew Rayel,Acid On The Train (David Forbes Remix),abstention_candidats_concurrents_contradictoires,False,I001-C24-R1,1,101.376,101.376,103.79,118.57,103.79,118.57,17.667,21,54,1.06,score_interne_landmarks_pas_probabilite,True
+I001,24,Andrew Rayel,Acid On The Train (David Forbes Remix),abstention_position_secondaire,False,I001-C24-R2,2,29.696,29.696,38.22,58.62,38.22,58.62,11.96,23,53,1.0,score_interne_landmarks_pas_probabilite,True
+I001,24,Andrew Rayel,Acid On The Train (David Forbes Remix),abstention_position_secondaire,False,I001-C24-R3,3,22.016,22.016,22.43,50.94,22.43,50.94,11.567,23,65,1.0,score_interne_landmarks_pas_probabilite,True
+I001,25,Armin van Buuren feat. Sharon Den Adel,In And Out Of Love (Ben Hemsley Remix),abstention_aucun_landmark_qualifie,False,,,,,,,,,,,,,,
+I001,26,Xincher & Rav3ver,Echo,abstention_candidats_concurrents_contradictoires,False,I001-C26-R1,1,70.656,70.656,76.27,96.0,76.27,96.0,12.017,23,39,1.0,score_interne_landmarks_pas_probabilite,True
+I001,27,RAM & Richard Durand presents Digital Culture,La La La,abstention_sans_apercu,False,,,,,,,,,,,,,,
+I001,28,Matt Bukovski & CJ Stone,Stars,abstention_candidats_concurrents_contradictoires,False,I001-C28-R1,1,26.624,26.624,32.22,56.32,32.22,56.32,21.367,36,70,0.94,score_interne_landmarks_pas_probabilite,True
+I001,28,Matt Bukovski & CJ Stone,Stars,abstention_position_secondaire,False,I001-C28-R2,2,44.032,44.032,45.52,66.82,45.52,66.82,16.893,32,49,0.94,score_interne_landmarks_pas_probabilite,True
+I001,28,Matt Bukovski & CJ Stone,Stars,abstention_position_secondaire,False,I001-C28-R3,3,60.416,60.416,65.32,88.83,65.32,88.83,15.083,26,53,1.0,score_interne_landmarks_pas_probabilite,True
+I001,28,Matt Bukovski & CJ Stone,Stars,abstention_position_secondaire,False,I001-C28-R4,4,36.864,36.864,37.71,66.82,37.71,66.82,14.993,28,72,0.94,score_interne_landmarks_pas_probabilite,True
+I001,28,Matt Bukovski & CJ Stone,Stars,abstention_position_secondaire,False,I001-C28-R5,5,50.176,50.176,50.18,67.06,50.18,67.06,14.21,27,51,0.94,score_interne_landmarks_pas_probabilite,True
+I001,28,Matt Bukovski & CJ Stone,Stars,abstention_position_secondaire,False,I001-C28-R6,6,90.112,90.112,93.91,118.78,93.91,118.78,13.667,23,40,1.0,score_interne_landmarks_pas_probabilite,True
+I001,28,Matt Bukovski & CJ Stone,Stars,abstention_position_secondaire,False,I001-C28-R7,7,76.8,76.8,76.8,104.45,76.8,104.45,10.45,22,47,1.0,score_interne_landmarks_pas_probabilite,True
+I001,29,"LAWTON, Trancemaster Krause & Caroline Roxy",Believe In,abstention_sans_apercu,False,,,,,,,,,,,,,,
+I001,30,"Olly James, Panteros666 & Evil Twiin",Berlin '99,abstention_candidats_concurrents_contradictoires,False,I001-C30-R1,1,92.16,92.16,100.29,119.41,100.29,119.41,22.667,25,37,1.0,score_interne_landmarks_pas_probabilite,True
+I001,30,"Olly James, Panteros666 & Evil Twiin",Berlin '99,abstention_position_secondaire,False,I001-C30-R2,2,32.768,32.768,37.78,57.89,37.78,57.89,17.25,27,60,1.03,score_interne_landmarks_pas_probabilite,True
+I001,30,"Olly James, Panteros666 & Evil Twiin",Berlin '99,abstention_position_secondaire,False,I001-C30-R3,3,22.528,22.528,35.07,51.72,35.07,51.72,13.583,23,42,1.03,score_interne_landmarks_pas_probabilite,True
+I001,31,Maurya Sevak & Jake Ryan,Sata Sata,abstention_aucun_landmark_qualifie,False,,,,,,,,,,,,,,
+I001,32,Ferry Corsten,Sweet Sorrow (The Thrillseekers Remix 2004),abstention_sans_apercu,False,,,,,,,,,,,,,,
+I002,1,Mhammed El Alami & Josie Sandfeld,Keep On Running,abstention_sans_apercu,False,,,,,,,,,,,,,,
+I002,2,Against All Ødds,Save Me,presence_assistee_acceptee,False,I002-C02-R1,1,218.112,338.112,223.74,246.02,343.74,366.02,52.464,178,237,1.0,score_interne_landmarks_pas_probabilite,True
+I002,2,Against All Ødds,Save Me,abstention_position_secondaire,False,I002-C02-R2,2,226.816,346.816,234.44,253.22,354.44,373.22,14.562,54,116,1.0,score_interne_landmarks_pas_probabilite,True
+I002,2,Against All Ødds,Save Me,abstention_position_secondaire,False,I002-C02-R3,3,246.784,366.784,253.44,266.5,373.44,386.5,12.497,51,104,1.0,score_interne_landmarks_pas_probabilite,True
+I002,2,Against All Ødds,Save Me,abstention_position_secondaire,False,I002-C02-R4,4,239.104,359.104,250.37,265.34,370.37,385.34,11.825,56,109,1.0,score_interne_landmarks_pas_probabilite,True
+I002,3,Elite Electronic,Shadows,abstention_sans_apercu,False,,,,,,,,,,,,,,
+I002,4,Phillip Castle & Aldor,Embrace The Night,presence_assistee_acceptee,False,I002-C04-R1,1,772.608,892.608,774.66,800.26,894.66,920.26,25.096,88,178,1.0,score_interne_landmarks_pas_probabilite,True
+I002,5,Freak E Beatz & JASSKALL,No Escape,presence_assistee_acceptee,False,I002-C05-R1,1,940.032,1060.032,941.57,967.94,1061.57,1087.94,33.75,103,117,1.0,score_interne_landmarks_pas_probabilite,True
+I002,6,Adriatique,Palm Of Your Hands,abstention_sans_apercu,False,,,,,,,,,,,,,,
+I002,7,Vassmo,Stay,abstention_sans_apercu,False,,,,,,,,,,,,,,
+I002,8,Cubicore,Black Light,presence_assistee_acceptee,False,I002-C08-R1,1,1531.392,1651.392,1534.98,1558.78,1654.98,1678.78,11.951,55,62,1.0,score_interne_landmarks_pas_probabilite,True
+I002,9,Benny Benassi & Hypaton feat. Sandy Chambers,Illusion,presence_assistee_acceptee,False,I002-C09-R1,1,1711.104,1831.104,1713.15,1735.1,1833.15,1855.1,121.152,251,263,1.0,score_interne_landmarks_pas_probabilite,True
+I002,9,Benny Benassi & Hypaton feat. Sandy Chambers,Illusion,abstention_position_secondaire,False,I002-C09-R2,2,1801.216,1921.216,1803.01,1826.82,1923.01,1946.82,21.227,78,87,1.0,score_interne_landmarks_pas_probabilite,True
+I002,10,"Mike Williams, Three Drives, ANTICALM",Greece 2000,abstention_sans_apercu,False,,,,,,,,,,,,,,
+I002,11,"Genix, Dosem",Transit Point (Genix Mix),presence_assistee_acceptee,False,I002-C11-R1,1,2033.152,2153.152,2039.55,2061.57,2159.55,2181.57,69.412,219,274,1.0,score_interne_landmarks_pas_probabilite,True
+I002,11,"Genix, Dosem",Transit Point (Genix Mix),abstention_position_secondaire,False,I002-C11-R2,2,2042.88,2162.88,2049.42,2071.55,2169.42,2191.55,60.082,209,243,1.0,score_interne_landmarks_pas_probabilite,True
+I002,11,"Genix, Dosem",Transit Point (Genix Mix),abstention_position_secondaire,False,I002-C11-R3,3,2024.96,2144.96,2032.99,2053.38,2152.99,2173.38,33.007,113,140,1.0,score_interne_landmarks_pas_probabilite,True
+I002,11,"Genix, Dosem",Transit Point (Genix Mix),abstention_position_secondaire,False,I002-C11-R4,4,2051.072,2171.072,2056.46,2075.14,2176.46,2195.14,22.207,100,134,1.0,score_interne_landmarks_pas_probabilite,True
+I002,12,Spoiled and Zigo,More & More (BLR Remix),abstention_sans_apercu,False,,,,,,,,,,,,,,
+I002,13,"Ashley Wallbridge, The Paper Outlet",Forever Young,abstention_aucun_landmark_qualifie,False,,,,,,,,,,,,,,
+I002,14,Markus Schulz,Second Tomorrow,abstention_aucun_landmark_qualifie,False,,,,,,,,,,,,,,
+I002,15,Victor Ruiz & KURA,FSU,abstention_sans_apercu,False,,,,,,,,,,,,,,
+I002,16,MAXTAGE & Fathom (EG),The Right Place (RAYEL Remix),abstention_aucun_landmark_qualifie,False,,,,,,,,,,,,,,
+I002,17,Andrew Rayel pres. EXTASIA,Dreaming (Giuseppe Ottaviani Remix),abstention_sans_apercu,False,,,,,,,,,,,,,,
+I002,18,MIDI Kitty and Derek Ryan,Miles Away,abstention_sans_apercu,False,,,,,,,,,,,,,,
+I002,19,Paul Denton & EKE,Next To Me (Club Mix),abstention_sans_apercu,False,,,,,,,,,,,,,,
+I002,20,RAM & Susana pres. Tales Of Life,The Power of Love (Alex M.O.R.P.H. Remix),abstention_sans_apercu,False,,,,,,,,,,,,,,
+I002,21,Giuseppe Ottaviani & Ilan Bluestone,Together Again,abstention_aucun_landmark_qualifie,False,,,,,,,,,,,,,,
+I002,22,"Aly & Fila, Susie Ledge, Roman Messer, Anton Pallmer",Carry Me Away,abstention_sans_apercu,False,,,,,,,,,,,,,,
+I002,23,John Askew,Through The Looking Glass (Nikolauss Remix),abstention_aucun_landmark_qualifie,False,,,,,,,,,,,,,,
+I002,24,Andrew Rayel,Acid On The Train (David Forbes Remix),abstention_aucun_landmark_qualifie,False,,,,,,,,,,,,,,
+I002,25,Armin van Buuren feat. Sharon Den Adel,In And Out Of Love (Ben Hemsley Remix),abstention_aucun_landmark_qualifie,False,,,,,,,,,,,,,,
+I002,26,Xincher & Rav3ver,Echo,abstention_aucun_landmark_qualifie,False,,,,,,,,,,,,,,
+I002,27,RAM & Richard Durand presents Digital Culture,La La La,abstention_sans_apercu,False,,,,,,,,,,,,,,
+I002,28,Matt Bukovski & CJ Stone,Stars,abstention_aucun_landmark_qualifie,False,,,,,,,,,,,,,,
+I002,29,"LAWTON, Trancemaster Krause & Caroline Roxy",Believe In,abstention_sans_apercu,False,,,,,,,,,,,,,,
+I002,30,"Olly James, Panteros666 & Evil Twiin",Berlin '99,abstention_aucun_landmark_qualifie,False,,,,,,,,,,,,,,
+I002,31,Maurya Sevak & Jake Ryan,Sata Sata,abstention_aucun_landmark_qualifie,False,,,,,,,,,,,,,,
+I002,32,Ferry Corsten,Sweet Sorrow (The Thrillseekers Remix 2004),abstention_sans_apercu,False,,,,,,,,,,,,,,
+I003,1,Mhammed El Alami & Josie Sandfeld,Keep On Running,abstention_sans_apercu,False,,,,,,,,,,,,,,
+I003,2,Against All Ødds,Save Me,abstention_aucun_landmark_qualifie,False,,,,,,,,,,,,,,
+I003,3,Elite Electronic,Shadows,abstention_sans_apercu,False,,,,,,,,,,,,,,
+I003,4,Phillip Castle & Aldor,Embrace The Night,abstention_aucun_landmark_qualifie,False,,,,,,,,,,,,,,
+I003,5,Freak E Beatz & JASSKALL,No Escape,abstention_aucun_landmark_qualifie,False,,,,,,,,,,,,,,
+I003,6,Adriatique,Palm Of Your Hands,abstention_sans_apercu,False,,,,,,,,,,,,,,
+I003,7,Vassmo,Stay,abstention_sans_apercu,False,,,,,,,,,,,,,,
+I003,8,Cubicore,Black Light,abstention_aucun_landmark_qualifie,False,,,,,,,,,,,,,,
+I003,9,Benny Benassi & Hypaton feat. Sandy Chambers,Illusion,abstention_aucun_landmark_qualifie,False,,,,,,,,,,,,,,
+I003,10,"Mike Williams, Three Drives, ANTICALM",Greece 2000,abstention_sans_apercu,False,,,,,,,,,,,,,,
+I003,11,"Genix, Dosem",Transit Point (Genix Mix),abstention_aucun_landmark_qualifie,False,,,,,,,,,,,,,,
+I003,12,Spoiled and Zigo,More & More (BLR Remix),abstention_sans_apercu,False,,,,,,,,,,,,,,
+I003,13,"Ashley Wallbridge, The Paper Outlet",Forever Young,presence_assistee_acceptee,False,I003-C13-R1,1,338.432,2704.112,339.46,366.34,2705.14,2732.02,65.508,160,212,1.0,score_interne_landmarks_pas_probabilite,True
+I003,14,Markus Schulz,Second Tomorrow,presence_assistee_acceptee,False,I003-C14-R1,1,654.336,3020.016,657.41,682.5,3023.09,3048.18,23.743,120,139,1.0,score_interne_landmarks_pas_probabilite,True
+I003,15,Victor Ruiz & KURA,FSU,abstention_sans_apercu,False,,,,,,,,,,,,,,
+I003,16,MAXTAGE & Fathom (EG),The Right Place (RAYEL Remix),presence_assistee_acceptee,False,I003-C16-R1,1,1092.608,3458.288,1094.6,1117.95,3460.28,3483.63,47.822,99,107,1.0,score_interne_landmarks_pas_probabilite,True
+I003,17,Andrew Rayel pres. EXTASIA,Dreaming (Giuseppe Ottaviani Remix),abstention_sans_apercu,False,,,,,,,,,,,,,,
+I003,18,MIDI Kitty and Derek Ryan,Miles Away,abstention_sans_apercu,False,,,,,,,,,,,,,,
+I003,19,Paul Denton & EKE,Next To Me (Club Mix),abstention_sans_apercu,False,,,,,,,,,,,,,,
+I003,20,RAM & Susana pres. Tales Of Life,The Power of Love (Alex M.O.R.P.H. Remix),abstention_sans_apercu,False,,,,,,,,,,,,,,
+I003,21,Giuseppe Ottaviani & Ilan Bluestone,Together Again,abstention_aucun_landmark_qualifie,False,,,,,,,,,,,,,,
+I003,22,"Aly & Fila, Susie Ledge, Roman Messer, Anton Pallmer",Carry Me Away,abstention_sans_apercu,False,,,,,,,,,,,,,,
+I003,23,John Askew,Through The Looking Glass (Nikolauss Remix),abstention_aucun_landmark_qualifie,False,,,,,,,,,,,,,,
+I003,24,Andrew Rayel,Acid On The Train (David Forbes Remix),abstention_aucun_landmark_qualifie,False,,,,,,,,,,,,,,
+I003,25,Armin van Buuren feat. Sharon Den Adel,In And Out Of Love (Ben Hemsley Remix),abstention_aucun_landmark_qualifie,False,,,,,,,,,,,,,,
+I003,26,Xincher & Rav3ver,Echo,abstention_aucun_landmark_qualifie,False,,,,,,,,,,,,,,
+I003,27,RAM & Richard Durand presents Digital Culture,La La La,abstention_sans_apercu,False,,,,,,,,,,,,,,
+I003,28,Matt Bukovski & CJ Stone,Stars,abstention_aucun_landmark_qualifie,False,,,,,,,,,,,,,,
+I003,29,"LAWTON, Trancemaster Krause & Caroline Roxy",Believe In,abstention_sans_apercu,False,,,,,,,,,,,,,,
+I003,30,"Olly James, Panteros666 & Evil Twiin",Berlin '99,abstention_aucun_landmark_qualifie,False,,,,,,,,,,,,,,
+I003,31,Maurya Sevak & Jake Ryan,Sata Sata,abstention_aucun_landmark_qualifie,False,,,,,,,,,,,,,,
+I003,32,Ferry Corsten,Sweet Sorrow (The Thrillseekers Remix 2004),abstention_sans_apercu,False,,,,,,,,,,,,,,
+I004,1,Mhammed El Alami & Josie Sandfeld,Keep On Running,abstention_sans_apercu,False,,,,,,,,,,,,,,
+I004,2,Against All Ødds,Save Me,abstention_aucun_landmark_qualifie,False,,,,,,,,,,,,,,
+I004,3,Elite Electronic,Shadows,abstention_sans_apercu,False,,,,,,,,,,,,,,
+I004,4,Phillip Castle & Aldor,Embrace The Night,abstention_aucun_landmark_qualifie,False,,,,,,,,,,,,,,
+I004,5,Freak E Beatz & JASSKALL,No Escape,abstention_aucun_landmark_qualifie,False,,,,,,,,,,,,,,
+I004,6,Adriatique,Palm Of Your Hands,abstention_sans_apercu,False,,,,,,,,,,,,,,
+I004,7,Vassmo,Stay,abstention_sans_apercu,False,,,,,,,,,,,,,,
+I004,8,Cubicore,Black Light,abstention_aucun_landmark_qualifie,False,,,,,,,,,,,,,,
+I004,9,Benny Benassi & Hypaton feat. Sandy Chambers,Illusion,abstention_aucun_landmark_qualifie,False,,,,,,,,,,,,,,
+I004,10,"Mike Williams, Three Drives, ANTICALM",Greece 2000,abstention_sans_apercu,False,,,,,,,,,,,,,,
+I004,11,"Genix, Dosem",Transit Point (Genix Mix),abstention_aucun_landmark_qualifie,False,,,,,,,,,,,,,,
+I004,12,Spoiled and Zigo,More & More (BLR Remix),abstention_sans_apercu,False,,,,,,,,,,,,,,
+I004,13,"Ashley Wallbridge, The Paper Outlet",Forever Young,abstention_aucun_landmark_qualifie,False,,,,,,,,,,,,,,
+I004,14,Markus Schulz,Second Tomorrow,abstention_aucun_landmark_qualifie,False,,,,,,,,,,,,,,
+I004,15,Victor Ruiz & KURA,FSU,abstention_sans_apercu,False,,,,,,,,,,,,,,
+I004,16,MAXTAGE & Fathom (EG),The Right Place (RAYEL Remix),abstention_aucun_landmark_qualifie,False,,,,,,,,,,,,,,
+I004,17,Andrew Rayel pres. EXTASIA,Dreaming (Giuseppe Ottaviani Remix),abstention_sans_apercu,False,,,,,,,,,,,,,,
+I004,18,MIDI Kitty and Derek Ryan,Miles Away,abstention_sans_apercu,False,,,,,,,,,,,,,,
+I004,19,Paul Denton & EKE,Next To Me (Club Mix),abstention_sans_apercu,False,,,,,,,,,,,,,,
+I004,20,RAM & Susana pres. Tales Of Life,The Power of Love (Alex M.O.R.P.H. Remix),abstention_sans_apercu,False,,,,,,,,,,,,,,
+I004,21,Giuseppe Ottaviani & Ilan Bluestone,Together Again,abstention_ordre_global_contradictoire,False,I004-C21-R1,1,1594.368,6943.748,1609.26,1623.2,6958.64,6972.58,11.596,33,52,0.97,score_interne_landmarks_pas_probabilite,True
+I004,22,"Aly & Fila, Susie Ledge, Roman Messer, Anton Pallmer",Carry Me Away,abstention_sans_apercu,False,,,,,,,,,,,,,,
+I004,23,John Askew,Through The Looking Glass (Nikolauss Remix),abstention_aucun_landmark_qualifie,False,,,,,,,,,,,,,,
+I004,24,Andrew Rayel,Acid On The Train (David Forbes Remix),presence_assistee_acceptee,False,I004-C24-R1,1,98.304,5447.684,98.56,126.21,5447.94,5475.59,26.607,108,127,1.0,score_interne_landmarks_pas_probabilite,True
+I004,24,Andrew Rayel,Acid On The Train (David Forbes Remix),abstention_position_secondaire,False,I004-C24-R2,2,111.616,5460.996,112.9,139.78,5462.28,5489.16,11.929,63,84,1.0,score_interne_landmarks_pas_probabilite,True
+I004,24,Andrew Rayel,Acid On The Train (David Forbes Remix),abstention_position_secondaire,False,I004-C24-R3,3,84.992,5434.372,89.7,113.92,5439.08,5463.3,11.268,57,87,1.0,score_interne_landmarks_pas_probabilite,True
+I004,25,Armin van Buuren feat. Sharon Den Adel,In And Out Of Love (Ben Hemsley Remix),presence_assistee_acceptee,False,I004-C25-R1,1,345.088,5694.468,348.16,374.53,5697.54,5723.91,99.304,236,252,1.0,score_interne_landmarks_pas_probabilite,True
+I004,25,Armin van Buuren feat. Sharon Den Adel,In And Out Of Love (Ben Hemsley Remix),abstention_position_secondaire,False,I004-C25-R2,2,358.4,5707.78,360.96,369.15,5710.34,5718.53,22.844,54,56,1.0,score_interne_landmarks_pas_probabilite,True
+I004,25,Armin van Buuren feat. Sharon Den Adel,In And Out Of Love (Ben Hemsley Remix),abstention_position_secondaire,False,I004-C25-R3,3,425.984,5775.364,430.22,449.79,5779.6,5799.17,14.6,42,59,1.0,score_interne_landmarks_pas_probabilite,True
+I004,25,Armin van Buuren feat. Sharon Den Adel,In And Out Of Love (Ben Hemsley Remix),abstention_position_secondaire,False,I004-C25-R4,4,439.296,5788.676,441.6,460.5,5790.98,5809.88,11.918,32,34,1.0,score_interne_landmarks_pas_probabilite,True
+I004,26,Xincher & Rav3ver,Echo,abstention_aucun_landmark_qualifie,False,,,,,,,,,,,,,,
+I004,27,RAM & Richard Durand presents Digital Culture,La La La,abstention_sans_apercu,False,,,,,,,,,,,,,,
+I004,28,Matt Bukovski & CJ Stone,Stars,abstention_aucun_landmark_qualifie,False,,,,,,,,,,,,,,
+I004,29,"LAWTON, Trancemaster Krause & Caroline Roxy",Believe In,abstention_sans_apercu,False,,,,,,,,,,,,,,
+I004,30,"Olly James, Panteros666 & Evil Twiin",Berlin '99,presence_assistee_acceptee,False,I004-C30-R1,1,1239.04,6588.42,1241.34,1267.2,6590.72,6616.58,39.332,135,146,1.0,score_interne_landmarks_pas_probabilite,True
+I004,31,Maurya Sevak & Jake Ryan,Sata Sata,presence_assistee_acceptee,False,I004-C31-R1,1,1474.048,6823.428,1480.7,1501.95,6830.08,6851.33,252.95,514,535,1.0,score_interne_landmarks_pas_probabilite,True
+I004,32,Ferry Corsten,Sweet Sorrow (The Thrillseekers Remix 2004),abstention_sans_apercu,False,,,,,,,,,,,,,,
+I005,1,Mhammed El Alami & Josie Sandfeld,Keep On Running,abstention_sans_apercu,False,,,,,,,,,,,,,,
+I005,2,Against All Ødds,Save Me,abstention_aucun_landmark_qualifie,False,,,,,,,,,,,,,,
+I005,3,Elite Electronic,Shadows,abstention_sans_apercu,False,,,,,,,,,,,,,,
+I005,4,Phillip Castle & Aldor,Embrace The Night,abstention_aucun_landmark_qualifie,False,,,,,,,,,,,,,,
+I005,5,Freak E Beatz & JASSKALL,No Escape,abstention_candidats_concurrents_contradictoires,False,I005-C05-R1,1,159.744,7135.464,163.26,185.86,7138.98,7161.58,13.695,27,46,1.0,score_interne_landmarks_pas_probabilite,True
+I005,6,Adriatique,Palm Of Your Hands,abstention_sans_apercu,False,,,,,,,,,,,,,,
+I005,7,Vassmo,Stay,abstention_sans_apercu,False,,,,,,,,,,,,,,
+I005,8,Cubicore,Black Light,abstention_aucun_landmark_qualifie,False,,,,,,,,,,,,,,
+I005,9,Benny Benassi & Hypaton feat. Sandy Chambers,Illusion,abstention_aucun_landmark_qualifie,False,,,,,,,,,,,,,,
+I005,10,"Mike Williams, Three Drives, ANTICALM",Greece 2000,abstention_sans_apercu,False,,,,,,,,,,,,,,
+I005,11,"Genix, Dosem",Transit Point (Genix Mix),abstention_aucun_landmark_qualifie,False,,,,,,,,,,,,,,
+I005,12,Spoiled and Zigo,More & More (BLR Remix),abstention_sans_apercu,False,,,,,,,,,,,,,,
+I005,13,"Ashley Wallbridge, The Paper Outlet",Forever Young,abstention_aucun_landmark_qualifie,False,,,,,,,,,,,,,,
+I005,14,Markus Schulz,Second Tomorrow,abstention_aucun_landmark_qualifie,False,,,,,,,,,,,,,,
+I005,15,Victor Ruiz & KURA,FSU,abstention_sans_apercu,False,,,,,,,,,,,,,,
+I005,16,MAXTAGE & Fathom (EG),The Right Place (RAYEL Remix),presence_assistee_acceptee,False,I005-C16-R1,1,205.824,7181.544,206.59,233.73,7182.31,7209.45,10.295,30,59,1.0,score_interne_landmarks_pas_probabilite,True
+I005,17,Andrew Rayel pres. EXTASIA,Dreaming (Giuseppe Ottaviani Remix),abstention_sans_apercu,False,,,,,,,,,,,,,,
+I005,18,MIDI Kitty and Derek Ryan,Miles Away,abstention_sans_apercu,False,,,,,,,,,,,,,,
+I005,19,Paul Denton & EKE,Next To Me (Club Mix),abstention_sans_apercu,False,,,,,,,,,,,,,,
+I005,20,RAM & Susana pres. Tales Of Life,The Power of Love (Alex M.O.R.P.H. Remix),abstention_sans_apercu,False,,,,,,,,,,,,,,
+I005,21,Giuseppe Ottaviani & Ilan Bluestone,Together Again,abstention_candidats_concurrents_contradictoires,False,I005-C21-R1,1,119.808,7095.528,122.37,147.71,7098.09,7123.43,22.721,62,95,0.97,score_interne_landmarks_pas_probabilite,True
+I005,21,Giuseppe Ottaviani & Ilan Bluestone,Together Again,abstention_position_secondaire,False,I005-C21-R2,2,131.072,7106.792,131.62,158.21,7107.34,7133.93,15.629,44,103,0.97,score_interne_landmarks_pas_probabilite,True
+I005,21,Giuseppe Ottaviani & Ilan Bluestone,Together Again,abstention_position_secondaire,False,I005-C21-R3,3,108.544,7084.264,111.87,139.26,7087.59,7114.98,14.781,39,77,0.94,score_interne_landmarks_pas_probabilite,True
+I005,21,Giuseppe Ottaviani & Ilan Bluestone,Together Again,abstention_position_secondaire,False,I005-C21-R4,4,168.96,7144.68,178.51,198.66,7154.23,7174.38,14.204,38,69,0.94,score_interne_landmarks_pas_probabilite,True
+I005,21,Giuseppe Ottaviani & Ilan Bluestone,Together Again,abstention_position_secondaire,False,I005-C21-R5,5,200.704,7176.424,203.26,231.42,7178.98,7207.14,13.037,35,51,0.94,score_interne_landmarks_pas_probabilite,True
+I005,22,"Aly & Fila, Susie Ledge, Roman Messer, Anton Pallmer",Carry Me Away,abstention_sans_apercu,False,,,,,,,,,,,,,,
+I005,23,John Askew,Through The Looking Glass (Nikolauss Remix),abstention_candidats_concurrents_contradictoires,False,I005-C23-R1,1,128.0,7103.72,136.4,157.44,7112.12,7133.16,24.08,72,131,0.97,score_interne_landmarks_pas_probabilite,True
+I005,23,John Askew,Through The Looking Glass (Nikolauss Remix),abstention_position_secondaire,False,I005-C23-R2,2,115.712,7091.432,126.02,145.66,7101.74,7121.38,19.929,49,101,0.97,score_interne_landmarks_pas_probabilite,True
+I005,23,John Askew,Through The Looking Glass (Nikolauss Remix),abstention_position_secondaire,False,I005-C23-R3,3,184.32,7160.04,190.47,215.81,7166.19,7191.53,19.46,50,84,0.94,score_interne_landmarks_pas_probabilite,True
+I005,23,John Askew,Through The Looking Glass (Nikolauss Remix),abstention_position_secondaire,False,I005-C23-R4,4,121.856,7097.576,129.02,147.71,7104.74,7123.43,19.234,59,110,1.06,score_interne_landmarks_pas_probabilite,True
+I005,23,John Askew,Through The Looking Glass (Nikolauss Remix),abstention_position_secondaire,False,I005-C23-R5,5,109.568,7085.288,118.53,140.74,7094.25,7116.46,17.987,50,119,0.94,score_interne_landmarks_pas_probabilite,True
+I005,23,John Askew,Through The Looking Glass (Nikolauss Remix),abstention_position_secondaire,False,I005-C23-R6,6,165.888,7141.608,176.4,195.82,7152.12,7171.54,15.218,47,101,0.97,score_interne_landmarks_pas_probabilite,True
+I005,23,John Askew,Through The Looking Glass (Nikolauss Remix),abstention_position_secondaire,False,I005-C23-R7,7,158.72,7134.44,167.8,189.44,7143.52,7165.16,14.119,33,62,0.94,score_interne_landmarks_pas_probabilite,True
+I005,24,Andrew Rayel,Acid On The Train (David Forbes Remix),abstention_candidats_concurrents_contradictoires,False,I005-C24-R1,1,122.88,7098.6,126.0,147.71,7101.72,7123.43,10.999,36,70,1.0,score_interne_landmarks_pas_probabilite,True
+I005,25,Armin van Buuren feat. Sharon Den Adel,In And Out Of Love (Ben Hemsley Remix),abstention_aucun_landmark_qualifie,False,,,,,,,,,,,,,,
+I005,26,Xincher & Rav3ver,Echo,abstention_aucun_landmark_qualifie,False,,,,,,,,,,,,,,
+I005,27,RAM & Richard Durand presents Digital Culture,La La La,abstention_sans_apercu,False,,,,,,,,,,,,,,
+I005,28,Matt Bukovski & CJ Stone,Stars,abstention_candidats_concurrents_contradictoires,False,I005-C28-R1,1,129.024,7104.744,129.18,158.21,7104.9,7133.93,13.519,35,77,0.94,score_interne_landmarks_pas_probabilite,True
+I005,28,Matt Bukovski & CJ Stone,Stars,abstention_position_secondaire,False,I005-C28-R2,2,137.216,7112.936,137.99,166.91,7113.71,7142.63,12.063,37,59,0.94,score_interne_landmarks_pas_probabilite,True
+I005,29,"LAWTON, Trancemaster Krause & Caroline Roxy",Believe In,abstention_sans_apercu,False,,,,,,,,,,,,,,
+I005,30,"Olly James, Panteros666 & Evil Twiin",Berlin '99,abstention_plusieurs_positions_pour_meme_candidat,False,I005-C30-R1,1,168.96,7144.68,169.45,199.95,7145.17,7175.67,10.635,33,50,0.94,score_interne_landmarks_pas_probabilite,True
+I005,30,"Olly James, Panteros666 & Evil Twiin",Berlin '99,abstention_plusieurs_positions_pour_meme_candidat,False,I005-C30-R2,2,118.784,7094.504,119.04,147.46,7094.76,7123.18,10.534,28,36,0.94,score_interne_landmarks_pas_probabilite,True
+I005,31,Maurya Sevak & Jake Ryan,Sata Sata,abstention_aucun_landmark_qualifie,False,,,,,,,,,,,,,,
+I005,32,Ferry Corsten,Sweet Sorrow (The Thrillseekers Remix 2004),abstention_sans_apercu,False,,,,,,,,,,,,,,

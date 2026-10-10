@@ -1,0 +1,6 @@
+interval_id,start_seconds,end_seconds,duration_seconds,start_source,end_source
+I001,0.0,120.0,120.0,audio_start,frozen_voice_1
+I002,120.0,2365.68,2245.68,frozen_voice_1,frozen_voice_2
+I003,2365.68,5349.38,2983.7,frozen_voice_2,frozen_voice_3
+I004,5349.38,6975.72,1626.34,frozen_voice_3,frozen_voice_4
+I005,6975.72,7216.927375,241.207375,frozen_voice_4,decoded_audio_end

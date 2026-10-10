@@ -1,0 +1,33 @@
+candidate_number,artist,title,method,catalog_status,catalog_score,preview_available,cache_reused,intervals_queried,independent,preview_samples_queried,preview_sha256
+1,Mhammed El Alami & Josie Sandfeld,Keep On Running,apercu_deezer_public_assiste,no_accepted_preview,,False,False,5,False,,
+2,Against All Ødds,Save Me,apercu_deezer_public_assiste,accepted_cached_public_preview,,True,True,5,False,239909,6b378f425a9ad06c450ed398b1306532a0205e9a451fa52eccdbb2f8ada89aa4
+3,Elite Electronic,Shadows,apercu_deezer_public_assiste,no_accepted_preview,100,False,False,5,False,,
+4,Phillip Castle & Aldor,Embrace The Night,apercu_deezer_public_assiste,accepted_cached_public_preview,,True,True,5,False,240118,d1fe1885a6e6deadd953d51efc5a5204799f0bba4a09c3fdd444d8fff2b77e98
+5,Freak E Beatz & JASSKALL,No Escape,apercu_deezer_public_assiste,accepted_cached_public_preview,,True,True,5,False,239909,e3d019f683c512432deded831c63b6861bb7ee968fecba743a8f91c90806814a
+6,Adriatique,Palm Of Your Hands,apercu_deezer_public_assiste,no_accepted_preview,,False,False,5,False,,
+7,Vassmo,Stay,apercu_deezer_public_assiste,no_accepted_preview,,False,False,5,False,,
+8,Cubicore,Black Light,apercu_deezer_public_assiste,accepted_cached_public_preview,,True,True,5,False,239909,1866581c7869272ba7b766248708215cc081a1faa2e10d34c06eefcab05a1a36
+9,Benny Benassi & Hypaton feat. Sandy Chambers,Illusion,apercu_deezer_public_assiste,accepted_cached_public_preview,,True,True,5,False,240118,d47515403e2f6245a79fcd4a6a30015be216eaff4e17c1b4addc87cb8d583564
+10,"Mike Williams, Three Drives, ANTICALM",Greece 2000,apercu_deezer_public_assiste,no_accepted_preview,,False,False,5,False,,
+11,"Genix, Dosem",Transit Point (Genix Mix),apercu_deezer_public_assiste,accepted_cached_public_preview,,True,True,5,False,239909,9a0ba9b9c88689883f17777c5a44351fee229f277ce10799f8ecde24c15f029a
+12,Spoiled and Zigo,More & More (BLR Remix),apercu_deezer_public_assiste,no_accepted_preview,,False,False,5,False,,
+13,"Ashley Wallbridge, The Paper Outlet",Forever Young,apercu_deezer_public_assiste,accepted_cached_public_preview,,True,True,5,False,239909,16de054693a3754a833b14306e7e8ac605f9b7c9cba6b881e5477747ad9c7545
+14,Markus Schulz,Second Tomorrow,apercu_deezer_public_assiste,accepted_cached_public_preview,,True,True,5,False,240118,dc356408d93986455e28d1c0d16d8a24ad92f858dc409119a7b3aa50eb446a3c
+15,Victor Ruiz & KURA,FSU,apercu_deezer_public_assiste,no_accepted_preview,,False,False,5,False,,
+16,MAXTAGE & Fathom (EG),The Right Place (RAYEL Remix),apercu_deezer_public_assiste,accepted_cached_public_preview,,True,True,5,False,239909,cfdea5aaefb977e7a63c0982adf65af8cc3118290d79d8236a46d7e7c620bede
+17,Andrew Rayel pres. EXTASIA,Dreaming (Giuseppe Ottaviani Remix),apercu_deezer_public_assiste,no_accepted_preview,,False,False,5,False,,
+18,MIDI Kitty and Derek Ryan,Miles Away,apercu_deezer_public_assiste,no_accepted_preview,64,False,False,5,False,,
+19,Paul Denton & EKE,Next To Me (Club Mix),apercu_deezer_public_assiste,no_accepted_preview,,False,False,5,False,,
+20,RAM & Susana pres. Tales Of Life,The Power of Love (Alex M.O.R.P.H. Remix),apercu_deezer_public_assiste,no_accepted_preview,,False,False,5,False,,
+21,Giuseppe Ottaviani & Ilan Bluestone,Together Again,apercu_deezer_public_assiste,accepted_cached_public_preview,,True,True,5,False,240118,58c1e076c4d9dbc1224d485f0c725e50d694ae5db7f2783938d8b34233361c65
+22,"Aly & Fila, Susie Ledge, Roman Messer, Anton Pallmer",Carry Me Away,apercu_deezer_public_assiste,no_accepted_preview,,False,False,5,False,,
+23,John Askew,Through The Looking Glass (Nikolauss Remix),apercu_deezer_public_assiste,accepted_cached_public_preview,,True,True,5,False,240118,47c89e7445b905f4c8f7f92c1cf631745925b954b1d31a5b0cce7a119556f441
+24,Andrew Rayel,Acid On The Train (David Forbes Remix),apercu_deezer_public_assiste,accepted_cached_public_preview,,True,True,5,False,239909,5c3fc74c2ee6a2c190b7946ad7e3637a4ff03c7c41aebf078f0e3ac2976a58a9
+25,Armin van Buuren feat. Sharon Den Adel,In And Out Of Love (Ben Hemsley Remix),apercu_deezer_public_assiste,accepted_cached_public_preview,,True,True,5,False,239909,f4158ab614243694d78543976fbef264b0967559bf30863f715342df090674e1
+26,Xincher & Rav3ver,Echo,apercu_deezer_public_assiste,accepted_cached_public_preview,,True,True,5,False,240118,817b5747b967d96ffca72e432f722b58a851704f9a4c8783777c336d8392ec34
+27,RAM & Richard Durand presents Digital Culture,La La La,apercu_deezer_public_assiste,no_accepted_preview,,False,False,5,False,,
+28,Matt Bukovski & CJ Stone,Stars,apercu_deezer_public_assiste,accepted_cached_public_preview,,True,True,5,False,239909,acdc49548773aedaa318fa9b248a04fd420261198b317bdc3d3b600e6a503513
+29,"LAWTON, Trancemaster Krause & Caroline Roxy",Believe In,apercu_deezer_public_assiste,no_accepted_preview,64,False,False,5,False,,
+30,"Olly James, Panteros666 & Evil Twiin",Berlin '99,apercu_deezer_public_assiste,accepted_cached_public_preview,,True,True,5,False,239909,565bf14afa449cfaa315672226e1043a3478b6ceb641935c4fa7b9427676f4e1
+31,Maurya Sevak & Jake Ryan,Sata Sata,apercu_deezer_public_assiste,accepted_cached_public_preview,,True,True,5,False,240118,f6911cf3a4811b5f7f796943ca35bf382afd77e2c13fbac3e90cc475f3687cd1
+32,Ferry Corsten,Sweet Sorrow (The Thrillseekers Remix 2004),apercu_deezer_public_assiste,no_accepted_preview,,False,False,5,False,,

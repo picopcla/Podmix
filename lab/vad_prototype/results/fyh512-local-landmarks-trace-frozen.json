@@ -1,0 +1,150 @@
+[
+  {
+    "interval_id": "I001",
+    "voice_start_source": "audio_start",
+    "voice_end_source": "frozen_voice_1",
+    "start_seconds": 0.0,
+    "end_seconds": 120.0,
+    "first_sample_inclusive": 0,
+    "last_sample_exclusive": 960000,
+    "samples_queried": 960000,
+    "features_scope": "strictement_interval_local",
+    "candidate_titles_queried": 32,
+    "previews_available": 17,
+    "accepted_presence_ids": [],
+    "window_ids": [],
+    "transition_ids": []
+  },
+  {
+    "interval_id": "I002",
+    "voice_start_source": "frozen_voice_1",
+    "voice_end_source": "frozen_voice_2",
+    "start_seconds": 120.0,
+    "end_seconds": 2365.68,
+    "first_sample_inclusive": 960000,
+    "last_sample_exclusive": 18925440,
+    "samples_queried": 17965440,
+    "features_scope": "strictement_interval_local",
+    "candidate_titles_queried": 32,
+    "previews_available": 17,
+    "accepted_presence_ids": [
+      "I002-C02-R1",
+      "I002-C04-R1",
+      "I002-C05-R1",
+      "I002-C08-R1",
+      "I002-C09-R1",
+      "I002-C11-R1"
+    ],
+    "window_ids": [
+      "W001",
+      "W002",
+      "W003",
+      "W004",
+      "W005"
+    ],
+    "transition_ids": [
+      "T001",
+      "T002",
+      "T003",
+      "T004",
+      "T005",
+      "T006",
+      "T007",
+      "T008",
+      "T009",
+      "T010",
+      "T011",
+      "T012",
+      "T013"
+    ]
+  },
+  {
+    "interval_id": "I003",
+    "voice_start_source": "frozen_voice_2",
+    "voice_end_source": "frozen_voice_3",
+    "start_seconds": 2365.68,
+    "end_seconds": 5349.38,
+    "first_sample_inclusive": 18925440,
+    "last_sample_exclusive": 42795040,
+    "samples_queried": 23869600,
+    "features_scope": "strictement_interval_local",
+    "candidate_titles_queried": 32,
+    "previews_available": 17,
+    "accepted_presence_ids": [
+      "I003-C13-R1",
+      "I003-C14-R1",
+      "I003-C16-R1"
+    ],
+    "window_ids": [
+      "W006",
+      "W007"
+    ],
+    "transition_ids": [
+      "T014",
+      "T015",
+      "T016",
+      "T017",
+      "T018",
+      "T019",
+      "T020",
+      "T021",
+      "T022",
+      "T023",
+      "T024",
+      "T025",
+      "T026"
+    ]
+  },
+  {
+    "interval_id": "I004",
+    "voice_start_source": "frozen_voice_3",
+    "voice_end_source": "frozen_voice_4",
+    "start_seconds": 5349.38,
+    "end_seconds": 6975.72,
+    "first_sample_inclusive": 42795040,
+    "last_sample_exclusive": 55805760,
+    "samples_queried": 13010720,
+    "features_scope": "strictement_interval_local",
+    "candidate_titles_queried": 32,
+    "previews_available": 17,
+    "accepted_presence_ids": [
+      "I004-C24-R1",
+      "I004-C25-R1",
+      "I004-C30-R1",
+      "I004-C31-R1"
+    ],
+    "window_ids": [
+      "W008",
+      "W009",
+      "W010"
+    ],
+    "transition_ids": [
+      "T027",
+      "T028",
+      "T029",
+      "T030",
+      "T031",
+      "T032"
+    ]
+  },
+  {
+    "interval_id": "I005",
+    "voice_start_source": "frozen_voice_4",
+    "voice_end_source": "decoded_audio_end",
+    "start_seconds": 6975.72,
+    "end_seconds": 7216.927375,
+    "first_sample_inclusive": 55805760,
+    "last_sample_exclusive": 57735419,
+    "samples_queried": 1929659,
+    "features_scope": "strictement_interval_local",
+    "candidate_titles_queried": 32,
+    "previews_available": 17,
+    "accepted_presence_ids": [
+      "I005-C16-R1"
+    ],
+    "window_ids": [],
+    "transition_ids": [
+      "T033"
+    ]
+  }
+]
