@@ -1,0 +1,11 @@
+detection_id,algorithm_time_seconds,internal_confidence,passes_reliable_threshold,identity_confirmed,nearest_reference_track_number,nearest_reference_title,nearest_reference_audio_time_seconds,signed_delta_seconds,absolute_delta_seconds,within_10_seconds,interpretation
+find-your-harmony-512-d001,4.58,0.9086,False,False,1,Keep On Running,121.338,-116.758,116.758,False,proximity_only_not_identity_or_transition_proof
+find-your-harmony-512-d002,120.0,0.9884,True,False,1,Keep On Running,121.338,-1.338,1.338,True,proximity_only_not_identity_or_transition_proof
+find-your-harmony-512-d003,1389.16,0.8166,False,False,7,Stay,1401.338,-12.178,12.178,False,proximity_only_not_identity_or_transition_proof
+find-your-harmony-512-d004,1651.52,0.7694,False,False,8,Black Light,1555.338,96.182,96.182,False,proximity_only_not_identity_or_transition_proof
+find-your-harmony-512-d005,2365.68,0.9864,True,False,12,More & More (BLR Remix),2367.338,-1.658,1.658,True,proximity_only_not_identity_or_transition_proof
+find-your-harmony-512-d006,3391.04,0.8435,False,False,16,The Right Place (RAYEL Remix),3391.338,-0.298,0.298,True,proximity_only_not_identity_or_transition_proof
+find-your-harmony-512-d007,3632.38,0.9269,False,False,17,Dreaming (Giuseppe Ottaviani Remix),3632.719,-0.339,0.339,True,proximity_only_not_identity_or_transition_proof
+find-your-harmony-512-d008,5349.38,0.9698,True,False,24,Acid On The Train (David Forbes Remix),5349.719,-0.339,0.339,True,proximity_only_not_identity_or_transition_proof
+find-your-harmony-512-d009,6657.16,0.5177,False,False,30,Berlin '99,6588.719,68.441,68.441,False,proximity_only_not_identity_or_transition_proof
+find-your-harmony-512-d010,6975.72,0.9626,True,False,32,Sweet Sorrow (The Thrillseekers Remix 2004),6975.719,0.001,0.001,True,proximity_only_not_identity_or_transition_proof
