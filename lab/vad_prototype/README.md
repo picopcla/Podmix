@@ -155,3 +155,17 @@ qui reçoit les titres connus en entrée est classée comme assistée, pas comme
 identification indépendante. Les titres indépendants restent donc vides avec
 une abstention explicite. Les sorties `*-frozen.*` doivent être commitées avant
 de lancer le script d'évaluation qui charge la tracklist minutée officielle.
+
+Exécution, après les deux modèles globaux et avec les chemins privés adaptés :
+
+```bash
+python lab/vad_prototype/analyze_fyh512_frozen.py --media /media/prive/fyh512.mp3
+# Commit obligatoire des sorties *-frozen.* avant la commande suivante.
+python lab/vad_prototype/evaluate_fyh512.py
+python lab/vad_prototype/make_fyh512_excerpts.py \
+  --media /media/prive/fyh512.mp3 --output /sortie/privee --duration 7216.927375
+```
+
+La comparaison applique l'alignement audio documenté dans
+`fyh512_reference.json`. Les extraits MP3 restent privés et ne doivent jamais
+être ajoutés à ce dépôt.
