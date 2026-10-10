@@ -1,0 +1,261 @@
+[
+  {
+    "detection_id": "find-your-harmony-512-d002",
+    "voice_start_seconds": 77.94,
+    "voice_end_seconds": 120.0,
+    "voice_internal_confidence": 0.9884,
+    "engine": "faster-whisper-small-local-cpu-int8",
+    "language": "en",
+    "language_probability": 1,
+    "segments": [
+      {
+        "relative_start_seconds": 0.0,
+        "relative_end_seconds": 4.12,
+        "absolute_start_seconds": 77.94,
+        "absolute_end_seconds": 82.06,
+        "text": "Hey everyone, welcome to episode 512 of Find Your Harmony.",
+        "average_log_probability": -0.209937,
+        "no_speech_probability": 0.079652
+      },
+      {
+        "relative_start_seconds": 4.12,
+        "relative_end_seconds": 8.24,
+        "absolute_start_seconds": 82.06,
+        "absolute_end_seconds": 86.18,
+        "text": "Coming up tonight, music by Marco Schulz, Adriatic,",
+        "average_log_probability": -0.209937,
+        "no_speech_probability": 0.079652
+      },
+      {
+        "relative_start_seconds": 8.24,
+        "relative_end_seconds": 10.92,
+        "absolute_start_seconds": 86.18,
+        "absolute_end_seconds": 88.86,
+        "text": "Giuseppe Ottaviani and Ilan Bluestone,",
+        "average_log_probability": -0.209937,
+        "no_speech_probability": 0.079652
+      },
+      {
+        "relative_start_seconds": 10.92,
+        "relative_end_seconds": 14.24,
+        "absolute_start_seconds": 88.86,
+        "absolute_end_seconds": 92.18,
+        "text": "a new one by our resident, Vasmo,",
+        "average_log_probability": -0.209937,
+        "no_speech_probability": 0.079652
+      },
+      {
+        "relative_start_seconds": 14.24,
+        "relative_end_seconds": 17.06,
+        "absolute_start_seconds": 92.18,
+        "absolute_end_seconds": 95.0,
+        "text": "another play of my track, Acid on the Train,",
+        "average_log_probability": -0.209937,
+        "no_speech_probability": 0.079652
+      },
+      {
+        "relative_start_seconds": 17.06,
+        "relative_end_seconds": 18.84,
+        "absolute_start_seconds": 95.0,
+        "absolute_end_seconds": 96.78,
+        "text": "in the David Forbes remix.",
+        "average_log_probability": -0.209937,
+        "no_speech_probability": 0.079652
+      },
+      {
+        "relative_start_seconds": 18.84,
+        "relative_end_seconds": 20.48,
+        "absolute_start_seconds": 96.78,
+        "absolute_end_seconds": 98.42,
+        "text": "A world premiere for you tonight,",
+        "average_log_probability": -0.209937,
+        "no_speech_probability": 0.079652
+      },
+      {
+        "relative_start_seconds": 20.48,
+        "relative_end_seconds": 24.16,
+        "absolute_start_seconds": 98.42,
+        "absolute_end_seconds": 102.1,
+        "text": "the Giuseppe Ottaviani remix of my ecstasy track, Dreaming.",
+        "average_log_probability": -0.209937,
+        "no_speech_probability": 0.079652
+      },
+      {
+        "relative_start_seconds": 24.16,
+        "relative_end_seconds": 26.26,
+        "absolute_start_seconds": 102.1,
+        "absolute_end_seconds": 104.2,
+        "text": "Also, a big reminder for you guys,",
+        "average_log_probability": -0.209937,
+        "no_speech_probability": 0.079652
+      },
+      {
+        "relative_start_seconds": 26.26,
+        "relative_end_seconds": 32.62,
+        "absolute_start_seconds": 104.2,
+        "absolute_end_seconds": 110.56,
+        "text": "FYH 500 Amsterdam. Tickets are running very low and this show will be sold out very soon",
+        "average_log_probability": -0.27607,
+        "no_speech_probability": 0.176315
+      },
+      {
+        "relative_start_seconds": 32.62,
+        "relative_end_seconds": 35.3,
+        "absolute_start_seconds": 110.56,
+        "absolute_end_seconds": 113.24,
+        "text": "so make sure to get yours right now.",
+        "average_log_probability": -0.27607,
+        "no_speech_probability": 0.176315
+      },
+      {
+        "relative_start_seconds": 35.3,
+        "relative_end_seconds": 40.18,
+        "absolute_start_seconds": 113.24,
+        "absolute_end_seconds": 118.12,
+        "text": "Kicking things off with a new release on Rising Harmony, this is Mohamed El Alami and Josie",
+        "average_log_probability": -0.27607,
+        "no_speech_probability": 0.176315
+      },
+      {
+        "relative_start_seconds": 40.18,
+        "relative_end_seconds": 41.9,
+        "absolute_start_seconds": 118.12,
+        "absolute_end_seconds": 119.84,
+        "text": "Sandfield. Keep on running.",
+        "average_log_probability": -0.27607,
+        "no_speech_probability": 0.176315
+      }
+    ],
+    "transcript": "Hey everyone, welcome to episode 512 of Find Your Harmony. Coming up tonight, music by Marco Schulz, Adriatic, Giuseppe Ottaviani and Ilan Bluestone, a new one by our resident, Vasmo, another play of my track, Acid on the Train, in the David Forbes remix. A world premiere for you tonight, the Giuseppe Ottaviani remix of my ecstasy track, Dreaming. Also, a big reminder for you guys, FYH 500 Amsterdam. Tickets are running very low and this show will be sold out very soon so make sure to get yours right now. Kicking things off with a new release on Rising Harmony, this is Mohamed El Alami and Josie Sandfield. Keep on running.",
+    "interpretation": "annonce potentiellement precedente, suivante ou multiple; aucune orientation injectee"
+  },
+  {
+    "detection_id": "find-your-harmony-512-d005",
+    "voice_start_seconds": 2352.34,
+    "voice_end_seconds": 2365.68,
+    "voice_internal_confidence": 0.9864,
+    "engine": "faster-whisper-small-local-cpu-int8",
+    "language": "en",
+    "language_probability": 1,
+    "segments": [
+      {
+        "relative_start_seconds": 0.0,
+        "relative_end_seconds": 3.84,
+        "absolute_start_seconds": 2352.34,
+        "absolute_end_seconds": 2356.18,
+        "text": "If you just tuned in, this is Find Your Harmony episode 512.",
+        "average_log_probability": -0.277188,
+        "no_speech_probability": 0.06108
+      },
+      {
+        "relative_start_seconds": 3.84,
+        "relative_end_seconds": 7.28,
+        "absolute_start_seconds": 2356.18,
+        "absolute_end_seconds": 2359.62,
+        "text": "I'm Andrei Il. I hope you're enjoying the tracks I'm playing so far.",
+        "average_log_probability": -0.277188,
+        "no_speech_probability": 0.06108
+      },
+      {
+        "relative_start_seconds": 8.4,
+        "relative_end_seconds": 13.12,
+        "absolute_start_seconds": 2360.74,
+        "absolute_end_seconds": 2365.46,
+        "text": "I'm gonna move on with Spoiled and Zigo. This is more and more in the BLR remix.",
+        "average_log_probability": -0.277188,
+        "no_speech_probability": 0.06108
+      }
+    ],
+    "transcript": "If you just tuned in, this is Find Your Harmony episode 512. I'm Andrei Il. I hope you're enjoying the tracks I'm playing so far. I'm gonna move on with Spoiled and Zigo. This is more and more in the BLR remix.",
+    "interpretation": "annonce potentiellement precedente, suivante ou multiple; aucune orientation injectee"
+  },
+  {
+    "detection_id": "find-your-harmony-512-d008",
+    "voice_start_seconds": 5345.28,
+    "voice_end_seconds": 5349.38,
+    "voice_internal_confidence": 0.9698,
+    "engine": "faster-whisper-small-local-cpu-int8",
+    "language": "en",
+    "language_probability": 1,
+    "segments": [
+      {
+        "relative_start_seconds": 0.0,
+        "relative_end_seconds": 4.0,
+        "absolute_start_seconds": 5345.28,
+        "absolute_end_seconds": 5349.28,
+        "text": "Back to the music with my track ACID on the train in the David Forbes remix.",
+        "average_log_probability": -0.213951,
+        "no_speech_probability": 0.008476
+      }
+    ],
+    "transcript": "Back to the music with my track ACID on the train in the David Forbes remix.",
+    "interpretation": "annonce potentiellement precedente, suivante ou multiple; aucune orientation injectee"
+  },
+  {
+    "detection_id": "find-your-harmony-512-d010",
+    "voice_start_seconds": 6952.62,
+    "voice_end_seconds": 6975.72,
+    "voice_internal_confidence": 0.9626,
+    "engine": "faster-whisper-small-local-cpu-int8",
+    "language": "en",
+    "language_probability": 1,
+    "segments": [
+      {
+        "relative_start_seconds": 0.0,
+        "relative_end_seconds": 4.32,
+        "absolute_start_seconds": 6952.62,
+        "absolute_end_seconds": 6956.94,
+        "text": "Before we close, quick reminder, FOH 500 Amsterdam tickets are running low.",
+        "average_log_probability": -0.298623,
+        "no_speech_probability": 0.128601
+      },
+      {
+        "relative_start_seconds": 4.32,
+        "relative_end_seconds": 10.48,
+        "absolute_start_seconds": 6956.94,
+        "absolute_end_seconds": 6963.1,
+        "text": "Get yours now at findyourharmony.net and I'll see some of you very soon in Milan for my",
+        "average_log_probability": -0.298623,
+        "no_speech_probability": 0.128601
+      },
+      {
+        "relative_start_seconds": 10.48,
+        "relative_end_seconds": 13.48,
+        "absolute_start_seconds": 6963.1,
+        "absolute_end_seconds": 6966.1,
+        "text": "first ever club show in Italy.",
+        "average_log_probability": -0.298623,
+        "no_speech_probability": 0.128601
+      },
+      {
+        "relative_start_seconds": 13.48,
+        "relative_end_seconds": 17.92,
+        "absolute_start_seconds": 6966.1,
+        "absolute_end_seconds": 6970.54,
+        "text": "And now it's time for the Classic Selection, very course then, sweet sorrow in the Thrill",
+        "average_log_probability": -0.298623,
+        "no_speech_probability": 0.128601
+      },
+      {
+        "relative_start_seconds": 17.92,
+        "relative_end_seconds": 18.92,
+        "absolute_start_seconds": 6970.54,
+        "absolute_end_seconds": 6971.54,
+        "text": "Seekers remix.",
+        "average_log_probability": -0.298623,
+        "no_speech_probability": 0.128601
+      },
+      {
+        "relative_start_seconds": 18.92,
+        "relative_end_seconds": 23.08,
+        "absolute_start_seconds": 6971.54,
+        "absolute_end_seconds": 6975.7,
+        "text": "Thanks for tuning in and as always, may the harmony be with you.",
+        "average_log_probability": -0.298623,
+        "no_speech_probability": 0.128601
+      }
+    ],
+    "transcript": "Before we close, quick reminder, FOH 500 Amsterdam tickets are running low. Get yours now at findyourharmony.net and I'll see some of you very soon in Milan for my first ever club show in Italy. And now it's time for the Classic Selection, very course then, sweet sorrow in the Thrill Seekers remix. Thanks for tuning in and as always, may the harmony be with you.",
+    "interpretation": "annonce potentiellement precedente, suivante ou multiple; aucune orientation injectee"
+  }
+]

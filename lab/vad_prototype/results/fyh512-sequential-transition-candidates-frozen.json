@@ -1,0 +1,1402 @@
+[
+  {
+    "interval_id": "I001",
+    "local_time_seconds": 37.056,
+    "absolute_time_seconds": 37.056,
+    "internal_salience": 2.583072,
+    "confidence_kind": "robust_novelty_z_not_probability",
+    "retained": false,
+    "decision": "abstention_below_fixed_salience_or_nonmaximum_suppression",
+    "track_count_target": null
+  },
+  {
+    "interval_id": "I001",
+    "local_time_seconds": 65.00751,
+    "absolute_time_seconds": 65.00751,
+    "internal_salience": 1.085353,
+    "confidence_kind": "robust_novelty_z_not_probability",
+    "retained": false,
+    "decision": "abstention_below_fixed_salience_or_nonmaximum_suppression",
+    "track_count_target": null
+  },
+  {
+    "interval_id": "I002",
+    "local_time_seconds": 42.58121,
+    "absolute_time_seconds": 162.58121,
+    "internal_salience": 22.699005,
+    "confidence_kind": "robust_novelty_z_not_probability",
+    "retained": true,
+    "decision": "retained_fixed_salience_and_separation",
+    "track_count_target": null
+  },
+  {
+    "interval_id": "I002",
+    "local_time_seconds": 111.936,
+    "absolute_time_seconds": 231.936,
+    "internal_salience": 2.21611,
+    "confidence_kind": "robust_novelty_z_not_probability",
+    "retained": false,
+    "decision": "abstention_below_fixed_salience_or_nonmaximum_suppression",
+    "track_count_target": null
+  },
+  {
+    "interval_id": "I002",
+    "local_time_seconds": 219.712,
+    "absolute_time_seconds": 339.712,
+    "internal_salience": 6.632229,
+    "confidence_kind": "robust_novelty_z_not_probability",
+    "retained": true,
+    "decision": "retained_fixed_salience_and_separation",
+    "track_count_target": null
+  },
+  {
+    "interval_id": "I002",
+    "local_time_seconds": 279.936,
+    "absolute_time_seconds": 399.936,
+    "internal_salience": 4.508697,
+    "confidence_kind": "robust_novelty_z_not_probability",
+    "retained": true,
+    "decision": "retained_fixed_salience_and_separation",
+    "track_count_target": null
+  },
+  {
+    "interval_id": "I002",
+    "local_time_seconds": 309.76,
+    "absolute_time_seconds": 429.76,
+    "internal_salience": 3.602805,
+    "confidence_kind": "robust_novelty_z_not_probability",
+    "retained": false,
+    "decision": "abstention_below_fixed_salience_or_nonmaximum_suppression",
+    "track_count_target": null
+  },
+  {
+    "interval_id": "I002",
+    "local_time_seconds": 370.752,
+    "absolute_time_seconds": 490.752,
+    "internal_salience": 2.420312,
+    "confidence_kind": "robust_novelty_z_not_probability",
+    "retained": false,
+    "decision": "abstention_below_fixed_salience_or_nonmaximum_suppression",
+    "track_count_target": null
+  },
+  {
+    "interval_id": "I002",
+    "local_time_seconds": 405.376,
+    "absolute_time_seconds": 525.376,
+    "internal_salience": 5.664044,
+    "confidence_kind": "robust_novelty_z_not_probability",
+    "retained": true,
+    "decision": "retained_fixed_salience_and_separation",
+    "track_count_target": null
+  },
+  {
+    "interval_id": "I002",
+    "local_time_seconds": 467.136,
+    "absolute_time_seconds": 587.136,
+    "internal_salience": 2.513877,
+    "confidence_kind": "robust_novelty_z_not_probability",
+    "retained": false,
+    "decision": "abstention_below_fixed_salience_or_nonmaximum_suppression",
+    "track_count_target": null
+  },
+  {
+    "interval_id": "I002",
+    "local_time_seconds": 525.824,
+    "absolute_time_seconds": 645.824,
+    "internal_salience": 1.638986,
+    "confidence_kind": "robust_novelty_z_not_probability",
+    "retained": false,
+    "decision": "abstention_below_fixed_salience_or_nonmaximum_suppression",
+    "track_count_target": null
+  },
+  {
+    "interval_id": "I002",
+    "local_time_seconds": 549.248,
+    "absolute_time_seconds": 669.248,
+    "internal_salience": 1.951192,
+    "confidence_kind": "robust_novelty_z_not_probability",
+    "retained": false,
+    "decision": "abstention_below_fixed_salience_or_nonmaximum_suppression",
+    "track_count_target": null
+  },
+  {
+    "interval_id": "I002",
+    "local_time_seconds": 603.328,
+    "absolute_time_seconds": 723.328,
+    "internal_salience": 0.686358,
+    "confidence_kind": "robust_novelty_z_not_probability",
+    "retained": false,
+    "decision": "abstention_below_fixed_salience_or_nonmaximum_suppression",
+    "track_count_target": null
+  },
+  {
+    "interval_id": "I002",
+    "local_time_seconds": 622.144,
+    "absolute_time_seconds": 742.144,
+    "internal_salience": 1.742238,
+    "confidence_kind": "robust_novelty_z_not_probability",
+    "retained": false,
+    "decision": "abstention_below_fixed_salience_or_nonmaximum_suppression",
+    "track_count_target": null
+  },
+  {
+    "interval_id": "I002",
+    "local_time_seconds": 663.616,
+    "absolute_time_seconds": 783.616,
+    "internal_salience": 4.678817,
+    "confidence_kind": "robust_novelty_z_not_probability",
+    "retained": true,
+    "decision": "retained_fixed_salience_and_separation",
+    "track_count_target": null
+  },
+  {
+    "interval_id": "I002",
+    "local_time_seconds": 761.28,
+    "absolute_time_seconds": 881.28,
+    "internal_salience": 3.40251,
+    "confidence_kind": "robust_novelty_z_not_probability",
+    "retained": true,
+    "decision": "retained_fixed_salience_and_separation",
+    "track_count_target": null
+  },
+  {
+    "interval_id": "I002",
+    "local_time_seconds": 820.672,
+    "absolute_time_seconds": 940.672,
+    "internal_salience": 2.458531,
+    "confidence_kind": "robust_novelty_z_not_probability",
+    "retained": false,
+    "decision": "abstention_below_fixed_salience_or_nonmaximum_suppression",
+    "track_count_target": null
+  },
+  {
+    "interval_id": "I002",
+    "local_time_seconds": 887.872,
+    "absolute_time_seconds": 1007.872,
+    "internal_salience": 6.180668,
+    "confidence_kind": "robust_novelty_z_not_probability",
+    "retained": true,
+    "decision": "retained_fixed_salience_and_separation",
+    "track_count_target": null
+  },
+  {
+    "interval_id": "I002",
+    "local_time_seconds": 934.528,
+    "absolute_time_seconds": 1054.528,
+    "internal_salience": 2.329809,
+    "confidence_kind": "robust_novelty_z_not_probability",
+    "retained": false,
+    "decision": "abstention_below_fixed_salience_or_nonmaximum_suppression",
+    "track_count_target": null
+  },
+  {
+    "interval_id": "I002",
+    "local_time_seconds": 977.28,
+    "absolute_time_seconds": 1097.28,
+    "internal_salience": 1.446301,
+    "confidence_kind": "robust_novelty_z_not_probability",
+    "retained": false,
+    "decision": "abstention_below_fixed_salience_or_nonmaximum_suppression",
+    "track_count_target": null
+  },
+  {
+    "interval_id": "I002",
+    "local_time_seconds": 1008.512,
+    "absolute_time_seconds": 1128.512,
+    "internal_salience": 2.120608,
+    "confidence_kind": "robust_novelty_z_not_probability",
+    "retained": false,
+    "decision": "abstention_below_fixed_salience_or_nonmaximum_suppression",
+    "track_count_target": null
+  },
+  {
+    "interval_id": "I002",
+    "local_time_seconds": 1061.12,
+    "absolute_time_seconds": 1181.12,
+    "internal_salience": 0.920617,
+    "confidence_kind": "robust_novelty_z_not_probability",
+    "retained": false,
+    "decision": "abstention_below_fixed_salience_or_nonmaximum_suppression",
+    "track_count_target": null
+  },
+  {
+    "interval_id": "I002",
+    "local_time_seconds": 1113.664,
+    "absolute_time_seconds": 1233.664,
+    "internal_salience": 6.40711,
+    "confidence_kind": "robust_novelty_z_not_probability",
+    "retained": true,
+    "decision": "retained_fixed_salience_and_separation",
+    "track_count_target": null
+  },
+  {
+    "interval_id": "I002",
+    "local_time_seconds": 1158.016,
+    "absolute_time_seconds": 1278.016,
+    "internal_salience": 3.466632,
+    "confidence_kind": "robust_novelty_z_not_probability",
+    "retained": false,
+    "decision": "abstention_below_fixed_salience_or_nonmaximum_suppression",
+    "track_count_target": null
+  },
+  {
+    "interval_id": "I002",
+    "local_time_seconds": 1275.712,
+    "absolute_time_seconds": 1395.712,
+    "internal_salience": 1.095068,
+    "confidence_kind": "robust_novelty_z_not_probability",
+    "retained": false,
+    "decision": "abstention_below_fixed_salience_or_nonmaximum_suppression",
+    "track_count_target": null
+  },
+  {
+    "interval_id": "I002",
+    "local_time_seconds": 1329.024,
+    "absolute_time_seconds": 1449.024,
+    "internal_salience": 2.787753,
+    "confidence_kind": "robust_novelty_z_not_probability",
+    "retained": false,
+    "decision": "abstention_below_fixed_salience_or_nonmaximum_suppression",
+    "track_count_target": null
+  },
+  {
+    "interval_id": "I002",
+    "local_time_seconds": 1352.768,
+    "absolute_time_seconds": 1472.768,
+    "internal_salience": 1.06212,
+    "confidence_kind": "robust_novelty_z_not_probability",
+    "retained": false,
+    "decision": "abstention_below_fixed_salience_or_nonmaximum_suppression",
+    "track_count_target": null
+  },
+  {
+    "interval_id": "I002",
+    "local_time_seconds": 1436.864,
+    "absolute_time_seconds": 1556.864,
+    "internal_salience": 4.786842,
+    "confidence_kind": "robust_novelty_z_not_probability",
+    "retained": true,
+    "decision": "retained_fixed_salience_and_separation",
+    "track_count_target": null
+  },
+  {
+    "interval_id": "I002",
+    "local_time_seconds": 1496.128,
+    "absolute_time_seconds": 1616.128,
+    "internal_salience": 4.206425,
+    "confidence_kind": "robust_novelty_z_not_probability",
+    "retained": false,
+    "decision": "abstention_below_fixed_salience_or_nonmaximum_suppression",
+    "track_count_target": null
+  },
+  {
+    "interval_id": "I002",
+    "local_time_seconds": 1529.92,
+    "absolute_time_seconds": 1649.92,
+    "internal_salience": 1.635443,
+    "confidence_kind": "robust_novelty_z_not_probability",
+    "retained": false,
+    "decision": "abstention_below_fixed_salience_or_nonmaximum_suppression",
+    "track_count_target": null
+  },
+  {
+    "interval_id": "I002",
+    "local_time_seconds": 1550.4,
+    "absolute_time_seconds": 1670.4,
+    "internal_salience": 1.223038,
+    "confidence_kind": "robust_novelty_z_not_probability",
+    "retained": false,
+    "decision": "abstention_below_fixed_salience_or_nonmaximum_suppression",
+    "track_count_target": null
+  },
+  {
+    "interval_id": "I002",
+    "local_time_seconds": 1595.84,
+    "absolute_time_seconds": 1715.84,
+    "internal_salience": 1.138441,
+    "confidence_kind": "robust_novelty_z_not_probability",
+    "retained": false,
+    "decision": "abstention_below_fixed_salience_or_nonmaximum_suppression",
+    "track_count_target": null
+  },
+  {
+    "interval_id": "I002",
+    "local_time_seconds": 1626.752,
+    "absolute_time_seconds": 1746.752,
+    "internal_salience": 1.524112,
+    "confidence_kind": "robust_novelty_z_not_probability",
+    "retained": false,
+    "decision": "abstention_below_fixed_salience_or_nonmaximum_suppression",
+    "track_count_target": null
+  },
+  {
+    "interval_id": "I002",
+    "local_time_seconds": 1694.234783,
+    "absolute_time_seconds": 1814.234783,
+    "internal_salience": 8.805038,
+    "confidence_kind": "robust_novelty_z_not_probability",
+    "retained": true,
+    "decision": "retained_fixed_salience_and_separation",
+    "track_count_target": null
+  },
+  {
+    "interval_id": "I002",
+    "local_time_seconds": 1774.336,
+    "absolute_time_seconds": 1894.336,
+    "internal_salience": 1.515824,
+    "confidence_kind": "robust_novelty_z_not_probability",
+    "retained": false,
+    "decision": "abstention_below_fixed_salience_or_nonmaximum_suppression",
+    "track_count_target": null
+  },
+  {
+    "interval_id": "I002",
+    "local_time_seconds": 1806.848,
+    "absolute_time_seconds": 1926.848,
+    "internal_salience": 3.418147,
+    "confidence_kind": "robust_novelty_z_not_probability",
+    "retained": true,
+    "decision": "retained_fixed_salience_and_separation",
+    "track_count_target": null
+  },
+  {
+    "interval_id": "I002",
+    "local_time_seconds": 1837.376,
+    "absolute_time_seconds": 1957.376,
+    "internal_salience": 1.006278,
+    "confidence_kind": "robust_novelty_z_not_probability",
+    "retained": false,
+    "decision": "abstention_below_fixed_salience_or_nonmaximum_suppression",
+    "track_count_target": null
+  },
+  {
+    "interval_id": "I002",
+    "local_time_seconds": 1885.968471,
+    "absolute_time_seconds": 2005.968471,
+    "internal_salience": 3.220092,
+    "confidence_kind": "robust_novelty_z_not_probability",
+    "retained": true,
+    "decision": "retained_fixed_salience_and_separation",
+    "track_count_target": null
+  },
+  {
+    "interval_id": "I002",
+    "local_time_seconds": 1940.8,
+    "absolute_time_seconds": 2060.8,
+    "internal_salience": 2.850309,
+    "confidence_kind": "robust_novelty_z_not_probability",
+    "retained": false,
+    "decision": "abstention_below_fixed_salience_or_nonmaximum_suppression",
+    "track_count_target": null
+  },
+  {
+    "interval_id": "I002",
+    "local_time_seconds": 1970.24,
+    "absolute_time_seconds": 2090.24,
+    "internal_salience": 2.395292,
+    "confidence_kind": "robust_novelty_z_not_probability",
+    "retained": false,
+    "decision": "abstention_below_fixed_salience_or_nonmaximum_suppression",
+    "track_count_target": null
+  },
+  {
+    "interval_id": "I002",
+    "local_time_seconds": 2029.44,
+    "absolute_time_seconds": 2149.44,
+    "internal_salience": 4.177059,
+    "confidence_kind": "robust_novelty_z_not_probability",
+    "retained": false,
+    "decision": "abstention_below_fixed_salience_or_nonmaximum_suppression",
+    "track_count_target": null
+  },
+  {
+    "interval_id": "I002",
+    "local_time_seconds": 2087.936,
+    "absolute_time_seconds": 2207.936,
+    "internal_salience": 12.904095,
+    "confidence_kind": "robust_novelty_z_not_probability",
+    "retained": true,
+    "decision": "retained_fixed_salience_and_separation",
+    "track_count_target": null
+  },
+  {
+    "interval_id": "I002",
+    "local_time_seconds": 2124.672,
+    "absolute_time_seconds": 2244.672,
+    "internal_salience": 5.849316,
+    "confidence_kind": "robust_novelty_z_not_probability",
+    "retained": false,
+    "decision": "abstention_below_fixed_salience_or_nonmaximum_suppression",
+    "track_count_target": null
+  },
+  {
+    "interval_id": "I002",
+    "local_time_seconds": 2160.896,
+    "absolute_time_seconds": 2280.896,
+    "internal_salience": 3.099776,
+    "confidence_kind": "robust_novelty_z_not_probability",
+    "retained": true,
+    "decision": "retained_fixed_salience_and_separation",
+    "track_count_target": null
+  },
+  {
+    "interval_id": "I002",
+    "local_time_seconds": 2202.816,
+    "absolute_time_seconds": 2322.816,
+    "internal_salience": 2.292693,
+    "confidence_kind": "robust_novelty_z_not_probability",
+    "retained": false,
+    "decision": "abstention_below_fixed_salience_or_nonmaximum_suppression",
+    "track_count_target": null
+  },
+  {
+    "interval_id": "I003",
+    "local_time_seconds": 43.968,
+    "absolute_time_seconds": 2409.648,
+    "internal_salience": 7.716016,
+    "confidence_kind": "robust_novelty_z_not_probability",
+    "retained": true,
+    "decision": "retained_fixed_salience_and_separation",
+    "track_count_target": null
+  },
+  {
+    "interval_id": "I003",
+    "local_time_seconds": 124.992,
+    "absolute_time_seconds": 2490.672,
+    "internal_salience": 9.27526,
+    "confidence_kind": "robust_novelty_z_not_probability",
+    "retained": false,
+    "decision": "abstention_below_fixed_salience_or_nonmaximum_suppression",
+    "track_count_target": null
+  },
+  {
+    "interval_id": "I003",
+    "local_time_seconds": 154.624,
+    "absolute_time_seconds": 2520.304,
+    "internal_salience": 11.582825,
+    "confidence_kind": "robust_novelty_z_not_probability",
+    "retained": true,
+    "decision": "retained_fixed_salience_and_separation",
+    "track_count_target": null
+  },
+  {
+    "interval_id": "I003",
+    "local_time_seconds": 206.016,
+    "absolute_time_seconds": 2571.696,
+    "internal_salience": 2.097393,
+    "confidence_kind": "robust_novelty_z_not_probability",
+    "retained": false,
+    "decision": "abstention_below_fixed_salience_or_nonmaximum_suppression",
+    "track_count_target": null
+  },
+  {
+    "interval_id": "I003",
+    "local_time_seconds": 252.742421,
+    "absolute_time_seconds": 2618.422421,
+    "internal_salience": 6.89335,
+    "confidence_kind": "robust_novelty_z_not_probability",
+    "retained": true,
+    "decision": "retained_fixed_salience_and_separation",
+    "track_count_target": null
+  },
+  {
+    "interval_id": "I003",
+    "local_time_seconds": 289.024,
+    "absolute_time_seconds": 2654.704,
+    "internal_salience": 0.70141,
+    "confidence_kind": "robust_novelty_z_not_probability",
+    "retained": false,
+    "decision": "abstention_below_fixed_salience_or_nonmaximum_suppression",
+    "track_count_target": null
+  },
+  {
+    "interval_id": "I003",
+    "local_time_seconds": 317.696,
+    "absolute_time_seconds": 2683.376,
+    "internal_salience": 0.569239,
+    "confidence_kind": "robust_novelty_z_not_probability",
+    "retained": false,
+    "decision": "abstention_below_fixed_salience_or_nonmaximum_suppression",
+    "track_count_target": null
+  },
+  {
+    "interval_id": "I003",
+    "local_time_seconds": 393.038794,
+    "absolute_time_seconds": 2758.718794,
+    "internal_salience": 1.298986,
+    "confidence_kind": "robust_novelty_z_not_probability",
+    "retained": false,
+    "decision": "abstention_below_fixed_salience_or_nonmaximum_suppression",
+    "track_count_target": null
+  },
+  {
+    "interval_id": "I003",
+    "local_time_seconds": 461.44,
+    "absolute_time_seconds": 2827.12,
+    "internal_salience": 3.85597,
+    "confidence_kind": "robust_novelty_z_not_probability",
+    "retained": true,
+    "decision": "retained_fixed_salience_and_separation",
+    "track_count_target": null
+  },
+  {
+    "interval_id": "I003",
+    "local_time_seconds": 554.048,
+    "absolute_time_seconds": 2919.728,
+    "internal_salience": 8.169066,
+    "confidence_kind": "robust_novelty_z_not_probability",
+    "retained": true,
+    "decision": "retained_fixed_salience_and_separation",
+    "track_count_target": null
+  },
+  {
+    "interval_id": "I003",
+    "local_time_seconds": 589.184,
+    "absolute_time_seconds": 2954.864,
+    "internal_salience": 1.201726,
+    "confidence_kind": "robust_novelty_z_not_probability",
+    "retained": false,
+    "decision": "abstention_below_fixed_salience_or_nonmaximum_suppression",
+    "track_count_target": null
+  },
+  {
+    "interval_id": "I003",
+    "local_time_seconds": 618.944,
+    "absolute_time_seconds": 2984.624,
+    "internal_salience": 20.988468,
+    "confidence_kind": "robust_novelty_z_not_probability",
+    "retained": true,
+    "decision": "retained_fixed_salience_and_separation",
+    "track_count_target": null
+  },
+  {
+    "interval_id": "I003",
+    "local_time_seconds": 653.632,
+    "absolute_time_seconds": 3019.312,
+    "internal_salience": 9.580888,
+    "confidence_kind": "robust_novelty_z_not_probability",
+    "retained": false,
+    "decision": "abstention_below_fixed_salience_or_nonmaximum_suppression",
+    "track_count_target": null
+  },
+  {
+    "interval_id": "I003",
+    "local_time_seconds": 699.328,
+    "absolute_time_seconds": 3065.008,
+    "internal_salience": 1.589435,
+    "confidence_kind": "robust_novelty_z_not_probability",
+    "retained": false,
+    "decision": "abstention_below_fixed_salience_or_nonmaximum_suppression",
+    "track_count_target": null
+  },
+  {
+    "interval_id": "I003",
+    "local_time_seconds": 741.568,
+    "absolute_time_seconds": 3107.248,
+    "internal_salience": 2.287189,
+    "confidence_kind": "robust_novelty_z_not_probability",
+    "retained": false,
+    "decision": "abstention_below_fixed_salience_or_nonmaximum_suppression",
+    "track_count_target": null
+  },
+  {
+    "interval_id": "I003",
+    "local_time_seconds": 776.064,
+    "absolute_time_seconds": 3141.744,
+    "internal_salience": 2.654586,
+    "confidence_kind": "robust_novelty_z_not_probability",
+    "retained": false,
+    "decision": "abstention_below_fixed_salience_or_nonmaximum_suppression",
+    "track_count_target": null
+  },
+  {
+    "interval_id": "I003",
+    "local_time_seconds": 818.88,
+    "absolute_time_seconds": 3184.56,
+    "internal_salience": 4.431988,
+    "confidence_kind": "robust_novelty_z_not_probability",
+    "retained": true,
+    "decision": "retained_fixed_salience_and_separation",
+    "track_count_target": null
+  },
+  {
+    "interval_id": "I003",
+    "local_time_seconds": 842.368,
+    "absolute_time_seconds": 3208.048,
+    "internal_salience": 2.160295,
+    "confidence_kind": "robust_novelty_z_not_probability",
+    "retained": false,
+    "decision": "abstention_below_fixed_salience_or_nonmaximum_suppression",
+    "track_count_target": null
+  },
+  {
+    "interval_id": "I003",
+    "local_time_seconds": 889.728,
+    "absolute_time_seconds": 3255.408,
+    "internal_salience": 1.596872,
+    "confidence_kind": "robust_novelty_z_not_probability",
+    "retained": false,
+    "decision": "abstention_below_fixed_salience_or_nonmaximum_suppression",
+    "track_count_target": null
+  },
+  {
+    "interval_id": "I003",
+    "local_time_seconds": 1063.488,
+    "absolute_time_seconds": 3429.168,
+    "internal_salience": 0.670578,
+    "confidence_kind": "robust_novelty_z_not_probability",
+    "retained": false,
+    "decision": "abstention_below_fixed_salience_or_nonmaximum_suppression",
+    "track_count_target": null
+  },
+  {
+    "interval_id": "I003",
+    "local_time_seconds": 1103.552,
+    "absolute_time_seconds": 3469.232,
+    "internal_salience": 1.145364,
+    "confidence_kind": "robust_novelty_z_not_probability",
+    "retained": false,
+    "decision": "abstention_below_fixed_salience_or_nonmaximum_suppression",
+    "track_count_target": null
+  },
+  {
+    "interval_id": "I003",
+    "local_time_seconds": 1139.456,
+    "absolute_time_seconds": 3505.136,
+    "internal_salience": 1.116515,
+    "confidence_kind": "robust_novelty_z_not_probability",
+    "retained": false,
+    "decision": "abstention_below_fixed_salience_or_nonmaximum_suppression",
+    "track_count_target": null
+  },
+  {
+    "interval_id": "I003",
+    "local_time_seconds": 1198.528,
+    "absolute_time_seconds": 3564.208,
+    "internal_salience": 3.862802,
+    "confidence_kind": "robust_novelty_z_not_probability",
+    "retained": true,
+    "decision": "retained_fixed_salience_and_separation",
+    "track_count_target": null
+  },
+  {
+    "interval_id": "I003",
+    "local_time_seconds": 1271.424,
+    "absolute_time_seconds": 3637.104,
+    "internal_salience": 0.690238,
+    "confidence_kind": "robust_novelty_z_not_probability",
+    "retained": false,
+    "decision": "abstention_below_fixed_salience_or_nonmaximum_suppression",
+    "track_count_target": null
+  },
+  {
+    "interval_id": "I003",
+    "local_time_seconds": 1319.296,
+    "absolute_time_seconds": 3684.976,
+    "internal_salience": 2.827485,
+    "confidence_kind": "robust_novelty_z_not_probability",
+    "retained": false,
+    "decision": "abstention_below_fixed_salience_or_nonmaximum_suppression",
+    "track_count_target": null
+  },
+  {
+    "interval_id": "I003",
+    "local_time_seconds": 1342.656,
+    "absolute_time_seconds": 3708.336,
+    "internal_salience": 2.91294,
+    "confidence_kind": "robust_novelty_z_not_probability",
+    "retained": false,
+    "decision": "abstention_below_fixed_salience_or_nonmaximum_suppression",
+    "track_count_target": null
+  },
+  {
+    "interval_id": "I003",
+    "local_time_seconds": 1387.392,
+    "absolute_time_seconds": 3753.072,
+    "internal_salience": 0.813239,
+    "confidence_kind": "robust_novelty_z_not_probability",
+    "retained": false,
+    "decision": "abstention_below_fixed_salience_or_nonmaximum_suppression",
+    "track_count_target": null
+  },
+  {
+    "interval_id": "I003",
+    "local_time_seconds": 1457.216,
+    "absolute_time_seconds": 3822.896,
+    "internal_salience": 1.744413,
+    "confidence_kind": "robust_novelty_z_not_probability",
+    "retained": false,
+    "decision": "abstention_below_fixed_salience_or_nonmaximum_suppression",
+    "track_count_target": null
+  },
+  {
+    "interval_id": "I003",
+    "local_time_seconds": 1485.44,
+    "absolute_time_seconds": 3851.12,
+    "internal_salience": 1.281395,
+    "confidence_kind": "robust_novelty_z_not_probability",
+    "retained": false,
+    "decision": "abstention_below_fixed_salience_or_nonmaximum_suppression",
+    "track_count_target": null
+  },
+  {
+    "interval_id": "I003",
+    "local_time_seconds": 1510.912,
+    "absolute_time_seconds": 3876.592,
+    "internal_salience": 0.600706,
+    "confidence_kind": "robust_novelty_z_not_probability",
+    "retained": false,
+    "decision": "abstention_below_fixed_salience_or_nonmaximum_suppression",
+    "track_count_target": null
+  },
+  {
+    "interval_id": "I003",
+    "local_time_seconds": 1541.696,
+    "absolute_time_seconds": 3907.376,
+    "internal_salience": 4.994753,
+    "confidence_kind": "robust_novelty_z_not_probability",
+    "retained": true,
+    "decision": "retained_fixed_salience_and_separation",
+    "track_count_target": null
+  },
+  {
+    "interval_id": "I003",
+    "local_time_seconds": 1576.768,
+    "absolute_time_seconds": 3942.448,
+    "internal_salience": 2.553791,
+    "confidence_kind": "robust_novelty_z_not_probability",
+    "retained": false,
+    "decision": "abstention_below_fixed_salience_or_nonmaximum_suppression",
+    "track_count_target": null
+  },
+  {
+    "interval_id": "I003",
+    "local_time_seconds": 1604.416,
+    "absolute_time_seconds": 3970.096,
+    "internal_salience": 2.619774,
+    "confidence_kind": "robust_novelty_z_not_probability",
+    "retained": false,
+    "decision": "abstention_below_fixed_salience_or_nonmaximum_suppression",
+    "track_count_target": null
+  },
+  {
+    "interval_id": "I003",
+    "local_time_seconds": 1630.4,
+    "absolute_time_seconds": 3996.08,
+    "internal_salience": 0.867314,
+    "confidence_kind": "robust_novelty_z_not_probability",
+    "retained": false,
+    "decision": "abstention_below_fixed_salience_or_nonmaximum_suppression",
+    "track_count_target": null
+  },
+  {
+    "interval_id": "I003",
+    "local_time_seconds": 1661.824,
+    "absolute_time_seconds": 4027.504,
+    "internal_salience": 3.77897,
+    "confidence_kind": "robust_novelty_z_not_probability",
+    "retained": false,
+    "decision": "abstention_below_fixed_salience_or_nonmaximum_suppression",
+    "track_count_target": null
+  },
+  {
+    "interval_id": "I003",
+    "local_time_seconds": 1682.496,
+    "absolute_time_seconds": 4048.176,
+    "internal_salience": 5.017018,
+    "confidence_kind": "robust_novelty_z_not_probability",
+    "retained": true,
+    "decision": "retained_fixed_salience_and_separation",
+    "track_count_target": null
+  },
+  {
+    "interval_id": "I003",
+    "local_time_seconds": 1720.832,
+    "absolute_time_seconds": 4086.512,
+    "internal_salience": 1.123854,
+    "confidence_kind": "robust_novelty_z_not_probability",
+    "retained": false,
+    "decision": "abstention_below_fixed_salience_or_nonmaximum_suppression",
+    "track_count_target": null
+  },
+  {
+    "interval_id": "I003",
+    "local_time_seconds": 1763.776,
+    "absolute_time_seconds": 4129.456,
+    "internal_salience": 1.46874,
+    "confidence_kind": "robust_novelty_z_not_probability",
+    "retained": false,
+    "decision": "abstention_below_fixed_salience_or_nonmaximum_suppression",
+    "track_count_target": null
+  },
+  {
+    "interval_id": "I003",
+    "local_time_seconds": 1798.377716,
+    "absolute_time_seconds": 4164.057716,
+    "internal_salience": 5.628721,
+    "confidence_kind": "robust_novelty_z_not_probability",
+    "retained": true,
+    "decision": "retained_fixed_salience_and_separation",
+    "track_count_target": null
+  },
+  {
+    "interval_id": "I003",
+    "local_time_seconds": 1829.568,
+    "absolute_time_seconds": 4195.248,
+    "internal_salience": 4.177645,
+    "confidence_kind": "robust_novelty_z_not_probability",
+    "retained": false,
+    "decision": "abstention_below_fixed_salience_or_nonmaximum_suppression",
+    "track_count_target": null
+  },
+  {
+    "interval_id": "I003",
+    "local_time_seconds": 1890.88,
+    "absolute_time_seconds": 4256.56,
+    "internal_salience": 0.997581,
+    "confidence_kind": "robust_novelty_z_not_probability",
+    "retained": false,
+    "decision": "abstention_below_fixed_salience_or_nonmaximum_suppression",
+    "track_count_target": null
+  },
+  {
+    "interval_id": "I003",
+    "local_time_seconds": 1947.968,
+    "absolute_time_seconds": 4313.648,
+    "internal_salience": 2.977754,
+    "confidence_kind": "robust_novelty_z_not_probability",
+    "retained": false,
+    "decision": "abstention_below_fixed_salience_or_nonmaximum_suppression",
+    "track_count_target": null
+  },
+  {
+    "interval_id": "I003",
+    "local_time_seconds": 2019.648,
+    "absolute_time_seconds": 4385.328,
+    "internal_salience": 4.018713,
+    "confidence_kind": "robust_novelty_z_not_probability",
+    "retained": false,
+    "decision": "abstention_below_fixed_salience_or_nonmaximum_suppression",
+    "track_count_target": null
+  },
+  {
+    "interval_id": "I003",
+    "local_time_seconds": 2040.384,
+    "absolute_time_seconds": 4406.064,
+    "internal_salience": 6.291643,
+    "confidence_kind": "robust_novelty_z_not_probability",
+    "retained": false,
+    "decision": "abstention_below_fixed_salience_or_nonmaximum_suppression",
+    "track_count_target": null
+  },
+  {
+    "interval_id": "I003",
+    "local_time_seconds": 2070.528,
+    "absolute_time_seconds": 4436.208,
+    "internal_salience": 7.135409,
+    "confidence_kind": "robust_novelty_z_not_probability",
+    "retained": true,
+    "decision": "retained_fixed_salience_and_separation",
+    "track_count_target": null
+  },
+  {
+    "interval_id": "I003",
+    "local_time_seconds": 2152.064,
+    "absolute_time_seconds": 4517.744,
+    "internal_salience": 2.188826,
+    "confidence_kind": "robust_novelty_z_not_probability",
+    "retained": false,
+    "decision": "abstention_below_fixed_salience_or_nonmaximum_suppression",
+    "track_count_target": null
+  },
+  {
+    "interval_id": "I003",
+    "local_time_seconds": 2225.792,
+    "absolute_time_seconds": 4591.472,
+    "internal_salience": 2.985487,
+    "confidence_kind": "robust_novelty_z_not_probability",
+    "retained": false,
+    "decision": "abstention_below_fixed_salience_or_nonmaximum_suppression",
+    "track_count_target": null
+  },
+  {
+    "interval_id": "I003",
+    "local_time_seconds": 2297.536,
+    "absolute_time_seconds": 4663.216,
+    "internal_salience": 23.437443,
+    "confidence_kind": "robust_novelty_z_not_probability",
+    "retained": true,
+    "decision": "retained_fixed_salience_and_separation",
+    "track_count_target": null
+  },
+  {
+    "interval_id": "I003",
+    "local_time_seconds": 2376.704,
+    "absolute_time_seconds": 4742.384,
+    "internal_salience": 4.737075,
+    "confidence_kind": "robust_novelty_z_not_probability",
+    "retained": true,
+    "decision": "retained_fixed_salience_and_separation",
+    "track_count_target": null
+  },
+  {
+    "interval_id": "I003",
+    "local_time_seconds": 2406.528,
+    "absolute_time_seconds": 4772.208,
+    "internal_salience": 1.178177,
+    "confidence_kind": "robust_novelty_z_not_probability",
+    "retained": false,
+    "decision": "abstention_below_fixed_salience_or_nonmaximum_suppression",
+    "track_count_target": null
+  },
+  {
+    "interval_id": "I003",
+    "local_time_seconds": 2567.15409,
+    "absolute_time_seconds": 4932.83409,
+    "internal_salience": 2.774553,
+    "confidence_kind": "robust_novelty_z_not_probability",
+    "retained": false,
+    "decision": "abstention_below_fixed_salience_or_nonmaximum_suppression",
+    "track_count_target": null
+  },
+  {
+    "interval_id": "I003",
+    "local_time_seconds": 2627.264,
+    "absolute_time_seconds": 4992.944,
+    "internal_salience": 0.881816,
+    "confidence_kind": "robust_novelty_z_not_probability",
+    "retained": false,
+    "decision": "abstention_below_fixed_salience_or_nonmaximum_suppression",
+    "track_count_target": null
+  },
+  {
+    "interval_id": "I003",
+    "local_time_seconds": 2675.456,
+    "absolute_time_seconds": 5041.136,
+    "internal_salience": 0.824013,
+    "confidence_kind": "robust_novelty_z_not_probability",
+    "retained": false,
+    "decision": "abstention_below_fixed_salience_or_nonmaximum_suppression",
+    "track_count_target": null
+  },
+  {
+    "interval_id": "I003",
+    "local_time_seconds": 2695.168,
+    "absolute_time_seconds": 5060.848,
+    "internal_salience": 1.834697,
+    "confidence_kind": "robust_novelty_z_not_probability",
+    "retained": false,
+    "decision": "abstention_below_fixed_salience_or_nonmaximum_suppression",
+    "track_count_target": null
+  },
+  {
+    "interval_id": "I003",
+    "local_time_seconds": 2722.752,
+    "absolute_time_seconds": 5088.432,
+    "internal_salience": 1.658816,
+    "confidence_kind": "robust_novelty_z_not_probability",
+    "retained": false,
+    "decision": "abstention_below_fixed_salience_or_nonmaximum_suppression",
+    "track_count_target": null
+  },
+  {
+    "interval_id": "I003",
+    "local_time_seconds": 2776.976157,
+    "absolute_time_seconds": 5142.656157,
+    "internal_salience": 0.982941,
+    "confidence_kind": "robust_novelty_z_not_probability",
+    "retained": false,
+    "decision": "abstention_below_fixed_salience_or_nonmaximum_suppression",
+    "track_count_target": null
+  },
+  {
+    "interval_id": "I003",
+    "local_time_seconds": 2804.032,
+    "absolute_time_seconds": 5169.712,
+    "internal_salience": 1.352565,
+    "confidence_kind": "robust_novelty_z_not_probability",
+    "retained": false,
+    "decision": "abstention_below_fixed_salience_or_nonmaximum_suppression",
+    "track_count_target": null
+  },
+  {
+    "interval_id": "I003",
+    "local_time_seconds": 2859.712,
+    "absolute_time_seconds": 5225.392,
+    "internal_salience": 3.696348,
+    "confidence_kind": "robust_novelty_z_not_probability",
+    "retained": true,
+    "decision": "retained_fixed_salience_and_separation",
+    "track_count_target": null
+  },
+  {
+    "interval_id": "I004",
+    "local_time_seconds": 77.632,
+    "absolute_time_seconds": 5427.012,
+    "internal_salience": 0.83397,
+    "confidence_kind": "robust_novelty_z_not_probability",
+    "retained": false,
+    "decision": "abstention_below_fixed_salience_or_nonmaximum_suppression",
+    "track_count_target": null
+  },
+  {
+    "interval_id": "I004",
+    "local_time_seconds": 150.72,
+    "absolute_time_seconds": 5500.1,
+    "internal_salience": 1.575914,
+    "confidence_kind": "robust_novelty_z_not_probability",
+    "retained": false,
+    "decision": "abstention_below_fixed_salience_or_nonmaximum_suppression",
+    "track_count_target": null
+  },
+  {
+    "interval_id": "I004",
+    "local_time_seconds": 238.592,
+    "absolute_time_seconds": 5587.972,
+    "internal_salience": 4.872188,
+    "confidence_kind": "robust_novelty_z_not_probability",
+    "retained": false,
+    "decision": "abstention_below_fixed_salience_or_nonmaximum_suppression",
+    "track_count_target": null
+  },
+  {
+    "interval_id": "I004",
+    "local_time_seconds": 293.696,
+    "absolute_time_seconds": 5643.076,
+    "internal_salience": 8.20833,
+    "confidence_kind": "robust_novelty_z_not_probability",
+    "retained": true,
+    "decision": "retained_fixed_salience_and_separation",
+    "track_count_target": null
+  },
+  {
+    "interval_id": "I004",
+    "local_time_seconds": 316.864,
+    "absolute_time_seconds": 5666.244,
+    "internal_salience": 6.464319,
+    "confidence_kind": "robust_novelty_z_not_probability",
+    "retained": false,
+    "decision": "abstention_below_fixed_salience_or_nonmaximum_suppression",
+    "track_count_target": null
+  },
+  {
+    "interval_id": "I004",
+    "local_time_seconds": 339.968,
+    "absolute_time_seconds": 5689.348,
+    "internal_salience": 5.027983,
+    "confidence_kind": "robust_novelty_z_not_probability",
+    "retained": false,
+    "decision": "abstention_below_fixed_salience_or_nonmaximum_suppression",
+    "track_count_target": null
+  },
+  {
+    "interval_id": "I004",
+    "local_time_seconds": 385.344,
+    "absolute_time_seconds": 5734.724,
+    "internal_salience": 32.880791,
+    "confidence_kind": "robust_novelty_z_not_probability",
+    "retained": true,
+    "decision": "retained_fixed_salience_and_separation",
+    "track_count_target": null
+  },
+  {
+    "interval_id": "I004",
+    "local_time_seconds": 508.864,
+    "absolute_time_seconds": 5858.244,
+    "internal_salience": 7.906125,
+    "confidence_kind": "robust_novelty_z_not_probability",
+    "retained": true,
+    "decision": "retained_fixed_salience_and_separation",
+    "track_count_target": null
+  },
+  {
+    "interval_id": "I004",
+    "local_time_seconds": 576.256,
+    "absolute_time_seconds": 5925.636,
+    "internal_salience": 1.677293,
+    "confidence_kind": "robust_novelty_z_not_probability",
+    "retained": false,
+    "decision": "abstention_below_fixed_salience_or_nonmaximum_suppression",
+    "track_count_target": null
+  },
+  {
+    "interval_id": "I004",
+    "local_time_seconds": 604.224,
+    "absolute_time_seconds": 5953.604,
+    "internal_salience": 0.948643,
+    "confidence_kind": "robust_novelty_z_not_probability",
+    "retained": false,
+    "decision": "abstention_below_fixed_salience_or_nonmaximum_suppression",
+    "track_count_target": null
+  },
+  {
+    "interval_id": "I004",
+    "local_time_seconds": 635.909665,
+    "absolute_time_seconds": 5985.289665,
+    "internal_salience": 2.955575,
+    "confidence_kind": "robust_novelty_z_not_probability",
+    "retained": false,
+    "decision": "abstention_below_fixed_salience_or_nonmaximum_suppression",
+    "track_count_target": null
+  },
+  {
+    "interval_id": "I004",
+    "local_time_seconds": 680.64,
+    "absolute_time_seconds": 6030.02,
+    "internal_salience": 1.933042,
+    "confidence_kind": "robust_novelty_z_not_probability",
+    "retained": false,
+    "decision": "abstention_below_fixed_salience_or_nonmaximum_suppression",
+    "track_count_target": null
+  },
+  {
+    "interval_id": "I004",
+    "local_time_seconds": 707.072,
+    "absolute_time_seconds": 6056.452,
+    "internal_salience": 1.098154,
+    "confidence_kind": "robust_novelty_z_not_probability",
+    "retained": false,
+    "decision": "abstention_below_fixed_salience_or_nonmaximum_suppression",
+    "track_count_target": null
+  },
+  {
+    "interval_id": "I004",
+    "local_time_seconds": 757.824,
+    "absolute_time_seconds": 6107.204,
+    "internal_salience": 5.500549,
+    "confidence_kind": "robust_novelty_z_not_probability",
+    "retained": true,
+    "decision": "retained_fixed_salience_and_separation",
+    "track_count_target": null
+  },
+  {
+    "interval_id": "I004",
+    "local_time_seconds": 784.256,
+    "absolute_time_seconds": 6133.636,
+    "internal_salience": 3.267926,
+    "confidence_kind": "robust_novelty_z_not_probability",
+    "retained": false,
+    "decision": "abstention_below_fixed_salience_or_nonmaximum_suppression",
+    "track_count_target": null
+  },
+  {
+    "interval_id": "I004",
+    "local_time_seconds": 811.392,
+    "absolute_time_seconds": 6160.772,
+    "internal_salience": 1.442312,
+    "confidence_kind": "robust_novelty_z_not_probability",
+    "retained": false,
+    "decision": "abstention_below_fixed_salience_or_nonmaximum_suppression",
+    "track_count_target": null
+  },
+  {
+    "interval_id": "I004",
+    "local_time_seconds": 838.272,
+    "absolute_time_seconds": 6187.652,
+    "internal_salience": 15.592716,
+    "confidence_kind": "robust_novelty_z_not_probability",
+    "retained": true,
+    "decision": "retained_fixed_salience_and_separation",
+    "track_count_target": null
+  },
+  {
+    "interval_id": "I004",
+    "local_time_seconds": 882.048,
+    "absolute_time_seconds": 6231.428,
+    "internal_salience": 4.079431,
+    "confidence_kind": "robust_novelty_z_not_probability",
+    "retained": false,
+    "decision": "abstention_below_fixed_salience_or_nonmaximum_suppression",
+    "track_count_target": null
+  },
+  {
+    "interval_id": "I004",
+    "local_time_seconds": 906.688,
+    "absolute_time_seconds": 6256.068,
+    "internal_salience": 1.120855,
+    "confidence_kind": "robust_novelty_z_not_probability",
+    "retained": false,
+    "decision": "abstention_below_fixed_salience_or_nonmaximum_suppression",
+    "track_count_target": null
+  },
+  {
+    "interval_id": "I004",
+    "local_time_seconds": 931.584,
+    "absolute_time_seconds": 6280.964,
+    "internal_salience": 1.251184,
+    "confidence_kind": "robust_novelty_z_not_probability",
+    "retained": false,
+    "decision": "abstention_below_fixed_salience_or_nonmaximum_suppression",
+    "track_count_target": null
+  },
+  {
+    "interval_id": "I004",
+    "local_time_seconds": 951.424,
+    "absolute_time_seconds": 6300.804,
+    "internal_salience": 1.404729,
+    "confidence_kind": "robust_novelty_z_not_probability",
+    "retained": false,
+    "decision": "abstention_below_fixed_salience_or_nonmaximum_suppression",
+    "track_count_target": null
+  },
+  {
+    "interval_id": "I004",
+    "local_time_seconds": 987.277999,
+    "absolute_time_seconds": 6336.657999,
+    "internal_salience": 1.999799,
+    "confidence_kind": "robust_novelty_z_not_probability",
+    "retained": false,
+    "decision": "abstention_below_fixed_salience_or_nonmaximum_suppression",
+    "track_count_target": null
+  },
+  {
+    "interval_id": "I004",
+    "local_time_seconds": 1041.659535,
+    "absolute_time_seconds": 6391.039535,
+    "internal_salience": 2.643015,
+    "confidence_kind": "robust_novelty_z_not_probability",
+    "retained": false,
+    "decision": "abstention_below_fixed_salience_or_nonmaximum_suppression",
+    "track_count_target": null
+  },
+  {
+    "interval_id": "I004",
+    "local_time_seconds": 1085.248,
+    "absolute_time_seconds": 6434.628,
+    "internal_salience": 3.618854,
+    "confidence_kind": "robust_novelty_z_not_probability",
+    "retained": true,
+    "decision": "retained_fixed_salience_and_separation",
+    "track_count_target": null
+  },
+  {
+    "interval_id": "I004",
+    "local_time_seconds": 1150.848,
+    "absolute_time_seconds": 6500.228,
+    "internal_salience": 2.223854,
+    "confidence_kind": "robust_novelty_z_not_probability",
+    "retained": false,
+    "decision": "abstention_below_fixed_salience_or_nonmaximum_suppression",
+    "track_count_target": null
+  },
+  {
+    "interval_id": "I004",
+    "local_time_seconds": 1227.392,
+    "absolute_time_seconds": 6576.772,
+    "internal_salience": 1.292062,
+    "confidence_kind": "robust_novelty_z_not_probability",
+    "retained": false,
+    "decision": "abstention_below_fixed_salience_or_nonmaximum_suppression",
+    "track_count_target": null
+  },
+  {
+    "interval_id": "I004",
+    "local_time_seconds": 1289.728,
+    "absolute_time_seconds": 6639.108,
+    "internal_salience": 7.513158,
+    "confidence_kind": "robust_novelty_z_not_probability",
+    "retained": true,
+    "decision": "retained_fixed_salience_and_separation",
+    "track_count_target": null
+  },
+  {
+    "interval_id": "I004",
+    "local_time_seconds": 1308.096,
+    "absolute_time_seconds": 6657.476,
+    "internal_salience": 2.643335,
+    "confidence_kind": "robust_novelty_z_not_probability",
+    "retained": false,
+    "decision": "abstention_below_fixed_salience_or_nonmaximum_suppression",
+    "track_count_target": null
+  },
+  {
+    "interval_id": "I004",
+    "local_time_seconds": 1345.088,
+    "absolute_time_seconds": 6694.468,
+    "internal_salience": 1.448803,
+    "confidence_kind": "robust_novelty_z_not_probability",
+    "retained": false,
+    "decision": "abstention_below_fixed_salience_or_nonmaximum_suppression",
+    "track_count_target": null
+  },
+  {
+    "interval_id": "I004",
+    "local_time_seconds": 1405.888,
+    "absolute_time_seconds": 6755.268,
+    "internal_salience": 1.955541,
+    "confidence_kind": "robust_novelty_z_not_probability",
+    "retained": false,
+    "decision": "abstention_below_fixed_salience_or_nonmaximum_suppression",
+    "track_count_target": null
+  },
+  {
+    "interval_id": "I004",
+    "local_time_seconds": 1431.296,
+    "absolute_time_seconds": 6780.676,
+    "internal_salience": 0.604662,
+    "confidence_kind": "robust_novelty_z_not_probability",
+    "retained": false,
+    "decision": "abstention_below_fixed_salience_or_nonmaximum_suppression",
+    "track_count_target": null
+  },
+  {
+    "interval_id": "I004",
+    "local_time_seconds": 1481.792,
+    "absolute_time_seconds": 6831.172,
+    "internal_salience": 2.935723,
+    "confidence_kind": "robust_novelty_z_not_probability",
+    "retained": false,
+    "decision": "abstention_below_fixed_salience_or_nonmaximum_suppression",
+    "track_count_target": null
+  },
+  {
+    "interval_id": "I005",
+    "local_time_seconds": 37.504,
+    "absolute_time_seconds": 7013.224,
+    "internal_salience": 3.318033,
+    "confidence_kind": "robust_novelty_z_not_probability",
+    "retained": true,
+    "decision": "retained_fixed_salience_and_separation",
+    "track_count_target": null
+  },
+  {
+    "interval_id": "I005",
+    "local_time_seconds": 66.612651,
+    "absolute_time_seconds": 7042.332651,
+    "internal_salience": 0.94261,
+    "confidence_kind": "robust_novelty_z_not_probability",
+    "retained": false,
+    "decision": "abstention_below_fixed_salience_or_nonmaximum_suppression",
+    "track_count_target": null
+  },
+  {
+    "interval_id": "I005",
+    "local_time_seconds": 100.352,
+    "absolute_time_seconds": 7076.072,
+    "internal_salience": 0.566552,
+    "confidence_kind": "robust_novelty_z_not_probability",
+    "retained": false,
+    "decision": "abstention_below_fixed_salience_or_nonmaximum_suppression",
+    "track_count_target": null
+  },
+  {
+    "interval_id": "I005",
+    "local_time_seconds": 119.552,
+    "absolute_time_seconds": 7095.272,
+    "internal_salience": 1.866138,
+    "confidence_kind": "robust_novelty_z_not_probability",
+    "retained": false,
+    "decision": "abstention_below_fixed_salience_or_nonmaximum_suppression",
+    "track_count_target": null
+  },
+  {
+    "interval_id": "I005",
+    "local_time_seconds": 203.456,
+    "absolute_time_seconds": 7179.176,
+    "internal_salience": 0.617063,
+    "confidence_kind": "robust_novelty_z_not_probability",
+    "retained": false,
+    "decision": "abstention_below_fixed_salience_or_nonmaximum_suppression",
+    "track_count_target": null
+  }
+]

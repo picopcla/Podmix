@@ -1,0 +1,43 @@
+piece_id,interval_id,start_seconds,end_seconds,duration_seconds,start_origin,independent_artist,independent_title,independent_identification_status,assisted_artist,assisted_title,assisted_identification_status,recognition_ids
+P001,I001,0.0,120.0,120.0,voice_interval_boundary,,,abstention_no_configured_identifier,,,abstention_no_candidate_landmark,[]
+P002,I002,120.0,162.58121,42.58121,voice_interval_boundary,,,abstention_no_configured_identifier,,,abstention_no_candidate_landmark,[]
+P003,I002,162.58121,339.712,177.13079,retained_local_spectral_transition,,,abstention_no_configured_identifier,Against All Ødds,Save Me,candidate_landmark_unique_in_piece,"[""L002""]"
+P004,I002,339.712,399.936,60.224,retained_local_spectral_transition,,,abstention_no_configured_identifier,,,abstention_no_candidate_landmark,[]
+P005,I002,399.936,525.376,125.44,retained_local_spectral_transition,,,abstention_no_configured_identifier,,,abstention_no_candidate_landmark,[]
+P006,I002,525.376,783.616,258.24,retained_local_spectral_transition,,,abstention_no_configured_identifier,,,abstention_no_candidate_landmark,[]
+P007,I002,783.616,881.28,97.664,retained_local_spectral_transition,,,abstention_no_configured_identifier,,,abstention_no_candidate_landmark,[]
+P008,I002,881.28,1007.872,126.592,retained_local_spectral_transition,,,abstention_no_configured_identifier,,,abstention_no_candidate_landmark,[]
+P009,I002,1007.872,1233.664,225.792,retained_local_spectral_transition,,,abstention_no_configured_identifier,Freak E Beatz & JASSKALL,No Escape,candidate_landmark_unique_in_piece,"[""L005""]"
+P010,I002,1233.664,1556.864,323.2,retained_local_spectral_transition,,,abstention_no_configured_identifier,,,abstention_no_candidate_landmark,[]
+P011,I002,1556.864,1814.234783,257.370783,retained_local_spectral_transition,,,abstention_no_configured_identifier,,,abstention_no_candidate_landmark,[]
+P012,I002,1814.234783,1926.848,112.613217,retained_local_spectral_transition,,,abstention_no_configured_identifier,Benny Benassi & Hypaton feat. Sandy Chambers,Illusion,candidate_landmark_unique_in_piece,"[""L009""]"
+P013,I002,1926.848,2005.968471,79.120471,retained_local_spectral_transition,,,abstention_no_configured_identifier,,,abstention_no_candidate_landmark,[]
+P014,I002,2005.968471,2207.936,201.967529,retained_local_spectral_transition,,,abstention_no_configured_identifier,"Genix, Dosem",Transit Point (Genix Mix),candidate_landmark_unique_in_piece,"[""L011""]"
+P015,I002,2207.936,2280.896,72.96,retained_local_spectral_transition,,,abstention_no_configured_identifier,,,abstention_no_candidate_landmark,[]
+P016,I002,2280.896,2365.68,84.784,retained_local_spectral_transition,,,abstention_no_configured_identifier,,,abstention_no_candidate_landmark,[]
+P017,I003,2365.68,2409.648,43.968,voice_interval_boundary,,,abstention_no_configured_identifier,,,abstention_no_candidate_landmark,[]
+P018,I003,2409.648,2520.304,110.656,retained_local_spectral_transition,,,abstention_no_configured_identifier,,,abstention_no_candidate_landmark,[]
+P019,I003,2520.304,2618.422421,98.118421,retained_local_spectral_transition,,,abstention_no_configured_identifier,,,abstention_no_candidate_landmark,[]
+P020,I003,2618.422421,2827.12,208.697579,retained_local_spectral_transition,,,abstention_no_configured_identifier,"Ashley Wallbridge, The Paper Outlet",Forever Young,candidate_landmark_unique_in_piece,"[""L013""]"
+P021,I003,2827.12,2919.728,92.608,retained_local_spectral_transition,,,abstention_no_configured_identifier,,,abstention_no_candidate_landmark,[]
+P022,I003,2919.728,2984.624,64.896,retained_local_spectral_transition,,,abstention_no_configured_identifier,,,abstention_no_candidate_landmark,[]
+P023,I003,2984.624,3184.56,199.936,retained_local_spectral_transition,,,abstention_no_configured_identifier,,,abstention_no_candidate_landmark,[]
+P024,I003,3184.56,3564.208,379.648,retained_local_spectral_transition,,,abstention_no_configured_identifier,,,abstention_no_candidate_landmark,[]
+P025,I003,3564.208,3907.376,343.168,retained_local_spectral_transition,,,abstention_no_configured_identifier,,,abstention_no_candidate_landmark,[]
+P026,I003,3907.376,4048.176,140.8,retained_local_spectral_transition,,,abstention_no_configured_identifier,,,abstention_no_candidate_landmark,[]
+P027,I003,4048.176,4164.057716,115.881716,retained_local_spectral_transition,,,abstention_no_configured_identifier,,,abstention_no_candidate_landmark,[]
+P028,I003,4164.057716,4436.208,272.150284,retained_local_spectral_transition,,,abstention_no_configured_identifier,,,abstention_no_candidate_landmark,[]
+P029,I003,4436.208,4663.216,227.008,retained_local_spectral_transition,,,abstention_no_configured_identifier,,,abstention_no_candidate_landmark,[]
+P030,I003,4663.216,4742.384,79.168,retained_local_spectral_transition,,,abstention_no_configured_identifier,,,abstention_no_candidate_landmark,[]
+P031,I003,4742.384,5225.392,483.008,retained_local_spectral_transition,,,abstention_no_configured_identifier,,,abstention_no_candidate_landmark,[]
+P032,I003,5225.392,5349.38,123.988,retained_local_spectral_transition,,,abstention_no_configured_identifier,,,abstention_no_candidate_landmark,[]
+P033,I004,5349.38,5643.076,293.696,voice_interval_boundary,,,abstention_no_configured_identifier,,,abstention_no_candidate_landmark,[]
+P034,I004,5643.076,5734.724,91.648,retained_local_spectral_transition,,,abstention_no_configured_identifier,Armin van Buuren feat. Sharon Den Adel,In And Out Of Love (Ben Hemsley Remix),candidate_landmark_unique_in_piece,"[""L025""]"
+P035,I004,5734.724,5858.244,123.52,retained_local_spectral_transition,,,abstention_no_configured_identifier,,,abstention_no_candidate_landmark,[]
+P036,I004,5858.244,6107.204,248.96,retained_local_spectral_transition,,,abstention_no_configured_identifier,,,abstention_no_candidate_landmark,[]
+P037,I004,6107.204,6187.652,80.448,retained_local_spectral_transition,,,abstention_no_configured_identifier,,,abstention_no_candidate_landmark,[]
+P038,I004,6187.652,6434.628,246.976,retained_local_spectral_transition,,,abstention_no_configured_identifier,,,abstention_no_candidate_landmark,[]
+P039,I004,6434.628,6639.108,204.48,retained_local_spectral_transition,,,abstention_no_configured_identifier,"Olly James, Panteros666 & Evil Twiin",Berlin '99,candidate_landmark_unique_in_piece,"[""L030""]"
+P040,I004,6639.108,6975.72,336.612,retained_local_spectral_transition,,,abstention_no_configured_identifier,Maurya Sevak & Jake Ryan,Sata Sata,candidate_landmark_unique_in_piece,"[""L031""]"
+P041,I005,6975.72,7013.224,37.504,voice_interval_boundary,,,abstention_no_configured_identifier,,,abstention_no_candidate_landmark,[]
+P042,I005,7013.224,7216.927375,203.703375,retained_local_spectral_transition,,,abstention_no_configured_identifier,,,abstention_no_candidate_landmark,[]

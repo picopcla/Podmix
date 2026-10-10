@@ -1,0 +1,6 @@
+detection_id,voice_end_seconds,candidate_number,candidate_artist,candidate_title,title_overlap,artist_overlap,title_token_coverage,classification,assignment
+find-your-harmony-512-d002,120.0,1,Mhammed El Alami & Josie Sandfeld,Keep On Running,"[""keep"",""running""]","[""alami"",""josie""]",1.0,asr_annonce_assiste_par_candidats,abstention_orientation_precedent_suivant_ou_liste_multiple
+find-your-harmony-512-d002,120.0,17,Andrew Rayel pres. EXTASIA,Dreaming (Giuseppe Ottaviani Remix),"[""dreaming"",""giuseppe"",""ottaviani""]",[],1.0,asr_annonce_assiste_par_candidats,abstention_orientation_precedent_suivant_ou_liste_multiple
+find-your-harmony-512-d002,120.0,24,Andrew Rayel,Acid On The Train (David Forbes Remix),"[""acid"",""david"",""forbes"",""train""]",[],1.0,asr_annonce_assiste_par_candidats,abstention_orientation_precedent_suivant_ou_liste_multiple
+find-your-harmony-512-d005,2365.68,12,Spoiled and Zigo,More & More (BLR Remix),"[""blr"",""more""]","[""spoiled"",""zigo""]",1.0,asr_annonce_assiste_par_candidats,abstention_orientation_precedent_suivant_ou_liste_multiple
+find-your-harmony-512-d008,5349.38,24,Andrew Rayel,Acid On The Train (David Forbes Remix),"[""acid"",""david"",""forbes"",""train""]",[],1.0,asr_annonce_assiste_par_candidats,abstention_orientation_precedent_suivant_ou_liste_multiple

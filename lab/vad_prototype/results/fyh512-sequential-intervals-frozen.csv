@@ -1,0 +1,6 @@
+interval_id,start_seconds,end_seconds,duration_seconds,start_source,end_source,boundary_convention,coverage,voice_identity
+I001,0.0,120.0,120.0,audio_start,find-your-harmony-512-d002,fin_de_phrase_candidate_sauf_extremites_audio,continu_sans_trou,non_confirmee
+I002,120.0,2365.68,2245.68,find-your-harmony-512-d002,find-your-harmony-512-d005,fin_de_phrase_candidate_sauf_extremites_audio,continu_sans_trou,non_confirmee
+I003,2365.68,5349.38,2983.7,find-your-harmony-512-d005,find-your-harmony-512-d008,fin_de_phrase_candidate_sauf_extremites_audio,continu_sans_trou,non_confirmee
+I004,5349.38,6975.72,1626.34,find-your-harmony-512-d008,find-your-harmony-512-d010,fin_de_phrase_candidate_sauf_extremites_audio,continu_sans_trou,non_confirmee
+I005,6975.72,7216.927375,241.207375,find-your-harmony-512-d010,decoded_audio_end,fin_de_phrase_candidate_sauf_extremites_audio,continu_sans_trou,non_confirmee

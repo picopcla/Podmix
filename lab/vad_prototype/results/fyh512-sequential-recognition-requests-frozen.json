@@ -1,0 +1,290 @@
+[
+  {
+    "candidate_number": 1,
+    "candidate_artist": "Mhammed El Alami & Josie Sandfeld",
+    "candidate_title": "Keep On Running",
+    "method": "deezer_preview_landmark_assisted",
+    "catalog_status": "unavailable_or_rejected",
+    "catalog_score": null,
+    "preview_downloaded": false
+  },
+  {
+    "candidate_number": 2,
+    "candidate_artist": "Against All Ødds",
+    "candidate_title": "Save Me",
+    "method": "deezer_preview_landmark_assisted",
+    "catalog_status": "accepted_public_preview",
+    "catalog_score": 100,
+    "preview_downloaded": true
+  },
+  {
+    "candidate_number": 3,
+    "candidate_artist": "Elite Electronic",
+    "candidate_title": "Shadows",
+    "method": "deezer_preview_landmark_assisted",
+    "catalog_status": "unavailable_or_rejected",
+    "catalog_score": 100,
+    "preview_downloaded": false
+  },
+  {
+    "candidate_number": 4,
+    "candidate_artist": "Phillip Castle & Aldor",
+    "candidate_title": "Embrace The Night",
+    "method": "deezer_preview_landmark_assisted",
+    "catalog_status": "accepted_public_preview",
+    "catalog_score": 85,
+    "preview_downloaded": true
+  },
+  {
+    "candidate_number": 5,
+    "candidate_artist": "Freak E Beatz & JASSKALL",
+    "candidate_title": "No Escape",
+    "method": "deezer_preview_landmark_assisted",
+    "catalog_status": "accepted_public_preview",
+    "catalog_score": 85,
+    "preview_downloaded": true
+  },
+  {
+    "candidate_number": 6,
+    "candidate_artist": "Adriatique",
+    "candidate_title": "Palm Of Your Hands",
+    "method": "deezer_preview_landmark_assisted",
+    "catalog_status": "unavailable_or_rejected",
+    "catalog_score": null,
+    "preview_downloaded": false
+  },
+  {
+    "candidate_number": 7,
+    "candidate_artist": "Vassmo",
+    "candidate_title": "Stay",
+    "method": "deezer_preview_landmark_assisted",
+    "catalog_status": "unavailable_or_rejected",
+    "catalog_score": null,
+    "preview_downloaded": false
+  },
+  {
+    "candidate_number": 8,
+    "candidate_artist": "Cubicore",
+    "candidate_title": "Black Light",
+    "method": "deezer_preview_landmark_assisted",
+    "catalog_status": "accepted_public_preview",
+    "catalog_score": 100,
+    "preview_downloaded": true
+  },
+  {
+    "candidate_number": 9,
+    "candidate_artist": "Benny Benassi & Hypaton feat. Sandy Chambers",
+    "candidate_title": "Illusion",
+    "method": "deezer_preview_landmark_assisted",
+    "catalog_status": "accepted_public_preview",
+    "catalog_score": 70,
+    "preview_downloaded": true
+  },
+  {
+    "candidate_number": 10,
+    "candidate_artist": "Mike Williams, Three Drives, ANTICALM",
+    "candidate_title": "Greece 2000",
+    "method": "deezer_preview_landmark_assisted",
+    "catalog_status": "unavailable_or_rejected",
+    "catalog_score": null,
+    "preview_downloaded": false
+  },
+  {
+    "candidate_number": 11,
+    "candidate_artist": "Genix, Dosem",
+    "candidate_title": "Transit Point (Genix Mix)",
+    "method": "deezer_preview_landmark_assisted",
+    "catalog_status": "accepted_public_preview",
+    "catalog_score": 78,
+    "preview_downloaded": true
+  },
+  {
+    "candidate_number": 12,
+    "candidate_artist": "Spoiled and Zigo",
+    "candidate_title": "More & More (BLR Remix)",
+    "method": "deezer_preview_landmark_assisted",
+    "catalog_status": "unavailable_or_rejected",
+    "catalog_score": null,
+    "preview_downloaded": false
+  },
+  {
+    "candidate_number": 13,
+    "candidate_artist": "Ashley Wallbridge, The Paper Outlet",
+    "candidate_title": "Forever Young",
+    "method": "deezer_preview_landmark_assisted",
+    "catalog_status": "accepted_public_preview",
+    "catalog_score": 73,
+    "preview_downloaded": true
+  },
+  {
+    "candidate_number": 14,
+    "candidate_artist": "Markus Schulz",
+    "candidate_title": "Second Tomorrow",
+    "method": "deezer_preview_landmark_assisted",
+    "catalog_status": "accepted_public_preview",
+    "catalog_score": 100,
+    "preview_downloaded": true
+  },
+  {
+    "candidate_number": 15,
+    "candidate_artist": "Victor Ruiz & KURA",
+    "candidate_title": "FSU",
+    "method": "deezer_preview_landmark_assisted",
+    "catalog_status": "unavailable_or_rejected",
+    "catalog_score": null,
+    "preview_downloaded": false
+  },
+  {
+    "candidate_number": 16,
+    "candidate_artist": "MAXTAGE & Fathom (EG)",
+    "candidate_title": "The Right Place (RAYEL Remix)",
+    "method": "deezer_preview_landmark_assisted",
+    "catalog_status": "accepted_public_preview",
+    "catalog_score": 78,
+    "preview_downloaded": true
+  },
+  {
+    "candidate_number": 17,
+    "candidate_artist": "Andrew Rayel pres. EXTASIA",
+    "candidate_title": "Dreaming (Giuseppe Ottaviani Remix)",
+    "method": "deezer_preview_landmark_assisted",
+    "catalog_status": "unavailable_or_rejected",
+    "catalog_score": null,
+    "preview_downloaded": false
+  },
+  {
+    "candidate_number": 18,
+    "candidate_artist": "MIDI Kitty and Derek Ryan",
+    "candidate_title": "Miles Away",
+    "method": "deezer_preview_landmark_assisted",
+    "catalog_status": "unavailable_or_rejected",
+    "catalog_score": 64,
+    "preview_downloaded": false
+  },
+  {
+    "candidate_number": 19,
+    "candidate_artist": "Paul Denton & EKE",
+    "candidate_title": "Next To Me (Club Mix)",
+    "method": "deezer_preview_landmark_assisted",
+    "catalog_status": "unavailable_or_rejected",
+    "catalog_score": null,
+    "preview_downloaded": false
+  },
+  {
+    "candidate_number": 20,
+    "candidate_artist": "RAM & Susana pres. Tales Of Life",
+    "candidate_title": "The Power of Love (Alex M.O.R.P.H. Remix)",
+    "method": "deezer_preview_landmark_assisted",
+    "catalog_status": "unavailable_or_rejected",
+    "catalog_score": null,
+    "preview_downloaded": false
+  },
+  {
+    "candidate_number": 21,
+    "candidate_artist": "Giuseppe Ottaviani & Ilan Bluestone",
+    "candidate_title": "Together Again",
+    "method": "deezer_preview_landmark_assisted",
+    "catalog_status": "accepted_public_preview",
+    "catalog_score": 78,
+    "preview_downloaded": true
+  },
+  {
+    "candidate_number": 22,
+    "candidate_artist": "Aly & Fila, Susie Ledge, Roman Messer, Anton Pallmer",
+    "candidate_title": "Carry Me Away",
+    "method": "deezer_preview_landmark_assisted",
+    "catalog_status": "unavailable_or_rejected",
+    "catalog_score": null,
+    "preview_downloaded": false
+  },
+  {
+    "candidate_number": 23,
+    "candidate_artist": "John Askew",
+    "candidate_title": "Through The Looking Glass (Nikolauss Remix)",
+    "method": "deezer_preview_landmark_assisted",
+    "catalog_status": "accepted_public_preview",
+    "catalog_score": 100,
+    "preview_downloaded": true
+  },
+  {
+    "candidate_number": 24,
+    "candidate_artist": "Andrew Rayel",
+    "candidate_title": "Acid On The Train (David Forbes Remix)",
+    "method": "deezer_preview_landmark_assisted",
+    "catalog_status": "accepted_public_preview",
+    "catalog_score": 100,
+    "preview_downloaded": true
+  },
+  {
+    "candidate_number": 25,
+    "candidate_artist": "Armin van Buuren feat. Sharon Den Adel",
+    "candidate_title": "In And Out Of Love (Ben Hemsley Remix)",
+    "method": "deezer_preview_landmark_assisted",
+    "catalog_status": "accepted_public_preview",
+    "catalog_score": 74,
+    "preview_downloaded": true
+  },
+  {
+    "candidate_number": 26,
+    "candidate_artist": "Xincher & Rav3ver",
+    "candidate_title": "Echo",
+    "method": "deezer_preview_landmark_assisted",
+    "catalog_status": "accepted_public_preview",
+    "catalog_score": 78,
+    "preview_downloaded": true
+  },
+  {
+    "candidate_number": 27,
+    "candidate_artist": "RAM & Richard Durand presents Digital Culture",
+    "candidate_title": "La La La",
+    "method": "deezer_preview_landmark_assisted",
+    "catalog_status": "unavailable_or_rejected",
+    "catalog_score": null,
+    "preview_downloaded": false
+  },
+  {
+    "candidate_number": 28,
+    "candidate_artist": "Matt Bukovski & CJ Stone",
+    "candidate_title": "Stars",
+    "method": "deezer_preview_landmark_assisted",
+    "catalog_status": "accepted_public_preview",
+    "catalog_score": 85,
+    "preview_downloaded": true
+  },
+  {
+    "candidate_number": 29,
+    "candidate_artist": "LAWTON, Trancemaster Krause & Caroline Roxy",
+    "candidate_title": "Believe In",
+    "method": "deezer_preview_landmark_assisted",
+    "catalog_status": "unavailable_or_rejected",
+    "catalog_score": 64,
+    "preview_downloaded": false
+  },
+  {
+    "candidate_number": 30,
+    "candidate_artist": "Olly James, Panteros666 & Evil Twiin",
+    "candidate_title": "Berlin '99",
+    "method": "deezer_preview_landmark_assisted",
+    "catalog_status": "accepted_public_preview",
+    "catalog_score": 73,
+    "preview_downloaded": true
+  },
+  {
+    "candidate_number": 31,
+    "candidate_artist": "Maurya Sevak & Jake Ryan",
+    "candidate_title": "Sata Sata",
+    "method": "deezer_preview_landmark_assisted",
+    "catalog_status": "accepted_public_preview",
+    "catalog_score": 78,
+    "preview_downloaded": true
+  },
+  {
+    "candidate_number": 32,
+    "candidate_artist": "Ferry Corsten",
+    "candidate_title": "Sweet Sorrow (The Thrillseekers Remix 2004)",
+    "method": "deezer_preview_landmark_assisted",
+    "catalog_status": "unavailable_or_rejected",
+    "catalog_score": null,
+    "preview_downloaded": false
+  }
+]

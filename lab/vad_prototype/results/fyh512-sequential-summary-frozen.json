@@ -1,0 +1,40 @@
+{
+  "episode_id": "find-your-harmony-512",
+  "reference_times_loaded": false,
+  "known_reference_warning": "La tracklist et les temps officiels ont deja ete vus lors du test precedent: cette variante n'est pas aveugle. Les temps publies restent interdits au calcul sequentiel et ne sont charges qu'apres gel.",
+  "media_sha256": "47814fb78f3f0236777b6c5ebf378d23e4938914c474df116c49f618b3fdaf69",
+  "decoded_duration_seconds": 7216.927375,
+  "voice_threshold": 0.95,
+  "reliable_voice_boundaries": 4,
+  "intervals": 5,
+  "coverage_seconds": 7216.927375,
+  "audd_token_present": false,
+  "audd_calls": 0,
+  "audd_cost": 0,
+  "asr_voice_segments": 4,
+  "asr_candidate_mentions": 5,
+  "candidate_previews_accepted": 17,
+  "candidate_landmark_presences": 8,
+  "independent_titles_identified": 0,
+  "assisted_titles_identified": 8,
+  "local_transition_candidates": 140,
+  "local_transitions_retained": 37,
+  "pieces": 42,
+  "track_count_target": null,
+  "processing_order": [
+    "reliable_voice_boundaries",
+    "intervals",
+    "identification",
+    "local_transitions"
+  ],
+  "output_sha256": {
+    "fyh512-sequential-intervals-frozen.json": "8697444cc0380bbfa9d10f316d34d07c5922629abe62d5f0bc95efaf2a712f16",
+    "fyh512-sequential-pieces-frozen.json": "082fa797d286470ce7e4c724a005d2ff02bdaac3ac9bdda4d5e62c6870dd314a",
+    "fyh512-sequential-transitions-frozen.json": "1092684e967b559535a03e1fbcf138f5b249eeae33a4b795a5903f60b5b59f67",
+    "fyh512-sequential-transition-candidates-frozen.json": "d1595a3a5535113f7a9950bd94a637fa7b03afc228f1c34f27ae17c8bbe89156",
+    "fyh512-sequential-identifications-frozen.json": "13b2cace0adc51774135d7091c89d1123ed6a9e21cc5cfd0b671b9ceac3e8e56",
+    "fyh512-sequential-recognition-requests-frozen.json": "d0a474d29c5b358500ee8a9af780ee949e41a8e9fccd8e9058a04233e05b3f4f",
+    "fyh512-sequential-asr-mentions-frozen.json": "52d03cd200713597f0aa7485fc2302d33c689d87abad8edfe0822c26291e4075",
+    "fyh512-sequential-trace-frozen.json": "422c986d2784215bd70706835fac81de9a7219e2827f85f9aa0e5f44bcb770bc"
+  }
+}

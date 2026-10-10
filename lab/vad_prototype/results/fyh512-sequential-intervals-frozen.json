@@ -1,0 +1,57 @@
+[
+  {
+    "interval_id": "I001",
+    "start_seconds": 0.0,
+    "end_seconds": 120.0,
+    "duration_seconds": 120.0,
+    "start_source": "audio_start",
+    "end_source": "find-your-harmony-512-d002",
+    "boundary_convention": "fin_de_phrase_candidate_sauf_extremites_audio",
+    "coverage": "continu_sans_trou",
+    "voice_identity": "non_confirmee"
+  },
+  {
+    "interval_id": "I002",
+    "start_seconds": 120.0,
+    "end_seconds": 2365.68,
+    "duration_seconds": 2245.68,
+    "start_source": "find-your-harmony-512-d002",
+    "end_source": "find-your-harmony-512-d005",
+    "boundary_convention": "fin_de_phrase_candidate_sauf_extremites_audio",
+    "coverage": "continu_sans_trou",
+    "voice_identity": "non_confirmee"
+  },
+  {
+    "interval_id": "I003",
+    "start_seconds": 2365.68,
+    "end_seconds": 5349.38,
+    "duration_seconds": 2983.7,
+    "start_source": "find-your-harmony-512-d005",
+    "end_source": "find-your-harmony-512-d008",
+    "boundary_convention": "fin_de_phrase_candidate_sauf_extremites_audio",
+    "coverage": "continu_sans_trou",
+    "voice_identity": "non_confirmee"
+  },
+  {
+    "interval_id": "I004",
+    "start_seconds": 5349.38,
+    "end_seconds": 6975.72,
+    "duration_seconds": 1626.34,
+    "start_source": "find-your-harmony-512-d008",
+    "end_source": "find-your-harmony-512-d010",
+    "boundary_convention": "fin_de_phrase_candidate_sauf_extremites_audio",
+    "coverage": "continu_sans_trou",
+    "voice_identity": "non_confirmee"
+  },
+  {
+    "interval_id": "I005",
+    "start_seconds": 6975.72,
+    "end_seconds": 7216.927375,
+    "duration_seconds": 241.207375,
+    "start_source": "find-your-harmony-512-d010",
+    "end_source": "decoded_audio_end",
+    "boundary_convention": "fin_de_phrase_candidate_sauf_extremites_audio",
+    "coverage": "continu_sans_trou",
+    "voice_identity": "non_confirmee"
+  }
+]
