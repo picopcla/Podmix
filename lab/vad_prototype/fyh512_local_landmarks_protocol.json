@@ -12,6 +12,8 @@
     "all_tracks_queried_in_every_interval": true,
     "same_track_ambiguity_ratio": 0.85,
     "same_track_ambiguity_minimum_separation_seconds": 12.0,
+    "cross_candidate_conflict_seconds": 45.0,
+    "cross_candidate_rule": "Trois candidats ou plus dont les milieux de presence sont relies par des ecarts <=45 s sont tous mis en abstention. Pour deux candidats dans cette zone, un ordre decroissant les met tous deux en abstention. Hors groupe, toute presence ulterieure dont le numero n'est pas strictement croissant est mise en abstention. Cette regle rejette des contradictions apres matching; elle ne cree jamais une presence.",
     "audd_allowed": false,
     "independent_identification": false
   },

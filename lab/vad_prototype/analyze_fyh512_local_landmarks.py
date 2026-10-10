@@ -122,6 +122,37 @@ def select_in_window(candidates: list[tuple[float, float]], start: float, end: f
     return best, "retenue_maximum_spectral_dans_fenetre_contrainte", local
 
 
+def reject_cross_candidate_conflicts(accepted: list[dict], conflict_seconds: float) -> list[dict]:
+    accepted.sort(key=lambda row: (row["presence_start_local_seconds"], row["candidate_number"]))
+    groups: list[list[dict]] = []
+    for row in accepted:
+        center = (row["presence_start_local_seconds"] + row["presence_end_local_seconds"]) / 2
+        if groups:
+            previous = groups[-1][-1]
+            previous_center = (previous["presence_start_local_seconds"] + previous["presence_end_local_seconds"]) / 2
+        if groups and center - previous_center <= conflict_seconds:
+            groups[-1].append(row)
+        else:
+            groups.append([row])
+    rejected: set[str] = set()
+    for group in groups:
+        descending_pair = len(group) == 2 and group[1]["candidate_number"] <= group[0]["candidate_number"]
+        if len(group) >= 3 or descending_pair:
+            for row in group:
+                row["decision"] = "abstention_candidats_concurrents_contradictoires"
+                rejected.add(row["recognition_id"])
+    previous_number = 0
+    for row in accepted:
+        if row["recognition_id"] in rejected:
+            continue
+        if row["candidate_number"] <= previous_number:
+            row["decision"] = "abstention_ordre_global_contradictoire"
+            rejected.add(row["recognition_id"])
+        else:
+            previous_number = row["candidate_number"]
+    return [row for row in accepted if row["recognition_id"] not in rejected]
+
+
 def prepare_references(tracks: list[dict], work: Path) -> tuple[list[dict], dict[int, dict[float, list]]]:
     CACHE.mkdir(parents=True, exist_ok=True)
     rows, events = [], {}
@@ -210,7 +241,8 @@ def recognize_interval(interval: dict, local_features, local_duration: float,
             all_rows.append(row)
             if decision == "presence_assistee_acceptee":
                 accepted.append(row)
-    return all_rows, sorted(accepted, key=lambda row: row["presence_start_local_seconds"])
+    conflict_seconds = float(protocol["local_recognition"]["cross_candidate_conflict_seconds"])
+    return all_rows, reject_cross_candidate_conflicts(accepted, conflict_seconds)
 
 
 def main() -> int:

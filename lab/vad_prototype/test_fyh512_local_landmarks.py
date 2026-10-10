@@ -1,7 +1,8 @@
 import unittest
 
 from analyze_fyh512_local_landmarks import (
-    bounded_window, interval_sample_bounds, local_to_absolute, select_in_window,
+    bounded_window, interval_sample_bounds, local_to_absolute,
+    reject_cross_candidate_conflicts, select_in_window,
 )
 
 
@@ -44,6 +45,15 @@ class LocalLandmarkTests(unittest.TestCase):
         selected, reason, _ = select_in_window([(100.0, 4.0), (125.0, 3.8)], 80.0, 150.0, SETTINGS)
         self.assertIsNone(selected)
         self.assertEqual(reason, "abstention_maxima_spectraux_ambigus")
+
+    def test_three_concurrent_candidate_presences_all_abstain(self):
+        rows = [{"recognition_id": str(number), "candidate_number": number,
+                 "presence_start_local_seconds": start,
+                 "presence_end_local_seconds": start + 20.0,
+                 "decision": "presence_assistee_acceptee"}
+                for number, start in [(2, 100.0), (19, 110.0), (3, 120.0)]]
+        self.assertEqual(reject_cross_candidate_conflicts(rows, 45.0), [])
+        self.assertTrue(all(row["decision"].startswith("abstention") for row in rows))
 
 
 if __name__ == "__main__":
