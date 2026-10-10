@@ -1,0 +1,208 @@
+{
+  "protocol": "full_episode_protocol.json",
+  "matching": {
+    "maximum_tolerance_seconds": 20.0,
+    "matching": "Par temps CueNation croissant, detection non encore utilisee la plus proche dans la tolerance; egalite departagee par la confiance puis le temps.",
+    "signed_error": "temps_algorithme - temps_cuesheet",
+    "constant_offset_test": "moyenne signee et intervalle 95 % normal; decalage signale si l'intervalle exclut zero",
+    "drift_test": "regression OLS ecart_signe = intercept + pente * temps_cuesheet; derive signalee si l'intervalle 95 % normal de la pente exclut zero"
+  },
+  "alignment_warning": "L'alignement cuesheet CueNation / audio RSS n'est pas verifie; les ecarts ne sont donc pas assimilables sans reserve a des erreurs de l'algorithme.",
+  "episodes": [
+    {
+      "episode_id": "pure-trance-radio-492",
+      "reference_boundaries": 22,
+      "algorithm_detections": 25,
+      "matched_boundaries": 11,
+      "undetected_boundaries": 11,
+      "unmatched_algorithm_detections": 14,
+      "potential_false_detections": [
+        {
+          "detection_id": "pure-trance-radio-492-d002",
+          "algorithm_time_seconds": 325.28,
+          "confidence": 0.9163
+        },
+        {
+          "detection_id": "pure-trance-radio-492-d004",
+          "algorithm_time_seconds": 638.08,
+          "confidence": 0.6875
+        },
+        {
+          "detection_id": "pure-trance-radio-492-d006",
+          "algorithm_time_seconds": 976.74,
+          "confidence": 0.8386
+        },
+        {
+          "detection_id": "pure-trance-radio-492-d008",
+          "algorithm_time_seconds": 1679.96,
+          "confidence": 0.9255
+        },
+        {
+          "detection_id": "pure-trance-radio-492-d009",
+          "algorithm_time_seconds": 1763.68,
+          "confidence": 0.9948
+        },
+        {
+          "detection_id": "pure-trance-radio-492-d010",
+          "algorithm_time_seconds": 1978.72,
+          "confidence": 0.9612
+        },
+        {
+          "detection_id": "pure-trance-radio-492-d011",
+          "algorithm_time_seconds": 2591.56,
+          "confidence": 0.9794
+        },
+        {
+          "detection_id": "pure-trance-radio-492-d012",
+          "algorithm_time_seconds": 2907.82,
+          "confidence": 0.8866
+        },
+        {
+          "detection_id": "pure-trance-radio-492-d013",
+          "algorithm_time_seconds": 3148.92,
+          "confidence": 0.9542
+        },
+        {
+          "detection_id": "pure-trance-radio-492-d016",
+          "algorithm_time_seconds": 3885.42,
+          "confidence": 0.9696
+        },
+        {
+          "detection_id": "pure-trance-radio-492-d017",
+          "algorithm_time_seconds": 3921.82,
+          "confidence": 0.7745
+        },
+        {
+          "detection_id": "pure-trance-radio-492-d020",
+          "algorithm_time_seconds": 5181.88,
+          "confidence": 0.7698
+        },
+        {
+          "detection_id": "pure-trance-radio-492-d021",
+          "algorithm_time_seconds": 5197.92,
+          "confidence": 0.7449
+        },
+        {
+          "detection_id": "pure-trance-radio-492-d025",
+          "algorithm_time_seconds": 6977.92,
+          "confidence": 0.8479
+        }
+      ],
+      "mean_absolute_error_seconds": 6.064,
+      "median_absolute_error_seconds": 4.72,
+      "share_absolute_error_lt_1": 0.2727,
+      "share_absolute_error_lt_3": 0.4545,
+      "share_absolute_error_lt_10": 0.7273,
+      "error_share_denominator": 11,
+      "regression": {
+        "n": 11,
+        "available": true,
+        "mean_signed_offset_seconds": -5.929091,
+        "mean_signed_offset_ci95_seconds": [
+          -9.427377,
+          -2.430805
+        ],
+        "constant_offset_detected": true,
+        "intercept_seconds": -3.417761,
+        "intercept_ci95_seconds": [
+          -9.592769,
+          2.757248
+        ],
+        "slope_seconds_per_second": -0.000783678,
+        "slope_seconds_per_hour": -2.821239,
+        "slope_ci95_seconds_per_hour": [
+          -8.5284,
+          2.8872
+        ],
+        "drift_detected": false,
+        "r_squared": 0.094427,
+        "test_limit": "Intervalles normaux 95 %, exploratoires; les non-detections ne participent pas a la regression."
+      }
+    },
+    {
+      "episode_id": "pure-trance-radio-493",
+      "reference_boundaries": 20,
+      "algorithm_detections": 18,
+      "matched_boundaries": 9,
+      "undetected_boundaries": 11,
+      "unmatched_algorithm_detections": 9,
+      "potential_false_detections": [
+        {
+          "detection_id": "pure-trance-radio-493-d001",
+          "algorithm_time_seconds": 40.34,
+          "confidence": 0.7016
+        },
+        {
+          "detection_id": "pure-trance-radio-493-d002",
+          "algorithm_time_seconds": 66.68,
+          "confidence": 0.9462
+        },
+        {
+          "detection_id": "pure-trance-radio-493-d004",
+          "algorithm_time_seconds": 447.94,
+          "confidence": 0.6001
+        },
+        {
+          "detection_id": "pure-trance-radio-493-d005",
+          "algorithm_time_seconds": 1147.06,
+          "confidence": 0.8374
+        },
+        {
+          "detection_id": "pure-trance-radio-493-d007",
+          "algorithm_time_seconds": 1727.74,
+          "confidence": 0.9884
+        },
+        {
+          "detection_id": "pure-trance-radio-493-d009",
+          "algorithm_time_seconds": 1945.06,
+          "confidence": 0.806
+        },
+        {
+          "detection_id": "pure-trance-radio-493-d015",
+          "algorithm_time_seconds": 5324.0,
+          "confidence": 0.7204
+        },
+        {
+          "detection_id": "pure-trance-radio-493-d016",
+          "algorithm_time_seconds": 5596.4,
+          "confidence": 0.5587
+        },
+        {
+          "detection_id": "pure-trance-radio-493-d017",
+          "algorithm_time_seconds": 5636.0,
+          "confidence": 0.8541
+        }
+      ],
+      "mean_absolute_error_seconds": 4.973,
+      "median_absolute_error_seconds": 4.14,
+      "share_absolute_error_lt_1": 0.0,
+      "share_absolute_error_lt_3": 0.1111,
+      "share_absolute_error_lt_10": 1.0,
+      "error_share_denominator": 9,
+      "regression": {
+        "n": 9,
+        "available": true,
+        "mean_signed_offset_seconds": -2.044444,
+        "mean_signed_offset_ci95_seconds": [
+          -5.460889,
+          1.372
+        ],
+        "constant_offset_detected": false,
+        "intercept_seconds": 2.790742,
+        "intercept_ci95_seconds": [
+          -3.141278,
+          8.722762
+        ],
+        "slope_seconds_per_second": -0.001640591,
+        "slope_seconds_per_hour": -5.906128,
+        "slope_ci95_seconds_per_hour": [
+          -12.1608,
+          0.3492
+        ],
+        "drift_detected": false,
+        "r_squared": 0.328468,
+        "test_limit": "Intervalles normaux 95 %, exploratoires; les non-detections ne participent pas a la regression."
+      }
+    }
+  ]
+}

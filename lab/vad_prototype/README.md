@@ -54,3 +54,27 @@ Sans confirmation humaine d'une vraie prise de parole suivie d'un retour à la
 musique, l'agrégateur conserve désormais le temps/delta comme candidat
 automatique mais produit une abstention. Chant, rap, jingle et voice-over ne
 sont pas des confirmations suffisantes.
+
+## Segmentation globale PTR492 / PTR493
+
+Le protocole indépendant des temps CueNation est gelé dans
+`full_episode_protocol.json`. Il analyse l'épisode entier par fenêtres
+recouvrantes de 600 secondes et conserve des checkpoints dans
+`output/full_episode/`.
+
+Exécuter strictement un modèle et un épisode à la fois, avec les mêmes
+variables CPU que ci-dessus :
+
+```bash
+nice -n 10 ../.venv-vad/bin/python lab/vad_prototype/run_full_episode.py \
+  --method silero --episode pure-trance-radio-492 --resume
+nice -n 10 ../.venv-vad/bin/python lab/vad_prototype/run_full_episode.py \
+  --method ina --episode pure-trance-radio-492 --resume
+# Répéter sans changer les paramètres pour pure-trance-radio-493.
+../.venv-vad/bin/python lab/vad_prototype/analyze_full_episode.py
+```
+
+La dernière commande produit les CSV/JSON `results/full-episode-*` et le
+rapport français dans `reponses/`. Elle compare après coup les détections aux
+temps CueNation avec une tolérance maximale de 20 secondes. Elle ne modifie
+aucun temps Podmix.

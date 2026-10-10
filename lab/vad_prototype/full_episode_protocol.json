@@ -1,0 +1,62 @@
+{
+  "frozen_at": "2026-10-10T15:56:43+02:00",
+  "frozen_before_reference_comparison": true,
+  "purpose": "Detection globale des fins de voix DJ suivies d'un retour a la musique; aucun temps CueNation n'entre dans le detecteur.",
+  "episodes": [
+    "pure-trance-radio-492",
+    "pure-trance-radio-493"
+  ],
+  "windowing": {
+    "window_seconds": 600,
+    "overlap_seconds": 60,
+    "ownership_rule": "Chaque fenetre ne conserve que son coeur, delimite par le milieu des recouvrements; la premiere et la derniere conservent les bords de l'episode."
+  },
+  "silero": {
+    "sample_rate": 16000,
+    "threshold": 0.5,
+    "negative_threshold": 0.35,
+    "min_speech_ms": 250,
+    "min_silence_ms": 100,
+    "speech_pad_ms": 30,
+    "chunk_samples": 512,
+    "execution_provider": "CPUExecutionProvider"
+  },
+  "ina": {
+    "vad_engine": "sm",
+    "detect_gender": false,
+    "batch_size": 32,
+    "energy_ratio": 0.03,
+    "tensorflow_device": "CPU"
+  },
+  "detector": {
+    "ina_speech_labels": [
+      "speech"
+    ],
+    "ina_music_labels": [
+      "music"
+    ],
+    "min_ina_speech_seconds": 0.75,
+    "min_return_to_music_seconds": 5.0,
+    "max_ina_silero_end_disagreement_seconds": 2.0,
+    "min_silero_overlap_seconds": 0.25,
+    "deduplication_seconds": 15.0,
+    "confidence_weights": {
+      "music_continuity": 0.35,
+      "model_end_agreement": 0.35,
+      "speech_overlap": 0.2,
+      "ina_speech_duration": 0.1
+    },
+    "confidence_scales": {
+      "music_continuity_seconds": 15.0,
+      "ina_speech_duration_seconds": 5.0
+    }
+  },
+  "comparison": {
+    "maximum_tolerance_seconds": 20.0,
+    "matching": "Par temps CueNation croissant, detection non encore utilisee la plus proche dans la tolerance; egalite departagee par la confiance puis le temps.",
+    "signed_error": "temps_algorithme - temps_cuesheet",
+    "constant_offset_test": "moyenne signee et intervalle 95 % normal; decalage signale si l'intervalle exclut zero",
+    "drift_test": "regression OLS ecart_signe = intercept + pente * temps_cuesheet; derive signalee si l'intervalle 95 % normal de la pente exclut zero"
+  },
+  "non_tuning_statement": "Les seuils reprennent le prototype fenetre et sont geles avant toute production des tableaux de comparaison. Ils ne seront pas ajustes apres lecture des ecarts CueNation."
+}

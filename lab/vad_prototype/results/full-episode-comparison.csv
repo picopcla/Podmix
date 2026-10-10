@@ -1,0 +1,43 @@
+episode_id,track_number,track_title,cuesheet_time_seconds,detected,detection_id,algorithm_time_seconds,confidence,signed_error_seconds,absolute_error_seconds
+pure-trance-radio-492,2,Midnight Evolution - Dreams,82.0,True,pure-trance-radio-492-d001,82.74,0.9962,0.74,0.74
+pure-trance-radio-492,3,metakomplex & Orkidea - Dream of You,388.0,True,pure-trance-radio-492-d003,387.76,0.8204,-0.24,0.24
+pure-trance-radio-492,4,Emran Badalov - Scorpio Rider (Hazem Beltagui Remix),658.0,True,pure-trance-radio-492-d005,653.28,0.8754,-4.72,4.72
+pure-trance-radio-492,5,Soul Alt Delete - Copycat,1034.0,True,pure-trance-radio-492-d007,1022.9,0.8003,-11.1,11.1
+pure-trance-radio-492,6,Allende - The Weight,1380.0,False,,,,,
+pure-trance-radio-492,7,Protoculture - Telemetry,1710.0,False,,,,,
+pure-trance-radio-492,8,Dusky - Lab,2040.0,False,,,,,
+pure-trance-radio-492,9,ARCHERY - KEEP IT GOIN',2323.0,False,,,,,
+pure-trance-radio-492,10,Peter Steele - Summer Breeze,2679.0,False,,,,,
+pure-trance-radio-492,11,FKN & Tom Bro feat. Emily Orchard - Fading Blue,2974.0,False,,,,,
+pure-trance-radio-492,12,Thrillseekers pres. Hydra - Amber (Asteroid Remix),3210.0,True,pure-trance-radio-492-d014,3197.58,0.6326,-12.42,12.42
+pure-trance-radio-492,13,Bryan Kearney & John O'Callaghan pres. Key4050 - Final Memory,3649.0,True,pure-trance-radio-492-d015,3646.02,0.9928,-2.98,2.98
+pure-trance-radio-492,14,Asteroid - Spectra,3953.0,True,pure-trance-radio-492-d018,3952.9,0.83,-0.1,0.1
+pure-trance-radio-492,15,C-Systems - Pillars of Light,4212.0,False,,,,,
+pure-trance-radio-492,16,Ferkingge & Emma Wang feat. Adria Du & Nini - Blooming,4448.0,False,,,,,
+pure-trance-radio-492,17,Solarstone vs. Sirocco - Destination (Effen Remix),4796.0,True,pure-trance-radio-492-d019,4789.38,0.8331,-6.62,6.62
+pure-trance-radio-492,18,Stoneface & Terminal with Susanne Teutenberg - High As The Sun,5232.0,True,pure-trance-radio-492-d022,5222.98,0.955,-9.02,9.02
+pure-trance-radio-492,19,Blackromeo - Ashanti,5599.0,True,pure-trance-radio-492-d023,5581.66,0.8295,-17.34,17.34
+pure-trance-radio-492,20,Above & Beyond with Zoe Johnston - Quicksand (Ciaran McAuley Remix),5981.0,False,,,,,
+pure-trance-radio-492,21,Armin van Buuren feat. Sharon Den Adel - In And Out of Love (Ben Hemsley Remix),6275.0,False,,,,,
+pure-trance-radio-492,22,Super-Frog Saves Tokyo - Jitterbug,6649.0,True,pure-trance-radio-492-d024,6647.58,0.8541,-1.42,1.42
+pure-trance-radio-492,23,Vangelis - West Across The Ocean Sea,7001.0,False,,,,,
+pure-trance-radio-493,2,Solarstone - Solarcoaster (Deestopia Remix),111.0,True,pure-trance-radio-493-d003,115.14,0.85,4.14,4.14
+pure-trance-radio-493,3,Nordfold - Tidal Shift,534.0,False,,,,,
+pure-trance-radio-493,4,Exotek - Embrace,822.0,False,,,,,
+pure-trance-radio-493,5,Kyau & Albert - Halo,1212.0,False,,,,,
+pure-trance-radio-493,6,PARAFRAME - 3 Worlds,1441.0,True,pure-trance-radio-493-d006,1435.86,0.8134,-5.14,5.14
+pure-trance-radio-493,7,Josh Caffe - Velvet Skin,1757.0,True,pure-trance-radio-493-d008,1760.18,0.7978,3.18,3.18
+pure-trance-radio-493,8,Tre Turner - Archaos (CLOSE PROXIMITY Progressive Mix),2001.0,False,,,,,
+pure-trance-radio-493,9,Private Taste - First (Ashtrax Rerub),2350.0,True,pure-trance-radio-493-d010,2353.08,0.8925,3.08,3.08
+pure-trance-radio-493,10,SONIN x Orkidea - Avril,2734.0,True,pure-trance-radio-493-d011,2727.58,0.7531,-6.42,6.42
+pure-trance-radio-493,11,Push - Open The Night,3021.0,False,,,,,
+pure-trance-radio-493,12,Factor B feat. Cat Martin - Crashing Over (Lost Minds Remix),3344.0,True,pure-trance-radio-493-d012,3339.96,0.9765,-4.04,4.04
+pure-trance-radio-493,13,St. John & Scott Ramsay pres. ApexLOOP - Inspire,3747.0,False,,,,,
+pure-trance-radio-493,14,Factoria + Ross Baker - River of Light,4144.0,True,pure-trance-radio-493-d013,4146.78,0.8821,2.78,2.78
+pure-trance-radio-493,15,Sequence Six & Zara Taylor - Above,4401.0,True,pure-trance-radio-493-d014,4392.64,0.7549,-8.36,8.36
+pure-trance-radio-493,16,Super8 & Tab feat. Julie Thompson - My Enemy (CVMRN Club Mix),4696.0,False,,,,,
+pure-trance-radio-493,17,Technology - Electronicly Entertained,5035.0,False,,,,,
+pure-trance-radio-493,18,Ruben De Ronde pres. NRG2000 x York x Angel City - Slip Away,5350.0,False,,,,,
+pure-trance-radio-493,19,Above & Beyond with Zoe Johnston - Quicksand (Don't Go) (Mark Sherry Remix),5663.0,False,,,,,
+pure-trance-radio-493,20,David Forbes x Lostly - Echo Burn,5990.0,False,,,,,
+pure-trance-radio-493,21,FKN & Tom Bro feat. Emily Orchard - Fading Blue (Ambient Mix),6243.0,True,pure-trance-radio-493-d018,6235.38,0.953,-7.62,7.62
