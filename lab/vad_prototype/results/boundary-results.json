@@ -1,0 +1,2627 @@
+[
+  {
+    "boundary_id": "joc-subculture-melbourne-2022-t01",
+    "episode_id": "joc-subculture-melbourne-2022",
+    "episode_title": "Joint Operations Centre LIVE @ Subculture Festival Melbourne 2022",
+    "source_url": "https://soundcloud.com/johnocallaghan/jointops-melbourne",
+    "tracklist_url": "https://set79.com/tracklist/soundcloud.com/johnocallaghan/jointops-melbourne",
+    "track_number": 1,
+    "track_title": "Joint Operations Centre - Gizmo",
+    "split": "evaluation",
+    "original_time_seconds": 300.0,
+    "window_start_seconds": 255.0,
+    "window_end_seconds": 345.0,
+    "method": "ina",
+    "excerpt_before": "output/excerpts/joc-subculture-melbourne-2022-t01-before.ogg",
+    "excerpt_after": "output/excerpts/joc-subculture-melbourne-2022-t01-after.ogg",
+    "segments": [
+      {
+        "label": "music",
+        "start": 255.0,
+        "end": 297.74
+      },
+      {
+        "label": "speech",
+        "start": 297.74,
+        "end": 302.5
+      },
+      {
+        "label": "music",
+        "start": 302.5,
+        "end": 344.98
+      }
+    ],
+    "decision": "suggestion",
+    "new_time_seconds": 302.5,
+    "delta_seconds": 2.5,
+    "reason": "INA classe le temps original dans une plage parole, puis un retour continu a la musique.",
+    "uncertainty": "elevee_sans_ecoute_humaine"
+  },
+  {
+    "boundary_id": "joc-subculture-melbourne-2022-t01",
+    "episode_id": "joc-subculture-melbourne-2022",
+    "episode_title": "Joint Operations Centre LIVE @ Subculture Festival Melbourne 2022",
+    "source_url": "https://soundcloud.com/johnocallaghan/jointops-melbourne",
+    "tracklist_url": "https://set79.com/tracklist/soundcloud.com/johnocallaghan/jointops-melbourne",
+    "track_number": 1,
+    "track_title": "Joint Operations Centre - Gizmo",
+    "split": "evaluation",
+    "original_time_seconds": 300.0,
+    "window_start_seconds": 255.0,
+    "window_end_seconds": 345.0,
+    "method": "silero",
+    "excerpt_before": "output/excerpts/joc-subculture-melbourne-2022-t01-before.ogg",
+    "excerpt_after": "output/excerpts/joc-subculture-melbourne-2022-t01-after.ogg",
+    "segments": [
+      {
+        "label": "non_speech",
+        "start": 255.0,
+        "end": 345.0
+      }
+    ],
+    "decision": "abstention",
+    "new_time_seconds": null,
+    "delta_seconds": null,
+    "reason": "Silero ne place pas le temps original dans une plage de parole.",
+    "uncertainty": "elevee"
+  },
+  {
+    "boundary_id": "joc-subculture-melbourne-2022-t01",
+    "episode_id": "joc-subculture-melbourne-2022",
+    "episode_title": "Joint Operations Centre LIVE @ Subculture Festival Melbourne 2022",
+    "source_url": "https://soundcloud.com/johnocallaghan/jointops-melbourne",
+    "tracklist_url": "https://set79.com/tracklist/soundcloud.com/johnocallaghan/jointops-melbourne",
+    "track_number": 1,
+    "track_title": "Joint Operations Centre - Gizmo",
+    "split": "evaluation",
+    "original_time_seconds": 300.0,
+    "window_start_seconds": 255.0,
+    "window_end_seconds": 345.0,
+    "method": "consensus_ina_silero",
+    "excerpt_before": "output/excerpts/joc-subculture-melbourne-2022-t01-before.ogg",
+    "excerpt_after": "output/excerpts/joc-subculture-melbourne-2022-t01-after.ogg",
+    "segments": {
+      "ina": [
+        {
+          "label": "music",
+          "start": 255.0,
+          "end": 297.74
+        },
+        {
+          "label": "speech",
+          "start": 297.74,
+          "end": 302.5
+        },
+        {
+          "label": "music",
+          "start": 302.5,
+          "end": 344.98
+        }
+      ],
+      "silero": [
+        {
+          "label": "non_speech",
+          "start": 255.0,
+          "end": 345.0
+        }
+      ]
+    },
+    "decision": "abstention",
+    "new_time_seconds": null,
+    "delta_seconds": null,
+    "reason": "Silero ne voit pas de parole englobante",
+    "uncertainty": "moyenne_a_elevee"
+  },
+  {
+    "boundary_id": "joc-subculture-melbourne-2022-t02",
+    "episode_id": "joc-subculture-melbourne-2022",
+    "episode_title": "Joint Operations Centre LIVE @ Subculture Festival Melbourne 2022",
+    "source_url": "https://soundcloud.com/johnocallaghan/jointops-melbourne",
+    "tracklist_url": "https://set79.com/tracklist/soundcloud.com/johnocallaghan/jointops-melbourne",
+    "track_number": 2,
+    "track_title": "John O'Callaghan feat. Audrey Gallagher - Big Sky",
+    "split": "evaluation",
+    "original_time_seconds": 912.0,
+    "window_start_seconds": 867.0,
+    "window_end_seconds": 957.0,
+    "method": "ina",
+    "excerpt_before": "output/excerpts/joc-subculture-melbourne-2022-t02-before.ogg",
+    "excerpt_after": "output/excerpts/joc-subculture-melbourne-2022-t02-after.ogg",
+    "segments": [
+      {
+        "label": "music",
+        "start": 867.0,
+        "end": 879.36
+      },
+      {
+        "label": "speech",
+        "start": 879.36,
+        "end": 884.96
+      },
+      {
+        "label": "music",
+        "start": 884.96,
+        "end": 894.7
+      },
+      {
+        "label": "speech",
+        "start": 894.7,
+        "end": 897.58
+      },
+      {
+        "label": "music",
+        "start": 897.58,
+        "end": 956.98
+      }
+    ],
+    "decision": "abstention",
+    "new_time_seconds": null,
+    "delta_seconds": null,
+    "reason": "INA ne confirme pas une parole englobant le temps original suivie immediatement de musique.",
+    "uncertainty": "moyenne_sans_ecoute_humaine"
+  },
+  {
+    "boundary_id": "joc-subculture-melbourne-2022-t02",
+    "episode_id": "joc-subculture-melbourne-2022",
+    "episode_title": "Joint Operations Centre LIVE @ Subculture Festival Melbourne 2022",
+    "source_url": "https://soundcloud.com/johnocallaghan/jointops-melbourne",
+    "tracklist_url": "https://set79.com/tracklist/soundcloud.com/johnocallaghan/jointops-melbourne",
+    "track_number": 2,
+    "track_title": "John O'Callaghan feat. Audrey Gallagher - Big Sky",
+    "split": "evaluation",
+    "original_time_seconds": 912.0,
+    "window_start_seconds": 867.0,
+    "window_end_seconds": 957.0,
+    "method": "silero",
+    "excerpt_before": "output/excerpts/joc-subculture-melbourne-2022-t02-before.ogg",
+    "excerpt_after": "output/excerpts/joc-subculture-melbourne-2022-t02-after.ogg",
+    "segments": [
+      {
+        "label": "non_speech",
+        "start": 867.0,
+        "end": 957.0
+      }
+    ],
+    "decision": "abstention",
+    "new_time_seconds": null,
+    "delta_seconds": null,
+    "reason": "Silero ne place pas le temps original dans une plage de parole.",
+    "uncertainty": "elevee"
+  },
+  {
+    "boundary_id": "joc-subculture-melbourne-2022-t02",
+    "episode_id": "joc-subculture-melbourne-2022",
+    "episode_title": "Joint Operations Centre LIVE @ Subculture Festival Melbourne 2022",
+    "source_url": "https://soundcloud.com/johnocallaghan/jointops-melbourne",
+    "tracklist_url": "https://set79.com/tracklist/soundcloud.com/johnocallaghan/jointops-melbourne",
+    "track_number": 2,
+    "track_title": "John O'Callaghan feat. Audrey Gallagher - Big Sky",
+    "split": "evaluation",
+    "original_time_seconds": 912.0,
+    "window_start_seconds": 867.0,
+    "window_end_seconds": 957.0,
+    "method": "consensus_ina_silero",
+    "excerpt_before": "output/excerpts/joc-subculture-melbourne-2022-t02-before.ogg",
+    "excerpt_after": "output/excerpts/joc-subculture-melbourne-2022-t02-after.ogg",
+    "segments": {
+      "ina": [
+        {
+          "label": "music",
+          "start": 867.0,
+          "end": 879.36
+        },
+        {
+          "label": "speech",
+          "start": 879.36,
+          "end": 884.96
+        },
+        {
+          "label": "music",
+          "start": 884.96,
+          "end": 894.7
+        },
+        {
+          "label": "speech",
+          "start": 894.7,
+          "end": 897.58
+        },
+        {
+          "label": "music",
+          "start": 897.58,
+          "end": 956.98
+        }
+      ],
+      "silero": [
+        {
+          "label": "non_speech",
+          "start": 867.0,
+          "end": 957.0
+        }
+      ]
+    },
+    "decision": "abstention",
+    "new_time_seconds": null,
+    "delta_seconds": null,
+    "reason": "INA ne voit pas de parole englobante; Silero ne voit pas de parole englobante; retour musique INA insuffisant",
+    "uncertainty": "moyenne_a_elevee"
+  },
+  {
+    "boundary_id": "joc-subculture-melbourne-2022-t03",
+    "episode_id": "joc-subculture-melbourne-2022",
+    "episode_title": "Joint Operations Centre LIVE @ Subculture Festival Melbourne 2022",
+    "source_url": "https://soundcloud.com/johnocallaghan/jointops-melbourne",
+    "tracklist_url": "https://set79.com/tracklist/soundcloud.com/johnocallaghan/jointops-melbourne",
+    "track_number": 3,
+    "track_title": "Joint Operations Centre & Kate Miles - Behind the Silence",
+    "split": "evaluation",
+    "original_time_seconds": 1200.0,
+    "window_start_seconds": 1155.0,
+    "window_end_seconds": 1245.0,
+    "method": "ina",
+    "excerpt_before": "output/excerpts/joc-subculture-melbourne-2022-t03-before.ogg",
+    "excerpt_after": "output/excerpts/joc-subculture-melbourne-2022-t03-after.ogg",
+    "segments": [
+      {
+        "label": "music",
+        "start": 1155.0,
+        "end": 1244.98
+      }
+    ],
+    "decision": "abstention",
+    "new_time_seconds": null,
+    "delta_seconds": null,
+    "reason": "INA ne confirme pas une parole englobant le temps original suivie immediatement de musique.",
+    "uncertainty": "moyenne_sans_ecoute_humaine"
+  },
+  {
+    "boundary_id": "joc-subculture-melbourne-2022-t03",
+    "episode_id": "joc-subculture-melbourne-2022",
+    "episode_title": "Joint Operations Centre LIVE @ Subculture Festival Melbourne 2022",
+    "source_url": "https://soundcloud.com/johnocallaghan/jointops-melbourne",
+    "tracklist_url": "https://set79.com/tracklist/soundcloud.com/johnocallaghan/jointops-melbourne",
+    "track_number": 3,
+    "track_title": "Joint Operations Centre & Kate Miles - Behind the Silence",
+    "split": "evaluation",
+    "original_time_seconds": 1200.0,
+    "window_start_seconds": 1155.0,
+    "window_end_seconds": 1245.0,
+    "method": "silero",
+    "excerpt_before": "output/excerpts/joc-subculture-melbourne-2022-t03-before.ogg",
+    "excerpt_after": "output/excerpts/joc-subculture-melbourne-2022-t03-after.ogg",
+    "segments": [
+      {
+        "label": "non_speech",
+        "start": 1155.0,
+        "end": 1245.0
+      }
+    ],
+    "decision": "abstention",
+    "new_time_seconds": null,
+    "delta_seconds": null,
+    "reason": "Silero ne place pas le temps original dans une plage de parole.",
+    "uncertainty": "elevee"
+  },
+  {
+    "boundary_id": "joc-subculture-melbourne-2022-t03",
+    "episode_id": "joc-subculture-melbourne-2022",
+    "episode_title": "Joint Operations Centre LIVE @ Subculture Festival Melbourne 2022",
+    "source_url": "https://soundcloud.com/johnocallaghan/jointops-melbourne",
+    "tracklist_url": "https://set79.com/tracklist/soundcloud.com/johnocallaghan/jointops-melbourne",
+    "track_number": 3,
+    "track_title": "Joint Operations Centre & Kate Miles - Behind the Silence",
+    "split": "evaluation",
+    "original_time_seconds": 1200.0,
+    "window_start_seconds": 1155.0,
+    "window_end_seconds": 1245.0,
+    "method": "consensus_ina_silero",
+    "excerpt_before": "output/excerpts/joc-subculture-melbourne-2022-t03-before.ogg",
+    "excerpt_after": "output/excerpts/joc-subculture-melbourne-2022-t03-after.ogg",
+    "segments": {
+      "ina": [
+        {
+          "label": "music",
+          "start": 1155.0,
+          "end": 1244.98
+        }
+      ],
+      "silero": [
+        {
+          "label": "non_speech",
+          "start": 1155.0,
+          "end": 1245.0
+        }
+      ]
+    },
+    "decision": "abstention",
+    "new_time_seconds": null,
+    "delta_seconds": null,
+    "reason": "INA ne voit pas de parole englobante; Silero ne voit pas de parole englobante; retour musique INA insuffisant",
+    "uncertainty": "moyenne_a_elevee"
+  },
+  {
+    "boundary_id": "joc-subculture-melbourne-2022-t04",
+    "episode_id": "joc-subculture-melbourne-2022",
+    "episode_title": "Joint Operations Centre LIVE @ Subculture Festival Melbourne 2022",
+    "source_url": "https://soundcloud.com/johnocallaghan/jointops-melbourne",
+    "tracklist_url": "https://set79.com/tracklist/soundcloud.com/johnocallaghan/jointops-melbourne",
+    "track_number": 4,
+    "track_title": "Unknown",
+    "split": "evaluation",
+    "original_time_seconds": 1356.0,
+    "window_start_seconds": 1311.0,
+    "window_end_seconds": 1401.0,
+    "method": "ina",
+    "excerpt_before": "output/excerpts/joc-subculture-melbourne-2022-t04-before.ogg",
+    "excerpt_after": "output/excerpts/joc-subculture-melbourne-2022-t04-after.ogg",
+    "segments": [
+      {
+        "label": "speech",
+        "start": 1311.0,
+        "end": 1314.6
+      },
+      {
+        "label": "music",
+        "start": 1314.6,
+        "end": 1380.04
+      },
+      {
+        "label": "speech",
+        "start": 1380.04,
+        "end": 1384.72
+      },
+      {
+        "label": "music",
+        "start": 1384.72,
+        "end": 1400.98
+      }
+    ],
+    "decision": "abstention",
+    "new_time_seconds": null,
+    "delta_seconds": null,
+    "reason": "INA ne confirme pas une parole englobant le temps original suivie immediatement de musique.",
+    "uncertainty": "moyenne_sans_ecoute_humaine"
+  },
+  {
+    "boundary_id": "joc-subculture-melbourne-2022-t04",
+    "episode_id": "joc-subculture-melbourne-2022",
+    "episode_title": "Joint Operations Centre LIVE @ Subculture Festival Melbourne 2022",
+    "source_url": "https://soundcloud.com/johnocallaghan/jointops-melbourne",
+    "tracklist_url": "https://set79.com/tracklist/soundcloud.com/johnocallaghan/jointops-melbourne",
+    "track_number": 4,
+    "track_title": "Unknown",
+    "split": "evaluation",
+    "original_time_seconds": 1356.0,
+    "window_start_seconds": 1311.0,
+    "window_end_seconds": 1401.0,
+    "method": "silero",
+    "excerpt_before": "output/excerpts/joc-subculture-melbourne-2022-t04-before.ogg",
+    "excerpt_after": "output/excerpts/joc-subculture-melbourne-2022-t04-after.ogg",
+    "segments": [
+      {
+        "label": "non_speech",
+        "start": 1311.0,
+        "end": 1401.0
+      }
+    ],
+    "decision": "abstention",
+    "new_time_seconds": null,
+    "delta_seconds": null,
+    "reason": "Silero ne place pas le temps original dans une plage de parole.",
+    "uncertainty": "elevee"
+  },
+  {
+    "boundary_id": "joc-subculture-melbourne-2022-t04",
+    "episode_id": "joc-subculture-melbourne-2022",
+    "episode_title": "Joint Operations Centre LIVE @ Subculture Festival Melbourne 2022",
+    "source_url": "https://soundcloud.com/johnocallaghan/jointops-melbourne",
+    "tracklist_url": "https://set79.com/tracklist/soundcloud.com/johnocallaghan/jointops-melbourne",
+    "track_number": 4,
+    "track_title": "Unknown",
+    "split": "evaluation",
+    "original_time_seconds": 1356.0,
+    "window_start_seconds": 1311.0,
+    "window_end_seconds": 1401.0,
+    "method": "consensus_ina_silero",
+    "excerpt_before": "output/excerpts/joc-subculture-melbourne-2022-t04-before.ogg",
+    "excerpt_after": "output/excerpts/joc-subculture-melbourne-2022-t04-after.ogg",
+    "segments": {
+      "ina": [
+        {
+          "label": "speech",
+          "start": 1311.0,
+          "end": 1314.6
+        },
+        {
+          "label": "music",
+          "start": 1314.6,
+          "end": 1380.04
+        },
+        {
+          "label": "speech",
+          "start": 1380.04,
+          "end": 1384.72
+        },
+        {
+          "label": "music",
+          "start": 1384.72,
+          "end": 1400.98
+        }
+      ],
+      "silero": [
+        {
+          "label": "non_speech",
+          "start": 1311.0,
+          "end": 1401.0
+        }
+      ]
+    },
+    "decision": "abstention",
+    "new_time_seconds": null,
+    "delta_seconds": null,
+    "reason": "INA ne voit pas de parole englobante; Silero ne voit pas de parole englobante; retour musique INA insuffisant",
+    "uncertainty": "moyenne_a_elevee"
+  },
+  {
+    "boundary_id": "joc-subculture-melbourne-2022-t05",
+    "episode_id": "joc-subculture-melbourne-2022",
+    "episode_title": "Joint Operations Centre LIVE @ Subculture Festival Melbourne 2022",
+    "source_url": "https://soundcloud.com/johnocallaghan/jointops-melbourne",
+    "tracklist_url": "https://set79.com/tracklist/soundcloud.com/johnocallaghan/jointops-melbourne",
+    "track_number": 5,
+    "track_title": "Green Velvet - Flash",
+    "split": "evaluation",
+    "original_time_seconds": 1824.0,
+    "window_start_seconds": 1779.0,
+    "window_end_seconds": 1869.0,
+    "method": "ina",
+    "excerpt_before": "output/excerpts/joc-subculture-melbourne-2022-t05-before.ogg",
+    "excerpt_after": "output/excerpts/joc-subculture-melbourne-2022-t05-after.ogg",
+    "segments": [
+      {
+        "label": "music",
+        "start": 1779.0,
+        "end": 1868.98
+      }
+    ],
+    "decision": "abstention",
+    "new_time_seconds": null,
+    "delta_seconds": null,
+    "reason": "INA ne confirme pas une parole englobant le temps original suivie immediatement de musique.",
+    "uncertainty": "moyenne_sans_ecoute_humaine"
+  },
+  {
+    "boundary_id": "joc-subculture-melbourne-2022-t05",
+    "episode_id": "joc-subculture-melbourne-2022",
+    "episode_title": "Joint Operations Centre LIVE @ Subculture Festival Melbourne 2022",
+    "source_url": "https://soundcloud.com/johnocallaghan/jointops-melbourne",
+    "tracklist_url": "https://set79.com/tracklist/soundcloud.com/johnocallaghan/jointops-melbourne",
+    "track_number": 5,
+    "track_title": "Green Velvet - Flash",
+    "split": "evaluation",
+    "original_time_seconds": 1824.0,
+    "window_start_seconds": 1779.0,
+    "window_end_seconds": 1869.0,
+    "method": "silero",
+    "excerpt_before": "output/excerpts/joc-subculture-melbourne-2022-t05-before.ogg",
+    "excerpt_after": "output/excerpts/joc-subculture-melbourne-2022-t05-after.ogg",
+    "segments": [
+      {
+        "label": "non_speech",
+        "start": 1779.0,
+        "end": 1869.0
+      }
+    ],
+    "decision": "abstention",
+    "new_time_seconds": null,
+    "delta_seconds": null,
+    "reason": "Silero ne place pas le temps original dans une plage de parole.",
+    "uncertainty": "elevee"
+  },
+  {
+    "boundary_id": "joc-subculture-melbourne-2022-t05",
+    "episode_id": "joc-subculture-melbourne-2022",
+    "episode_title": "Joint Operations Centre LIVE @ Subculture Festival Melbourne 2022",
+    "source_url": "https://soundcloud.com/johnocallaghan/jointops-melbourne",
+    "tracklist_url": "https://set79.com/tracklist/soundcloud.com/johnocallaghan/jointops-melbourne",
+    "track_number": 5,
+    "track_title": "Green Velvet - Flash",
+    "split": "evaluation",
+    "original_time_seconds": 1824.0,
+    "window_start_seconds": 1779.0,
+    "window_end_seconds": 1869.0,
+    "method": "consensus_ina_silero",
+    "excerpt_before": "output/excerpts/joc-subculture-melbourne-2022-t05-before.ogg",
+    "excerpt_after": "output/excerpts/joc-subculture-melbourne-2022-t05-after.ogg",
+    "segments": {
+      "ina": [
+        {
+          "label": "music",
+          "start": 1779.0,
+          "end": 1868.98
+        }
+      ],
+      "silero": [
+        {
+          "label": "non_speech",
+          "start": 1779.0,
+          "end": 1869.0
+        }
+      ]
+    },
+    "decision": "abstention",
+    "new_time_seconds": null,
+    "delta_seconds": null,
+    "reason": "INA ne voit pas de parole englobante; Silero ne voit pas de parole englobante; retour musique INA insuffisant",
+    "uncertainty": "moyenne_a_elevee"
+  },
+  {
+    "boundary_id": "joc-subculture-melbourne-2022-t06",
+    "episode_id": "joc-subculture-melbourne-2022",
+    "episode_title": "Joint Operations Centre LIVE @ Subculture Festival Melbourne 2022",
+    "source_url": "https://soundcloud.com/johnocallaghan/jointops-melbourne",
+    "tracklist_url": "https://set79.com/tracklist/soundcloud.com/johnocallaghan/jointops-melbourne",
+    "track_number": 6,
+    "track_title": "John Askew - Vandalism (Joint Operations Centre Remix)",
+    "split": "evaluation",
+    "original_time_seconds": 2100.0,
+    "window_start_seconds": 2055.0,
+    "window_end_seconds": 2145.0,
+    "method": "ina",
+    "excerpt_before": "output/excerpts/joc-subculture-melbourne-2022-t06-before.ogg",
+    "excerpt_after": "output/excerpts/joc-subculture-melbourne-2022-t06-after.ogg",
+    "segments": [
+      {
+        "label": "music",
+        "start": 2055.0,
+        "end": 2144.98
+      }
+    ],
+    "decision": "abstention",
+    "new_time_seconds": null,
+    "delta_seconds": null,
+    "reason": "INA ne confirme pas une parole englobant le temps original suivie immediatement de musique.",
+    "uncertainty": "moyenne_sans_ecoute_humaine"
+  },
+  {
+    "boundary_id": "joc-subculture-melbourne-2022-t06",
+    "episode_id": "joc-subculture-melbourne-2022",
+    "episode_title": "Joint Operations Centre LIVE @ Subculture Festival Melbourne 2022",
+    "source_url": "https://soundcloud.com/johnocallaghan/jointops-melbourne",
+    "tracklist_url": "https://set79.com/tracklist/soundcloud.com/johnocallaghan/jointops-melbourne",
+    "track_number": 6,
+    "track_title": "John Askew - Vandalism (Joint Operations Centre Remix)",
+    "split": "evaluation",
+    "original_time_seconds": 2100.0,
+    "window_start_seconds": 2055.0,
+    "window_end_seconds": 2145.0,
+    "method": "silero",
+    "excerpt_before": "output/excerpts/joc-subculture-melbourne-2022-t06-before.ogg",
+    "excerpt_after": "output/excerpts/joc-subculture-melbourne-2022-t06-after.ogg",
+    "segments": [
+      {
+        "label": "non_speech",
+        "start": 2055.0,
+        "end": 2145.0
+      }
+    ],
+    "decision": "abstention",
+    "new_time_seconds": null,
+    "delta_seconds": null,
+    "reason": "Silero ne place pas le temps original dans une plage de parole.",
+    "uncertainty": "elevee"
+  },
+  {
+    "boundary_id": "joc-subculture-melbourne-2022-t06",
+    "episode_id": "joc-subculture-melbourne-2022",
+    "episode_title": "Joint Operations Centre LIVE @ Subculture Festival Melbourne 2022",
+    "source_url": "https://soundcloud.com/johnocallaghan/jointops-melbourne",
+    "tracklist_url": "https://set79.com/tracklist/soundcloud.com/johnocallaghan/jointops-melbourne",
+    "track_number": 6,
+    "track_title": "John Askew - Vandalism (Joint Operations Centre Remix)",
+    "split": "evaluation",
+    "original_time_seconds": 2100.0,
+    "window_start_seconds": 2055.0,
+    "window_end_seconds": 2145.0,
+    "method": "consensus_ina_silero",
+    "excerpt_before": "output/excerpts/joc-subculture-melbourne-2022-t06-before.ogg",
+    "excerpt_after": "output/excerpts/joc-subculture-melbourne-2022-t06-after.ogg",
+    "segments": {
+      "ina": [
+        {
+          "label": "music",
+          "start": 2055.0,
+          "end": 2144.98
+        }
+      ],
+      "silero": [
+        {
+          "label": "non_speech",
+          "start": 2055.0,
+          "end": 2145.0
+        }
+      ]
+    },
+    "decision": "abstention",
+    "new_time_seconds": null,
+    "delta_seconds": null,
+    "reason": "INA ne voit pas de parole englobante; Silero ne voit pas de parole englobante; retour musique INA insuffisant",
+    "uncertainty": "moyenne_a_elevee"
+  },
+  {
+    "boundary_id": "joc-subculture-melbourne-2022-t07",
+    "episode_id": "joc-subculture-melbourne-2022",
+    "episode_title": "Joint Operations Centre LIVE @ Subculture Festival Melbourne 2022",
+    "source_url": "https://soundcloud.com/johnocallaghan/jointops-melbourne",
+    "tracklist_url": "https://set79.com/tracklist/soundcloud.com/johnocallaghan/jointops-melbourne",
+    "track_number": 7,
+    "track_title": "Joint Operations Centre - Hunter",
+    "split": "evaluation",
+    "original_time_seconds": 2256.0,
+    "window_start_seconds": 2211.0,
+    "window_end_seconds": 2301.0,
+    "method": "ina",
+    "excerpt_before": "output/excerpts/joc-subculture-melbourne-2022-t07-before.ogg",
+    "excerpt_after": "output/excerpts/joc-subculture-melbourne-2022-t07-after.ogg",
+    "segments": [
+      {
+        "label": "music",
+        "start": 2211.0,
+        "end": 2300.98
+      }
+    ],
+    "decision": "abstention",
+    "new_time_seconds": null,
+    "delta_seconds": null,
+    "reason": "INA ne confirme pas une parole englobant le temps original suivie immediatement de musique.",
+    "uncertainty": "moyenne_sans_ecoute_humaine"
+  },
+  {
+    "boundary_id": "joc-subculture-melbourne-2022-t07",
+    "episode_id": "joc-subculture-melbourne-2022",
+    "episode_title": "Joint Operations Centre LIVE @ Subculture Festival Melbourne 2022",
+    "source_url": "https://soundcloud.com/johnocallaghan/jointops-melbourne",
+    "tracklist_url": "https://set79.com/tracklist/soundcloud.com/johnocallaghan/jointops-melbourne",
+    "track_number": 7,
+    "track_title": "Joint Operations Centre - Hunter",
+    "split": "evaluation",
+    "original_time_seconds": 2256.0,
+    "window_start_seconds": 2211.0,
+    "window_end_seconds": 2301.0,
+    "method": "silero",
+    "excerpt_before": "output/excerpts/joc-subculture-melbourne-2022-t07-before.ogg",
+    "excerpt_after": "output/excerpts/joc-subculture-melbourne-2022-t07-after.ogg",
+    "segments": [
+      {
+        "label": "non_speech",
+        "start": 2211.0,
+        "end": 2301.0
+      }
+    ],
+    "decision": "abstention",
+    "new_time_seconds": null,
+    "delta_seconds": null,
+    "reason": "Silero ne place pas le temps original dans une plage de parole.",
+    "uncertainty": "elevee"
+  },
+  {
+    "boundary_id": "joc-subculture-melbourne-2022-t07",
+    "episode_id": "joc-subculture-melbourne-2022",
+    "episode_title": "Joint Operations Centre LIVE @ Subculture Festival Melbourne 2022",
+    "source_url": "https://soundcloud.com/johnocallaghan/jointops-melbourne",
+    "tracklist_url": "https://set79.com/tracklist/soundcloud.com/johnocallaghan/jointops-melbourne",
+    "track_number": 7,
+    "track_title": "Joint Operations Centre - Hunter",
+    "split": "evaluation",
+    "original_time_seconds": 2256.0,
+    "window_start_seconds": 2211.0,
+    "window_end_seconds": 2301.0,
+    "method": "consensus_ina_silero",
+    "excerpt_before": "output/excerpts/joc-subculture-melbourne-2022-t07-before.ogg",
+    "excerpt_after": "output/excerpts/joc-subculture-melbourne-2022-t07-after.ogg",
+    "segments": {
+      "ina": [
+        {
+          "label": "music",
+          "start": 2211.0,
+          "end": 2300.98
+        }
+      ],
+      "silero": [
+        {
+          "label": "non_speech",
+          "start": 2211.0,
+          "end": 2301.0
+        }
+      ]
+    },
+    "decision": "abstention",
+    "new_time_seconds": null,
+    "delta_seconds": null,
+    "reason": "INA ne voit pas de parole englobante; Silero ne voit pas de parole englobante; retour musique INA insuffisant",
+    "uncertainty": "moyenne_a_elevee"
+  },
+  {
+    "boundary_id": "joc-subculture-melbourne-2022-t08",
+    "episode_id": "joc-subculture-melbourne-2022",
+    "episode_title": "Joint Operations Centre LIVE @ Subculture Festival Melbourne 2022",
+    "source_url": "https://soundcloud.com/johnocallaghan/jointops-melbourne",
+    "tracklist_url": "https://set79.com/tracklist/soundcloud.com/johnocallaghan/jointops-melbourne",
+    "track_number": 8,
+    "track_title": "Mauro Picotto - Iguana",
+    "split": "evaluation",
+    "original_time_seconds": 2508.0,
+    "window_start_seconds": 2463.0,
+    "window_end_seconds": 2553.0,
+    "method": "ina",
+    "excerpt_before": "output/excerpts/joc-subculture-melbourne-2022-t08-before.ogg",
+    "excerpt_after": "output/excerpts/joc-subculture-melbourne-2022-t08-after.ogg",
+    "segments": [
+      {
+        "label": "music",
+        "start": 2463.0,
+        "end": 2552.98
+      }
+    ],
+    "decision": "abstention",
+    "new_time_seconds": null,
+    "delta_seconds": null,
+    "reason": "INA ne confirme pas une parole englobant le temps original suivie immediatement de musique.",
+    "uncertainty": "moyenne_sans_ecoute_humaine"
+  },
+  {
+    "boundary_id": "joc-subculture-melbourne-2022-t08",
+    "episode_id": "joc-subculture-melbourne-2022",
+    "episode_title": "Joint Operations Centre LIVE @ Subculture Festival Melbourne 2022",
+    "source_url": "https://soundcloud.com/johnocallaghan/jointops-melbourne",
+    "tracklist_url": "https://set79.com/tracklist/soundcloud.com/johnocallaghan/jointops-melbourne",
+    "track_number": 8,
+    "track_title": "Mauro Picotto - Iguana",
+    "split": "evaluation",
+    "original_time_seconds": 2508.0,
+    "window_start_seconds": 2463.0,
+    "window_end_seconds": 2553.0,
+    "method": "silero",
+    "excerpt_before": "output/excerpts/joc-subculture-melbourne-2022-t08-before.ogg",
+    "excerpt_after": "output/excerpts/joc-subculture-melbourne-2022-t08-after.ogg",
+    "segments": [
+      {
+        "label": "non_speech",
+        "start": 2463.0,
+        "end": 2553.0
+      }
+    ],
+    "decision": "abstention",
+    "new_time_seconds": null,
+    "delta_seconds": null,
+    "reason": "Silero ne place pas le temps original dans une plage de parole.",
+    "uncertainty": "elevee"
+  },
+  {
+    "boundary_id": "joc-subculture-melbourne-2022-t08",
+    "episode_id": "joc-subculture-melbourne-2022",
+    "episode_title": "Joint Operations Centre LIVE @ Subculture Festival Melbourne 2022",
+    "source_url": "https://soundcloud.com/johnocallaghan/jointops-melbourne",
+    "tracklist_url": "https://set79.com/tracklist/soundcloud.com/johnocallaghan/jointops-melbourne",
+    "track_number": 8,
+    "track_title": "Mauro Picotto - Iguana",
+    "split": "evaluation",
+    "original_time_seconds": 2508.0,
+    "window_start_seconds": 2463.0,
+    "window_end_seconds": 2553.0,
+    "method": "consensus_ina_silero",
+    "excerpt_before": "output/excerpts/joc-subculture-melbourne-2022-t08-before.ogg",
+    "excerpt_after": "output/excerpts/joc-subculture-melbourne-2022-t08-after.ogg",
+    "segments": {
+      "ina": [
+        {
+          "label": "music",
+          "start": 2463.0,
+          "end": 2552.98
+        }
+      ],
+      "silero": [
+        {
+          "label": "non_speech",
+          "start": 2463.0,
+          "end": 2553.0
+        }
+      ]
+    },
+    "decision": "abstention",
+    "new_time_seconds": null,
+    "delta_seconds": null,
+    "reason": "INA ne voit pas de parole englobante; Silero ne voit pas de parole englobante; retour musique INA insuffisant",
+    "uncertainty": "moyenne_a_elevee"
+  },
+  {
+    "boundary_id": "joc-subculture-melbourne-2022-t09",
+    "episode_id": "joc-subculture-melbourne-2022",
+    "episode_title": "Joint Operations Centre LIVE @ Subculture Festival Melbourne 2022",
+    "source_url": "https://soundcloud.com/johnocallaghan/jointops-melbourne",
+    "tracklist_url": "https://set79.com/tracklist/soundcloud.com/johnocallaghan/jointops-melbourne",
+    "track_number": 9,
+    "track_title": "Wippenberg - U R (John O'Callaghan edit)",
+    "split": "evaluation",
+    "original_time_seconds": 2712.0,
+    "window_start_seconds": 2667.0,
+    "window_end_seconds": 2757.0,
+    "method": "ina",
+    "excerpt_before": "output/excerpts/joc-subculture-melbourne-2022-t09-before.ogg",
+    "excerpt_after": "output/excerpts/joc-subculture-melbourne-2022-t09-after.ogg",
+    "segments": [
+      {
+        "label": "music",
+        "start": 2667.0,
+        "end": 2756.98
+      }
+    ],
+    "decision": "abstention",
+    "new_time_seconds": null,
+    "delta_seconds": null,
+    "reason": "INA ne confirme pas une parole englobant le temps original suivie immediatement de musique.",
+    "uncertainty": "moyenne_sans_ecoute_humaine"
+  },
+  {
+    "boundary_id": "joc-subculture-melbourne-2022-t09",
+    "episode_id": "joc-subculture-melbourne-2022",
+    "episode_title": "Joint Operations Centre LIVE @ Subculture Festival Melbourne 2022",
+    "source_url": "https://soundcloud.com/johnocallaghan/jointops-melbourne",
+    "tracklist_url": "https://set79.com/tracklist/soundcloud.com/johnocallaghan/jointops-melbourne",
+    "track_number": 9,
+    "track_title": "Wippenberg - U R (John O'Callaghan edit)",
+    "split": "evaluation",
+    "original_time_seconds": 2712.0,
+    "window_start_seconds": 2667.0,
+    "window_end_seconds": 2757.0,
+    "method": "silero",
+    "excerpt_before": "output/excerpts/joc-subculture-melbourne-2022-t09-before.ogg",
+    "excerpt_after": "output/excerpts/joc-subculture-melbourne-2022-t09-after.ogg",
+    "segments": [
+      {
+        "label": "non_speech",
+        "start": 2667.0,
+        "end": 2757.0
+      }
+    ],
+    "decision": "abstention",
+    "new_time_seconds": null,
+    "delta_seconds": null,
+    "reason": "Silero ne place pas le temps original dans une plage de parole.",
+    "uncertainty": "elevee"
+  },
+  {
+    "boundary_id": "joc-subculture-melbourne-2022-t09",
+    "episode_id": "joc-subculture-melbourne-2022",
+    "episode_title": "Joint Operations Centre LIVE @ Subculture Festival Melbourne 2022",
+    "source_url": "https://soundcloud.com/johnocallaghan/jointops-melbourne",
+    "tracklist_url": "https://set79.com/tracklist/soundcloud.com/johnocallaghan/jointops-melbourne",
+    "track_number": 9,
+    "track_title": "Wippenberg - U R (John O'Callaghan edit)",
+    "split": "evaluation",
+    "original_time_seconds": 2712.0,
+    "window_start_seconds": 2667.0,
+    "window_end_seconds": 2757.0,
+    "method": "consensus_ina_silero",
+    "excerpt_before": "output/excerpts/joc-subculture-melbourne-2022-t09-before.ogg",
+    "excerpt_after": "output/excerpts/joc-subculture-melbourne-2022-t09-after.ogg",
+    "segments": {
+      "ina": [
+        {
+          "label": "music",
+          "start": 2667.0,
+          "end": 2756.98
+        }
+      ],
+      "silero": [
+        {
+          "label": "non_speech",
+          "start": 2667.0,
+          "end": 2757.0
+        }
+      ]
+    },
+    "decision": "abstention",
+    "new_time_seconds": null,
+    "delta_seconds": null,
+    "reason": "INA ne voit pas de parole englobante; Silero ne voit pas de parole englobante; retour musique INA insuffisant",
+    "uncertainty": "moyenne_a_elevee"
+  },
+  {
+    "boundary_id": "joc-subculture-melbourne-2022-t10",
+    "episode_id": "joc-subculture-melbourne-2022",
+    "episode_title": "Joint Operations Centre LIVE @ Subculture Festival Melbourne 2022",
+    "source_url": "https://soundcloud.com/johnocallaghan/jointops-melbourne",
+    "tracklist_url": "https://set79.com/tracklist/soundcloud.com/johnocallaghan/jointops-melbourne",
+    "track_number": 10,
+    "track_title": "Jon O'Bir feat. Fisher - Found A Way (Joint Operations Centre Remix)",
+    "split": "evaluation",
+    "original_time_seconds": 2880.0,
+    "window_start_seconds": 2835.0,
+    "window_end_seconds": 2925.0,
+    "method": "ina",
+    "excerpt_before": "output/excerpts/joc-subculture-melbourne-2022-t10-before.ogg",
+    "excerpt_after": "output/excerpts/joc-subculture-melbourne-2022-t10-after.ogg",
+    "segments": [
+      {
+        "label": "music",
+        "start": 2835.0,
+        "end": 2921.72
+      },
+      {
+        "label": "speech",
+        "start": 2921.72,
+        "end": 2924.98
+      }
+    ],
+    "decision": "abstention",
+    "new_time_seconds": null,
+    "delta_seconds": null,
+    "reason": "INA ne confirme pas une parole englobant le temps original suivie immediatement de musique.",
+    "uncertainty": "moyenne_sans_ecoute_humaine"
+  },
+  {
+    "boundary_id": "joc-subculture-melbourne-2022-t10",
+    "episode_id": "joc-subculture-melbourne-2022",
+    "episode_title": "Joint Operations Centre LIVE @ Subculture Festival Melbourne 2022",
+    "source_url": "https://soundcloud.com/johnocallaghan/jointops-melbourne",
+    "tracklist_url": "https://set79.com/tracklist/soundcloud.com/johnocallaghan/jointops-melbourne",
+    "track_number": 10,
+    "track_title": "Jon O'Bir feat. Fisher - Found A Way (Joint Operations Centre Remix)",
+    "split": "evaluation",
+    "original_time_seconds": 2880.0,
+    "window_start_seconds": 2835.0,
+    "window_end_seconds": 2925.0,
+    "method": "silero",
+    "excerpt_before": "output/excerpts/joc-subculture-melbourne-2022-t10-before.ogg",
+    "excerpt_after": "output/excerpts/joc-subculture-melbourne-2022-t10-after.ogg",
+    "segments": [
+      {
+        "label": "non_speech",
+        "start": 2835.0,
+        "end": 2925.0
+      }
+    ],
+    "decision": "abstention",
+    "new_time_seconds": null,
+    "delta_seconds": null,
+    "reason": "Silero ne place pas le temps original dans une plage de parole.",
+    "uncertainty": "elevee"
+  },
+  {
+    "boundary_id": "joc-subculture-melbourne-2022-t10",
+    "episode_id": "joc-subculture-melbourne-2022",
+    "episode_title": "Joint Operations Centre LIVE @ Subculture Festival Melbourne 2022",
+    "source_url": "https://soundcloud.com/johnocallaghan/jointops-melbourne",
+    "tracklist_url": "https://set79.com/tracklist/soundcloud.com/johnocallaghan/jointops-melbourne",
+    "track_number": 10,
+    "track_title": "Jon O'Bir feat. Fisher - Found A Way (Joint Operations Centre Remix)",
+    "split": "evaluation",
+    "original_time_seconds": 2880.0,
+    "window_start_seconds": 2835.0,
+    "window_end_seconds": 2925.0,
+    "method": "consensus_ina_silero",
+    "excerpt_before": "output/excerpts/joc-subculture-melbourne-2022-t10-before.ogg",
+    "excerpt_after": "output/excerpts/joc-subculture-melbourne-2022-t10-after.ogg",
+    "segments": {
+      "ina": [
+        {
+          "label": "music",
+          "start": 2835.0,
+          "end": 2921.72
+        },
+        {
+          "label": "speech",
+          "start": 2921.72,
+          "end": 2924.98
+        }
+      ],
+      "silero": [
+        {
+          "label": "non_speech",
+          "start": 2835.0,
+          "end": 2925.0
+        }
+      ]
+    },
+    "decision": "abstention",
+    "new_time_seconds": null,
+    "delta_seconds": null,
+    "reason": "INA ne voit pas de parole englobante; Silero ne voit pas de parole englobante; retour musique INA insuffisant",
+    "uncertainty": "moyenne_a_elevee"
+  },
+  {
+    "boundary_id": "joc-subculture-melbourne-2022-t11",
+    "episode_id": "joc-subculture-melbourne-2022",
+    "episode_title": "Joint Operations Centre LIVE @ Subculture Festival Melbourne 2022",
+    "source_url": "https://soundcloud.com/johnocallaghan/jointops-melbourne",
+    "tracklist_url": "https://set79.com/tracklist/soundcloud.com/johnocallaghan/jointops-melbourne",
+    "track_number": 11,
+    "track_title": "Axel Karakasis - Pull the Trigger (Joint Operations Centre Remix)",
+    "split": "evaluation",
+    "original_time_seconds": 3168.0,
+    "window_start_seconds": 3123.0,
+    "window_end_seconds": 3213.0,
+    "method": "ina",
+    "excerpt_before": "output/excerpts/joc-subculture-melbourne-2022-t11-before.ogg",
+    "excerpt_after": "output/excerpts/joc-subculture-melbourne-2022-t11-after.ogg",
+    "segments": [
+      {
+        "label": "music",
+        "start": 3123.0,
+        "end": 3212.98
+      }
+    ],
+    "decision": "abstention",
+    "new_time_seconds": null,
+    "delta_seconds": null,
+    "reason": "INA ne confirme pas une parole englobant le temps original suivie immediatement de musique.",
+    "uncertainty": "moyenne_sans_ecoute_humaine"
+  },
+  {
+    "boundary_id": "joc-subculture-melbourne-2022-t11",
+    "episode_id": "joc-subculture-melbourne-2022",
+    "episode_title": "Joint Operations Centre LIVE @ Subculture Festival Melbourne 2022",
+    "source_url": "https://soundcloud.com/johnocallaghan/jointops-melbourne",
+    "tracklist_url": "https://set79.com/tracklist/soundcloud.com/johnocallaghan/jointops-melbourne",
+    "track_number": 11,
+    "track_title": "Axel Karakasis - Pull the Trigger (Joint Operations Centre Remix)",
+    "split": "evaluation",
+    "original_time_seconds": 3168.0,
+    "window_start_seconds": 3123.0,
+    "window_end_seconds": 3213.0,
+    "method": "silero",
+    "excerpt_before": "output/excerpts/joc-subculture-melbourne-2022-t11-before.ogg",
+    "excerpt_after": "output/excerpts/joc-subculture-melbourne-2022-t11-after.ogg",
+    "segments": [
+      {
+        "label": "non_speech",
+        "start": 3123.0,
+        "end": 3213.0
+      }
+    ],
+    "decision": "abstention",
+    "new_time_seconds": null,
+    "delta_seconds": null,
+    "reason": "Silero ne place pas le temps original dans une plage de parole.",
+    "uncertainty": "elevee"
+  },
+  {
+    "boundary_id": "joc-subculture-melbourne-2022-t11",
+    "episode_id": "joc-subculture-melbourne-2022",
+    "episode_title": "Joint Operations Centre LIVE @ Subculture Festival Melbourne 2022",
+    "source_url": "https://soundcloud.com/johnocallaghan/jointops-melbourne",
+    "tracklist_url": "https://set79.com/tracklist/soundcloud.com/johnocallaghan/jointops-melbourne",
+    "track_number": 11,
+    "track_title": "Axel Karakasis - Pull the Trigger (Joint Operations Centre Remix)",
+    "split": "evaluation",
+    "original_time_seconds": 3168.0,
+    "window_start_seconds": 3123.0,
+    "window_end_seconds": 3213.0,
+    "method": "consensus_ina_silero",
+    "excerpt_before": "output/excerpts/joc-subculture-melbourne-2022-t11-before.ogg",
+    "excerpt_after": "output/excerpts/joc-subculture-melbourne-2022-t11-after.ogg",
+    "segments": {
+      "ina": [
+        {
+          "label": "music",
+          "start": 3123.0,
+          "end": 3212.98
+        }
+      ],
+      "silero": [
+        {
+          "label": "non_speech",
+          "start": 3123.0,
+          "end": 3213.0
+        }
+      ]
+    },
+    "decision": "abstention",
+    "new_time_seconds": null,
+    "delta_seconds": null,
+    "reason": "INA ne voit pas de parole englobante; Silero ne voit pas de parole englobante; retour musique INA insuffisant",
+    "uncertainty": "moyenne_a_elevee"
+  },
+  {
+    "boundary_id": "joc-subculture-melbourne-2022-t12",
+    "episode_id": "joc-subculture-melbourne-2022",
+    "episode_title": "Joint Operations Centre LIVE @ Subculture Festival Melbourne 2022",
+    "source_url": "https://soundcloud.com/johnocallaghan/jointops-melbourne",
+    "tracklist_url": "https://set79.com/tracklist/soundcloud.com/johnocallaghan/jointops-melbourne",
+    "track_number": 12,
+    "track_title": "Lorenzo Chi - Off",
+    "split": "evaluation",
+    "original_time_seconds": 3324.0,
+    "window_start_seconds": 3279.0,
+    "window_end_seconds": 3369.0,
+    "method": "ina",
+    "excerpt_before": "output/excerpts/joc-subculture-melbourne-2022-t12-before.ogg",
+    "excerpt_after": "output/excerpts/joc-subculture-melbourne-2022-t12-after.ogg",
+    "segments": [
+      {
+        "label": "music",
+        "start": 3279.0,
+        "end": 3368.98
+      }
+    ],
+    "decision": "abstention",
+    "new_time_seconds": null,
+    "delta_seconds": null,
+    "reason": "INA ne confirme pas une parole englobant le temps original suivie immediatement de musique.",
+    "uncertainty": "moyenne_sans_ecoute_humaine"
+  },
+  {
+    "boundary_id": "joc-subculture-melbourne-2022-t12",
+    "episode_id": "joc-subculture-melbourne-2022",
+    "episode_title": "Joint Operations Centre LIVE @ Subculture Festival Melbourne 2022",
+    "source_url": "https://soundcloud.com/johnocallaghan/jointops-melbourne",
+    "tracklist_url": "https://set79.com/tracklist/soundcloud.com/johnocallaghan/jointops-melbourne",
+    "track_number": 12,
+    "track_title": "Lorenzo Chi - Off",
+    "split": "evaluation",
+    "original_time_seconds": 3324.0,
+    "window_start_seconds": 3279.0,
+    "window_end_seconds": 3369.0,
+    "method": "silero",
+    "excerpt_before": "output/excerpts/joc-subculture-melbourne-2022-t12-before.ogg",
+    "excerpt_after": "output/excerpts/joc-subculture-melbourne-2022-t12-after.ogg",
+    "segments": [
+      {
+        "label": "non_speech",
+        "start": 3279.0,
+        "end": 3369.0
+      }
+    ],
+    "decision": "abstention",
+    "new_time_seconds": null,
+    "delta_seconds": null,
+    "reason": "Silero ne place pas le temps original dans une plage de parole.",
+    "uncertainty": "elevee"
+  },
+  {
+    "boundary_id": "joc-subculture-melbourne-2022-t12",
+    "episode_id": "joc-subculture-melbourne-2022",
+    "episode_title": "Joint Operations Centre LIVE @ Subculture Festival Melbourne 2022",
+    "source_url": "https://soundcloud.com/johnocallaghan/jointops-melbourne",
+    "tracklist_url": "https://set79.com/tracklist/soundcloud.com/johnocallaghan/jointops-melbourne",
+    "track_number": 12,
+    "track_title": "Lorenzo Chi - Off",
+    "split": "evaluation",
+    "original_time_seconds": 3324.0,
+    "window_start_seconds": 3279.0,
+    "window_end_seconds": 3369.0,
+    "method": "consensus_ina_silero",
+    "excerpt_before": "output/excerpts/joc-subculture-melbourne-2022-t12-before.ogg",
+    "excerpt_after": "output/excerpts/joc-subculture-melbourne-2022-t12-after.ogg",
+    "segments": {
+      "ina": [
+        {
+          "label": "music",
+          "start": 3279.0,
+          "end": 3368.98
+        }
+      ],
+      "silero": [
+        {
+          "label": "non_speech",
+          "start": 3279.0,
+          "end": 3369.0
+        }
+      ]
+    },
+    "decision": "abstention",
+    "new_time_seconds": null,
+    "delta_seconds": null,
+    "reason": "INA ne voit pas de parole englobante; Silero ne voit pas de parole englobante; retour musique INA insuffisant",
+    "uncertainty": "moyenne_a_elevee"
+  },
+  {
+    "boundary_id": "key4050-transmission-bangkok-2024-t02",
+    "episode_id": "key4050-transmission-bangkok-2024",
+    "episode_title": "John O'Callaghan & Bryan Kearney pres. Key4050 - Live @ Transmission Bangkok 2024",
+    "source_url": "https://soundcloud.com/unitedmusicevents/john-ocallaghan-bryan-kearney",
+    "tracklist_url": "https://set79.com/tracklist/soundcloud.com/unitedmusicevents/john-ocallaghan-bryan-kearney",
+    "track_number": 2,
+    "track_title": "Rank 1 - Airwave (Radio Vocal Edit)",
+    "split": "tuning",
+    "original_time_seconds": 252.0,
+    "window_start_seconds": 207.0,
+    "window_end_seconds": 297.0,
+    "method": "ina",
+    "excerpt_before": "output/excerpts/key4050-transmission-bangkok-2024-t02-before.ogg",
+    "excerpt_after": "output/excerpts/key4050-transmission-bangkok-2024-t02-after.ogg",
+    "segments": [
+      {
+        "label": "music",
+        "start": 207.0,
+        "end": 209.02
+      },
+      {
+        "label": "speech",
+        "start": 209.02,
+        "end": 212.08
+      },
+      {
+        "label": "noEnergy",
+        "start": 212.08,
+        "end": 213.76
+      },
+      {
+        "label": "speech",
+        "start": 213.76,
+        "end": 218.28
+      },
+      {
+        "label": "music",
+        "start": 218.28,
+        "end": 296.98
+      }
+    ],
+    "decision": "abstention",
+    "new_time_seconds": null,
+    "delta_seconds": null,
+    "reason": "INA ne confirme pas une parole englobant le temps original suivie immediatement de musique.",
+    "uncertainty": "moyenne_sans_ecoute_humaine"
+  },
+  {
+    "boundary_id": "key4050-transmission-bangkok-2024-t02",
+    "episode_id": "key4050-transmission-bangkok-2024",
+    "episode_title": "John O'Callaghan & Bryan Kearney pres. Key4050 - Live @ Transmission Bangkok 2024",
+    "source_url": "https://soundcloud.com/unitedmusicevents/john-ocallaghan-bryan-kearney",
+    "tracklist_url": "https://set79.com/tracklist/soundcloud.com/unitedmusicevents/john-ocallaghan-bryan-kearney",
+    "track_number": 2,
+    "track_title": "Rank 1 - Airwave (Radio Vocal Edit)",
+    "split": "tuning",
+    "original_time_seconds": 252.0,
+    "window_start_seconds": 207.0,
+    "window_end_seconds": 297.0,
+    "method": "silero",
+    "excerpt_before": "output/excerpts/key4050-transmission-bangkok-2024-t02-before.ogg",
+    "excerpt_after": "output/excerpts/key4050-transmission-bangkok-2024-t02-after.ogg",
+    "segments": [
+      {
+        "label": "non_speech",
+        "start": 207.0,
+        "end": 215.546
+      },
+      {
+        "label": "speech",
+        "start": 215.546,
+        "end": 217.334
+      },
+      {
+        "label": "non_speech",
+        "start": 217.334,
+        "end": 217.658
+      },
+      {
+        "label": "speech",
+        "start": 217.658,
+        "end": 218.294
+      },
+      {
+        "label": "non_speech",
+        "start": 218.294,
+        "end": 237.626
+      },
+      {
+        "label": "speech",
+        "start": 237.626,
+        "end": 238.326
+      },
+      {
+        "label": "non_speech",
+        "start": 238.326,
+        "end": 297.0
+      }
+    ],
+    "decision": "abstention",
+    "new_time_seconds": null,
+    "delta_seconds": null,
+    "reason": "Silero ne place pas le temps original dans une plage de parole.",
+    "uncertainty": "elevee"
+  },
+  {
+    "boundary_id": "key4050-transmission-bangkok-2024-t02",
+    "episode_id": "key4050-transmission-bangkok-2024",
+    "episode_title": "John O'Callaghan & Bryan Kearney pres. Key4050 - Live @ Transmission Bangkok 2024",
+    "source_url": "https://soundcloud.com/unitedmusicevents/john-ocallaghan-bryan-kearney",
+    "tracklist_url": "https://set79.com/tracklist/soundcloud.com/unitedmusicevents/john-ocallaghan-bryan-kearney",
+    "track_number": 2,
+    "track_title": "Rank 1 - Airwave (Radio Vocal Edit)",
+    "split": "tuning",
+    "original_time_seconds": 252.0,
+    "window_start_seconds": 207.0,
+    "window_end_seconds": 297.0,
+    "method": "consensus_ina_silero",
+    "excerpt_before": "output/excerpts/key4050-transmission-bangkok-2024-t02-before.ogg",
+    "excerpt_after": "output/excerpts/key4050-transmission-bangkok-2024-t02-after.ogg",
+    "segments": {
+      "ina": [
+        {
+          "label": "music",
+          "start": 207.0,
+          "end": 209.02
+        },
+        {
+          "label": "speech",
+          "start": 209.02,
+          "end": 212.08
+        },
+        {
+          "label": "noEnergy",
+          "start": 212.08,
+          "end": 213.76
+        },
+        {
+          "label": "speech",
+          "start": 213.76,
+          "end": 218.28
+        },
+        {
+          "label": "music",
+          "start": 218.28,
+          "end": 296.98
+        }
+      ],
+      "silero": [
+        {
+          "label": "non_speech",
+          "start": 207.0,
+          "end": 215.546
+        },
+        {
+          "label": "speech",
+          "start": 215.546,
+          "end": 217.334
+        },
+        {
+          "label": "non_speech",
+          "start": 217.334,
+          "end": 217.658
+        },
+        {
+          "label": "speech",
+          "start": 217.658,
+          "end": 218.294
+        },
+        {
+          "label": "non_speech",
+          "start": 218.294,
+          "end": 237.626
+        },
+        {
+          "label": "speech",
+          "start": 237.626,
+          "end": 238.326
+        },
+        {
+          "label": "non_speech",
+          "start": 238.326,
+          "end": 297.0
+        }
+      ]
+    },
+    "decision": "abstention",
+    "new_time_seconds": null,
+    "delta_seconds": null,
+    "reason": "INA ne voit pas de parole englobante; Silero ne voit pas de parole englobante; retour musique INA insuffisant",
+    "uncertainty": "moyenne_a_elevee"
+  },
+  {
+    "boundary_id": "key4050-transmission-bangkok-2024-t03",
+    "episode_id": "key4050-transmission-bangkok-2024",
+    "episode_title": "John O'Callaghan & Bryan Kearney pres. Key4050 - Live @ Transmission Bangkok 2024",
+    "source_url": "https://soundcloud.com/unitedmusicevents/john-ocallaghan-bryan-kearney",
+    "tracklist_url": "https://set79.com/tracklist/soundcloud.com/unitedmusicevents/john-ocallaghan-bryan-kearney",
+    "track_number": 3,
+    "track_title": "Key4050 - Want More",
+    "split": "tuning",
+    "original_time_seconds": 456.0,
+    "window_start_seconds": 411.0,
+    "window_end_seconds": 501.0,
+    "method": "ina",
+    "excerpt_before": "output/excerpts/key4050-transmission-bangkok-2024-t03-before.ogg",
+    "excerpt_after": "output/excerpts/key4050-transmission-bangkok-2024-t03-after.ogg",
+    "segments": [
+      {
+        "label": "speech",
+        "start": 411.0,
+        "end": 441.68
+      },
+      {
+        "label": "music",
+        "start": 441.68,
+        "end": 500.98
+      }
+    ],
+    "decision": "abstention",
+    "new_time_seconds": null,
+    "delta_seconds": null,
+    "reason": "INA ne confirme pas une parole englobant le temps original suivie immediatement de musique.",
+    "uncertainty": "moyenne_sans_ecoute_humaine"
+  },
+  {
+    "boundary_id": "key4050-transmission-bangkok-2024-t03",
+    "episode_id": "key4050-transmission-bangkok-2024",
+    "episode_title": "John O'Callaghan & Bryan Kearney pres. Key4050 - Live @ Transmission Bangkok 2024",
+    "source_url": "https://soundcloud.com/unitedmusicevents/john-ocallaghan-bryan-kearney",
+    "tracklist_url": "https://set79.com/tracklist/soundcloud.com/unitedmusicevents/john-ocallaghan-bryan-kearney",
+    "track_number": 3,
+    "track_title": "Key4050 - Want More",
+    "split": "tuning",
+    "original_time_seconds": 456.0,
+    "window_start_seconds": 411.0,
+    "window_end_seconds": 501.0,
+    "method": "silero",
+    "excerpt_before": "output/excerpts/key4050-transmission-bangkok-2024-t03-before.ogg",
+    "excerpt_after": "output/excerpts/key4050-transmission-bangkok-2024-t03-after.ogg",
+    "segments": [
+      {
+        "label": "non_speech",
+        "start": 411.0,
+        "end": 501.0
+      }
+    ],
+    "decision": "abstention",
+    "new_time_seconds": null,
+    "delta_seconds": null,
+    "reason": "Silero ne place pas le temps original dans une plage de parole.",
+    "uncertainty": "elevee"
+  },
+  {
+    "boundary_id": "key4050-transmission-bangkok-2024-t03",
+    "episode_id": "key4050-transmission-bangkok-2024",
+    "episode_title": "John O'Callaghan & Bryan Kearney pres. Key4050 - Live @ Transmission Bangkok 2024",
+    "source_url": "https://soundcloud.com/unitedmusicevents/john-ocallaghan-bryan-kearney",
+    "tracklist_url": "https://set79.com/tracklist/soundcloud.com/unitedmusicevents/john-ocallaghan-bryan-kearney",
+    "track_number": 3,
+    "track_title": "Key4050 - Want More",
+    "split": "tuning",
+    "original_time_seconds": 456.0,
+    "window_start_seconds": 411.0,
+    "window_end_seconds": 501.0,
+    "method": "consensus_ina_silero",
+    "excerpt_before": "output/excerpts/key4050-transmission-bangkok-2024-t03-before.ogg",
+    "excerpt_after": "output/excerpts/key4050-transmission-bangkok-2024-t03-after.ogg",
+    "segments": {
+      "ina": [
+        {
+          "label": "speech",
+          "start": 411.0,
+          "end": 441.68
+        },
+        {
+          "label": "music",
+          "start": 441.68,
+          "end": 500.98
+        }
+      ],
+      "silero": [
+        {
+          "label": "non_speech",
+          "start": 411.0,
+          "end": 501.0
+        }
+      ]
+    },
+    "decision": "abstention",
+    "new_time_seconds": null,
+    "delta_seconds": null,
+    "reason": "INA ne voit pas de parole englobante; Silero ne voit pas de parole englobante; retour musique INA insuffisant",
+    "uncertainty": "moyenne_a_elevee"
+  },
+  {
+    "boundary_id": "key4050-transmission-bangkok-2024-t04",
+    "episode_id": "key4050-transmission-bangkok-2024",
+    "episode_title": "John O'Callaghan & Bryan Kearney pres. Key4050 - Live @ Transmission Bangkok 2024",
+    "source_url": "https://soundcloud.com/unitedmusicevents/john-ocallaghan-bryan-kearney",
+    "tracklist_url": "https://set79.com/tracklist/soundcloud.com/unitedmusicevents/john-ocallaghan-bryan-kearney",
+    "track_number": 4,
+    "track_title": "Armin van Buuren feat. Susana - Shivers (Rising Star Mix)",
+    "split": "tuning",
+    "original_time_seconds": 684.0,
+    "window_start_seconds": 639.0,
+    "window_end_seconds": 729.0,
+    "method": "ina",
+    "excerpt_before": "output/excerpts/key4050-transmission-bangkok-2024-t04-before.ogg",
+    "excerpt_after": "output/excerpts/key4050-transmission-bangkok-2024-t04-after.ogg",
+    "segments": [
+      {
+        "label": "music",
+        "start": 639.0,
+        "end": 728.98
+      }
+    ],
+    "decision": "abstention",
+    "new_time_seconds": null,
+    "delta_seconds": null,
+    "reason": "INA ne confirme pas une parole englobant le temps original suivie immediatement de musique.",
+    "uncertainty": "moyenne_sans_ecoute_humaine"
+  },
+  {
+    "boundary_id": "key4050-transmission-bangkok-2024-t04",
+    "episode_id": "key4050-transmission-bangkok-2024",
+    "episode_title": "John O'Callaghan & Bryan Kearney pres. Key4050 - Live @ Transmission Bangkok 2024",
+    "source_url": "https://soundcloud.com/unitedmusicevents/john-ocallaghan-bryan-kearney",
+    "tracklist_url": "https://set79.com/tracklist/soundcloud.com/unitedmusicevents/john-ocallaghan-bryan-kearney",
+    "track_number": 4,
+    "track_title": "Armin van Buuren feat. Susana - Shivers (Rising Star Mix)",
+    "split": "tuning",
+    "original_time_seconds": 684.0,
+    "window_start_seconds": 639.0,
+    "window_end_seconds": 729.0,
+    "method": "silero",
+    "excerpt_before": "output/excerpts/key4050-transmission-bangkok-2024-t04-before.ogg",
+    "excerpt_after": "output/excerpts/key4050-transmission-bangkok-2024-t04-after.ogg",
+    "segments": [
+      {
+        "label": "non_speech",
+        "start": 639.0,
+        "end": 729.0
+      }
+    ],
+    "decision": "abstention",
+    "new_time_seconds": null,
+    "delta_seconds": null,
+    "reason": "Silero ne place pas le temps original dans une plage de parole.",
+    "uncertainty": "elevee"
+  },
+  {
+    "boundary_id": "key4050-transmission-bangkok-2024-t04",
+    "episode_id": "key4050-transmission-bangkok-2024",
+    "episode_title": "John O'Callaghan & Bryan Kearney pres. Key4050 - Live @ Transmission Bangkok 2024",
+    "source_url": "https://soundcloud.com/unitedmusicevents/john-ocallaghan-bryan-kearney",
+    "tracklist_url": "https://set79.com/tracklist/soundcloud.com/unitedmusicevents/john-ocallaghan-bryan-kearney",
+    "track_number": 4,
+    "track_title": "Armin van Buuren feat. Susana - Shivers (Rising Star Mix)",
+    "split": "tuning",
+    "original_time_seconds": 684.0,
+    "window_start_seconds": 639.0,
+    "window_end_seconds": 729.0,
+    "method": "consensus_ina_silero",
+    "excerpt_before": "output/excerpts/key4050-transmission-bangkok-2024-t04-before.ogg",
+    "excerpt_after": "output/excerpts/key4050-transmission-bangkok-2024-t04-after.ogg",
+    "segments": {
+      "ina": [
+        {
+          "label": "music",
+          "start": 639.0,
+          "end": 728.98
+        }
+      ],
+      "silero": [
+        {
+          "label": "non_speech",
+          "start": 639.0,
+          "end": 729.0
+        }
+      ]
+    },
+    "decision": "abstention",
+    "new_time_seconds": null,
+    "delta_seconds": null,
+    "reason": "INA ne voit pas de parole englobante; Silero ne voit pas de parole englobante; retour musique INA insuffisant",
+    "uncertainty": "moyenne_a_elevee"
+  },
+  {
+    "boundary_id": "key4050-transmission-bangkok-2024-t05",
+    "episode_id": "key4050-transmission-bangkok-2024",
+    "episode_title": "John O'Callaghan & Bryan Kearney pres. Key4050 - Live @ Transmission Bangkok 2024",
+    "source_url": "https://soundcloud.com/unitedmusicevents/john-ocallaghan-bryan-kearney",
+    "tracklist_url": "https://set79.com/tracklist/soundcloud.com/unitedmusicevents/john-ocallaghan-bryan-kearney",
+    "track_number": 5,
+    "track_title": "Key4050 - Feel Less",
+    "split": "tuning",
+    "original_time_seconds": 1092.0,
+    "window_start_seconds": 1047.0,
+    "window_end_seconds": 1137.0,
+    "method": "ina",
+    "excerpt_before": "output/excerpts/key4050-transmission-bangkok-2024-t05-before.ogg",
+    "excerpt_after": "output/excerpts/key4050-transmission-bangkok-2024-t05-after.ogg",
+    "segments": [
+      {
+        "label": "music",
+        "start": 1047.0,
+        "end": 1136.98
+      }
+    ],
+    "decision": "abstention",
+    "new_time_seconds": null,
+    "delta_seconds": null,
+    "reason": "INA ne confirme pas une parole englobant le temps original suivie immediatement de musique.",
+    "uncertainty": "moyenne_sans_ecoute_humaine"
+  },
+  {
+    "boundary_id": "key4050-transmission-bangkok-2024-t05",
+    "episode_id": "key4050-transmission-bangkok-2024",
+    "episode_title": "John O'Callaghan & Bryan Kearney pres. Key4050 - Live @ Transmission Bangkok 2024",
+    "source_url": "https://soundcloud.com/unitedmusicevents/john-ocallaghan-bryan-kearney",
+    "tracklist_url": "https://set79.com/tracklist/soundcloud.com/unitedmusicevents/john-ocallaghan-bryan-kearney",
+    "track_number": 5,
+    "track_title": "Key4050 - Feel Less",
+    "split": "tuning",
+    "original_time_seconds": 1092.0,
+    "window_start_seconds": 1047.0,
+    "window_end_seconds": 1137.0,
+    "method": "silero",
+    "excerpt_before": "output/excerpts/key4050-transmission-bangkok-2024-t05-before.ogg",
+    "excerpt_after": "output/excerpts/key4050-transmission-bangkok-2024-t05-after.ogg",
+    "segments": [
+      {
+        "label": "non_speech",
+        "start": 1047.0,
+        "end": 1137.0
+      }
+    ],
+    "decision": "abstention",
+    "new_time_seconds": null,
+    "delta_seconds": null,
+    "reason": "Silero ne place pas le temps original dans une plage de parole.",
+    "uncertainty": "elevee"
+  },
+  {
+    "boundary_id": "key4050-transmission-bangkok-2024-t05",
+    "episode_id": "key4050-transmission-bangkok-2024",
+    "episode_title": "John O'Callaghan & Bryan Kearney pres. Key4050 - Live @ Transmission Bangkok 2024",
+    "source_url": "https://soundcloud.com/unitedmusicevents/john-ocallaghan-bryan-kearney",
+    "tracklist_url": "https://set79.com/tracklist/soundcloud.com/unitedmusicevents/john-ocallaghan-bryan-kearney",
+    "track_number": 5,
+    "track_title": "Key4050 - Feel Less",
+    "split": "tuning",
+    "original_time_seconds": 1092.0,
+    "window_start_seconds": 1047.0,
+    "window_end_seconds": 1137.0,
+    "method": "consensus_ina_silero",
+    "excerpt_before": "output/excerpts/key4050-transmission-bangkok-2024-t05-before.ogg",
+    "excerpt_after": "output/excerpts/key4050-transmission-bangkok-2024-t05-after.ogg",
+    "segments": {
+      "ina": [
+        {
+          "label": "music",
+          "start": 1047.0,
+          "end": 1136.98
+        }
+      ],
+      "silero": [
+        {
+          "label": "non_speech",
+          "start": 1047.0,
+          "end": 1137.0
+        }
+      ]
+    },
+    "decision": "abstention",
+    "new_time_seconds": null,
+    "delta_seconds": null,
+    "reason": "INA ne voit pas de parole englobante; Silero ne voit pas de parole englobante; retour musique INA insuffisant",
+    "uncertainty": "moyenne_a_elevee"
+  },
+  {
+    "boundary_id": "key4050-transmission-bangkok-2024-t06",
+    "episode_id": "key4050-transmission-bangkok-2024",
+    "episode_title": "John O'Callaghan & Bryan Kearney pres. Key4050 - Live @ Transmission Bangkok 2024",
+    "source_url": "https://soundcloud.com/unitedmusicevents/john-ocallaghan-bryan-kearney",
+    "tracklist_url": "https://set79.com/tracklist/soundcloud.com/unitedmusicevents/john-ocallaghan-bryan-kearney",
+    "track_number": 6,
+    "track_title": "Unknown",
+    "split": "tuning",
+    "original_time_seconds": 1260.0,
+    "window_start_seconds": 1215.0,
+    "window_end_seconds": 1305.0,
+    "method": "ina",
+    "excerpt_before": "output/excerpts/key4050-transmission-bangkok-2024-t06-before.ogg",
+    "excerpt_after": "output/excerpts/key4050-transmission-bangkok-2024-t06-after.ogg",
+    "segments": [
+      {
+        "label": "music",
+        "start": 1215.0,
+        "end": 1304.98
+      }
+    ],
+    "decision": "abstention",
+    "new_time_seconds": null,
+    "delta_seconds": null,
+    "reason": "INA ne confirme pas une parole englobant le temps original suivie immediatement de musique.",
+    "uncertainty": "moyenne_sans_ecoute_humaine"
+  },
+  {
+    "boundary_id": "key4050-transmission-bangkok-2024-t06",
+    "episode_id": "key4050-transmission-bangkok-2024",
+    "episode_title": "John O'Callaghan & Bryan Kearney pres. Key4050 - Live @ Transmission Bangkok 2024",
+    "source_url": "https://soundcloud.com/unitedmusicevents/john-ocallaghan-bryan-kearney",
+    "tracklist_url": "https://set79.com/tracklist/soundcloud.com/unitedmusicevents/john-ocallaghan-bryan-kearney",
+    "track_number": 6,
+    "track_title": "Unknown",
+    "split": "tuning",
+    "original_time_seconds": 1260.0,
+    "window_start_seconds": 1215.0,
+    "window_end_seconds": 1305.0,
+    "method": "silero",
+    "excerpt_before": "output/excerpts/key4050-transmission-bangkok-2024-t06-before.ogg",
+    "excerpt_after": "output/excerpts/key4050-transmission-bangkok-2024-t06-after.ogg",
+    "segments": [
+      {
+        "label": "non_speech",
+        "start": 1215.0,
+        "end": 1305.0
+      }
+    ],
+    "decision": "abstention",
+    "new_time_seconds": null,
+    "delta_seconds": null,
+    "reason": "Silero ne place pas le temps original dans une plage de parole.",
+    "uncertainty": "elevee"
+  },
+  {
+    "boundary_id": "key4050-transmission-bangkok-2024-t06",
+    "episode_id": "key4050-transmission-bangkok-2024",
+    "episode_title": "John O'Callaghan & Bryan Kearney pres. Key4050 - Live @ Transmission Bangkok 2024",
+    "source_url": "https://soundcloud.com/unitedmusicevents/john-ocallaghan-bryan-kearney",
+    "tracklist_url": "https://set79.com/tracklist/soundcloud.com/unitedmusicevents/john-ocallaghan-bryan-kearney",
+    "track_number": 6,
+    "track_title": "Unknown",
+    "split": "tuning",
+    "original_time_seconds": 1260.0,
+    "window_start_seconds": 1215.0,
+    "window_end_seconds": 1305.0,
+    "method": "consensus_ina_silero",
+    "excerpt_before": "output/excerpts/key4050-transmission-bangkok-2024-t06-before.ogg",
+    "excerpt_after": "output/excerpts/key4050-transmission-bangkok-2024-t06-after.ogg",
+    "segments": {
+      "ina": [
+        {
+          "label": "music",
+          "start": 1215.0,
+          "end": 1304.98
+        }
+      ],
+      "silero": [
+        {
+          "label": "non_speech",
+          "start": 1215.0,
+          "end": 1305.0
+        }
+      ]
+    },
+    "decision": "abstention",
+    "new_time_seconds": null,
+    "delta_seconds": null,
+    "reason": "INA ne voit pas de parole englobante; Silero ne voit pas de parole englobante; retour musique INA insuffisant",
+    "uncertainty": "moyenne_a_elevee"
+  },
+  {
+    "boundary_id": "key4050-transmission-bangkok-2024-t07",
+    "episode_id": "key4050-transmission-bangkok-2024",
+    "episode_title": "John O'Callaghan & Bryan Kearney pres. Key4050 - Live @ Transmission Bangkok 2024",
+    "source_url": "https://soundcloud.com/unitedmusicevents/john-ocallaghan-bryan-kearney",
+    "tracklist_url": "https://set79.com/tracklist/soundcloud.com/unitedmusicevents/john-ocallaghan-bryan-kearney",
+    "track_number": 7,
+    "track_title": "Bryan Kearney & Bo Bruce - Shine a Light (Sean Tyas Remix)",
+    "split": "evaluation",
+    "original_time_seconds": 1476.0,
+    "window_start_seconds": 1431.0,
+    "window_end_seconds": 1521.0,
+    "method": "ina",
+    "excerpt_before": "output/excerpts/key4050-transmission-bangkok-2024-t07-before.ogg",
+    "excerpt_after": "output/excerpts/key4050-transmission-bangkok-2024-t07-after.ogg",
+    "segments": [
+      {
+        "label": "music",
+        "start": 1431.0,
+        "end": 1492.8
+      },
+      {
+        "label": "speech",
+        "start": 1492.8,
+        "end": 1495.56
+      },
+      {
+        "label": "music",
+        "start": 1495.56,
+        "end": 1520.98
+      }
+    ],
+    "decision": "abstention",
+    "new_time_seconds": null,
+    "delta_seconds": null,
+    "reason": "INA ne confirme pas une parole englobant le temps original suivie immediatement de musique.",
+    "uncertainty": "moyenne_sans_ecoute_humaine"
+  },
+  {
+    "boundary_id": "key4050-transmission-bangkok-2024-t07",
+    "episode_id": "key4050-transmission-bangkok-2024",
+    "episode_title": "John O'Callaghan & Bryan Kearney pres. Key4050 - Live @ Transmission Bangkok 2024",
+    "source_url": "https://soundcloud.com/unitedmusicevents/john-ocallaghan-bryan-kearney",
+    "tracklist_url": "https://set79.com/tracklist/soundcloud.com/unitedmusicevents/john-ocallaghan-bryan-kearney",
+    "track_number": 7,
+    "track_title": "Bryan Kearney & Bo Bruce - Shine a Light (Sean Tyas Remix)",
+    "split": "evaluation",
+    "original_time_seconds": 1476.0,
+    "window_start_seconds": 1431.0,
+    "window_end_seconds": 1521.0,
+    "method": "silero",
+    "excerpt_before": "output/excerpts/key4050-transmission-bangkok-2024-t07-before.ogg",
+    "excerpt_after": "output/excerpts/key4050-transmission-bangkok-2024-t07-after.ogg",
+    "segments": [
+      {
+        "label": "non_speech",
+        "start": 1431.0,
+        "end": 1521.0
+      }
+    ],
+    "decision": "abstention",
+    "new_time_seconds": null,
+    "delta_seconds": null,
+    "reason": "Silero ne place pas le temps original dans une plage de parole.",
+    "uncertainty": "elevee"
+  },
+  {
+    "boundary_id": "key4050-transmission-bangkok-2024-t07",
+    "episode_id": "key4050-transmission-bangkok-2024",
+    "episode_title": "John O'Callaghan & Bryan Kearney pres. Key4050 - Live @ Transmission Bangkok 2024",
+    "source_url": "https://soundcloud.com/unitedmusicevents/john-ocallaghan-bryan-kearney",
+    "tracklist_url": "https://set79.com/tracklist/soundcloud.com/unitedmusicevents/john-ocallaghan-bryan-kearney",
+    "track_number": 7,
+    "track_title": "Bryan Kearney & Bo Bruce - Shine a Light (Sean Tyas Remix)",
+    "split": "evaluation",
+    "original_time_seconds": 1476.0,
+    "window_start_seconds": 1431.0,
+    "window_end_seconds": 1521.0,
+    "method": "consensus_ina_silero",
+    "excerpt_before": "output/excerpts/key4050-transmission-bangkok-2024-t07-before.ogg",
+    "excerpt_after": "output/excerpts/key4050-transmission-bangkok-2024-t07-after.ogg",
+    "segments": {
+      "ina": [
+        {
+          "label": "music",
+          "start": 1431.0,
+          "end": 1492.8
+        },
+        {
+          "label": "speech",
+          "start": 1492.8,
+          "end": 1495.56
+        },
+        {
+          "label": "music",
+          "start": 1495.56,
+          "end": 1520.98
+        }
+      ],
+      "silero": [
+        {
+          "label": "non_speech",
+          "start": 1431.0,
+          "end": 1521.0
+        }
+      ]
+    },
+    "decision": "abstention",
+    "new_time_seconds": null,
+    "delta_seconds": null,
+    "reason": "INA ne voit pas de parole englobante; Silero ne voit pas de parole englobante; retour musique INA insuffisant",
+    "uncertainty": "moyenne_a_elevee"
+  },
+  {
+    "boundary_id": "key4050-transmission-bangkok-2024-t08",
+    "episode_id": "key4050-transmission-bangkok-2024",
+    "episode_title": "John O'Callaghan & Bryan Kearney pres. Key4050 - Live @ Transmission Bangkok 2024",
+    "source_url": "https://soundcloud.com/unitedmusicevents/john-ocallaghan-bryan-kearney",
+    "tracklist_url": "https://set79.com/tracklist/soundcloud.com/unitedmusicevents/john-ocallaghan-bryan-kearney",
+    "track_number": 8,
+    "track_title": "Key4050 - Just a Dream",
+    "split": "evaluation",
+    "original_time_seconds": 1764.0,
+    "window_start_seconds": 1719.0,
+    "window_end_seconds": 1809.0,
+    "method": "ina",
+    "excerpt_before": "output/excerpts/key4050-transmission-bangkok-2024-t08-before.ogg",
+    "excerpt_after": "output/excerpts/key4050-transmission-bangkok-2024-t08-after.ogg",
+    "segments": [
+      {
+        "label": "music",
+        "start": 1719.0,
+        "end": 1805.24
+      },
+      {
+        "label": "speech",
+        "start": 1805.24,
+        "end": 1808.98
+      }
+    ],
+    "decision": "abstention",
+    "new_time_seconds": null,
+    "delta_seconds": null,
+    "reason": "INA ne confirme pas une parole englobant le temps original suivie immediatement de musique.",
+    "uncertainty": "moyenne_sans_ecoute_humaine"
+  },
+  {
+    "boundary_id": "key4050-transmission-bangkok-2024-t08",
+    "episode_id": "key4050-transmission-bangkok-2024",
+    "episode_title": "John O'Callaghan & Bryan Kearney pres. Key4050 - Live @ Transmission Bangkok 2024",
+    "source_url": "https://soundcloud.com/unitedmusicevents/john-ocallaghan-bryan-kearney",
+    "tracklist_url": "https://set79.com/tracklist/soundcloud.com/unitedmusicevents/john-ocallaghan-bryan-kearney",
+    "track_number": 8,
+    "track_title": "Key4050 - Just a Dream",
+    "split": "evaluation",
+    "original_time_seconds": 1764.0,
+    "window_start_seconds": 1719.0,
+    "window_end_seconds": 1809.0,
+    "method": "silero",
+    "excerpt_before": "output/excerpts/key4050-transmission-bangkok-2024-t08-before.ogg",
+    "excerpt_after": "output/excerpts/key4050-transmission-bangkok-2024-t08-after.ogg",
+    "segments": [
+      {
+        "label": "non_speech",
+        "start": 1719.0,
+        "end": 1809.0
+      }
+    ],
+    "decision": "abstention",
+    "new_time_seconds": null,
+    "delta_seconds": null,
+    "reason": "Silero ne place pas le temps original dans une plage de parole.",
+    "uncertainty": "elevee"
+  },
+  {
+    "boundary_id": "key4050-transmission-bangkok-2024-t08",
+    "episode_id": "key4050-transmission-bangkok-2024",
+    "episode_title": "John O'Callaghan & Bryan Kearney pres. Key4050 - Live @ Transmission Bangkok 2024",
+    "source_url": "https://soundcloud.com/unitedmusicevents/john-ocallaghan-bryan-kearney",
+    "tracklist_url": "https://set79.com/tracklist/soundcloud.com/unitedmusicevents/john-ocallaghan-bryan-kearney",
+    "track_number": 8,
+    "track_title": "Key4050 - Just a Dream",
+    "split": "evaluation",
+    "original_time_seconds": 1764.0,
+    "window_start_seconds": 1719.0,
+    "window_end_seconds": 1809.0,
+    "method": "consensus_ina_silero",
+    "excerpt_before": "output/excerpts/key4050-transmission-bangkok-2024-t08-before.ogg",
+    "excerpt_after": "output/excerpts/key4050-transmission-bangkok-2024-t08-after.ogg",
+    "segments": {
+      "ina": [
+        {
+          "label": "music",
+          "start": 1719.0,
+          "end": 1805.24
+        },
+        {
+          "label": "speech",
+          "start": 1805.24,
+          "end": 1808.98
+        }
+      ],
+      "silero": [
+        {
+          "label": "non_speech",
+          "start": 1719.0,
+          "end": 1809.0
+        }
+      ]
+    },
+    "decision": "abstention",
+    "new_time_seconds": null,
+    "delta_seconds": null,
+    "reason": "INA ne voit pas de parole englobante; Silero ne voit pas de parole englobante; retour musique INA insuffisant",
+    "uncertainty": "moyenne_a_elevee"
+  },
+  {
+    "boundary_id": "key4050-transmission-bangkok-2024-t09",
+    "episode_id": "key4050-transmission-bangkok-2024",
+    "episode_title": "John O'Callaghan & Bryan Kearney pres. Key4050 - Live @ Transmission Bangkok 2024",
+    "source_url": "https://soundcloud.com/unitedmusicevents/john-ocallaghan-bryan-kearney",
+    "tracklist_url": "https://set79.com/tracklist/soundcloud.com/unitedmusicevents/john-ocallaghan-bryan-kearney",
+    "track_number": 9,
+    "track_title": "Key4050 - Pikachu",
+    "split": "evaluation",
+    "original_time_seconds": 1932.0,
+    "window_start_seconds": 1887.0,
+    "window_end_seconds": 1977.0,
+    "method": "ina",
+    "excerpt_before": "output/excerpts/key4050-transmission-bangkok-2024-t09-before.ogg",
+    "excerpt_after": "output/excerpts/key4050-transmission-bangkok-2024-t09-after.ogg",
+    "segments": [
+      {
+        "label": "music",
+        "start": 1887.0,
+        "end": 1976.98
+      }
+    ],
+    "decision": "abstention",
+    "new_time_seconds": null,
+    "delta_seconds": null,
+    "reason": "INA ne confirme pas une parole englobant le temps original suivie immediatement de musique.",
+    "uncertainty": "moyenne_sans_ecoute_humaine"
+  },
+  {
+    "boundary_id": "key4050-transmission-bangkok-2024-t09",
+    "episode_id": "key4050-transmission-bangkok-2024",
+    "episode_title": "John O'Callaghan & Bryan Kearney pres. Key4050 - Live @ Transmission Bangkok 2024",
+    "source_url": "https://soundcloud.com/unitedmusicevents/john-ocallaghan-bryan-kearney",
+    "tracklist_url": "https://set79.com/tracklist/soundcloud.com/unitedmusicevents/john-ocallaghan-bryan-kearney",
+    "track_number": 9,
+    "track_title": "Key4050 - Pikachu",
+    "split": "evaluation",
+    "original_time_seconds": 1932.0,
+    "window_start_seconds": 1887.0,
+    "window_end_seconds": 1977.0,
+    "method": "silero",
+    "excerpt_before": "output/excerpts/key4050-transmission-bangkok-2024-t09-before.ogg",
+    "excerpt_after": "output/excerpts/key4050-transmission-bangkok-2024-t09-after.ogg",
+    "segments": [
+      {
+        "label": "non_speech",
+        "start": 1887.0,
+        "end": 1977.0
+      }
+    ],
+    "decision": "abstention",
+    "new_time_seconds": null,
+    "delta_seconds": null,
+    "reason": "Silero ne place pas le temps original dans une plage de parole.",
+    "uncertainty": "elevee"
+  },
+  {
+    "boundary_id": "key4050-transmission-bangkok-2024-t09",
+    "episode_id": "key4050-transmission-bangkok-2024",
+    "episode_title": "John O'Callaghan & Bryan Kearney pres. Key4050 - Live @ Transmission Bangkok 2024",
+    "source_url": "https://soundcloud.com/unitedmusicevents/john-ocallaghan-bryan-kearney",
+    "tracklist_url": "https://set79.com/tracklist/soundcloud.com/unitedmusicevents/john-ocallaghan-bryan-kearney",
+    "track_number": 9,
+    "track_title": "Key4050 - Pikachu",
+    "split": "evaluation",
+    "original_time_seconds": 1932.0,
+    "window_start_seconds": 1887.0,
+    "window_end_seconds": 1977.0,
+    "method": "consensus_ina_silero",
+    "excerpt_before": "output/excerpts/key4050-transmission-bangkok-2024-t09-before.ogg",
+    "excerpt_after": "output/excerpts/key4050-transmission-bangkok-2024-t09-after.ogg",
+    "segments": {
+      "ina": [
+        {
+          "label": "music",
+          "start": 1887.0,
+          "end": 1976.98
+        }
+      ],
+      "silero": [
+        {
+          "label": "non_speech",
+          "start": 1887.0,
+          "end": 1977.0
+        }
+      ]
+    },
+    "decision": "abstention",
+    "new_time_seconds": null,
+    "delta_seconds": null,
+    "reason": "INA ne voit pas de parole englobante; Silero ne voit pas de parole englobante; retour musique INA insuffisant",
+    "uncertainty": "moyenne_a_elevee"
+  },
+  {
+    "boundary_id": "key4050-transmission-bangkok-2024-t10",
+    "episode_id": "key4050-transmission-bangkok-2024",
+    "episode_title": "John O'Callaghan & Bryan Kearney pres. Key4050 - Live @ Transmission Bangkok 2024",
+    "source_url": "https://soundcloud.com/unitedmusicevents/john-ocallaghan-bryan-kearney",
+    "tracklist_url": "https://set79.com/tracklist/soundcloud.com/unitedmusicevents/john-ocallaghan-bryan-kearney",
+    "track_number": 10,
+    "track_title": "John O'Callaghan, Paul Skelton & Ren Faye - May the Road Rise",
+    "split": "evaluation",
+    "original_time_seconds": 2148.0,
+    "window_start_seconds": 2103.0,
+    "window_end_seconds": 2193.0,
+    "method": "ina",
+    "excerpt_before": "output/excerpts/key4050-transmission-bangkok-2024-t10-before.ogg",
+    "excerpt_after": "output/excerpts/key4050-transmission-bangkok-2024-t10-after.ogg",
+    "segments": [
+      {
+        "label": "music",
+        "start": 2103.0,
+        "end": 2192.98
+      }
+    ],
+    "decision": "abstention",
+    "new_time_seconds": null,
+    "delta_seconds": null,
+    "reason": "INA ne confirme pas une parole englobant le temps original suivie immediatement de musique.",
+    "uncertainty": "moyenne_sans_ecoute_humaine"
+  },
+  {
+    "boundary_id": "key4050-transmission-bangkok-2024-t10",
+    "episode_id": "key4050-transmission-bangkok-2024",
+    "episode_title": "John O'Callaghan & Bryan Kearney pres. Key4050 - Live @ Transmission Bangkok 2024",
+    "source_url": "https://soundcloud.com/unitedmusicevents/john-ocallaghan-bryan-kearney",
+    "tracklist_url": "https://set79.com/tracklist/soundcloud.com/unitedmusicevents/john-ocallaghan-bryan-kearney",
+    "track_number": 10,
+    "track_title": "John O'Callaghan, Paul Skelton & Ren Faye - May the Road Rise",
+    "split": "evaluation",
+    "original_time_seconds": 2148.0,
+    "window_start_seconds": 2103.0,
+    "window_end_seconds": 2193.0,
+    "method": "silero",
+    "excerpt_before": "output/excerpts/key4050-transmission-bangkok-2024-t10-before.ogg",
+    "excerpt_after": "output/excerpts/key4050-transmission-bangkok-2024-t10-after.ogg",
+    "segments": [
+      {
+        "label": "non_speech",
+        "start": 2103.0,
+        "end": 2193.0
+      }
+    ],
+    "decision": "abstention",
+    "new_time_seconds": null,
+    "delta_seconds": null,
+    "reason": "Silero ne place pas le temps original dans une plage de parole.",
+    "uncertainty": "elevee"
+  },
+  {
+    "boundary_id": "key4050-transmission-bangkok-2024-t10",
+    "episode_id": "key4050-transmission-bangkok-2024",
+    "episode_title": "John O'Callaghan & Bryan Kearney pres. Key4050 - Live @ Transmission Bangkok 2024",
+    "source_url": "https://soundcloud.com/unitedmusicevents/john-ocallaghan-bryan-kearney",
+    "tracklist_url": "https://set79.com/tracklist/soundcloud.com/unitedmusicevents/john-ocallaghan-bryan-kearney",
+    "track_number": 10,
+    "track_title": "John O'Callaghan, Paul Skelton & Ren Faye - May the Road Rise",
+    "split": "evaluation",
+    "original_time_seconds": 2148.0,
+    "window_start_seconds": 2103.0,
+    "window_end_seconds": 2193.0,
+    "method": "consensus_ina_silero",
+    "excerpt_before": "output/excerpts/key4050-transmission-bangkok-2024-t10-before.ogg",
+    "excerpt_after": "output/excerpts/key4050-transmission-bangkok-2024-t10-after.ogg",
+    "segments": {
+      "ina": [
+        {
+          "label": "music",
+          "start": 2103.0,
+          "end": 2192.98
+        }
+      ],
+      "silero": [
+        {
+          "label": "non_speech",
+          "start": 2103.0,
+          "end": 2193.0
+        }
+      ]
+    },
+    "decision": "abstention",
+    "new_time_seconds": null,
+    "delta_seconds": null,
+    "reason": "INA ne voit pas de parole englobante; Silero ne voit pas de parole englobante; retour musique INA insuffisant",
+    "uncertainty": "moyenne_a_elevee"
+  },
+  {
+    "boundary_id": "key4050-transmission-bangkok-2024-t11",
+    "episode_id": "key4050-transmission-bangkok-2024",
+    "episode_title": "John O'Callaghan & Bryan Kearney pres. Key4050 - Live @ Transmission Bangkok 2024",
+    "source_url": "https://soundcloud.com/unitedmusicevents/john-ocallaghan-bryan-kearney",
+    "tracklist_url": "https://set79.com/tracklist/soundcloud.com/unitedmusicevents/john-ocallaghan-bryan-kearney",
+    "track_number": 11,
+    "track_title": "Bryan Kearney - Now Is the Time",
+    "split": "evaluation",
+    "original_time_seconds": 2484.0,
+    "window_start_seconds": 2439.0,
+    "window_end_seconds": 2529.0,
+    "method": "ina",
+    "excerpt_before": "output/excerpts/key4050-transmission-bangkok-2024-t11-before.ogg",
+    "excerpt_after": "output/excerpts/key4050-transmission-bangkok-2024-t11-after.ogg",
+    "segments": [
+      {
+        "label": "music",
+        "start": 2439.0,
+        "end": 2528.98
+      }
+    ],
+    "decision": "abstention",
+    "new_time_seconds": null,
+    "delta_seconds": null,
+    "reason": "INA ne confirme pas une parole englobant le temps original suivie immediatement de musique.",
+    "uncertainty": "moyenne_sans_ecoute_humaine"
+  },
+  {
+    "boundary_id": "key4050-transmission-bangkok-2024-t11",
+    "episode_id": "key4050-transmission-bangkok-2024",
+    "episode_title": "John O'Callaghan & Bryan Kearney pres. Key4050 - Live @ Transmission Bangkok 2024",
+    "source_url": "https://soundcloud.com/unitedmusicevents/john-ocallaghan-bryan-kearney",
+    "tracklist_url": "https://set79.com/tracklist/soundcloud.com/unitedmusicevents/john-ocallaghan-bryan-kearney",
+    "track_number": 11,
+    "track_title": "Bryan Kearney - Now Is the Time",
+    "split": "evaluation",
+    "original_time_seconds": 2484.0,
+    "window_start_seconds": 2439.0,
+    "window_end_seconds": 2529.0,
+    "method": "silero",
+    "excerpt_before": "output/excerpts/key4050-transmission-bangkok-2024-t11-before.ogg",
+    "excerpt_after": "output/excerpts/key4050-transmission-bangkok-2024-t11-after.ogg",
+    "segments": [
+      {
+        "label": "non_speech",
+        "start": 2439.0,
+        "end": 2529.0
+      }
+    ],
+    "decision": "abstention",
+    "new_time_seconds": null,
+    "delta_seconds": null,
+    "reason": "Silero ne place pas le temps original dans une plage de parole.",
+    "uncertainty": "elevee"
+  },
+  {
+    "boundary_id": "key4050-transmission-bangkok-2024-t11",
+    "episode_id": "key4050-transmission-bangkok-2024",
+    "episode_title": "John O'Callaghan & Bryan Kearney pres. Key4050 - Live @ Transmission Bangkok 2024",
+    "source_url": "https://soundcloud.com/unitedmusicevents/john-ocallaghan-bryan-kearney",
+    "tracklist_url": "https://set79.com/tracklist/soundcloud.com/unitedmusicevents/john-ocallaghan-bryan-kearney",
+    "track_number": 11,
+    "track_title": "Bryan Kearney - Now Is the Time",
+    "split": "evaluation",
+    "original_time_seconds": 2484.0,
+    "window_start_seconds": 2439.0,
+    "window_end_seconds": 2529.0,
+    "method": "consensus_ina_silero",
+    "excerpt_before": "output/excerpts/key4050-transmission-bangkok-2024-t11-before.ogg",
+    "excerpt_after": "output/excerpts/key4050-transmission-bangkok-2024-t11-after.ogg",
+    "segments": {
+      "ina": [
+        {
+          "label": "music",
+          "start": 2439.0,
+          "end": 2528.98
+        }
+      ],
+      "silero": [
+        {
+          "label": "non_speech",
+          "start": 2439.0,
+          "end": 2529.0
+        }
+      ]
+    },
+    "decision": "abstention",
+    "new_time_seconds": null,
+    "delta_seconds": null,
+    "reason": "INA ne voit pas de parole englobante; Silero ne voit pas de parole englobante; retour musique INA insuffisant",
+    "uncertainty": "moyenne_a_elevee"
+  },
+  {
+    "boundary_id": "key4050-transmission-bangkok-2024-t12",
+    "episode_id": "key4050-transmission-bangkok-2024",
+    "episode_title": "John O'Callaghan & Bryan Kearney pres. Key4050 - Live @ Transmission Bangkok 2024",
+    "source_url": "https://soundcloud.com/unitedmusicevents/john-ocallaghan-bryan-kearney",
+    "tracklist_url": "https://set79.com/tracklist/soundcloud.com/unitedmusicevents/john-ocallaghan-bryan-kearney",
+    "track_number": 12,
+    "track_title": "Key4050 - Egon",
+    "split": "evaluation",
+    "original_time_seconds": 2832.0,
+    "window_start_seconds": 2787.0,
+    "window_end_seconds": 2877.0,
+    "method": "ina",
+    "excerpt_before": "output/excerpts/key4050-transmission-bangkok-2024-t12-before.ogg",
+    "excerpt_after": "output/excerpts/key4050-transmission-bangkok-2024-t12-after.ogg",
+    "segments": [
+      {
+        "label": "music",
+        "start": 2787.0,
+        "end": 2835.44
+      },
+      {
+        "label": "speech",
+        "start": 2835.44,
+        "end": 2837.88
+      },
+      {
+        "label": "music",
+        "start": 2837.88,
+        "end": 2863.84
+      },
+      {
+        "label": "speech",
+        "start": 2863.84,
+        "end": 2876.98
+      }
+    ],
+    "decision": "abstention",
+    "new_time_seconds": null,
+    "delta_seconds": null,
+    "reason": "INA ne confirme pas une parole englobant le temps original suivie immediatement de musique.",
+    "uncertainty": "moyenne_sans_ecoute_humaine"
+  },
+  {
+    "boundary_id": "key4050-transmission-bangkok-2024-t12",
+    "episode_id": "key4050-transmission-bangkok-2024",
+    "episode_title": "John O'Callaghan & Bryan Kearney pres. Key4050 - Live @ Transmission Bangkok 2024",
+    "source_url": "https://soundcloud.com/unitedmusicevents/john-ocallaghan-bryan-kearney",
+    "tracklist_url": "https://set79.com/tracklist/soundcloud.com/unitedmusicevents/john-ocallaghan-bryan-kearney",
+    "track_number": 12,
+    "track_title": "Key4050 - Egon",
+    "split": "evaluation",
+    "original_time_seconds": 2832.0,
+    "window_start_seconds": 2787.0,
+    "window_end_seconds": 2877.0,
+    "method": "silero",
+    "excerpt_before": "output/excerpts/key4050-transmission-bangkok-2024-t12-before.ogg",
+    "excerpt_after": "output/excerpts/key4050-transmission-bangkok-2024-t12-after.ogg",
+    "segments": [
+      {
+        "label": "non_speech",
+        "start": 2787.0,
+        "end": 2877.0
+      }
+    ],
+    "decision": "abstention",
+    "new_time_seconds": null,
+    "delta_seconds": null,
+    "reason": "Silero ne place pas le temps original dans une plage de parole.",
+    "uncertainty": "elevee"
+  },
+  {
+    "boundary_id": "key4050-transmission-bangkok-2024-t12",
+    "episode_id": "key4050-transmission-bangkok-2024",
+    "episode_title": "John O'Callaghan & Bryan Kearney pres. Key4050 - Live @ Transmission Bangkok 2024",
+    "source_url": "https://soundcloud.com/unitedmusicevents/john-ocallaghan-bryan-kearney",
+    "tracklist_url": "https://set79.com/tracklist/soundcloud.com/unitedmusicevents/john-ocallaghan-bryan-kearney",
+    "track_number": 12,
+    "track_title": "Key4050 - Egon",
+    "split": "evaluation",
+    "original_time_seconds": 2832.0,
+    "window_start_seconds": 2787.0,
+    "window_end_seconds": 2877.0,
+    "method": "consensus_ina_silero",
+    "excerpt_before": "output/excerpts/key4050-transmission-bangkok-2024-t12-before.ogg",
+    "excerpt_after": "output/excerpts/key4050-transmission-bangkok-2024-t12-after.ogg",
+    "segments": {
+      "ina": [
+        {
+          "label": "music",
+          "start": 2787.0,
+          "end": 2835.44
+        },
+        {
+          "label": "speech",
+          "start": 2835.44,
+          "end": 2837.88
+        },
+        {
+          "label": "music",
+          "start": 2837.88,
+          "end": 2863.84
+        },
+        {
+          "label": "speech",
+          "start": 2863.84,
+          "end": 2876.98
+        }
+      ],
+      "silero": [
+        {
+          "label": "non_speech",
+          "start": 2787.0,
+          "end": 2877.0
+        }
+      ]
+    },
+    "decision": "abstention",
+    "new_time_seconds": null,
+    "delta_seconds": null,
+    "reason": "INA ne voit pas de parole englobante; Silero ne voit pas de parole englobante; retour musique INA insuffisant",
+    "uncertainty": "moyenne_a_elevee"
+  },
+  {
+    "boundary_id": "key4050-transmission-bangkok-2024-t13",
+    "episode_id": "key4050-transmission-bangkok-2024",
+    "episode_title": "John O'Callaghan & Bryan Kearney pres. Key4050 - Live @ Transmission Bangkok 2024",
+    "source_url": "https://soundcloud.com/unitedmusicevents/john-ocallaghan-bryan-kearney",
+    "tracklist_url": "https://set79.com/tracklist/soundcloud.com/unitedmusicevents/john-ocallaghan-bryan-kearney",
+    "track_number": 13,
+    "track_title": "John O'Callaghan & Bryan Kearney - Pendulum",
+    "split": "evaluation",
+    "original_time_seconds": 3012.0,
+    "window_start_seconds": 2967.0,
+    "window_end_seconds": 3057.0,
+    "method": "ina",
+    "excerpt_before": "output/excerpts/key4050-transmission-bangkok-2024-t13-before.ogg",
+    "excerpt_after": "output/excerpts/key4050-transmission-bangkok-2024-t13-after.ogg",
+    "segments": [
+      {
+        "label": "speech",
+        "start": 2967.0,
+        "end": 2986.48
+      },
+      {
+        "label": "music",
+        "start": 2986.48,
+        "end": 3056.98
+      }
+    ],
+    "decision": "abstention",
+    "new_time_seconds": null,
+    "delta_seconds": null,
+    "reason": "INA ne confirme pas une parole englobant le temps original suivie immediatement de musique.",
+    "uncertainty": "moyenne_sans_ecoute_humaine"
+  },
+  {
+    "boundary_id": "key4050-transmission-bangkok-2024-t13",
+    "episode_id": "key4050-transmission-bangkok-2024",
+    "episode_title": "John O'Callaghan & Bryan Kearney pres. Key4050 - Live @ Transmission Bangkok 2024",
+    "source_url": "https://soundcloud.com/unitedmusicevents/john-ocallaghan-bryan-kearney",
+    "tracklist_url": "https://set79.com/tracklist/soundcloud.com/unitedmusicevents/john-ocallaghan-bryan-kearney",
+    "track_number": 13,
+    "track_title": "John O'Callaghan & Bryan Kearney - Pendulum",
+    "split": "evaluation",
+    "original_time_seconds": 3012.0,
+    "window_start_seconds": 2967.0,
+    "window_end_seconds": 3057.0,
+    "method": "silero",
+    "excerpt_before": "output/excerpts/key4050-transmission-bangkok-2024-t13-before.ogg",
+    "excerpt_after": "output/excerpts/key4050-transmission-bangkok-2024-t13-after.ogg",
+    "segments": [
+      {
+        "label": "non_speech",
+        "start": 2967.0,
+        "end": 2972.442
+      },
+      {
+        "label": "speech",
+        "start": 2972.442,
+        "end": 2973.238
+      },
+      {
+        "label": "non_speech",
+        "start": 2973.238,
+        "end": 3057.0
+      }
+    ],
+    "decision": "abstention",
+    "new_time_seconds": null,
+    "delta_seconds": null,
+    "reason": "Silero ne place pas le temps original dans une plage de parole.",
+    "uncertainty": "elevee"
+  },
+  {
+    "boundary_id": "key4050-transmission-bangkok-2024-t13",
+    "episode_id": "key4050-transmission-bangkok-2024",
+    "episode_title": "John O'Callaghan & Bryan Kearney pres. Key4050 - Live @ Transmission Bangkok 2024",
+    "source_url": "https://soundcloud.com/unitedmusicevents/john-ocallaghan-bryan-kearney",
+    "tracklist_url": "https://set79.com/tracklist/soundcloud.com/unitedmusicevents/john-ocallaghan-bryan-kearney",
+    "track_number": 13,
+    "track_title": "John O'Callaghan & Bryan Kearney - Pendulum",
+    "split": "evaluation",
+    "original_time_seconds": 3012.0,
+    "window_start_seconds": 2967.0,
+    "window_end_seconds": 3057.0,
+    "method": "consensus_ina_silero",
+    "excerpt_before": "output/excerpts/key4050-transmission-bangkok-2024-t13-before.ogg",
+    "excerpt_after": "output/excerpts/key4050-transmission-bangkok-2024-t13-after.ogg",
+    "segments": {
+      "ina": [
+        {
+          "label": "speech",
+          "start": 2967.0,
+          "end": 2986.48
+        },
+        {
+          "label": "music",
+          "start": 2986.48,
+          "end": 3056.98
+        }
+      ],
+      "silero": [
+        {
+          "label": "non_speech",
+          "start": 2967.0,
+          "end": 2972.442
+        },
+        {
+          "label": "speech",
+          "start": 2972.442,
+          "end": 2973.238
+        },
+        {
+          "label": "non_speech",
+          "start": 2973.238,
+          "end": 3057.0
+        }
+      ]
+    },
+    "decision": "abstention",
+    "new_time_seconds": null,
+    "delta_seconds": null,
+    "reason": "INA ne voit pas de parole englobante; Silero ne voit pas de parole englobante; retour musique INA insuffisant",
+    "uncertainty": "moyenne_a_elevee"
+  },
+  {
+    "boundary_id": "key4050-transmission-bangkok-2024-t14",
+    "episode_id": "key4050-transmission-bangkok-2024",
+    "episode_title": "John O'Callaghan & Bryan Kearney pres. Key4050 - Live @ Transmission Bangkok 2024",
+    "source_url": "https://soundcloud.com/unitedmusicevents/john-ocallaghan-bryan-kearney",
+    "tracklist_url": "https://set79.com/tracklist/soundcloud.com/unitedmusicevents/john-ocallaghan-bryan-kearney",
+    "track_number": 14,
+    "track_title": "Key4050 & Plumb - I Love You",
+    "split": "evaluation",
+    "original_time_seconds": 3204.0,
+    "window_start_seconds": 3159.0,
+    "window_end_seconds": 3249.0,
+    "method": "ina",
+    "excerpt_before": "output/excerpts/key4050-transmission-bangkok-2024-t14-before.ogg",
+    "excerpt_after": "output/excerpts/key4050-transmission-bangkok-2024-t14-after.ogg",
+    "segments": [
+      {
+        "label": "music",
+        "start": 3159.0,
+        "end": 3248.98
+      }
+    ],
+    "decision": "abstention",
+    "new_time_seconds": null,
+    "delta_seconds": null,
+    "reason": "INA ne confirme pas une parole englobant le temps original suivie immediatement de musique.",
+    "uncertainty": "moyenne_sans_ecoute_humaine"
+  },
+  {
+    "boundary_id": "key4050-transmission-bangkok-2024-t14",
+    "episode_id": "key4050-transmission-bangkok-2024",
+    "episode_title": "John O'Callaghan & Bryan Kearney pres. Key4050 - Live @ Transmission Bangkok 2024",
+    "source_url": "https://soundcloud.com/unitedmusicevents/john-ocallaghan-bryan-kearney",
+    "tracklist_url": "https://set79.com/tracklist/soundcloud.com/unitedmusicevents/john-ocallaghan-bryan-kearney",
+    "track_number": 14,
+    "track_title": "Key4050 & Plumb - I Love You",
+    "split": "evaluation",
+    "original_time_seconds": 3204.0,
+    "window_start_seconds": 3159.0,
+    "window_end_seconds": 3249.0,
+    "method": "silero",
+    "excerpt_before": "output/excerpts/key4050-transmission-bangkok-2024-t14-before.ogg",
+    "excerpt_after": "output/excerpts/key4050-transmission-bangkok-2024-t14-after.ogg",
+    "segments": [
+      {
+        "label": "non_speech",
+        "start": 3159.0,
+        "end": 3249.0
+      }
+    ],
+    "decision": "abstention",
+    "new_time_seconds": null,
+    "delta_seconds": null,
+    "reason": "Silero ne place pas le temps original dans une plage de parole.",
+    "uncertainty": "elevee"
+  },
+  {
+    "boundary_id": "key4050-transmission-bangkok-2024-t14",
+    "episode_id": "key4050-transmission-bangkok-2024",
+    "episode_title": "John O'Callaghan & Bryan Kearney pres. Key4050 - Live @ Transmission Bangkok 2024",
+    "source_url": "https://soundcloud.com/unitedmusicevents/john-ocallaghan-bryan-kearney",
+    "tracklist_url": "https://set79.com/tracklist/soundcloud.com/unitedmusicevents/john-ocallaghan-bryan-kearney",
+    "track_number": 14,
+    "track_title": "Key4050 & Plumb - I Love You",
+    "split": "evaluation",
+    "original_time_seconds": 3204.0,
+    "window_start_seconds": 3159.0,
+    "window_end_seconds": 3249.0,
+    "method": "consensus_ina_silero",
+    "excerpt_before": "output/excerpts/key4050-transmission-bangkok-2024-t14-before.ogg",
+    "excerpt_after": "output/excerpts/key4050-transmission-bangkok-2024-t14-after.ogg",
+    "segments": {
+      "ina": [
+        {
+          "label": "music",
+          "start": 3159.0,
+          "end": 3248.98
+        }
+      ],
+      "silero": [
+        {
+          "label": "non_speech",
+          "start": 3159.0,
+          "end": 3249.0
+        }
+      ]
+    },
+    "decision": "abstention",
+    "new_time_seconds": null,
+    "delta_seconds": null,
+    "reason": "INA ne voit pas de parole englobante; Silero ne voit pas de parole englobante; retour musique INA insuffisant",
+    "uncertainty": "moyenne_a_elevee"
+  }
+]

@@ -29,6 +29,8 @@ __pycache__/
 *.py[cod]
 test-results/
 backups/
+lab/vad_prototype/cache/
+lab/vad_prototype/output/
 .hermes/
 openclaw-workspace-state.json
 HEARTBEAT.md

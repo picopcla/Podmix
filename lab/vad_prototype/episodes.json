@@ -1,0 +1,87 @@
+{
+  "protocol": {
+    "window_before_seconds": 45,
+    "window_after_seconds": 45,
+    "silero": {
+      "sample_rate": 16000,
+      "threshold": 0.5,
+      "negative_threshold": 0.35,
+      "min_speech_ms": 250,
+      "min_silence_ms": 100,
+      "speech_pad_ms": 30,
+      "chunk_samples": 512,
+      "execution_provider": "CPUExecutionProvider"
+    },
+    "ina": {
+      "vad_engine": "sm",
+      "detect_gender": false,
+      "batch_size": 32,
+      "energy_ratio": 0.03,
+      "tensorflow_device": "CPU"
+    },
+    "suggestion_policy": {
+      "max_positive_delta_seconds": 15,
+      "min_positive_delta_seconds": 0.5,
+      "min_return_to_music_seconds": 5,
+      "max_model_end_disagreement_seconds": 2,
+      "requires_original_time_inside_speech": true,
+      "requires_ina_music_after_speech": true,
+      "requires_silero_speech_confirmation": true
+    },
+    "tuning_note": "Les 5 premieres frontieres Key4050 servent uniquement au test de bon fonctionnement. Les parametres amont et la politique conservatrice sont geles avant l'evaluation distincte.",
+    "human_reference": "Aucune ecoute humaine disponible dans cette execution."
+  },
+  "episodes": [
+    {
+      "id": "key4050-transmission-bangkok-2024",
+      "title": "John O'Callaghan & Bryan Kearney pres. Key4050 - Live @ Transmission Bangkok 2024",
+      "local_media": "/home/debian/podmix-proc1-key4050-test/key4050.m4a",
+      "duration_seconds": 3566.46,
+      "source_url": "https://soundcloud.com/unitedmusicevents/john-ocallaghan-bryan-kearney",
+      "tracklist_url": "https://set79.com/tracklist/soundcloud.com/unitedmusicevents/john-ocallaghan-bryan-kearney",
+      "tracks": [
+        {"number": 1, "time": 0, "title": "Unknown"},
+        {"number": 2, "time": 252, "title": "Rank 1 - Airwave (Radio Vocal Edit)", "split": "tuning"},
+        {"number": 3, "time": 456, "title": "Key4050 - Want More", "split": "tuning"},
+        {"number": 4, "time": 684, "title": "Armin van Buuren feat. Susana - Shivers (Rising Star Mix)", "split": "tuning"},
+        {"number": 5, "time": 1092, "title": "Key4050 - Feel Less", "split": "tuning"},
+        {"number": 6, "time": 1260, "title": "Unknown", "split": "tuning"},
+        {"number": 7, "time": 1476, "title": "Bryan Kearney & Bo Bruce - Shine a Light (Sean Tyas Remix)", "split": "evaluation"},
+        {"number": 8, "time": 1764, "title": "Key4050 - Just a Dream", "split": "evaluation"},
+        {"number": 9, "time": 1932, "title": "Key4050 - Pikachu", "split": "evaluation"},
+        {"number": 10, "time": 2148, "title": "John O'Callaghan, Paul Skelton & Ren Faye - May the Road Rise", "split": "evaluation"},
+        {"number": 11, "time": 2484, "title": "Bryan Kearney - Now Is the Time", "split": "evaluation"},
+        {"number": 12, "time": 2832, "title": "Key4050 - Egon", "split": "evaluation"},
+        {"number": 13, "time": 3012, "title": "John O'Callaghan & Bryan Kearney - Pendulum", "split": "evaluation"},
+        {"number": 14, "time": 3204, "title": "Key4050 & Plumb - I Love You", "split": "evaluation"}
+      ]
+    },
+    {
+      "id": "joc-subculture-melbourne-2022",
+      "title": "Joint Operations Centre LIVE @ Subculture Festival Melbourne 2022",
+      "local_media": "/home/debian/podmix-proc2-independent-mFOCuL/joc.m4a",
+      "source_url": "https://soundcloud.com/johnocallaghan/jointops-melbourne",
+      "tracklist_url": "https://set79.com/tracklist/soundcloud.com/johnocallaghan/jointops-melbourne",
+      "tracks": [
+        {"number": 1, "time": 300, "title": "Joint Operations Centre - Gizmo", "split": "evaluation"},
+        {"number": 2, "time": 912, "title": "John O'Callaghan feat. Audrey Gallagher - Big Sky", "split": "evaluation"},
+        {"number": 3, "time": 1200, "title": "Joint Operations Centre & Kate Miles - Behind the Silence", "split": "evaluation"},
+        {"number": 4, "time": 1356, "title": "Unknown", "split": "evaluation"},
+        {"number": 5, "time": 1824, "title": "Green Velvet - Flash", "split": "evaluation"},
+        {"number": 6, "time": 2100, "title": "John Askew - Vandalism (Joint Operations Centre Remix)", "split": "evaluation"},
+        {"number": 7, "time": 2256, "title": "Joint Operations Centre - Hunter", "split": "evaluation"},
+        {"number": 8, "time": 2508, "title": "Mauro Picotto - Iguana", "split": "evaluation"},
+        {"number": 9, "time": 2712, "title": "Wippenberg - U R (John O'Callaghan edit)", "split": "evaluation"},
+        {"number": 10, "time": 2880, "title": "Jon O'Bir feat. Fisher - Found A Way (Joint Operations Centre Remix)", "split": "evaluation"},
+        {"number": 11, "time": 3168, "title": "Axel Karakasis - Pull the Trigger (Joint Operations Centre Remix)", "split": "evaluation"},
+        {"number": 12, "time": 3324, "title": "Lorenzo Chi - Off", "split": "evaluation"}
+      ]
+    }
+  ],
+  "excluded_local_examples": [
+    {
+      "path": "/home/debian/podmix-proc2-independent-mFOCuL/b3b.m4a",
+      "reason": "Fichier local sans manifeste, provenance ni temps de tracklist verifiables; exclusion plutot qu'invention."
+    }
+  ]
+}

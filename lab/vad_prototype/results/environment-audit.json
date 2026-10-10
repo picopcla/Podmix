@@ -1,0 +1,43 @@
+{
+  "platform": "Linux-6.12.101+deb13-amd64-x86_64-with-glibc2.41",
+  "python": "3.13.5",
+  "packages": {
+    "inaSpeechSegmenter": "0.8.0",
+    "silero-vad": "6.2.3",
+    "tensorflow-cpu": "2.21.0",
+    "onnxruntime": "1.31.0",
+    "numpy": "2.3.5",
+    "scikit-image": "0.26.0",
+    "soundfile": "0.14.0",
+    "imageio-ffmpeg": "0.6.0"
+  },
+  "ina_upstream_requires": [
+    "numpy",
+    "pandas",
+    "scikit-image",
+    "pyannote.core",
+    "matplotlib",
+    "Pyro4",
+    "pytextgrid",
+    "soundfile",
+    "tensorflow[and-cuda]",
+    "onnxruntime-gpu"
+  ],
+  "cpu_substitutions": {
+    "tensorflow[and-cuda]": "tensorflow-cpu==2.21.0",
+    "onnxruntime-gpu": "onnxruntime==1.31.0"
+  },
+  "forbidden_gpu_distributions_installed": [],
+  "tensorflow_build": {
+    "is_cuda_build": false,
+    "is_rocm_build": false,
+    "is_tensorrt_build": false
+  },
+  "tensorflow_gpu_devices": [],
+  "onnxruntime_available_providers": [
+    "AzureExecutionProvider",
+    "CPUExecutionProvider"
+  ],
+  "onnxruntime_forced_provider": "CPUExecutionProvider",
+  "ffmpeg_binary": "/home/debian/pont-task-workspaces/c4e2c7fcfebf45c154a4b8fb/.venv-vad/lib/python3.13/site-packages/imageio_ffmpeg/binaries/ffmpeg-linux-x86_64-v7.0.2"
+}
