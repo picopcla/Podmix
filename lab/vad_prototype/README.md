@@ -141,3 +141,17 @@ python lab/vad_prototype/analyze_fyh511.py --feed /chemin/prive/feed.xml
 vides; `results/fyh511-suggestions.*` publie séparément les fins de voix à
 écouter. Aucune suggestion n'est un chapitre : sans frontière temporelle de
 base, le protocole combiné s'arrête avant tout appariement ou déplacement.
+
+## FYH 512 : gel avant référence
+
+`fyh512_protocol.json` sépare strictement la production algorithmique de son
+évaluation. `analyze_fyh512_frozen.py` ne charge aucun timestamp publié. Il
+réutilise le détecteur de voix gelé et le détecteur spectral existant de
+`server/audio_fallback.py`. Les 31 temps de transition sont dérivés de l'audio,
+mais leur cardinalité est assistée par le décompte RSS de 32 titres.
+
+L'identification AudD n'est pas exécutée sans jeton et la méthode de landmarks
+qui reçoit les titres connus en entrée est classée comme assistée, pas comme
+identification indépendante. Les titres indépendants restent donc vides avec
+une abstention explicite. Les sorties `*-frozen.*` doivent être commitées avant
+de lancer le script d'évaluation qui charge la tracklist minutée officielle.

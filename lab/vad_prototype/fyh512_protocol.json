@@ -1,0 +1,47 @@
+{
+  "frozen_at": "2026-10-10T18:40:00+02:00",
+  "frozen_before_reference_evaluation": true,
+  "scope": "laboratoire uniquement",
+  "episode_id": "find-your-harmony-512",
+  "voice_detection": {
+    "implementation": "full_episode_protocol.json et analyze_full_episode.py::detect",
+    "parameters_reused_without_change": true,
+    "reliable_internal_confidence_minimum": 0.95,
+    "identity_warning": "INA+Silero detecte une fin de voix suivie de musique, mais ne prouve ni l'identite du DJ ni la nature de la voix. Chant, rap, jingle et voice-over restent possibles.",
+    "use_as_final_track_boundary": false
+  },
+  "title_identification": {
+    "independent_method_available_without_secret": false,
+    "existing_audd_implementation": "server/music_recognition.py::recognize_music",
+    "audd_not_invoked": "Un jeton est obligatoire. Aucun secret n'est lu ni contourne.",
+    "known_title_landmark_method": "server/audio_fallback.py::analyze_known_tracklist",
+    "known_title_landmark_classification": "assiste_par_la_tracklist; interdit comme identification independante dans cette evaluation",
+    "abstention_rule": "Ne jamais recopier un titre RSS ou YouTube dans la colonne de detection independante."
+  },
+  "transition_detection": {
+    "implementation": "server/audio_fallback.py::extract_features, pure_transition_novelty et detect_pure_transitions",
+    "sample_rate": 8000,
+    "frame_size": 1024,
+    "hop_size": 512,
+    "minimum_track_gap_seconds": 45.0,
+    "track_count": 32,
+    "track_count_source": "description RSS officielle non minutee",
+    "classification": "temps derives de l'audio, mais cardinalite assistee par le RSS",
+    "published_reference_times_used": false,
+    "parameter_retuning": false,
+    "internal_confidence": "saillance robuste locale de nouveaute; ce n'est pas une probabilite"
+  },
+  "reference_embargo": {
+    "rule": "Les timestamps publies ne sont ni charges ni transmis au script de gel. Ils ne servent qu'au script d'evaluation apres commit des sorties algorithmiques.",
+    "forbidden_inputs": [
+      "timestamps YouTube",
+      "timestamps 1001Tracklists",
+      "noms de titres comme detections independantes",
+      "erreurs observees"
+    ]
+  },
+  "combined_protocol": {
+    "tested_separately": false,
+    "reason": "Le protocole +/-5 s ajuste une base existante. Il n'est pas utilise pour creer les 31 transitions FYH512 et reste inchange."
+  }
+}
