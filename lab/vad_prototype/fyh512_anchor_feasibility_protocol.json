@@ -1,0 +1,19 @@
+{
+  "frozen_before_corrected_replay": true,
+  "scope": "voice_boundary_anchor_feasibility_only",
+  "candidate_order": "time_seconds_then_track_index",
+  "semantic_conflicts": [
+    "track_index_out_of_range",
+    "time_out_of_range",
+    "anchor_order_conflict",
+    "landmark_presence_conflict",
+    "adjacent_presence_conflict"
+  ],
+  "feasibility_proof": "detect_constrained_transitions_with_same_novelty_presences_duration_and_accumulated_voice_anchors",
+  "optimizer_conflict_action": "abstain_only_current_voice_anchor_and_continue",
+  "all_voice_anchors_rejected_action": "run_existing_engine_without_voice_anchors",
+  "unexpected_engine_error_action": "propagate_without_masking",
+  "new_threshold_added": false,
+  "youtube_retuning": false,
+  "vad_asr_mode": "replay_four_frozen_announcements_no_new_vad_or_asr"
+}

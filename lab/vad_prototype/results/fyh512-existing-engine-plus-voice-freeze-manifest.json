@@ -4,12 +4,23 @@
   "audio_sha256": "47814fb78f3f0236777b6c5ebf378d23e4938914c474df116c49f618b3fdaf69",
   "baseline_sha256": "e0200bae398de872f1b861f5db4fc1781c302cf193acd27a6935d56a37b2e208",
   "voice_asr_sha256": "57df3a05d8bc57f6fe30806afd9dd4cc84df10a1257c759e35cd90b9e38355ef",
-  "engine_copy_sha256": "274d4cad5cfd47af83918f1dd09212401f2292107daea58ff4d66c286fdb2905",
-  "runner_sha256": "0bd5915b5bec5aecb94e8acca6b3723da7825e9d41ea4644d95342b45c80042b",
+  "voice_replay": {
+    "new_vad_asr_run": false,
+    "frozen_event_count": 4
+  },
+  "inputs": {
+    "fyh512_source.json": "8ae67050e3284445a9e270c6ffff7ca45b2a4d986a94d3cefb52935e8230f75f",
+    "fyh512_title_candidates.json": "a525ef8565aab0d12282fa0e81d93eefae780c21b91ad9cdf510a3faedf6b8dc",
+    "fyh512_reference.json": "5b07bec65332da91d653d1a9ae0ba506cea68743d649e1487eb9c8c3d0e90da6",
+    "results/fyh512-reliable-voices-asr-frozen.json": "57df3a05d8bc57f6fe30806afd9dd4cc84df10a1257c759e35cd90b9e38355ef",
+    "fyh512_anchor_feasibility_protocol.json": "9e6c1dd95ea84c4f58a66715a7a1bb3ac6b99cc93739707c717c974d593ce8c8"
+  },
+  "engine_copy_sha256": "72e478f2c7fbeb208d1861320411f8e5630aaad95df81fedfa5c6feccf08ec0e",
+  "runner_sha256": "1291e6ae15147c296ccba47b67056feab4d2b6d3103f145a93455bdd5278ef82",
   "outputs": {
     "fyh512-existing-engine-voice-disabled-frozen.json": "e0200bae398de872f1b861f5db4fc1781c302cf193acd27a6935d56a37b2e208",
     "fyh512-existing-engine-plus-voice-frozen.json": "199c10e9c35552206a81ddf782e689986e7f36628415b5a18ae1bd033f37070a",
-    "fyh512-existing-engine-voice-disabled-trace-frozen.json": "c678183fca6ebec75de15a43d94244026444bfd81aeca93619ead1d12476e375",
+    "fyh512-existing-engine-voice-disabled-trace-frozen.json": "5e228a4bc5854f82b63adbff98669bb83b88d823e981db04307c585571b7e604",
     "fyh512-existing-engine-plus-voice-trace-frozen.json": "f7c3981a521361a32eb50602323be8b45846bf8021521816f63407fd26cb6a28"
   },
   "reference_inventory": [

@@ -63,10 +63,81 @@ class ExistingEnginePlusVoiceTests(unittest.TestCase):
         self.assertEqual(accepted, {})
         self.assertEqual(trace[0]["reason"], "landmark_presence_conflict")
 
+    def test_exact_reported_optimizer_conflict_abstains_and_continues(self):
+        anchors = [
+            voice.BoundaryAnchor(1, 150, .99, "next", "x", "a"),
+            voice.BoundaryAnchor(2, 195, .99, "next", "y", "b"),
+        ]
+        novelty = np.zeros(int(500 / voice.HOP_SECONDS) + 1)
+        accepted, trace = voice.validate_boundary_anchors(
+            anchors, 4, 500, {}, {},
+        )
+        result = voice.detect_constrained_transitions(
+            novelty, 4, 500, {}, accepted,
+        )
+        self.assertEqual(sorted(accepted), [1])
+        self.assertEqual(trace[0]["decision"], "accepted")
+        self.assertEqual(trace[1]["reason"], "optimizer_constraint_conflict")
+        self.assertEqual(len(result), 4)
+
+    def test_intro_first_boundary_and_duration_conflicts_use_optimizer(self):
+        anchors = [
+            voice.BoundaryAnchor(0, 430, .99, "next", "late intro", "intro"),
+            voice.BoundaryAnchor(1, 30, .99, "next", "early first", "first"),
+            voice.BoundaryAnchor(3, 490, .99, "next", "late end", "end"),
+        ]
+        accepted, trace = voice.validate_boundary_anchors(anchors, 4, 500, {}, {})
+        self.assertEqual(accepted, {})
+        self.assertEqual(
+            [row["reason"] for row in trace],
+            ["optimizer_constraint_conflict"] * 3,
+        )
+
+    def test_all_voice_conflicts_fall_back_exactly_to_disabled_mode(self):
+        anchors = [
+            voice.BoundaryAnchor(1, 500, .99, "next", "presence", "p"),
+            voice.BoundaryAnchor(2, 600, .99, "next", "correction", "c"),
+        ]
+        presences = {2: voice.LandmarkPresence(2, 100, 100, 130, 20, 50)}
+        corrections = {2: 200.0}
+        accepted, trace = voice.validate_boundary_anchors(
+            anchors, 4, 900, presences, corrections,
+        )
+        self.assertEqual(accepted, {})
+        self.assertEqual(
+            [row["reason"] for row in trace],
+            ["landmark_presence_conflict", "adjacent_presence_conflict"],
+        )
+        novelty = np.zeros(int(900 / voice.HOP_SECONDS) + 1)
+        without_voice = voice.detect_constrained_transitions(
+            novelty, 4, 900, presences, {},
+        )
+        after_abstention = voice.detect_constrained_transitions(
+            novelty, 4, 900, presences, accepted,
+        )
+        self.assertEqual(after_abstention, without_voice)
+        self.assertEqual(after_abstention[0], 0.0)
+
+    def test_partial_conflict_keeps_feasible_anchors_and_traces_both(self):
+        anchors = [
+            voice.BoundaryAnchor(1, 150, .99, "next", "kept", "a"),
+            voice.BoundaryAnchor(2, 195, .99, "next", "dropped", "b"),
+            voice.BoundaryAnchor(3, 360, .99, "next", "kept", "c"),
+        ]
+        novelty = np.zeros(int(500 / voice.HOP_SECONDS) + 1)
+        accepted, trace = voice.validate_boundary_anchors(
+            anchors, 4, 500, {}, {}, novelty,
+        )
+        self.assertEqual(sorted(accepted), [1, 3])
+        self.assertEqual(
+            [(row["detection_id"], row["decision"]) for row in trace],
+            [("a", "accepted"), ("b", "abstain"), ("c", "accepted")],
+        )
+
     def test_order_conflict_abstains(self):
         anchors = [
-            voice.BoundaryAnchor(2, 100.0, .99, "next", "x", "first"),
-            voice.BoundaryAnchor(1, 300.0, .99, "next", "y", "second"),
+            voice.BoundaryAnchor(2, 500.0, .99, "next", "x", "first"),
+            voice.BoundaryAnchor(1, 600.0, .99, "next", "y", "second"),
         ]
         accepted, trace = voice.validate_boundary_anchors(anchors, 4, 1000.0, {}, {})
         self.assertIn(2, accepted)

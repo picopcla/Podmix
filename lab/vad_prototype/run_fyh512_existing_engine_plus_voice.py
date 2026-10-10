@@ -53,6 +53,7 @@ def main() -> int:
     title_source = json.loads((LAB / "fyh512_title_candidates.json").read_text(encoding="utf-8"))
     tracks = [{"artist": row["artist"], "title": row["title"]} for row in title_source["tracks"]]
     voice_path = RESULTS / "fyh512-reliable-voices-asr-frozen.json"
+    protocol_path = LAB / "fyh512_anchor_feasibility_protocol.json"
     voice_events = json.loads(voice_path.read_text(encoding="utf-8"))
     CACHE.mkdir(parents=True, exist_ok=True)
     RESULTS.mkdir(exist_ok=True)
@@ -185,6 +186,17 @@ def main() -> int:
         "audio_sha256": AUDIO_SHA256,
         "baseline_sha256": BASELINE_SHA256,
         "voice_asr_sha256": sha256(voice_path),
+        "voice_replay": {"new_vad_asr_run": False, "frozen_event_count": len(voice_events)},
+        "inputs": {
+            path.relative_to(LAB).as_posix(): sha256(path)
+            for path in (
+                LAB / "fyh512_source.json",
+                LAB / "fyh512_title_candidates.json",
+                LAB / "fyh512_reference.json",
+                voice_path,
+                protocol_path,
+            )
+        },
         "engine_copy_sha256": sha256(LAB / "audio_fallback_voice.py"),
         "runner_sha256": sha256(Path(__file__)),
         "outputs": {path.name: sha256(path) for path in (disabled_path, enabled_path, disabled_trace_path, enabled_trace_path)},

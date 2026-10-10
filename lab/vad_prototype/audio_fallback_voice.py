@@ -228,26 +228,24 @@ def interpret_voice_announcements(
 def validate_boundary_anchors(
     anchors: list[BoundaryAnchor], track_count: int, duration_seconds: float,
     presences: dict[int, LandmarkPresence], corrections: dict[int, float],
+    novelty: np.ndarray | None = None,
 ) -> tuple[dict[int, BoundaryAnchor], list[dict]]:
-    """Abstention explicite en cas de conflit d'ordre, fenêtre ou musique."""
+    """Conserve seulement les ancres dont l'optimiseur prouve la faisabilité."""
     accepted: dict[int, BoundaryAnchor] = {}
     decisions: list[dict] = []
+    feasibility_novelty = novelty
+    if feasibility_novelty is None:
+        feasibility_novelty = np.zeros(
+            max(1, int(duration_seconds / HOP_SECONDS) + 1), dtype=np.float32,
+        )
     for anchor in sorted(anchors, key=lambda item: (item.time_seconds, item.track_index)):
         reason = None
         if not 0 <= anchor.track_index < track_count:
             reason = "track_index_out_of_range"
         elif anchor.time_seconds < 0.0 or anchor.time_seconds >= duration_seconds:
             reason = "time_out_of_range"
-        elif duration_seconds - anchor.time_seconds < MIN_TRACK_GAP_SECONDS * (track_count - anchor.track_index):
-            reason = "insufficient_window_after_anchor"
         elif any(anchor.track_index <= item.track_index for item in accepted.values()):
             reason = "anchor_order_conflict"
-        previous = max(
-            (item for item in accepted.values() if item.track_index < anchor.track_index),
-            key=lambda item: item.track_index, default=None,
-        )
-        if previous and anchor.time_seconds - previous.time_seconds < MIN_TRACK_GAP_SECONDS * (anchor.track_index - previous.track_index):
-            reason = "anchor_order_or_window_conflict"
         presence = presences.get(anchor.track_index + 1)
         if presence is not None:
             musical_start = max(0.0, presence.anchor - DEEZER_PREVIEW_OFFSET_SECONDS)
@@ -256,6 +254,21 @@ def validate_boundary_anchors(
         correction = corrections.get(anchor.track_index)
         if correction is not None and abs(correction - anchor.time_seconds) > VOICE_PRESENCE_TOLERANCE_SECONDS:
             reason = "adjacent_presence_conflict"
+        if reason is None:
+            trial = {**accepted, anchor.track_index: anchor}
+            try:
+                # Source unique de vérité : mêmes couloirs, candidats et DP que
+                # l'exécution finale. Aucun seuil parallèle n'est approximé ici.
+                detect_constrained_transitions(
+                    feasibility_novelty, track_count, duration_seconds, presences, trial,
+                )
+            except AudioFallbackError as error:
+                if str(error) not in {
+                    "Ancres audio incompatibles avec une suite de coupes cohérente",
+                    "Optimisation audio contrainte incomplète",
+                }:
+                    raise
+                reason = "optimizer_constraint_conflict"
         decisions.append({
             "detection_id": anchor.detection_id, "track_index": anchor.track_index,
             "time_seconds": anchor.time_seconds,
@@ -1586,7 +1599,7 @@ def analyze_known_tracklist(
             include_presences=True,
         )
         boundary_anchors, anchor_decisions = validate_boundary_anchors(
-            boundary_candidates, len(tracks), duration, presences, corrections,
+            boundary_candidates, len(tracks), duration, presences, corrections, novelty,
         )
         if voice_trace is not None:
             voice_trace.update({
