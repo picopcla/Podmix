@@ -1,5 +1,8 @@
 # Rapport du prototype VAD Podmix — 10 octobre 2026
 
+Complément corpus demandé :
+[FYH / Pure Trance Radio](CORPUS_COMPLEMENT_FYH_PURETRANCE.md).
+
 ## Statut
 
 **Partiel, exploitable comme essai hors production.** Les deux modeles ont

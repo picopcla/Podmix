@@ -26,10 +26,30 @@
       "max_model_end_disagreement_seconds": 2,
       "requires_original_time_inside_speech": true,
       "requires_ina_music_after_speech": true,
-      "requires_silero_speech_confirmation": true
+      "requires_silero_speech_confirmation": true,
+      "requires_human_transition_confirmation": true,
+      "human_transition_confirmed_boundaries": []
     },
     "tuning_note": "Les 5 premieres frontieres Key4050 servent uniquement au test de bon fonctionnement. Les parametres amont et la politique conservatrice sont geles avant l'evaluation distincte.",
     "human_reference": "Aucune ecoute humaine disponible dans cette execution."
+  },
+  "catalog_verification": {
+    "checked_at": "2026-10-10",
+    "directory_endpoint": "http://127.0.0.1:8099/v1/catalog/podcasts",
+    "fyh": {
+      "query_exact": "fyh",
+      "exact_query_match": false,
+      "verified_expansion": "Find Your Harmony Radioshow",
+      "evidence": "Le catalogue local affiche ce nom et les tests Podmix associent explicitement FYH496 a Find Your Harmony Radio Episode #496.",
+      "catalog_id": "884562443",
+      "feed_url": "https://feed.podbean.com/andrewrayel/feed.xml"
+    },
+    "pure_trance_radio": {
+      "query_exact": "Pure Trance Radio",
+      "catalog_title": "Pure Trance Radio Podcast with Solarstone",
+      "catalog_id": "270338166",
+      "feed_url": "https://feed.podbean.com/richve/feed.xml"
+    }
   },
   "episodes": [
     {
@@ -75,6 +95,80 @@
         {"number": 10, "time": 2880, "title": "Jon O'Bir feat. Fisher - Found A Way (Joint Operations Centre Remix)", "split": "evaluation"},
         {"number": 11, "time": 3168, "title": "Axel Karakasis - Pull the Trigger (Joint Operations Centre Remix)", "split": "evaluation"},
         {"number": 12, "time": 3324, "title": "Lorenzo Chi - Off", "split": "evaluation"}
+      ]
+    },
+    {
+      "id": "pure-trance-radio-493",
+      "title": "Pure Trance Radio Podcast 493",
+      "catalog_source": "Pure Trance Radio Podcast with Solarstone",
+      "catalog_id": "270338166",
+      "feed_url": "https://feed.podbean.com/richve/feed.xml",
+      "episode_guid": "richve.podbean.com/9e0ff222-1a34-3f72-a19e-59f4ca256561",
+      "local_media": "/home/debian/pont-task-workspaces/c4e2c7fcfebf45c154a4b8fb/podmix-vad-lab/lab/vad_prototype/output/media/pure-trance-radio-493.mp3",
+      "media_sha256": "262b843a806172873e83fcbfb6737d840f922183c3eec20d556f3296d4db724f",
+      "duration_seconds": 6473.83,
+      "source_url": "https://richve.podbean.com/e/pure-trance-radio-podcast-493/",
+      "tracklist_url": "https://cuenation.com/?page=tracklist&folder=puretranceradio&filename=Solarstone+-+Pure+Trance+Radio+493.cue",
+      "tracklist_reference": "CueNation cuesheet, duree 107:50 contre 107:53.83 pour l'enclosure RSS officielle.",
+      "tracks": [
+        {"number": 2, "time": 111, "title": "Solarstone - Solarcoaster (Deestopia Remix)", "split": "evaluation"},
+        {"number": 3, "time": 534, "title": "Nordfold - Tidal Shift", "split": "evaluation"},
+        {"number": 4, "time": 822, "title": "Exotek - Embrace", "split": "evaluation"},
+        {"number": 5, "time": 1212, "title": "Kyau & Albert - Halo", "split": "evaluation"},
+        {"number": 6, "time": 1441, "title": "PARAFRAME - 3 Worlds", "split": "evaluation"},
+        {"number": 7, "time": 1757, "title": "Josh Caffe - Velvet Skin", "split": "evaluation"},
+        {"number": 8, "time": 2001, "title": "Tre Turner - Archaos (CLOSE PROXIMITY Progressive Mix)", "split": "evaluation"},
+        {"number": 9, "time": 2350, "title": "Private Taste - First (Ashtrax Rerub)", "split": "evaluation"},
+        {"number": 10, "time": 2734, "title": "SONIN x Orkidea - Avril", "split": "evaluation"},
+        {"number": 11, "time": 3021, "title": "Push - Open The Night", "split": "evaluation"},
+        {"number": 12, "time": 3344, "title": "Factor B feat. Cat Martin - Crashing Over (Lost Minds Remix)", "split": "evaluation"},
+        {"number": 13, "time": 3747, "title": "St. John & Scott Ramsay pres. ApexLOOP - Inspire", "split": "evaluation"},
+        {"number": 14, "time": 4144, "title": "Factoria + Ross Baker - River of Light", "split": "evaluation"},
+        {"number": 15, "time": 4401, "title": "Sequence Six & Zara Taylor - Above", "split": "evaluation"},
+        {"number": 16, "time": 4696, "title": "Super8 & Tab feat. Julie Thompson - My Enemy (CVMRN Club Mix)", "split": "evaluation"},
+        {"number": 17, "time": 5035, "title": "Technology - Electronicly Entertained", "split": "evaluation"},
+        {"number": 18, "time": 5350, "title": "Ruben De Ronde pres. NRG2000 x York x Angel City - Slip Away", "split": "evaluation"},
+        {"number": 19, "time": 5663, "title": "Above & Beyond with Zoe Johnston - Quicksand (Don't Go) (Mark Sherry Remix)", "split": "evaluation"},
+        {"number": 20, "time": 5990, "title": "David Forbes x Lostly - Echo Burn", "split": "evaluation"},
+        {"number": 21, "time": 6243, "title": "FKN & Tom Bro feat. Emily Orchard - Fading Blue (Ambient Mix)", "split": "evaluation"}
+      ]
+    },
+    {
+      "id": "pure-trance-radio-492",
+      "title": "Pure Trance Radio Podcast 492",
+      "catalog_source": "Pure Trance Radio Podcast with Solarstone",
+      "catalog_id": "270338166",
+      "feed_url": "https://feed.podbean.com/richve/feed.xml",
+      "episode_guid": "richve.podbean.com/e630acd0-fd71-3b0d-a022-18856604ed36",
+      "local_media": "/home/debian/pont-task-workspaces/c4e2c7fcfebf45c154a4b8fb/podmix-vad-lab/lab/vad_prototype/output/media/pure-trance-radio-492.mp3",
+      "media_sha256": "6925c5d6e8d5f51653f9b05cc572d5b0c936851a2ddca6f1b05602385eade4cd",
+      "duration_seconds": 7174.61,
+      "source_url": "https://richve.podbean.com/e/pure-trance-radio-podcast-492/",
+      "tracklist_url": "https://cuenation.com/?page=tracklist&folder=puretranceradio&filename=Solarstone+-+Pure+Trance+Radio+492.cue",
+      "tracklist_reference": "CueNation cuesheet, duree 119:32 contre 119:34.61 pour l'enclosure RSS officielle.",
+      "tracks": [
+        {"number": 2, "time": 82, "title": "Midnight Evolution - Dreams", "split": "evaluation"},
+        {"number": 3, "time": 388, "title": "metakomplex & Orkidea - Dream of You", "split": "evaluation"},
+        {"number": 4, "time": 658, "title": "Emran Badalov - Scorpio Rider (Hazem Beltagui Remix)", "split": "evaluation"},
+        {"number": 5, "time": 1034, "title": "Soul Alt Delete - Copycat", "split": "evaluation"},
+        {"number": 6, "time": 1380, "title": "Allende - The Weight", "split": "evaluation"},
+        {"number": 7, "time": 1710, "title": "Protoculture - Telemetry", "split": "evaluation"},
+        {"number": 8, "time": 2040, "title": "Dusky - Lab", "split": "evaluation"},
+        {"number": 9, "time": 2323, "title": "ARCHERY - KEEP IT GOIN'", "split": "evaluation"},
+        {"number": 10, "time": 2679, "title": "Peter Steele - Summer Breeze", "split": "evaluation"},
+        {"number": 11, "time": 2974, "title": "FKN & Tom Bro feat. Emily Orchard - Fading Blue", "split": "evaluation"},
+        {"number": 12, "time": 3210, "title": "Thrillseekers pres. Hydra - Amber (Asteroid Remix)", "split": "evaluation"},
+        {"number": 13, "time": 3649, "title": "Bryan Kearney & John O'Callaghan pres. Key4050 - Final Memory", "split": "evaluation"},
+        {"number": 14, "time": 3953, "title": "Asteroid - Spectra", "split": "evaluation"},
+        {"number": 15, "time": 4212, "title": "C-Systems - Pillars of Light", "split": "evaluation"},
+        {"number": 16, "time": 4448, "title": "Ferkingge & Emma Wang feat. Adria Du & Nini - Blooming", "split": "evaluation"},
+        {"number": 17, "time": 4796, "title": "Solarstone vs. Sirocco - Destination (Effen Remix)", "split": "evaluation"},
+        {"number": 18, "time": 5232, "title": "Stoneface & Terminal with Susanne Teutenberg - High As The Sun", "split": "evaluation"},
+        {"number": 19, "time": 5599, "title": "Blackromeo - Ashanti", "split": "evaluation"},
+        {"number": 20, "time": 5981, "title": "Above & Beyond with Zoe Johnston - Quicksand (Ciaran McAuley Remix)", "split": "evaluation"},
+        {"number": 21, "time": 6275, "title": "Armin van Buuren feat. Sharon Den Adel - In And Out of Love (Ben Hemsley Remix)", "split": "evaluation"},
+        {"number": 22, "time": 6649, "title": "Super-Frog Saves Tokyo - Jitterbug", "split": "evaluation"},
+        {"number": 23, "time": 7001, "title": "Vangelis - West Across The Ocean Sea", "split": "evaluation"}
       ]
     }
   ],

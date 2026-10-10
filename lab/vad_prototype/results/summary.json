@@ -1,12 +1,16 @@
 {
-  "episodes": 2,
-  "boundaries": 25,
-  "rows": 75,
+  "episodes": 4,
+  "boundaries": 67,
+  "rows": 201,
   "counts": {
-    "ina:suggestion": 1,
-    "silero:abstention": 25,
-    "consensus_ina_silero:abstention": 25,
-    "ina:abstention": 24
+    "ina:abstention": 67,
+    "silero:abstention": 67,
+    "consensus_ina_silero:abstention": 67
+  },
+  "automatic_candidates": {
+    "ina": 6,
+    "silero": 0,
+    "consensus_ina_silero": 2
   },
   "precision": null,
   "precision_limit": "Non mesurable: aucune reference humaine par ecoute n'est disponible."

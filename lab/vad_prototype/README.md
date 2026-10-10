@@ -5,6 +5,12 @@ Ce laboratoire compare inaSpeechSegmenter et Silero sur les memes fenetres de
 aucun raccord a l'API Podmix et n'ecrit jamais dans les medias ou la base de
 production.
 
+Le [rapport initial](REPORT.md) est complété par le
+[rapport corpus FYH / Pure Trance Radio](CORPUS_COMPLEMENT_FYH_PURETRANCE.md).
+Les médias RSS de Pure Trance Radio restent dans `output/media/`, ignoré par
+Git ; leurs URL, SHA-256 et chemins attendus sont consignés dans
+`episodes.json`.
+
 ## Isolation CPU
 
 Creer le venv a cote du clone, puis installer explicitement les variantes CPU.
@@ -44,3 +50,7 @@ nice -n 10 ../.venv-vad/bin/python lab/vad_prototype/run_vad.py --method ina --s
 Les fichiers bruts et les extraits restent dans `output/`, ignore par Git. Les
 sorties consolidees sans media sont versionnees dans `results/`. Une suggestion
 reste une proposition a verifier : elle n'est jamais appliquee a Podmix.
+Sans confirmation humaine d'une vraie prise de parole suivie d'un retour à la
+musique, l'agrégateur conserve désormais le temps/delta comme candidat
+automatique mais produit une abstention. Chant, rap, jingle et voice-over ne
+sont pas des confirmations suffisantes.

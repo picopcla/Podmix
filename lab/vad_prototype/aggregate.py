@@ -56,6 +56,9 @@ def base_row(record: dict, method: str) -> dict:
         "method": method,
         "excerpt_before": f"{clip_root}-before.ogg",
         "excerpt_after": f"{clip_root}-after.ogg",
+        "automatic_candidate": False,
+        "candidate_time_seconds": None,
+        "candidate_delta_seconds": None,
     }
 
 
@@ -87,13 +90,28 @@ def main() -> int:
                     and music_duration >= policy["min_return_to_music_seconds"]
                 )
                 if eligible:
-                    row.update(
-                        decision="suggestion",
-                        new_time_seconds=round(record["original_time"] + delta, 3),
-                        delta_seconds=round(delta, 3),
-                        reason="INA classe le temps original dans une plage parole, puis un retour continu a la musique.",
-                        uncertainty="elevee_sans_ecoute_humaine",
-                    )
+                    candidate_time = round(record["original_time"] + delta, 3)
+                    human_confirmed = record["id"] in policy.get("human_transition_confirmed_boundaries", [])
+                    if policy.get("requires_human_transition_confirmation", False) and not human_confirmed:
+                        row.update(
+                            decision="abstention", new_time_seconds=None, delta_seconds=None,
+                            automatic_candidate=True,
+                            candidate_time_seconds=candidate_time,
+                            candidate_delta_seconds=round(delta, 3),
+                            reason=(
+                                "Candidat automatique INA parole-vers-musique non confirme par ecoute humaine; "
+                                "chant, rap, jingle ou voice-over ne peuvent pas etre exclus."
+                            ),
+                            uncertainty="elevee_sans_ecoute_humaine",
+                        )
+                    else:
+                        row.update(
+                            decision="suggestion",
+                            new_time_seconds=candidate_time,
+                            delta_seconds=round(delta, 3),
+                            reason="INA classe le temps original dans une plage parole, puis un retour continu a la musique; transition confirmee humainement.",
+                            uncertainty="moyenne",
+                        )
                 else:
                     row.update(
                         decision="abstention", new_time_seconds=None, delta_seconds=None,
@@ -138,13 +156,28 @@ def main() -> int:
             and policy["min_positive_delta_seconds"] <= delta <= policy["max_positive_delta_seconds"]
         )
         if eligible:
-            consensus.update(
-                decision="suggestion",
-                new_time_seconds=round(ina["original_time"] + delta, 3),
-                delta_seconds=round(delta, 3),
-                reason="Parole englobant la frontiere confirmee par les deux modeles; INA confirme ensuite au moins 5 s de musique.",
-                uncertainty="moyenne_a_elevee_sans_ecoute_humaine",
-            )
+            candidate_time = round(ina["original_time"] + delta, 3)
+            human_confirmed = ina["id"] in policy.get("human_transition_confirmed_boundaries", [])
+            if policy.get("requires_human_transition_confirmation", False) and not human_confirmed:
+                consensus.update(
+                    decision="abstention", new_time_seconds=None, delta_seconds=None,
+                    automatic_candidate=True,
+                    candidate_time_seconds=candidate_time,
+                    candidate_delta_seconds=round(delta, 3),
+                    reason=(
+                        "Candidat automatique: parole englobante et fin proches pour INA/Silero, puis musique INA; "
+                        "abstention sans ecoute humaine capable d'exclure chant, rap, jingle ou voice-over."
+                    ),
+                    uncertainty="elevee_sans_ecoute_humaine",
+                )
+            else:
+                consensus.update(
+                    decision="suggestion",
+                    new_time_seconds=candidate_time,
+                    delta_seconds=round(delta, 3),
+                    reason="Parole englobant la frontiere confirmee par les deux modeles; INA confirme ensuite au moins 5 s de musique; transition confirmee humainement.",
+                    uncertainty="moyenne",
+                )
         else:
             reasons = []
             if not ina_speech:
@@ -182,6 +215,10 @@ def main() -> int:
         "boundaries": len({r["boundary_id"] for r in rows}),
         "rows": len(rows),
         "counts": counts,
+        "automatic_candidates": {
+            method: sum(1 for row in rows if row["method"] == method and row["automatic_candidate"])
+            for method in ("ina", "silero", "consensus_ina_silero")
+        },
         "precision": None,
         "precision_limit": "Non mesurable: aucune reference humaine par ecoute n'est disponible.",
     }

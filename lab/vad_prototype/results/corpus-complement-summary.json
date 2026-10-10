@@ -1,0 +1,127 @@
+{
+  "request": "podmix-vad-corpus-fyh-puretrance-2026-10-10-1420",
+  "status": "completed_without_activation",
+  "catalog": {
+    "fyh": {
+      "verified_catalog_title": "Find Your Harmony Radioshow",
+      "catalog_id": "884562443",
+      "feed_url": "https://feed.podbean.com/andrewrayel/feed.xml",
+      "tested": false,
+      "reason_not_tested": "Le flux et les tracklists sont accessibles, mais aucune frontiere horodatee fiable sur le meme audio RSS n'a ete trouvee. Les durees Apple Music correspondent a une edition differente."
+    },
+    "pure_trance_radio": {
+      "catalog_title": "Pure Trance Radio Podcast with Solarstone",
+      "catalog_id": "270338166",
+      "feed_url": "https://feed.podbean.com/richve/feed.xml",
+      "tested": true
+    }
+  },
+  "episodes": [
+    {
+      "id": "pure-trance-radio-493",
+      "title": "Pure Trance Radio Podcast 493",
+      "duration_seconds": 6473.83,
+      "media_sha256": "262b843a806172873e83fcbfb6737d840f922183c3eec20d556f3296d4db724f",
+      "tracklist_reference_duration_seconds": 6470,
+      "original_times_seconds": [111, 534, 822, 1212, 1441, 1757, 2001, 2350, 2734, 3021, 3344, 3747, 4144, 4401, 4696, 5035, 5350, 5663, 5990, 6243],
+      "boundaries": 20,
+      "ina_automatic_candidates": 4,
+      "consensus_automatic_candidates": 1,
+      "published_suggestions": 0
+    },
+    {
+      "id": "pure-trance-radio-492",
+      "title": "Pure Trance Radio Podcast 492",
+      "duration_seconds": 7174.61,
+      "media_sha256": "6925c5d6e8d5f51653f9b05cc572d5b0c936851a2ddca6f1b05602385eade4cd",
+      "tracklist_reference_duration_seconds": 7172,
+      "original_times_seconds": [82, 388, 658, 1034, 1380, 1710, 2040, 2323, 2679, 2974, 3210, 3649, 3953, 4212, 4448, 4796, 5232, 5599, 5981, 6275, 6649, 7001],
+      "boundaries": 22,
+      "ina_automatic_candidates": 1,
+      "consensus_automatic_candidates": 1,
+      "published_suggestions": 0
+    }
+  ],
+  "window": {
+    "before_seconds": 45,
+    "after_seconds": 45,
+    "definition": "[original_time - 45 s, original_time + 45 s]"
+  },
+  "models": {
+    "ina": {
+      "version": "inaSpeechSegmenter 0.8.0",
+      "ran": true,
+      "new_boundaries": 42,
+      "wall_seconds": 203.723,
+      "cpu_seconds": 187.1641,
+      "peak_rss_kib": 837344
+    },
+    "silero": {
+      "version": "silero-vad 6.2.3",
+      "ran": true,
+      "new_boundaries": 42,
+      "wall_seconds": 19.6367,
+      "cpu_seconds": 21.5437,
+      "peak_rss_kib": 244836
+    },
+    "sequential_total": {
+      "wall_seconds": 223.3597,
+      "cpu_seconds": 208.7078,
+      "peak_rss_kib": 837344
+    }
+  },
+  "new_corpus_results": {
+    "boundaries": 42,
+    "published_suggestions": 0,
+    "consensus_abstentions": 42,
+    "ina_automatic_candidates": 5,
+    "consensus_automatic_candidates": 2,
+    "speech_presence_agreement": {
+      "agree": 24,
+      "total": 42,
+      "rate": 0.5714285714,
+      "both_speech": 3,
+      "ina_only": 3,
+      "silero_only": 15,
+      "neither": 21
+    },
+    "human_precision": null,
+    "false_shifts": null,
+    "measurement_limit": "Aucune ecoute humaine; tout candidat est donc retenu comme faux deplacement potentiel et non applique."
+  },
+  "automatic_consensus_candidates_withheld": [
+    {
+      "boundary_id": "pure-trance-radio-492-t02",
+      "original_time_seconds": 82.0,
+      "candidate_time_seconds": 82.74,
+      "candidate_delta_seconds": 0.74,
+      "reason": "INA et Silero detectent la parole a la frontiere et leurs fins sont proches; INA classe ensuite de la musique. Abstention faute d'ecoute excluant chant, rap, jingle et voice-over."
+    },
+    {
+      "boundary_id": "pure-trance-radio-493-t09",
+      "original_time_seconds": 2350.0,
+      "candidate_time_seconds": 2353.08,
+      "candidate_delta_seconds": 3.08,
+      "reason": "INA et Silero detectent la parole a la frontiere et leurs fins sont proches; INA classe ensuite de la musique. Abstention faute d'ecoute excluant chant, rap, jingle et voice-over."
+    }
+  ],
+  "disk_bytes": {
+    "downloaded_lab_media": 545937873,
+    "raw_model_outputs": 161962,
+    "verification_excerpts": 7875171,
+    "tracked_results": 580941,
+    "model_cache": 46741117,
+    "venv": 2065220638
+  },
+  "production_checks": {
+    "services_before": ["active", "active", "active"],
+    "services_after": ["active", "active", "active"],
+    "sqlite_sha256_before": "51530765ec3c738b0b9b6f4bb2ffdbcce6374e4092dac1c491e0992babf0f230",
+    "sqlite_sha256_after": "51530765ec3c738b0b9b6f4bb2ffdbcce6374e4092dac1c491e0992babf0f230",
+    "sqlite_size_bytes": 53248,
+    "sqlite_mtime_epoch": 1789503122,
+    "load_average_1m_before": 1.38,
+    "load_average_1m_after": 1.59,
+    "application_latency_measured": false
+  }
+}
