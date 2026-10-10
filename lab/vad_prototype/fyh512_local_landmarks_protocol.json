@@ -1,0 +1,54 @@
+{
+  "frozen_at": "2026-10-10T22:00:00+02:00",
+  "scope": "laboratoire uniquement; experience approuvee; aucune production",
+  "episode_id": "find-your-harmony-512",
+  "known_reference_warning": "Les 32 titres sont connus en entree: reconnaissance assistee, jamais identification independante. Les temps YouTube sont interdits au calcul et ne sont charges qu'apres gel des sorties.",
+  "fixed_voice_bounds_seconds": [0.0, 120.0, 2365.68, 5349.38, 6975.72, 7216.927375],
+  "sample_rate": 8000,
+  "local_recognition": {
+    "rule": "Pour chaque intervalle, appeler extract_features uniquement sur samples[int(start*8000):int(end*8000)]. Aucun feature, index landmark, candidate ou novelty du mix complet n'est autorise.",
+    "candidate_source": "32 artistes/titres connus; apercus Deezer publics gratuits, score catalogue >= 70",
+    "catalog_order_selection": false,
+    "all_tracks_queried_in_every_interval": true,
+    "same_track_ambiguity_ratio": 0.85,
+    "same_track_ambiguity_minimum_separation_seconds": 12.0,
+    "audd_allowed": false,
+    "independent_identification": false
+  },
+  "transition_windows": {
+    "definition_before_run": "Deux presences acceptees adjacentes dans le temps peuvent contraindre une fenetre si leurs numeros candidats sont strictement croissants. L'ordre sert seulement de controle de plausibilite apres matching, jamais a creer une presence.",
+    "presence_edge_padding_seconds": 30.0,
+    "minimum_window_seconds": 24.0,
+    "maximum_window_seconds": 240.0,
+    "spectral_salience_minimum": 3.0,
+    "ambiguous_runner_score_ratio": 0.85,
+    "ambiguous_runner_score_delta": 0.5,
+    "ambiguous_runner_minimum_separation_seconds": 12.0,
+    "abstention_rules": [
+      "ordre candidat contradictoire",
+      "aucun candidat spectral dans la fenetre",
+      "saillance inferieure a 3.0",
+      "deux maxima concurrents separes d'au moins 12 s et scores proches"
+    ],
+    "anchor_semantics": "Une presence localise une zone reconnaissable. Ni anchor, ni presence_start, ni presence_end ne devient directement le debut d'un morceau.",
+    "progressive_mix_rule": "En cas de recouvrement, la fenetre couvre le recouvrement augmente de 30 s de chaque cote; en cas de trou, elle va de 30 s avant la fin de gauche a 30 s apres le debut de droite.",
+    "fallback": "Les maxima spectraux locaux geles de l'ancienne variante sont conserves hors de toute fenetre contrainte et etiquetes local_spectral_fallback. Une fenetre contrainte en abstention ne recoit pas de fallback.",
+    "track_count_target": null
+  },
+  "baseline": {
+    "name": "precedent_spectral_local",
+    "retained_robust_salience_minimum": 3.0,
+    "minimum_retained_separation_seconds": 60.0,
+    "edge_exclusion_seconds": 20.0
+  },
+  "evaluation_after_freeze": {
+    "reference_url": "https://www.youtube.com/watch?v=5JhO52xYwf0",
+    "reference_tracks": 32,
+    "split_youtube_seconds": 3565,
+    "rss_equals_youtube_plus_offset_before_seconds": 1.3455,
+    "rss_equals_youtube_plus_offset_after_seconds": 1.7265,
+    "matching": "appariement glouton libre par erreur absolue, tolerance <= 30 s, meme regle pour nouvelle variante et baseline",
+    "retuning_after_results": false,
+    "causality_claim_allowed": false
+  }
+}
