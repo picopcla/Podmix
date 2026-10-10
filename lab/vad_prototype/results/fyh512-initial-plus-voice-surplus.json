@@ -1,0 +1,102 @@
+[
+  {
+    "detection_id": "S001",
+    "origin": "audio_start",
+    "rss_time_seconds": 0.0
+  },
+  {
+    "detection_id": "S004",
+    "origin": "audio_spectral_transition_assisted_by_rss_track_count",
+    "rss_time_seconds": 525.44
+  },
+  {
+    "detection_id": "S007",
+    "origin": "audio_spectral_transition_assisted_by_rss_track_count",
+    "rss_time_seconds": 1233.6
+  },
+  {
+    "detection_id": "S009",
+    "origin": "audio_spectral_transition_assisted_by_rss_track_count",
+    "rss_time_seconds": 1807.17
+  },
+  {
+    "detection_id": "S010",
+    "origin": "audio_spectral_transition_assisted_by_rss_track_count",
+    "rss_time_seconds": 2208.0
+  },
+  {
+    "detection_id": "S012",
+    "origin": "audio_spectral_transition_assisted_by_rss_track_count",
+    "rss_time_seconds": 2520.26
+  },
+  {
+    "detection_id": "S014",
+    "origin": "audio_spectral_transition_assisted_by_rss_track_count",
+    "rss_time_seconds": 2919.68
+  },
+  {
+    "detection_id": "S015",
+    "origin": "audio_spectral_transition_assisted_by_rss_track_count",
+    "rss_time_seconds": 2984.64
+  },
+  {
+    "detection_id": "S016",
+    "origin": "audio_spectral_transition_assisted_by_rss_track_count",
+    "rss_time_seconds": 3184.38
+  },
+  {
+    "detection_id": "S017",
+    "origin": "audio_spectral_transition_assisted_by_rss_track_count",
+    "rss_time_seconds": 3907.39
+  },
+  {
+    "detection_id": "S018",
+    "origin": "audio_spectral_transition_assisted_by_rss_track_count",
+    "rss_time_seconds": 4048.19
+  },
+  {
+    "detection_id": "S019",
+    "origin": "audio_spectral_transition_assisted_by_rss_track_count",
+    "rss_time_seconds": 4157.82
+  },
+  {
+    "detection_id": "S020",
+    "origin": "audio_spectral_transition_assisted_by_rss_track_count",
+    "rss_time_seconds": 4436.16
+  },
+  {
+    "detection_id": "S021",
+    "origin": "audio_spectral_transition_assisted_by_rss_track_count",
+    "rss_time_seconds": 4663.17
+  },
+  {
+    "detection_id": "S022",
+    "origin": "audio_spectral_transition_assisted_by_rss_track_count",
+    "rss_time_seconds": 4742.27
+  },
+  {
+    "detection_id": "S025",
+    "origin": "audio_spectral_transition_assisted_by_rss_track_count",
+    "rss_time_seconds": 5643.14
+  },
+  {
+    "detection_id": "S026",
+    "origin": "audio_spectral_transition_assisted_by_rss_track_count",
+    "rss_time_seconds": 5734.78
+  },
+  {
+    "detection_id": "S028",
+    "origin": "audio_spectral_transition_assisted_by_rss_track_count",
+    "rss_time_seconds": 6107.07
+  },
+  {
+    "detection_id": "S030",
+    "origin": "audio_spectral_transition_assisted_by_rss_track_count",
+    "rss_time_seconds": 6434.56
+  },
+  {
+    "detection_id": "S031",
+    "origin": "audio_spectral_transition_assisted_by_rss_track_count",
+    "rss_time_seconds": 6639.1
+  }
+]

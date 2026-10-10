@@ -1,0 +1,39 @@
+{
+  "episode_id": "find-your-harmony-512",
+  "frozen_outputs_verified_by_sha256": true,
+  "matching_rule_identical": true,
+  "matching_tolerance_seconds": 30.0,
+  "alignment": {
+    "split_youtube_seconds": 3565.0,
+    "offset_before_seconds": 1.3455,
+    "offset_after_seconds": 1.7265
+  },
+  "baseline_initial": {
+    "reference_count": 32,
+    "detection_count": 32,
+    "matched": 9,
+    "missing": 23,
+    "surplus": 23,
+    "mean_absolute_error_seconds_on_matches": 8.3918,
+    "median_absolute_error_seconds_on_matches": 2.2745,
+    "matched_under_1_second": 2,
+    "matched_under_3_seconds": 5,
+    "matched_under_10_seconds": 6,
+    "statistics_denominator": 9
+  },
+  "initial_plus_voice": {
+    "reference_count": 32,
+    "detection_count": 32,
+    "matched": 12,
+    "missing": 20,
+    "surplus": 20,
+    "mean_absolute_error_seconds_on_matches": 4.4064,
+    "median_absolute_error_seconds_on_matches": 1.4745,
+    "matched_under_1_second": 4,
+    "matched_under_3_seconds": 9,
+    "matched_under_10_seconds": 10,
+    "statistics_denominator": 12
+  },
+  "independent_titles_identified": 0,
+  "verdict": "gain"
+}

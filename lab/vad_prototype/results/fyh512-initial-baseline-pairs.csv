@@ -1,0 +1,10 @@
+reference_number,artist,title,youtube_reference_seconds,rss_reference_seconds,detection_id,origin,rss_algorithm_seconds,youtube_algorithm_seconds,signed_error_seconds,absolute_error_seconds
+2,Against All Ødds,Save Me,337,338.3455,S003,audio_spectral_transition_assisted_by_rss_track_count,339.71,338.3645,1.3645,1.3645
+4,Phillip Castle & Aldor,Embrace The Night,780,781.3455,S005,audio_spectral_transition_assisted_by_rss_track_count,783.62,782.2745,2.2745,2.2745
+5,Freak E Beatz & JASSKALL,No Escape,1006,1007.3455,S006,audio_spectral_transition_assisted_by_rss_track_count,1007.94,1006.5945,0.5945,0.5945
+8,Cubicore,Black Light,1554,1555.3455,S008,audio_spectral_transition_assisted_by_rss_track_count,1556.93,1555.5845,1.5845,1.5845
+13,"Ashley Wallbridge, The Paper Outlet",Forever Young,2614,2615.3455,S013,audio_spectral_transition_assisted_by_rss_track_count,2618.56,2617.2145,3.2145,3.2145
+24,Andrew Rayel,Acid On The Train (David Forbes Remix),5348,5349.7265,S023,audio_spectral_transition_assisted_by_rss_track_count,5375.74,5374.0135,26.0135,26.0135
+25,Armin van Buuren feat. Sharon Den Adel,In And Out Of Love (Ben Hemsley Remix),5576,5577.7265,S024,audio_spectral_transition_assisted_by_rss_track_count,5587.97,5586.2435,10.2435,10.2435
+26,Xincher & Rav3ver,Echo,5827,5828.7265,S027,audio_spectral_transition_assisted_by_rss_track_count,5858.11,5856.3835,29.3835,29.3835
+28,Matt Bukovski & CJ Stone,Stars,6185,6186.7265,S029,audio_spectral_transition_assisted_by_rss_track_count,6187.58,6185.8535,0.8535,0.8535
