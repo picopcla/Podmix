@@ -137,5 +137,6 @@ La page 1001Tracklists fournie a servi de référence de provenance après le ge
 une nouvelle lecture automatisée depuis cet environnement a été bloquée par
 robots.txt/HTTP 403. L'évaluation utilise les 32 temps déjà vérifiés identiques
 à la source officielle, sans les injecter dans le détecteur. Aucun changement
-production/main/SQLite/API/service/Docker/APK/pont, aucun merge et aucune
-variante hors périmètre.
+production/main/SQLite/API/service/Docker/APK ni au service pont, aucun merge et
+aucune variante hors périmètre. Seul `pont-messages` privé reçoit les extraits
+audio et le lien de livraison autorisés.
