@@ -1,0 +1,48 @@
+{
+  "frozen_before_evaluation": true,
+  "scope": "FYH512 lab only; correction B only; no production, channels or translation changes",
+  "base_commit": "3b52f08f9c35a18b088c308f979b9fe1730d5f09",
+  "base_a_engine_sha256": "a290559d2d9b55068581e5c1f956abdeb33ab179e3ea3f7400fcf6a62f33d47a",
+  "base_enabled_output_sha256": "199c10e9c35552206a81ddf782e689986e7f36628415b5a18ae1bd033f37070a",
+  "disabled_output_sha256": "e0200bae398de872f1b861f5db4fc1781c302cf193acd27a6935d56a37b2e208",
+  "media_sha256": "47814fb78f3f0236777b6c5ebf378d23e4938914c474df116c49f618b3fdaf69",
+  "generic_choice_before_evaluation": {
+    "choice": "integrate adjacent-landmark correction proposals as ordinary candidates in the existing constrained DP",
+    "selection": "same novelty salience and distance penalty as every other candidate; no correction bonus and no post-DP overwrite",
+    "acceptance": "accepted only when selected by the global DP objective and present unchanged in the final verified path",
+    "rejection": "report exact shared-constraint cause when infeasible, otherwise objective_not_better_than_selected_dp",
+    "valid_but_not_best_tradeoff": "preserve the globally better DP path; retain landmark presence only as corridor evidence and do not claim the proposed timestamp was accepted"
+  },
+  "single_source_of_truth": "one transition problem builds theoretical boundaries, corridor radii, local minimum gaps, valid candidates and global gaps; solving and final verification consume that exact object",
+  "frozen_off_control": "voice-disabled landmark-only A path remains byte-exact at e0200bae... and is an out-of-scope control, not a B selection route",
+  "voice_policy": {
+    "unchanged_from_a": true,
+    "minimum_confidence": 0.95,
+    "fixed_tolerance_seconds": 0.01,
+    "preview_offset_applied": false,
+    "candidate_source": "automatic replay of the exact 10 frozen ASR events",
+    "new_vad_or_asr_claimed": false,
+    "under_threshold_route_in_scope": false
+  },
+  "joint_selection_a_preserved": {
+    "non_greedy_voice_landmark_search": true,
+    "maximum_complete_landmark_chains_per_voice_subset": 100000,
+    "on_limit": "explicit exception and abstention; no truncated optimum claim"
+  },
+  "reference_cache": {
+    "required_inventory": "exact 22 URL/SHA-256/byte triples frozen from base A",
+    "network_refetch_allowed": false,
+    "on_missing_or_mismatched_byte": "block before audio analysis"
+  },
+  "reference_timestamps_used_for_selection": false,
+  "youtube_or_1001tl_used_for_selection": false,
+  "retuning_after_reference_evaluation": false,
+  "evaluation": {
+    "matching": "free one-to-one within 30 seconds",
+    "comparison_primary": "16/32 base A enabled output",
+    "comparison_secondary": "12/32 baseline disabled output",
+    "no_existing_match_regression_accepted": true,
+    "zero_gain_reported_honestly": true,
+    "regression_policy": "report refusal and stop before any variant"
+  }
+}

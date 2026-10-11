@@ -1,0 +1,33 @@
+reference_number,artist,title,youtube_reference_seconds,algorithm_rss_seconds,algorithm_youtube_seconds,signed_index_distance_seconds,absolute_index_distance_seconds,immediate_algorithm_rss_seconds,immediate_algorithm_youtube_seconds,signed_algorithm_change_seconds,free_matching_status_versus_16_of_32,free_match_signed_error_seconds
+1,Mhammed El Alami & Josie Sandfeld,Keep On Running,120,120.0,118.6545,-1.3455,1.3455,120.0,118.6545,0.0,conserve,-1.3455
+2,Against All Ødds,Save Me,337,339.71,338.3645,1.3645,1.3645,339.71,338.3645,0.0,conserve,1.3645
+3,Elite Electronic,Shadows,585,525.44,524.0945,-60.9055,60.9055,525.44,524.0945,0.0,toujours_hors_30s,
+4,Phillip Castle & Aldor,Embrace The Night,780,783.62,782.2745,2.2745,2.2745,783.62,782.2745,0.0,conserve,2.2745
+5,Freak E Beatz & JASSKALL,No Escape,1006,1007.94,1006.5945,0.5945,0.5945,1007.94,1006.5945,0.0,conserve,0.5945
+6,Adriatique,Palm Of Your Hands,1142,1128.45,1127.1045,-14.8955,14.8955,1114.49,1113.1445,13.96,conserve,-14.8955
+7,Vassmo,Stay,1400,1233.6,1232.2545,-167.7455,167.7455,1233.6,1232.2545,0.0,toujours_hors_30s,
+8,Cubicore,Black Light,1554,1556.93,1555.5845,1.5845,1.5845,1556.93,1555.5845,0.0,conserve,1.5845
+9,Benny Benassi & Hypaton feat. Sandy Chambers,Illusion,1775,1807.17,1805.8245,30.8245,30.8245,1807.17,1805.8245,0.0,toujours_hors_30s,
+10,"Mike Williams, Three Drives, ANTICALM",Greece 2000,1955,1926.85,1925.5045,-29.4955,29.4955,1926.85,1925.5045,0.0,conserve,-29.4955
+11,"Genix, Dosem",Transit Point (Genix Mix),2133,2208.0,2206.6545,73.6545,73.6545,2208.0,2206.6545,0.0,toujours_hors_30s,
+12,Spoiled and Zigo,More & More (BLR Remix),2366,2365.68,2364.3345,-1.6655,1.6655,2365.68,2364.3345,0.0,conserve,-1.6655
+13,"Ashley Wallbridge, The Paper Outlet",Forever Young,2614,2618.56,2617.2145,3.2145,3.2145,2618.56,2617.2145,0.0,conserve,3.2145
+14,Markus Schulz,Second Tomorrow,2825,2827.07,2825.7245,0.7245,0.7245,2827.07,2825.7245,0.0,conserve,0.7245
+15,Victor Ruiz & KURA,FSU,3062,2984.64,2983.2945,-78.7055,78.7055,2984.64,2983.2945,0.0,toujours_hors_30s,
+16,MAXTAGE & Fathom (EG),The Right Place (RAYEL Remix),3390,3255.36,3254.0145,-135.9855,135.9855,3338.08,3336.7345,-82.72,toujours_hors_30s,
+17,Andrew Rayel pres. EXTASIA,Dreaming (Giuseppe Ottaviani Remix),3631,3564.1,3562.7545,-68.2455,68.2455,3564.1,3562.7545,0.0,toujours_hors_30s,
+18,MIDI Kitty and Derek Ryan,Miles Away,3849,3907.39,3905.6635,56.6635,56.6635,3907.39,3905.6635,0.0,toujours_hors_30s,
+19,Paul Denton & EKE,Next To Me (Club Mix),4086,4157.82,4156.0935,70.0935,70.0935,4157.82,4156.0935,0.0,toujours_hors_30s,
+20,RAM & Susana pres. Tales Of Life,The Power of Love (Alex M.O.R.P.H. Remix),4310,4436.16,4434.4335,124.4335,124.4335,4436.16,4434.4335,0.0,toujours_hors_30s,
+21,Giuseppe Ottaviani & Ilan Bluestone,Together Again,4589,4663.17,4661.4435,72.4435,72.4435,4663.17,4661.4435,0.0,toujours_hors_30s,
+22,"Aly & Fila, Susie Ledge, Roman Messer, Anton Pallmer",Carry Me Away,4825,4926.21,4924.4835,99.4835,99.4835,4926.21,4924.4835,0.0,toujours_hors_30s,
+23,John Askew,Through The Looking Glass (Nikolauss Remix),5059,5088.45,5086.7235,27.7235,27.7235,5088.45,5086.7235,0.0,conserve,27.7235
+24,Andrew Rayel,Acid On The Train (David Forbes Remix),5348,5349.38,5347.6535,-0.3465,0.3465,5349.38,5347.6535,0.0,conserve,-0.3465
+25,Armin van Buuren feat. Sharon Den Adel,In And Out Of Love (Ben Hemsley Remix),5576,5734.78,5733.0535,157.0535,157.0535,5734.78,5733.0535,0.0,toujours_hors_30s,
+26,Xincher & Rav3ver,Echo,5827,5858.11,5856.3835,29.3835,29.3835,5858.11,5856.3835,0.0,conserve,29.3835
+27,RAM & Richard Durand presents Digital Culture,La La La,5951,5985.16,5983.4335,32.4335,32.4335,5985.16,5983.4335,0.0,toujours_hors_30s,
+28,Matt Bukovski & CJ Stone,Stars,6185,6187.58,6185.8535,0.8535,0.8535,6187.58,6185.8535,0.0,conserve,0.8535
+29,"LAWTON, Trancemaster Krause & Caroline Roxy",Believe In,6383,6391.0,6389.2735,6.2735,6.2735,6391.0,6389.2735,0.0,conserve,6.2735
+30,"Olly James, Panteros666 & Evil Twiin",Berlin '99,6587,6500.16,6498.4335,-88.5665,88.5665,6500.16,6498.4335,0.0,toujours_hors_30s,
+31,Maurya Sevak & Jake Ryan,Sata Sata,6730,6831.04,6829.3135,99.3135,99.3135,6694.46,6692.7335,136.58,toujours_hors_30s,
+32,Ferry Corsten,Sweet Sorrow (The Thrillseekers Remix 2004),6974,6975.72,6973.9935,-0.0065,0.0065,6975.72,6973.9935,0.0,conserve,-0.0065

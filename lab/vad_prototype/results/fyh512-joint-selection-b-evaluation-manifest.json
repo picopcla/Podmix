@@ -1,0 +1,152 @@
+{
+  "evaluation_after_frozen_outputs": true,
+  "code": {
+    "audio_fallback_joint_b.py": "264bfeb7dcfad8852dc73cfcfcfc71351628a79116f0d18d345fac112fbd9eb3",
+    "run_fyh512_joint_selection_b.py": "ed7eb748fd8a83de2bcbc7cb4b89ce01cddf4764c03b5084099022821fe7aa2f",
+    "evaluate_fyh512_joint_selection_b.py": "f9db90fb4254d9fd91860ff7ca8b0f79863f4c716def995f0a10cf42d197e32f",
+    "test_joint_selection_b.py": "f5a2fae94a00241dfc7a56810c5436da6925127c2f2310188a353cdc14254292"
+  },
+  "inputs": {
+    "fyh512_source.json": "8ae67050e3284445a9e270c6ffff7ca45b2a4d986a94d3cefb52935e8230f75f",
+    "fyh512_title_candidates.json": "a525ef8565aab0d12282fa0e81d93eefae780c21b91ad9cdf510a3faedf6b8dc",
+    "fyh512_reference.json": "5b07bec65332da91d653d1a9ae0ba506cea68743d649e1487eb9c8c3d0e90da6",
+    "fyh512_joint_selection_b_protocol.json": "2a9cff2565a81ffd9ef0f00b6be02618af690d1f59d5abe60baabdfebf79f5ae",
+    "full_episode_protocol.json": "c99ed6d59cd22d7a3bb2b0d36ad408b88c5f323338b8bab4809f250d8411f1ec",
+    "results/fyh512-existing-engine-plus-voice-freeze-manifest.json": "7647e91094d64f80d2950abd4f8acab7929249303cf2252c66417d87322f4a36",
+    "results/fyh512-reference-cache-provenance.json": "bb61755c4b7f4e40a56c86d8bcf0b100396e4363304f2879895679a4e9d4a8e6",
+    "results/fyh512-existing-engine-complete-voice-trace-frozen.json": "d1a80c35149ad33f8720644499830c2297306ad3fe67cf7d71f42007f250a91f",
+    "results/fyh512-joint-selection-b-freeze-manifest.json": "a715019f4f7be5262767ccf9846e517fac4615dadc4b9fb6a75ced9181d51064"
+  },
+  "reference_cache_inventory": [
+    {
+      "url": "https://cdnt-preview.dzcdn.net/api/1/1/0/3/a/0/03a4074791984fc8bbd7b6f3b0ab487a.mp3",
+      "sha256": "f6911cf3a4811b5f7f796943ca35bf382afd77e2c13fbac3e90cc475f3687cd1",
+      "bytes": 480245
+    },
+    {
+      "url": "https://cdnt-preview.dzcdn.net/api/1/1/1/0/0/0/100d9b142b3010cd64e0a29175bd293b.mp3",
+      "sha256": "817b5747b967d96ffca72e432f722b58a851704f9a4c8783777c336d8392ec34",
+      "bytes": 480245
+    },
+    {
+      "url": "https://cdnt-preview.dzcdn.net/api/1/1/4/1/9/0/419a66ca69ce2cbae35e0937a1837c7e.mp3",
+      "sha256": "e3d019f683c512432deded831c63b6861bb7ee968fecba743a8f91c90806814a",
+      "bytes": 479827
+    },
+    {
+      "url": "https://cdnt-preview.dzcdn.net/api/1/1/4/d/7/0/4d7e11878569c1708ba6cc9bc03d8a90.mp3",
+      "sha256": "9a0ba9b9c88689883f17777c5a44351fee229f277ce10799f8ecde24c15f029a",
+      "bytes": 479827
+    },
+    {
+      "url": "https://cdnt-preview.dzcdn.net/api/1/1/5/e/0/0/5e055ab06d66c72ba87524464cb3330a.mp3",
+      "sha256": "58c1e076c4d9dbc1224d485f0c725e50d694ae5db7f2783938d8b34233361c65",
+      "bytes": 480245
+    },
+    {
+      "url": "https://cdnt-preview.dzcdn.net/api/1/1/7/9/7/0/7975905e0abc1b64c0f09783df8306fa.mp3",
+      "sha256": "47c89e7445b905f4c8f7f92c1cf631745925b954b1d31a5b0cce7a119556f441",
+      "bytes": 480245
+    },
+    {
+      "url": "https://cdnt-preview.dzcdn.net/api/1/1/8/8/5/0/885595d36f9a07ca3901c70cb6ff8dd3.mp3",
+      "sha256": "f4158ab614243694d78543976fbef264b0967559bf30863f715342df090674e1",
+      "bytes": 479827
+    },
+    {
+      "url": "https://cdnt-preview.dzcdn.net/api/1/1/8/f/6/0/8f670583586fb0be391053622e38dc71.mp3",
+      "sha256": "565bf14afa449cfaa315672226e1043a3478b6ceb641935c4fa7b9427676f4e1",
+      "bytes": 479827
+    },
+    {
+      "url": "https://cdnt-preview.dzcdn.net/api/1/1/a/0/c/0/a0ca29103d4e2c5a36bd63914e3632a6.mp3",
+      "sha256": "acdc49548773aedaa318fa9b248a04fd420261198b317bdc3d3b600e6a503513",
+      "bytes": 479827
+    },
+    {
+      "url": "https://cdnt-preview.dzcdn.net/api/1/1/a/5/7/0/a57d24df885151ce7542c8a2be03dc07.mp3",
+      "sha256": "cfdea5aaefb977e7a63c0982adf65af8cc3118290d79d8236a46d7e7c620bede",
+      "bytes": 479827
+    },
+    {
+      "url": "https://cdnt-preview.dzcdn.net/api/1/1/a/6/e/0/a6e2f7fea8bfd044a9815311aa9402e7.mp3",
+      "sha256": "d1fe1885a6e6deadd953d51efc5a5204799f0bba4a09c3fdd444d8fff2b77e98",
+      "bytes": 480245
+    },
+    {
+      "url": "https://cdnt-preview.dzcdn.net/api/1/1/a/7/8/0/a78a7f759838ae7314bd266c31f9bc03.mp3",
+      "sha256": "16de054693a3754a833b14306e7e8ac605f9b7c9cba6b881e5477747ad9c7545",
+      "bytes": 479827
+    },
+    {
+      "url": "https://cdnt-preview.dzcdn.net/api/1/1/a/9/3/0/a93941ec106fad9380bd790a942a2223.mp3",
+      "sha256": "d47515403e2f6245a79fcd4a6a30015be216eaff4e17c1b4addc87cb8d583564",
+      "bytes": 480245
+    },
+    {
+      "url": "https://cdnt-preview.dzcdn.net/api/1/1/a/f/f/0/aff6b9cf82d43867bc019e698ea35bf2.mp3",
+      "sha256": "6b378f425a9ad06c450ed398b1306532a0205e9a451fa52eccdbb2f8ada89aa4",
+      "bytes": 479827
+    },
+    {
+      "url": "https://cdnt-preview.dzcdn.net/api/1/1/d/b/b/0/dbbc8ee4869998605b6d0c2f332db73d.mp3",
+      "sha256": "5c3fc74c2ee6a2c190b7946ad7e3637a4ff03c7c41aebf078f0e3ac2976a58a9",
+      "bytes": 479827
+    },
+    {
+      "url": "https://cdnt-preview.dzcdn.net/api/1/1/d/f/a/0/dfaf7a6e23b483e7bddd351b101a8c0d.mp3",
+      "sha256": "dc356408d93986455e28d1c0d16d8a24ad92f858dc409119a7b3aa50eb446a3c",
+      "bytes": 480245
+    },
+    {
+      "url": "https://cdnt-preview.dzcdn.net/api/1/1/e/9/9/0/e99ce3f7a86a820d40c2f67c646ca8e2.mp3",
+      "sha256": "1866581c7869272ba7b766248708215cc081a1faa2e10d34c06eefcab05a1a36",
+      "bytes": 479827
+    },
+    {
+      "url": "https://soundcloud.com/fathommusicofficial/maxtage-fathom-eg-the-right",
+      "sha256": "ffc6f1ac9fb1e2bedb4fd2889d6ffae7c4ec5930c20176158fe8b156cda84cfa",
+      "bytes": 5127986
+    },
+    {
+      "url": "https://soundcloud.com/housextechno/palm_of_your_hands_adriatique_x_falling_slow_kasbo",
+      "sha256": "3052bef6990a5666f7565bf49ef476c30a2f89a5a361a1ca34f20fbaaba86352",
+      "bytes": 10301020
+    },
+    {
+      "url": "https://soundcloud.com/nightdiver-nightdiver/victor-ruiz-kura-fsu-southmind",
+      "sha256": "10cf8e1bbd0e01409580b23a4b5c4c9fd9be4d252a091c9de0241e0db091a9d3",
+      "bytes": 7070521
+    },
+    {
+      "url": "https://soundcloud.com/theviicrew/john-askew-through-the-looking-glass-faders-wilder-remix",
+      "sha256": "c8d66d0fa0e02253e2e9f34e29907075d57369dd17165226b0b7653f16c0f993",
+      "bytes": 5500333
+    },
+    {
+      "url": "https://soundcloud.com/zerothree-music/against-all-odds-save-me",
+      "sha256": "905d37b76df80142316542f6f35c0754137edf1cdf26c67a23a576ae1eae346a",
+      "bytes": 7051283
+    }
+  ],
+  "frozen_outputs": {
+    "fyh512-joint-selection-b-disabled-frozen.json": "e0200bae398de872f1b861f5db4fc1781c302cf193acd27a6935d56a37b2e208",
+    "fyh512-joint-selection-b-frozen.json": "2b0a597bc0b0b9fbf5d59db2b722d286e0965040fd2bef6422dad849a1003dfa",
+    "fyh512-joint-selection-b-disabled-trace-frozen.json": "d27023e1de842ba9c6146028f6f7ef4b6c4050f952fb5c883816b41a4516efc2",
+    "fyh512-joint-selection-b-trace-frozen.json": "5de52b5722a877a52c278c04b6f0af9edaf005d73865cd8af176d340fd4642b0"
+  },
+  "evaluation_outputs": {
+    "fyh512-joint-selection-b-pairs.json": "35d40f6afe9f9d7f866f84bb9e95f9770e28450f794023d225a04d81639d88d9",
+    "fyh512-joint-selection-b-pairs.csv": "2b1a7a472bcd2077289797fb450cd321d3fd98bcd984752a5cb178644591d17d",
+    "fyh512-joint-selection-b-missing.json": "bde6cbdfe6844f9efb9e85ddbb52ec9c3eb76c18eb31789a4e6ea4aec7162cfd",
+    "fyh512-joint-selection-b-missing.csv": "d8c86e525302a791ed74685674aa09fa5ea474bebca8d8bc06c27869a2cc526b",
+    "fyh512-joint-selection-b-surplus.json": "52d0b85252b38f73186c819b29c5f22f9839c50436c33a97c4042da37af7e477",
+    "fyh512-joint-selection-b-surplus.csv": "7e881395d188dea4050ed8d8cd21658da9531463add4aec5ad83c6f7ae43bb31",
+    "fyh512-joint-selection-b-comparison-32.json": "eb6d65cbad130512015dabddc57ddad1515ef2029239f1de9e2008958f21febb",
+    "fyh512-joint-selection-b-comparison-32.csv": "338329474dc78a3451338666d49a41f4dcf206885029ce8822106cd75bcba82d",
+    "fyh512-joint-selection-b-candidate-audit.json": "721fdc73c70895818164f4b026df25737ac3bc22819a90b8ac10daf98955f102",
+    "fyh512-joint-selection-b-candidate-audit.csv": "568c50e6a17c88f2d52e027205841ecd1cbbaef5d01a10b4be02ac37390cbec0",
+    "fyh512-joint-selection-b-evaluation-summary.json": "677d8a7f6481ef64a6804185f266f9768a727d4fdf62f68907a3502d82b42f5d",
+    "fyh512-joint-selection-b-32-lines.txt": "690e8d68cebe9fcb214f588a82d5a8fbbedc1d513f207e47c7886f7bdc0e1c8d"
+  }
+}
