@@ -23,8 +23,18 @@
   "reliability_policy": "A voice anchor cannot reduce landmark coverage; among equal-coverage chains its confidence competes with landmark evidence strength, so a reliable fingerprint is not automatically displaced.",
   "feasibility_proof": "detect_constrained_transitions with the same novelty, presences, local corridors, candidate construction and DP as final execution",
   "voice_subset_search": "exhaustive over all interpreted voice candidates; no chronological greedy locking",
-  "landmark_alternative_search": "for each voice subset, candidates directly conflicting with that voice are excluded before the unchanged ordered-landmark DP chooses its best compatible chain",
+  "landmark_alternative_search": "for each voice subset, enumerate every ordered chain of reliable landmark presences; reject direct conflicts, then adjacent-correction conflicts, then real constrained-DP conflicts; rank feasible chains by the frozen joint objective",
+  "landmark_search_bound": {
+    "maximum_complete_chains_per_voice_subset": 100000,
+    "on_limit": "abort the complete joint selection with explicit abstention; never return or label a truncated result exhaustive",
+    "safe_pruning": "a candidate without reliable presence is dominated because it affects neither objective, correction, theoretical corridor nor final DP and can only add an ordering restriction"
+  },
   "fallback_without_voice": "exact unchanged base landmark-only path",
+  "reference_cache": {
+    "required_inventory": "the exact 22 URL/SHA-256/byte triples frozen in results/fyh512-existing-engine-plus-voice-freeze-manifest.json at base 1391d7ab",
+    "network_refetch_allowed_for_controlled_comparison": false,
+    "on_missing_or_mismatched_byte": "block before audio analysis"
+  },
   "reference_timestamps_used_for_selection": false,
   "youtube_or_1001tl_used_for_selection": false,
   "retuning_after_reference_evaluation": false,

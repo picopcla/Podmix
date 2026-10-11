@@ -23,6 +23,8 @@ BASELINE_SHA256 = "e0200bae398de872f1b861f5db4fc1781c302cf193acd27a6935d56a37b2e
 IMMEDIATE_BASE_SHA256 = "199c10e9c35552206a81ddf782e689986e7f36628415b5a18ae1bd033f37070a"
 BASE_COMMIT = "1391d7ab63d04e118c0d8df84fbc4c07199654a6"
 BASE_ENGINE_SHA256 = "72e478f2c7fbeb208d1861320411f8e5630aaad95df81fedfa5c6feccf08ec0e"
+BASE_REFERENCE_MANIFEST = RESULTS / "fyh512-existing-engine-plus-voice-freeze-manifest.json"
+REFERENCE_PROVENANCE = RESULTS / "fyh512-reference-cache-provenance.json"
 
 
 def sha256(path: Path) -> str:
@@ -68,11 +70,23 @@ def main() -> int:
     replay_events = replay_trace["voice"]["events"]
     if len(replay_events) != 10:
         raise ValueError("Le replay doit contenir exactement les 10 événements ASR de la passe complète")
+    base_reference_manifest = json.loads(BASE_REFERENCE_MANIFEST.read_text(encoding="utf-8"))
+    expected_references = {
+        item["url"]: (item["sha256"], item["bytes"])
+        for item in base_reference_manifest["reference_inventory"]
+    }
+    if len(expected_references) != 22:
+        raise ValueError("Le manifest de base ne contient pas les 22 références attendues")
     CACHE.mkdir(parents=True, exist_ok=True)
     RESULTS.mkdir(exist_ok=True)
+    for url, expected in expected_references.items():
+        cached = CACHE / f"{hashlib.sha256(url.encode()).hexdigest()}.audio"
+        if not cached.is_file() or (sha256(cached), cached.stat().st_size) != expected:
+            raise ValueError(
+                "Cache original 1391d7ab incomplet ou différent; comparaison contrôlée bloquée"
+            )
 
     original_urls = engine._track_reference_urls
-    original_download = engine._download_reference
     original_landmarks = engine.landmark_transition_corrections
     original_detect = engine.detect_constrained_transitions
     original_coherent = engine.boundaries_are_coherent
@@ -106,13 +120,16 @@ def main() -> int:
             item = {"url": normalized, "query_parameters_recorded": False}
             row["downloads"].append(item)
             try:
-                if cached.is_file():
-                    shutil.copyfile(cached, destination)
-                    item["transport"] = "frozen_local_reference_cache"
-                else:
-                    original_download(url, destination)
-                    shutil.copyfile(destination, cached)
-                    item["transport"] = "public_reference_download_then_cache"
+                expected = expected_references.get(normalized)
+                if expected is None:
+                    raise ValueError("URL absente de l'inventaire de base 1391d7ab")
+                if not cached.is_file():
+                    raise ValueError("octets originaux absents; comparaison contrôlée bloquée")
+                actual = (sha256(cached), cached.stat().st_size)
+                if actual != expected:
+                    raise ValueError("cache différent de 1391d7ab; comparaison contrôlée bloquée")
+                shutil.copyfile(cached, destination)
+                item["transport"] = "base_1391d7ab_byte_exact_local_reference_cache"
             except Exception as error:
                 item.update({"status": "failed", "error_type": type(error).__name__, "error": str(error)})
                 raise
@@ -203,11 +220,14 @@ def main() -> int:
         "replay_condition": "no new VAD or ASR claimed; exact 10-event trace replayed automatically through the delivered hook",
         "replay_source_sha256": sha256(replay_trace_path),
         "inputs": {path.relative_to(LAB).as_posix(): sha256(path) for path in (
-            LAB / "fyh512_source.json", LAB / "fyh512_title_candidates.json", protocol_path, FULL_PROTOCOL,
+            LAB / "fyh512_source.json", LAB / "fyh512_title_candidates.json", protocol_path,
+            FULL_PROTOCOL, BASE_REFERENCE_MANIFEST, REFERENCE_PROVENANCE,
         )},
         "engine_copy_sha256": sha256(LAB / "audio_fallback_joint_a.py"),
         "detector_sha256": sha256(LAB / "complete_voice_detector.py"),
         "runner_sha256": sha256(Path(__file__)),
+        "tests_sha256": sha256(LAB / "test_joint_selection_a.py"),
+        "reference_cache_policy": "base_1391d7ab_byte_exact_or_block_without_network_refetch",
         "outputs": {path.name: sha256(path) for path in (disabled_path, enabled_path, disabled_trace_path, enabled_trace_path)},
         "reference_inventory": [{"url": url, "sha256": digest, "bytes": size} for url, digest, size in inventory],
     }

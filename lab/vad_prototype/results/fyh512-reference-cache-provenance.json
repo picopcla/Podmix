@@ -1,0 +1,69 @@
+{
+  "scope": "FYH512 mission A controlled reference-cache comparison",
+  "base_inventory": {
+    "commit": "1391d7ab63d04e118c0d8df84fbc4c07199654a6",
+    "manifest": "fyh512-existing-engine-plus-voice-freeze-manifest.json",
+    "manifest_sha256": "7647e91094d64f80d2950abd4f8acab7929249303cf2252c66417d87322f4a36",
+    "exact_entries_restored": 22,
+    "entry_count": 22
+  },
+  "divergent_inventory": {
+    "commit": "86284889227e7fe0d1e02797be5ec8d0eef2cff0",
+    "manifest_at_that_commit": "fyh512-joint-selection-a-freeze-manifest.json",
+    "manifest_sha256": "4b55a5e43d1cf13400068b392ee94654dfbbe281cc4c628d7b5e40b8c00b44df",
+    "identical_deezer_entries": 17,
+    "divergent_soundcloud_entries": 5
+  },
+  "method": {
+    "byte_identity": "SHA-256 and byte length",
+    "container_inspection": "top-level ISO Base Media box parsing",
+    "decoded_audio_identity": "FFmpeg 7.0.2 decode of audio stream to PCM signed 16-bit little-endian, native channel count and sample rate, then SHA-256",
+    "result": "all five decoded PCM hashes are pairwise identical; only the MP4 containerization differs",
+    "base_container": "flat MP4: ftyp + moov + free + one mdat",
+    "divergent_container": "fragmented MP4: ftyp + small moov + repeated styp/sidx/moof/mdat fragments",
+    "catalog_url_change": false
+  },
+  "soundcloud_pairs": [
+    {
+      "url": "https://soundcloud.com/fathommusicofficial/maxtage-fathom-eg-the-right",
+      "base_sha256": "ffc6f1ac9fb1e2bedb4fd2889d6ffae7c4ec5930c20176158fe8b156cda84cfa",
+      "base_bytes": 5127986,
+      "divergent_sha256": "0bc50bbd3be94de5f44e4776ed519b89a32c14f2016f0ebe7a19f8ebcb9d7442",
+      "divergent_bytes": 5133393,
+      "decoded_pcm_sha256": "c81649b71490be0bc09d9d322685e357506da3da9813f43e2996292437c0e1f5"
+    },
+    {
+      "url": "https://soundcloud.com/housextechno/palm_of_your_hands_adriatique_x_falling_slow_kasbo",
+      "base_sha256": "3052bef6990a5666f7565bf49ef476c30a2f89a5a361a1ca34f20fbaaba86352",
+      "base_bytes": 10301020,
+      "divergent_sha256": "f575ea2c9301a4686a7552945ccd4d7da72c2369a0538dca05c30277bba3846f",
+      "divergent_bytes": 10310531,
+      "decoded_pcm_sha256": "49d2879811eb2faa647e172afe180db6847197827a1d25da29564c56dd87b898"
+    },
+    {
+      "url": "https://soundcloud.com/nightdiver-nightdiver/victor-ruiz-kura-fsu-southmind",
+      "base_sha256": "10cf8e1bbd0e01409580b23a4b5c4c9fd9be4d252a091c9de0241e0db091a9d3",
+      "base_bytes": 7070521,
+      "divergent_sha256": "6d782953859529d4d78d4b0cdf3d0fc2c8365a36799a07af8b027500ca58c931",
+      "divergent_bytes": 7077084,
+      "decoded_pcm_sha256": "0c5cf9b1967fbaa2e5989a773ce2e07e94d3038aad92b957000d949262c34930"
+    },
+    {
+      "url": "https://soundcloud.com/theviicrew/john-askew-through-the-looking-glass-faders-wilder-remix",
+      "base_sha256": "c8d66d0fa0e02253e2e9f34e29907075d57369dd17165226b0b7653f16c0f993",
+      "base_bytes": 5500333,
+      "divergent_sha256": "b5989509becda86b79cb218897752a1cd2ef0f7ef470f2f3fc30df0caf90be68",
+      "divergent_bytes": 5505839,
+      "decoded_pcm_sha256": "7d61aba5325c5386046ced34a9e9a374b80029f7fd6d4f2e13b47a05b40343e3"
+    },
+    {
+      "url": "https://soundcloud.com/zerothree-music/against-all-odds-save-me",
+      "base_sha256": "905d37b76df80142316542f6f35c0754137edf1cdf26c67a23a576ae1eae346a",
+      "base_bytes": 7051283,
+      "divergent_sha256": "7986a26d2ba5c34859f3a59d41c387d276b1eb3c31d7e49096d81bdfdc3ba0a5",
+      "divergent_bytes": 7059246,
+      "decoded_pcm_sha256": "1d2e950bfd26b219844b17f9911bb3b7b2702c5b2704594bbef91c2a7cc6772f"
+    }
+  ],
+  "controlled_comparison_cache_status": "restored byte-for-byte to all 22 base entries before replay"
+}

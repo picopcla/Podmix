@@ -12,17 +12,21 @@
   "inputs": {
     "fyh512_source.json": "8ae67050e3284445a9e270c6ffff7ca45b2a4d986a94d3cefb52935e8230f75f",
     "fyh512_title_candidates.json": "a525ef8565aab0d12282fa0e81d93eefae780c21b91ad9cdf510a3faedf6b8dc",
-    "fyh512_joint_selection_a_protocol.json": "64327dfcecac455994ad6d04136be461436a8d8dd04ad4a0452e446152bce8b7",
-    "full_episode_protocol.json": "c99ed6d59cd22d7a3bb2b0d36ad408b88c5f323338b8bab4809f250d8411f1ec"
+    "fyh512_joint_selection_a_protocol.json": "044a171e9401e3bc8f5bb09838847db34bef90328456efc15b4138516b0d258f",
+    "full_episode_protocol.json": "c99ed6d59cd22d7a3bb2b0d36ad408b88c5f323338b8bab4809f250d8411f1ec",
+    "results/fyh512-existing-engine-plus-voice-freeze-manifest.json": "7647e91094d64f80d2950abd4f8acab7929249303cf2252c66417d87322f4a36",
+    "results/fyh512-reference-cache-provenance.json": "bb61755c4b7f4e40a56c86d8bcf0b100396e4363304f2879895679a4e9d4a8e6"
   },
-  "engine_copy_sha256": "21695834cbac8db8afcc275a1086e74121faf24ddcf903265e7db09a89f076e4",
+  "engine_copy_sha256": "a290559d2d9b55068581e5c1f956abdeb33ab179e3ea3f7400fcf6a62f33d47a",
   "detector_sha256": "240575241bca33c4bb3cd32e0c942c22a4593ddc45e0397967dafeec03415958",
-  "runner_sha256": "71753b46795e6962fb52bab52ba22405002be4d327ba167b81f474130fc67ea4",
+  "runner_sha256": "2d66a2a47dd9b140cdd8d06f13f3ea8ef0c91f92cfd05c79e57b107097978cdc",
+  "tests_sha256": "92ddac01ccef456d8c83fb383114647ac81924ebdc5bdecb457e6ec5180a9169",
+  "reference_cache_policy": "base_1391d7ab_byte_exact_or_block_without_network_refetch",
   "outputs": {
     "fyh512-joint-selection-a-disabled-frozen.json": "e0200bae398de872f1b861f5db4fc1781c302cf193acd27a6935d56a37b2e208",
     "fyh512-joint-selection-a-frozen.json": "199c10e9c35552206a81ddf782e689986e7f36628415b5a18ae1bd033f37070a",
-    "fyh512-joint-selection-a-disabled-trace-frozen.json": "9487752755893ce8671c83697345f15ac5357401beb32fdbe77d22d3cf97fc68",
-    "fyh512-joint-selection-a-trace-frozen.json": "9749f76226fcf55d8f57030193b357a67235db55928edf7c2ca19a48f86aceaf"
+    "fyh512-joint-selection-a-disabled-trace-frozen.json": "478183d3273ca716239aff5be2a90c92e29a0117fe8426498434a1a3987db419",
+    "fyh512-joint-selection-a-trace-frozen.json": "df213c69ede6ecf636317ffb07a0950066c226249bbbba620e54d5c91116debb"
   },
   "reference_inventory": [
     {
@@ -112,28 +116,28 @@
     },
     {
       "url": "https://soundcloud.com/fathommusicofficial/maxtage-fathom-eg-the-right",
-      "sha256": "0bc50bbd3be94de5f44e4776ed519b89a32c14f2016f0ebe7a19f8ebcb9d7442",
-      "bytes": 5133393
+      "sha256": "ffc6f1ac9fb1e2bedb4fd2889d6ffae7c4ec5930c20176158fe8b156cda84cfa",
+      "bytes": 5127986
     },
     {
       "url": "https://soundcloud.com/housextechno/palm_of_your_hands_adriatique_x_falling_slow_kasbo",
-      "sha256": "f575ea2c9301a4686a7552945ccd4d7da72c2369a0538dca05c30277bba3846f",
-      "bytes": 10310531
+      "sha256": "3052bef6990a5666f7565bf49ef476c30a2f89a5a361a1ca34f20fbaaba86352",
+      "bytes": 10301020
     },
     {
       "url": "https://soundcloud.com/nightdiver-nightdiver/victor-ruiz-kura-fsu-southmind",
-      "sha256": "6d782953859529d4d78d4b0cdf3d0fc2c8365a36799a07af8b027500ca58c931",
-      "bytes": 7077084
+      "sha256": "10cf8e1bbd0e01409580b23a4b5c4c9fd9be4d252a091c9de0241e0db091a9d3",
+      "bytes": 7070521
     },
     {
       "url": "https://soundcloud.com/theviicrew/john-askew-through-the-looking-glass-faders-wilder-remix",
-      "sha256": "b5989509becda86b79cb218897752a1cd2ef0f7ef470f2f3fc30df0caf90be68",
-      "bytes": 5505839
+      "sha256": "c8d66d0fa0e02253e2e9f34e29907075d57369dd17165226b0b7653f16c0f993",
+      "bytes": 5500333
     },
     {
       "url": "https://soundcloud.com/zerothree-music/against-all-odds-save-me",
-      "sha256": "7986a26d2ba5c34859f3a59d41c387d276b1eb3c31d7e49096d81bdfdc3ba0a5",
-      "bytes": 7059246
+      "sha256": "905d37b76df80142316542f6f35c0754137edf1cdf26c67a23a576ae1eae346a",
+      "bytes": 7051283
     }
   ]
 }

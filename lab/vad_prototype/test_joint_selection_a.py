@@ -4,6 +4,7 @@ from pathlib import Path
 import json
 import sys
 import unittest
+from unittest import mock
 
 import numpy as np
 
@@ -25,6 +26,14 @@ def candidate(track: int, second: float, score: float = 20.0):
 def presence(item: joint.LandmarkCandidate):
     return joint.LandmarkPresence(
         item.track, item.anchor, item.anchor, item.anchor + 20.0, item.score, item.votes,
+    )
+
+
+def bounded_presence(
+    item: joint.LandmarkCandidate, start: float, end: float,
+) -> joint.LandmarkPresence:
+    return joint.LandmarkPresence(
+        item.track, item.anchor, start, end, item.score, item.votes,
     )
 
 
@@ -70,6 +79,52 @@ class JointSelectionATests(unittest.TestCase):
         self.assertEqual(sorted(voices), [0])
         self.assertEqual(trace["selected_voice_detection_ids"], ["voice"])
 
+    def test_alternative_chain_is_tried_after_adjacent_correction_conflict(self):
+        one = candidate(1, 100.0)
+        locally_best = candidate(2, 260.0, 30.0)
+        compatible = candidate(2, 250.0, 20.0)
+        three, four = candidate(3, 400.0), candidate(4, 520.0)
+        sets = [[one], [locally_best, compatible], [three], [four]]
+        presences = {
+            one: bounded_presence(one, 100.0, 150.0),
+            locally_best: bounded_presence(locally_best, 500.0, 530.0),
+            compatible: bounded_presence(compatible, 290.0, 320.0),
+            three: bounded_presence(three, 400.0, 430.0),
+            four: bounded_presence(four, 520.0, 550.0),
+        }
+        novelty = np.zeros(int(650 / joint.HOP_SECONDS) + 1, dtype=np.float32)
+        chosen, _, _, _, voices, trace = joint.select_joint_landmarks_and_voice(
+            sets, presences, [anchor(1, 230.0, "voice")], novelty, 650.0, [],
+        )
+        self.assertEqual(chosen[2], compatible)
+        self.assertEqual(sorted(voices), [1])
+        voice_row = next(
+            row for row in trace["alternatives_examined"]
+            if row["voice_detection_ids"] == ["voice"]
+        )
+        self.assertGreater(
+            voice_row["landmark_chain_search"]["adjacent_conflict_rejections"], 0,
+        )
+
+    def test_alternative_chain_is_tried_after_real_optimizer_rejection(self):
+        locally_best = candidate(2, 120.0, 30.0)
+        feasible = candidate(2, 45.0, 20.0)
+        presences = {item: presence(item) for item in (locally_best, feasible)}
+        novelty = np.zeros(int(350 / joint.HOP_SECONDS) + 1, dtype=np.float32)
+        chosen, _, _, _, voices, trace = joint.select_joint_landmarks_and_voice(
+            [[], [locally_best, feasible], []], presences,
+            [anchor(2, 145.0, "voice")], novelty, 350.0, [],
+        )
+        self.assertEqual(chosen[2], feasible)
+        self.assertEqual(sorted(voices), [2])
+        voice_row = next(
+            row for row in trace["alternatives_examined"]
+            if row["voice_detection_ids"] == ["voice"]
+        )
+        self.assertEqual(
+            voice_row["landmark_chain_search"]["optimizer_constraint_rejections"], 1,
+        )
+
     def test_real_conflict_still_abstains(self):
         item = anchor(1, 500.0, "conflict")
         fixed = {2: joint.LandmarkPresence(2, 100.0, 100.0, 130.0, 20.0, 50)}
@@ -77,21 +132,54 @@ class JointSelectionATests(unittest.TestCase):
         self.assertEqual(accepted, {})
         self.assertEqual(decisions[0]["reason"], "landmark_presence_conflict")
 
+    def test_joint_true_conflict_abstains_from_the_voice_candidate(self):
+        item = candidate(2, 100.0)
+        novelty = np.zeros(int(500 / joint.HOP_SECONDS) + 1, dtype=np.float32)
+        chosen, _, _, _, voices, trace = joint.select_joint_landmarks_and_voice(
+            [[], [item], []], {item: presence(item)},
+            [anchor(1, 500.0, "conflict")], novelty, 500.0, [],
+        )
+        self.assertEqual(chosen, {2: item})
+        self.assertEqual(voices, {})
+        self.assertEqual(trace["selected_voice_detection_ids"], [])
+        conflict_row = next(
+            row for row in trace["alternatives_examined"]
+            if row["voice_detection_ids"] == ["conflict"]
+        )
+        self.assertEqual(
+            conflict_row["landmark_chain_search"]["direct_conflict_candidates_filtered"], 1,
+        )
+
     def test_candidate_order_does_not_change_selection(self):
-        landmarks = [candidate(1, 100.0), candidate(2, 250.0), candidate(3, 400.0)]
+        landmarks = [
+            candidate(1, 100.0), candidate(1, 90.0, 18.0),
+            candidate(2, 250.0), candidate(2, 240.0, 18.0),
+            candidate(3, 400.0), candidate(3, 390.0, 18.0),
+        ]
         presences = {item: presence(item) for item in landmarks}
         novelty = np.zeros(int(550 / joint.HOP_SECONDS) + 1, dtype=np.float32)
         voices = [anchor(0, 70.0, "a", 0.98), anchor(2, 400.0, "b", 0.97)]
+        sets = [landmarks[0:2], landmarks[2:4], landmarks[4:6]]
         first = joint.select_joint_landmarks_and_voice(
-            [[landmarks[0]], [landmarks[1]], [landmarks[2]]], presences,
-            voices, novelty, 550.0, [],
+            sets, presences, voices, novelty, 550.0, [],
         )
         second = joint.select_joint_landmarks_and_voice(
-            [[landmarks[0]], [landmarks[1]], [landmarks[2]]], presences,
+            [list(reversed(row)) for row in sets], presences,
             list(reversed(voices)), novelty, 550.0, [],
         )
         self.assertEqual(first[0], second[0])
         self.assertEqual(first[4], second[4])
+
+    def test_chain_limit_causes_explicit_abstention_without_truncation_claim(self):
+        item = candidate(1, 100.0)
+        novelty = np.zeros(int(300 / joint.HOP_SECONDS) + 1, dtype=np.float32)
+        with mock.patch.object(joint, "JOINT_MAX_LANDMARK_CHAINS_PER_VOICE_SUBSET", 1):
+            with self.assertRaisesRegex(
+                joint.AudioFallbackError, "tronquée à 1 chaînes landmarks.*abstention",
+            ):
+                joint.select_joint_landmarks_and_voice(
+                    [[item]], {item: presence(item)}, [], novelty, 300.0, [],
+                )
 
     def test_fallback_without_voice_is_the_base_landmark_selection(self):
         sets = [[candidate(1, 100.0)], [candidate(2, 250.0)], [candidate(3, 400.0)]]

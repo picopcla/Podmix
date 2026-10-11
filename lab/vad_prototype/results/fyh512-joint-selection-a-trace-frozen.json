@@ -866,12 +866,25 @@
         "priority_2": "maximize_sum_log1p_landmark_score_plus_voice_confidence",
         "priority_3": "maximize_voice_anchor_count",
         "tie_break": "stable_candidate_identity_independent_of_input_order",
-        "feasibility": "production_detect_constrained_transitions_same_novelty_corridors_and_dp"
+        "feasibility": "production_detect_constrained_transitions_same_novelty_corridors_and_dp",
+        "landmark_search": "exact_reliable_presence_chain_enumeration_or_explicit_abstention_at_limit",
+        "landmark_chain_limit_per_voice_subset": 100000,
+        "unreliable_candidate_pruning": "safe_dominance_no_objective_correction_corridor_or_dp_effect"
       },
       "alternatives_examined": [
         {
           "voice_detection_ids": [],
           "decision": "feasible",
+          "landmark_chain_search": {
+            "mode": "exact_enumeration",
+            "limit": 100000,
+            "examined": 32280,
+            "direct_conflict_candidates_filtered": 0,
+            "adjacent_conflict_rejections": 0,
+            "optimizer_chains_tested": 1,
+            "optimizer_constraint_rejections": 0,
+            "truncated": false
+          },
           "reason": null,
           "landmark_presence_count": 11,
           "landmark_utility": 40.4425391,
@@ -973,6 +986,16 @@
             "find-your-harmony-512-complete-voice-d002"
           ],
           "decision": "feasible",
+          "landmark_chain_search": {
+            "mode": "exact_enumeration",
+            "limit": 100000,
+            "examined": 32280,
+            "direct_conflict_candidates_filtered": 0,
+            "adjacent_conflict_rejections": 0,
+            "optimizer_chains_tested": 1,
+            "optimizer_constraint_rejections": 0,
+            "truncated": false
+          },
           "reason": null,
           "landmark_presence_count": 11,
           "landmark_utility": 40.4425391,
@@ -1074,6 +1097,16 @@
             "find-your-harmony-512-complete-voice-d005"
           ],
           "decision": "feasible",
+          "landmark_chain_search": {
+            "mode": "exact_enumeration",
+            "limit": 100000,
+            "examined": 32280,
+            "direct_conflict_candidates_filtered": 0,
+            "adjacent_conflict_rejections": 0,
+            "optimizer_chains_tested": 1,
+            "optimizer_constraint_rejections": 0,
+            "truncated": false
+          },
           "reason": null,
           "landmark_presence_count": 11,
           "landmark_utility": 40.4425391,
@@ -1176,6 +1209,16 @@
             "find-your-harmony-512-complete-voice-d005"
           ],
           "decision": "feasible",
+          "landmark_chain_search": {
+            "mode": "exact_enumeration",
+            "limit": 100000,
+            "examined": 32280,
+            "direct_conflict_candidates_filtered": 0,
+            "adjacent_conflict_rejections": 0,
+            "optimizer_chains_tested": 1,
+            "optimizer_constraint_rejections": 0,
+            "truncated": false
+          },
           "reason": null,
           "landmark_presence_count": 11,
           "landmark_utility": 40.4425391,
@@ -1277,6 +1320,16 @@
             "find-your-harmony-512-complete-voice-d008"
           ],
           "decision": "feasible",
+          "landmark_chain_search": {
+            "mode": "exact_enumeration",
+            "limit": 100000,
+            "examined": 32280,
+            "direct_conflict_candidates_filtered": 0,
+            "adjacent_conflict_rejections": 0,
+            "optimizer_chains_tested": 1,
+            "optimizer_constraint_rejections": 0,
+            "truncated": false
+          },
           "reason": null,
           "landmark_presence_count": 11,
           "landmark_utility": 40.4425391,
@@ -1379,6 +1432,16 @@
             "find-your-harmony-512-complete-voice-d008"
           ],
           "decision": "feasible",
+          "landmark_chain_search": {
+            "mode": "exact_enumeration",
+            "limit": 100000,
+            "examined": 32280,
+            "direct_conflict_candidates_filtered": 0,
+            "adjacent_conflict_rejections": 0,
+            "optimizer_chains_tested": 1,
+            "optimizer_constraint_rejections": 0,
+            "truncated": false
+          },
           "reason": null,
           "landmark_presence_count": 11,
           "landmark_utility": 40.4425391,
@@ -1481,6 +1544,16 @@
             "find-your-harmony-512-complete-voice-d008"
           ],
           "decision": "feasible",
+          "landmark_chain_search": {
+            "mode": "exact_enumeration",
+            "limit": 100000,
+            "examined": 32280,
+            "direct_conflict_candidates_filtered": 0,
+            "adjacent_conflict_rejections": 0,
+            "optimizer_chains_tested": 1,
+            "optimizer_constraint_rejections": 0,
+            "truncated": false
+          },
           "reason": null,
           "landmark_presence_count": 11,
           "landmark_utility": 40.4425391,
@@ -1584,6 +1657,16 @@
             "find-your-harmony-512-complete-voice-d008"
           ],
           "decision": "feasible",
+          "landmark_chain_search": {
+            "mode": "exact_enumeration",
+            "limit": 100000,
+            "examined": 32280,
+            "direct_conflict_candidates_filtered": 0,
+            "adjacent_conflict_rejections": 0,
+            "optimizer_chains_tested": 1,
+            "optimizer_constraint_rejections": 0,
+            "truncated": false
+          },
           "reason": null,
           "landmark_presence_count": 11,
           "landmark_utility": 40.4425391,
@@ -1685,6 +1768,16 @@
             "find-your-harmony-512-complete-voice-d010"
           ],
           "decision": "feasible",
+          "landmark_chain_search": {
+            "mode": "exact_enumeration",
+            "limit": 100000,
+            "examined": 32280,
+            "direct_conflict_candidates_filtered": 0,
+            "adjacent_conflict_rejections": 0,
+            "optimizer_chains_tested": 1,
+            "optimizer_constraint_rejections": 0,
+            "truncated": false
+          },
           "reason": null,
           "landmark_presence_count": 11,
           "landmark_utility": 40.4425391,
@@ -1787,6 +1880,16 @@
             "find-your-harmony-512-complete-voice-d010"
           ],
           "decision": "feasible",
+          "landmark_chain_search": {
+            "mode": "exact_enumeration",
+            "limit": 100000,
+            "examined": 32280,
+            "direct_conflict_candidates_filtered": 0,
+            "adjacent_conflict_rejections": 0,
+            "optimizer_chains_tested": 1,
+            "optimizer_constraint_rejections": 0,
+            "truncated": false
+          },
           "reason": null,
           "landmark_presence_count": 11,
           "landmark_utility": 40.4425391,
@@ -1889,6 +1992,16 @@
             "find-your-harmony-512-complete-voice-d010"
           ],
           "decision": "feasible",
+          "landmark_chain_search": {
+            "mode": "exact_enumeration",
+            "limit": 100000,
+            "examined": 32280,
+            "direct_conflict_candidates_filtered": 0,
+            "adjacent_conflict_rejections": 0,
+            "optimizer_chains_tested": 1,
+            "optimizer_constraint_rejections": 0,
+            "truncated": false
+          },
           "reason": null,
           "landmark_presence_count": 11,
           "landmark_utility": 40.4425391,
@@ -1992,6 +2105,16 @@
             "find-your-harmony-512-complete-voice-d010"
           ],
           "decision": "feasible",
+          "landmark_chain_search": {
+            "mode": "exact_enumeration",
+            "limit": 100000,
+            "examined": 32280,
+            "direct_conflict_candidates_filtered": 0,
+            "adjacent_conflict_rejections": 0,
+            "optimizer_chains_tested": 1,
+            "optimizer_constraint_rejections": 0,
+            "truncated": false
+          },
           "reason": null,
           "landmark_presence_count": 11,
           "landmark_utility": 40.4425391,
@@ -2094,6 +2217,16 @@
             "find-your-harmony-512-complete-voice-d010"
           ],
           "decision": "feasible",
+          "landmark_chain_search": {
+            "mode": "exact_enumeration",
+            "limit": 100000,
+            "examined": 32280,
+            "direct_conflict_candidates_filtered": 0,
+            "adjacent_conflict_rejections": 0,
+            "optimizer_chains_tested": 1,
+            "optimizer_constraint_rejections": 0,
+            "truncated": false
+          },
           "reason": null,
           "landmark_presence_count": 11,
           "landmark_utility": 40.4425391,
@@ -2197,6 +2330,16 @@
             "find-your-harmony-512-complete-voice-d010"
           ],
           "decision": "feasible",
+          "landmark_chain_search": {
+            "mode": "exact_enumeration",
+            "limit": 100000,
+            "examined": 32280,
+            "direct_conflict_candidates_filtered": 0,
+            "adjacent_conflict_rejections": 0,
+            "optimizer_chains_tested": 1,
+            "optimizer_constraint_rejections": 0,
+            "truncated": false
+          },
           "reason": null,
           "landmark_presence_count": 11,
           "landmark_utility": 40.4425391,
@@ -2300,6 +2443,16 @@
             "find-your-harmony-512-complete-voice-d010"
           ],
           "decision": "feasible",
+          "landmark_chain_search": {
+            "mode": "exact_enumeration",
+            "limit": 100000,
+            "examined": 32280,
+            "direct_conflict_candidates_filtered": 0,
+            "adjacent_conflict_rejections": 0,
+            "optimizer_chains_tested": 1,
+            "optimizer_constraint_rejections": 0,
+            "truncated": false
+          },
           "reason": null,
           "landmark_presence_count": 11,
           "landmark_utility": 40.4425391,
@@ -2404,6 +2557,16 @@
             "find-your-harmony-512-complete-voice-d010"
           ],
           "decision": "feasible",
+          "landmark_chain_search": {
+            "mode": "exact_enumeration",
+            "limit": 100000,
+            "examined": 32280,
+            "direct_conflict_candidates_filtered": 0,
+            "adjacent_conflict_rejections": 0,
+            "optimizer_chains_tested": 1,
+            "optimizer_constraint_rejections": 0,
+            "truncated": false
+          },
           "reason": null,
           "landmark_presence_count": 11,
           "landmark_utility": 40.4425391,
@@ -2652,77 +2815,13 @@
     },
     "matched_references": 11,
     "presences": {
-      "31": {
-        "track": 31,
-        "anchor": 6823.424,
-        "start": 6831.36,
-        "end": 6850.82,
-        "score": 144.455,
-        "events": 372
-      },
-      "30": {
-        "track": 30,
-        "anchor": 6588.416,
-        "start": 6590.67,
-        "end": 6615.56,
-        "score": 12.793,
-        "events": 47
-      },
-      "25": {
-        "track": 25,
-        "anchor": 5694.464,
-        "start": 5697.54,
-        "end": 5723.42,
-        "score": 33.035,
-        "events": 161
-      },
-      "16": {
-        "track": 16,
-        "anchor": 3355.136,
-        "start": 3414.72,
-        "end": 3583.04,
-        "score": 26.275,
-        "events": 153
-      },
-      "15": {
-        "track": 15,
-        "anchor": 3020.288,
-        "start": 3052.44,
-        "end": 3261.44,
-        "score": 22.956,
-        "events": 127
-      },
-      "13": {
-        "track": 13,
-        "anchor": 2704.384,
-        "start": 2705.15,
-        "end": 2731.52,
-        "score": 31.546,
-        "events": 164
-      },
-      "11": {
-        "track": 11,
-        "anchor": 2166.784,
-        "start": 2173.18,
-        "end": 2191.62,
-        "score": 32.651,
-        "events": 184
-      },
-      "9": {
-        "track": 9,
-        "anchor": 1830.912,
-        "start": 1833.11,
-        "end": 1855.85,
-        "score": 19.766,
-        "events": 77
-      },
-      "6": {
-        "track": 6,
-        "anchor": 1111.04,
-        "start": 1140.99,
-        "end": 1329.15,
-        "score": 131.609,
-        "events": 1314
+      "2": {
+        "track": 2,
+        "anchor": 307.2,
+        "start": 350.72,
+        "end": 531.71,
+        "score": 162.175,
+        "events": 1426
       },
       "5": {
         "track": 5,
@@ -2732,13 +2831,77 @@
         "score": 15.688,
         "events": 81
       },
-      "2": {
-        "track": 2,
-        "anchor": 307.2,
-        "start": 350.72,
-        "end": 531.71,
-        "score": 162.175,
-        "events": 1426
+      "6": {
+        "track": 6,
+        "anchor": 1111.04,
+        "start": 1140.99,
+        "end": 1329.15,
+        "score": 131.609,
+        "events": 1314
+      },
+      "9": {
+        "track": 9,
+        "anchor": 1830.912,
+        "start": 1833.11,
+        "end": 1855.85,
+        "score": 19.766,
+        "events": 77
+      },
+      "11": {
+        "track": 11,
+        "anchor": 2166.784,
+        "start": 2173.18,
+        "end": 2191.62,
+        "score": 32.651,
+        "events": 184
+      },
+      "13": {
+        "track": 13,
+        "anchor": 2704.384,
+        "start": 2705.15,
+        "end": 2731.52,
+        "score": 31.546,
+        "events": 164
+      },
+      "15": {
+        "track": 15,
+        "anchor": 3020.288,
+        "start": 3052.44,
+        "end": 3261.44,
+        "score": 22.956,
+        "events": 127
+      },
+      "16": {
+        "track": 16,
+        "anchor": 3355.136,
+        "start": 3414.72,
+        "end": 3583.04,
+        "score": 26.275,
+        "events": 153
+      },
+      "25": {
+        "track": 25,
+        "anchor": 5694.464,
+        "start": 5697.54,
+        "end": 5723.42,
+        "score": 33.035,
+        "events": 161
+      },
+      "30": {
+        "track": 30,
+        "anchor": 6588.416,
+        "start": 6590.67,
+        "end": 6615.56,
+        "score": 12.793,
+        "events": 47
+      },
+      "31": {
+        "track": 31,
+        "anchor": 6823.424,
+        "start": 6831.36,
+        "end": 6850.82,
+        "score": 144.455,
+        "events": 372
       }
     }
   },
@@ -2795,7 +2958,7 @@
         {
           "url": "https://cdnt-preview.dzcdn.net/api/1/1/a/f/f/0/aff6b9cf82d43867bc019e698ea35bf2.mp3",
           "query_parameters_recorded": false,
-          "transport": "frozen_local_reference_cache",
+          "transport": "base_1391d7ab_byte_exact_local_reference_cache",
           "status": "obtained",
           "bytes": 479827,
           "sha256": "6b378f425a9ad06c450ed398b1306532a0205e9a451fa52eccdbb2f8ada89aa4"
@@ -2803,10 +2966,10 @@
         {
           "url": "https://soundcloud.com/zerothree-music/against-all-odds-save-me",
           "query_parameters_recorded": false,
-          "transport": "frozen_local_reference_cache",
+          "transport": "base_1391d7ab_byte_exact_local_reference_cache",
           "status": "obtained",
-          "bytes": 7059246,
-          "sha256": "7986a26d2ba5c34859f3a59d41c387d276b1eb3c31d7e49096d81bdfdc3ba0a5"
+          "bytes": 7051283,
+          "sha256": "905d37b76df80142316542f6f35c0754137edf1cdf26c67a23a576ae1eae346a"
         }
       ]
     },
@@ -2824,7 +2987,7 @@
         {
           "url": "https://cdnt-preview.dzcdn.net/api/1/1/a/6/e/0/a6e2f7fea8bfd044a9815311aa9402e7.mp3",
           "query_parameters_recorded": false,
-          "transport": "frozen_local_reference_cache",
+          "transport": "base_1391d7ab_byte_exact_local_reference_cache",
           "status": "obtained",
           "bytes": 480245,
           "sha256": "d1fe1885a6e6deadd953d51efc5a5204799f0bba4a09c3fdd444d8fff2b77e98"
@@ -2840,7 +3003,7 @@
         {
           "url": "https://cdnt-preview.dzcdn.net/api/1/1/4/1/9/0/419a66ca69ce2cbae35e0937a1837c7e.mp3",
           "query_parameters_recorded": false,
-          "transport": "frozen_local_reference_cache",
+          "transport": "base_1391d7ab_byte_exact_local_reference_cache",
           "status": "obtained",
           "bytes": 479827,
           "sha256": "e3d019f683c512432deded831c63b6861bb7ee968fecba743a8f91c90806814a"
@@ -2856,10 +3019,10 @@
         {
           "url": "https://soundcloud.com/housextechno/palm_of_your_hands_adriatique_x_falling_slow_kasbo",
           "query_parameters_recorded": false,
-          "transport": "frozen_local_reference_cache",
+          "transport": "base_1391d7ab_byte_exact_local_reference_cache",
           "status": "obtained",
-          "bytes": 10310531,
-          "sha256": "f575ea2c9301a4686a7552945ccd4d7da72c2369a0538dca05c30277bba3846f"
+          "bytes": 10301020,
+          "sha256": "3052bef6990a5666f7565bf49ef476c30a2f89a5a361a1ca34f20fbaaba86352"
         }
       ]
     },
@@ -2877,7 +3040,7 @@
         {
           "url": "https://cdnt-preview.dzcdn.net/api/1/1/e/9/9/0/e99ce3f7a86a820d40c2f67c646ca8e2.mp3",
           "query_parameters_recorded": false,
-          "transport": "frozen_local_reference_cache",
+          "transport": "base_1391d7ab_byte_exact_local_reference_cache",
           "status": "obtained",
           "bytes": 479827,
           "sha256": "1866581c7869272ba7b766248708215cc081a1faa2e10d34c06eefcab05a1a36"
@@ -2894,7 +3057,7 @@
         {
           "url": "https://cdnt-preview.dzcdn.net/api/1/1/a/9/3/0/a93941ec106fad9380bd790a942a2223.mp3",
           "query_parameters_recorded": false,
-          "transport": "frozen_local_reference_cache",
+          "transport": "base_1391d7ab_byte_exact_local_reference_cache",
           "status": "obtained",
           "bytes": 480245,
           "sha256": "d47515403e2f6245a79fcd4a6a30015be216eaff4e17c1b4addc87cb8d583564"
@@ -2903,8 +3066,8 @@
           "url": "https://soundcloud.com/bennybenassi-sc/illusion-feat-sandy-chambers",
           "query_parameters_recorded": false,
           "status": "failed",
-          "error_type": "AudioFallbackError",
-          "error": "Téléchargement du mix impossible : ERROR: [soundcloud] 2378918009: This video is DRM protected"
+          "error_type": "ValueError",
+          "error": "URL absente de l'inventaire de base 1391d7ab"
         }
       ]
     },
@@ -2918,8 +3081,8 @@
           "url": "https://soundcloud.com/mikewilliamsdj/greece-2000-extended-mix",
           "query_parameters_recorded": false,
           "status": "failed",
-          "error_type": "AudioFallbackError",
-          "error": "Téléchargement du mix impossible : ERROR: [soundcloud] 2393721363: This video is DRM protected"
+          "error_type": "ValueError",
+          "error": "URL absente de l'inventaire de base 1391d7ab"
         }
       ]
     },
@@ -2933,7 +3096,7 @@
         {
           "url": "https://cdnt-preview.dzcdn.net/api/1/1/4/d/7/0/4d7e11878569c1708ba6cc9bc03d8a90.mp3",
           "query_parameters_recorded": false,
-          "transport": "frozen_local_reference_cache",
+          "transport": "base_1391d7ab_byte_exact_local_reference_cache",
           "status": "obtained",
           "bytes": 479827,
           "sha256": "9a0ba9b9c88689883f17777c5a44351fee229f277ce10799f8ecde24c15f029a"
@@ -2942,8 +3105,8 @@
           "url": "https://soundcloud.com/genix-1/transit-point-genix-mix",
           "query_parameters_recorded": false,
           "status": "failed",
-          "error_type": "AudioFallbackError",
-          "error": "Téléchargement du mix impossible : ERROR: [soundcloud] 2387167593: This video is DRM protected"
+          "error_type": "ValueError",
+          "error": "URL absente de l'inventaire de base 1391d7ab"
         }
       ]
     },
@@ -2957,8 +3120,8 @@
           "url": "https://soundcloud.com/spoiledandzigo/more-more-blr-remix",
           "query_parameters_recorded": false,
           "status": "failed",
-          "error_type": "AudioFallbackError",
-          "error": "Téléchargement du mix impossible : ERROR: [soundcloud] 2388613638: This video is DRM protected"
+          "error_type": "ValueError",
+          "error": "URL absente de l'inventaire de base 1391d7ab"
         }
       ]
     },
@@ -2971,7 +3134,7 @@
         {
           "url": "https://cdnt-preview.dzcdn.net/api/1/1/a/7/8/0/a78a7f759838ae7314bd266c31f9bc03.mp3",
           "query_parameters_recorded": false,
-          "transport": "frozen_local_reference_cache",
+          "transport": "base_1391d7ab_byte_exact_local_reference_cache",
           "status": "obtained",
           "bytes": 479827,
           "sha256": "16de054693a3754a833b14306e7e8ac605f9b7c9cba6b881e5477747ad9c7545"
@@ -2988,7 +3151,7 @@
         {
           "url": "https://cdnt-preview.dzcdn.net/api/1/1/d/f/a/0/dfaf7a6e23b483e7bddd351b101a8c0d.mp3",
           "query_parameters_recorded": false,
-          "transport": "frozen_local_reference_cache",
+          "transport": "base_1391d7ab_byte_exact_local_reference_cache",
           "status": "obtained",
           "bytes": 480245,
           "sha256": "dc356408d93986455e28d1c0d16d8a24ad92f858dc409119a7b3aa50eb446a3c"
@@ -2997,8 +3160,8 @@
           "url": "https://soundcloud.com/markusschulz/second-tomorrow-extended-mix",
           "query_parameters_recorded": false,
           "status": "failed",
-          "error_type": "AudioFallbackError",
-          "error": "Téléchargement du mix impossible : ERROR: [soundcloud] 2403002013: This video is DRM protected"
+          "error_type": "ValueError",
+          "error": "URL absente de l'inventaire de base 1391d7ab"
         }
       ]
     },
@@ -3011,10 +3174,10 @@
         {
           "url": "https://soundcloud.com/nightdiver-nightdiver/victor-ruiz-kura-fsu-southmind",
           "query_parameters_recorded": false,
-          "transport": "frozen_local_reference_cache",
+          "transport": "base_1391d7ab_byte_exact_local_reference_cache",
           "status": "obtained",
-          "bytes": 7077084,
-          "sha256": "6d782953859529d4d78d4b0cdf3d0fc2c8365a36799a07af8b027500ca58c931"
+          "bytes": 7070521,
+          "sha256": "10cf8e1bbd0e01409580b23a4b5c4c9fd9be4d252a091c9de0241e0db091a9d3"
         }
       ]
     },
@@ -3028,7 +3191,7 @@
         {
           "url": "https://cdnt-preview.dzcdn.net/api/1/1/a/5/7/0/a57d24df885151ce7542c8a2be03dc07.mp3",
           "query_parameters_recorded": false,
-          "transport": "frozen_local_reference_cache",
+          "transport": "base_1391d7ab_byte_exact_local_reference_cache",
           "status": "obtained",
           "bytes": 479827,
           "sha256": "cfdea5aaefb977e7a63c0982adf65af8cc3118290d79d8236a46d7e7c620bede"
@@ -3036,10 +3199,10 @@
         {
           "url": "https://soundcloud.com/fathommusicofficial/maxtage-fathom-eg-the-right",
           "query_parameters_recorded": false,
-          "transport": "frozen_local_reference_cache",
+          "transport": "base_1391d7ab_byte_exact_local_reference_cache",
           "status": "obtained",
-          "bytes": 5133393,
-          "sha256": "0bc50bbd3be94de5f44e4776ed519b89a32c14f2016f0ebe7a19f8ebcb9d7442"
+          "bytes": 5127986,
+          "sha256": "ffc6f1ac9fb1e2bedb4fd2889d6ffae7c4ec5930c20176158fe8b156cda84cfa"
         }
       ]
     },
@@ -3063,8 +3226,8 @@
           "url": "https://soundcloud.com/djpauldenton/next-to-me-extended-club-mix",
           "query_parameters_recorded": false,
           "status": "failed",
-          "error_type": "AudioFallbackError",
-          "error": "Téléchargement du mix impossible : ERROR: [soundcloud] 2393801670: This video is DRM protected"
+          "error_type": "ValueError",
+          "error": "URL absente de l'inventaire de base 1391d7ab"
         }
       ]
     },
@@ -3083,7 +3246,7 @@
         {
           "url": "https://cdnt-preview.dzcdn.net/api/1/1/5/e/0/0/5e055ab06d66c72ba87524464cb3330a.mp3",
           "query_parameters_recorded": false,
-          "transport": "frozen_local_reference_cache",
+          "transport": "base_1391d7ab_byte_exact_local_reference_cache",
           "status": "obtained",
           "bytes": 480245,
           "sha256": "58c1e076c4d9dbc1224d485f0c725e50d694ae5db7f2783938d8b34233361c65"
@@ -3092,8 +3255,8 @@
           "url": "https://soundcloud.com/giuseppeottaviani/together-again-extended-mix",
           "query_parameters_recorded": false,
           "status": "failed",
-          "error_type": "AudioFallbackError",
-          "error": "Téléchargement du mix impossible : ERROR: [soundcloud] 2384924226: This video is DRM protected"
+          "error_type": "ValueError",
+          "error": "URL absente de l'inventaire de base 1391d7ab"
         }
       ]
     },
@@ -3112,7 +3275,7 @@
         {
           "url": "https://cdnt-preview.dzcdn.net/api/1/1/7/9/7/0/7975905e0abc1b64c0f09783df8306fa.mp3",
           "query_parameters_recorded": false,
-          "transport": "frozen_local_reference_cache",
+          "transport": "base_1391d7ab_byte_exact_local_reference_cache",
           "status": "obtained",
           "bytes": 480245,
           "sha256": "47c89e7445b905f4c8f7f92c1cf631745925b954b1d31a5b0cce7a119556f441"
@@ -3120,10 +3283,10 @@
         {
           "url": "https://soundcloud.com/theviicrew/john-askew-through-the-looking-glass-faders-wilder-remix",
           "query_parameters_recorded": false,
-          "transport": "frozen_local_reference_cache",
+          "transport": "base_1391d7ab_byte_exact_local_reference_cache",
           "status": "obtained",
-          "bytes": 5505839,
-          "sha256": "b5989509becda86b79cb218897752a1cd2ef0f7ef470f2f3fc30df0caf90be68"
+          "bytes": 5500333,
+          "sha256": "c8d66d0fa0e02253e2e9f34e29907075d57369dd17165226b0b7653f16c0f993"
         }
       ]
     },
@@ -3136,7 +3299,7 @@
         {
           "url": "https://cdnt-preview.dzcdn.net/api/1/1/d/b/b/0/dbbc8ee4869998605b6d0c2f332db73d.mp3",
           "query_parameters_recorded": false,
-          "transport": "frozen_local_reference_cache",
+          "transport": "base_1391d7ab_byte_exact_local_reference_cache",
           "status": "obtained",
           "bytes": 479827,
           "sha256": "5c3fc74c2ee6a2c190b7946ad7e3637a4ff03c7c41aebf078f0e3ac2976a58a9"
@@ -3152,7 +3315,7 @@
         {
           "url": "https://cdnt-preview.dzcdn.net/api/1/1/8/8/5/0/885595d36f9a07ca3901c70cb6ff8dd3.mp3",
           "query_parameters_recorded": false,
-          "transport": "frozen_local_reference_cache",
+          "transport": "base_1391d7ab_byte_exact_local_reference_cache",
           "status": "obtained",
           "bytes": 479827,
           "sha256": "f4158ab614243694d78543976fbef264b0967559bf30863f715342df090674e1"
@@ -3168,7 +3331,7 @@
         {
           "url": "https://cdnt-preview.dzcdn.net/api/1/1/1/0/0/0/100d9b142b3010cd64e0a29175bd293b.mp3",
           "query_parameters_recorded": false,
-          "transport": "frozen_local_reference_cache",
+          "transport": "base_1391d7ab_byte_exact_local_reference_cache",
           "status": "obtained",
           "bytes": 480245,
           "sha256": "817b5747b967d96ffca72e432f722b58a851704f9a4c8783777c336d8392ec34"
@@ -3190,7 +3353,7 @@
         {
           "url": "https://cdnt-preview.dzcdn.net/api/1/1/a/0/c/0/a0ca29103d4e2c5a36bd63914e3632a6.mp3",
           "query_parameters_recorded": false,
-          "transport": "frozen_local_reference_cache",
+          "transport": "base_1391d7ab_byte_exact_local_reference_cache",
           "status": "obtained",
           "bytes": 479827,
           "sha256": "acdc49548773aedaa318fa9b248a04fd420261198b317bdc3d3b600e6a503513"
@@ -3199,8 +3362,8 @@
           "url": "https://soundcloud.com/mattbukovski/stars-extended-mix",
           "query_parameters_recorded": false,
           "status": "failed",
-          "error_type": "AudioFallbackError",
-          "error": "Téléchargement du mix impossible : ERROR: [soundcloud] 2398420272: This video is DRM protected"
+          "error_type": "ValueError",
+          "error": "URL absente de l'inventaire de base 1391d7ab"
         }
       ]
     },
@@ -3219,7 +3382,7 @@
         {
           "url": "https://cdnt-preview.dzcdn.net/api/1/1/8/f/6/0/8f670583586fb0be391053622e38dc71.mp3",
           "query_parameters_recorded": false,
-          "transport": "frozen_local_reference_cache",
+          "transport": "base_1391d7ab_byte_exact_local_reference_cache",
           "status": "obtained",
           "bytes": 479827,
           "sha256": "565bf14afa449cfaa315672226e1043a3478b6ceb641935c4fa7b9427676f4e1"
@@ -3228,8 +3391,8 @@
           "url": "https://soundcloud.com/ollyjamesmusic/berlin-99-extended-mix",
           "query_parameters_recorded": false,
           "status": "failed",
-          "error_type": "AudioFallbackError",
-          "error": "Téléchargement du mix impossible : ERROR: [soundcloud] 2396073321: This video is DRM protected"
+          "error_type": "ValueError",
+          "error": "URL absente de l'inventaire de base 1391d7ab"
         }
       ]
     },
@@ -3242,7 +3405,7 @@
         {
           "url": "https://cdnt-preview.dzcdn.net/api/1/1/0/3/a/0/03a4074791984fc8bbd7b6f3b0ab487a.mp3",
           "query_parameters_recorded": false,
-          "transport": "frozen_local_reference_cache",
+          "transport": "base_1391d7ab_byte_exact_local_reference_cache",
           "status": "obtained",
           "bytes": 480245,
           "sha256": "f6911cf3a4811b5f7f796943ca35bf382afd77e2c13fbac3e90cc475f3687cd1"
@@ -3259,8 +3422,8 @@
           "url": "https://soundcloud.com/ferry-corsten/sweet-sorrow-thrillseekers-mix",
           "query_parameters_recorded": false,
           "status": "failed",
-          "error_type": "AudioFallbackError",
-          "error": "Téléchargement du mix impossible : ERROR: [soundcloud] 735542890: This video is DRM protected"
+          "error_type": "ValueError",
+          "error": "URL absente de l'inventaire de base 1391d7ab"
         }
       ]
     }

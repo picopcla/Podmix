@@ -158,8 +158,40 @@ def main() -> int:
                          ("comparison-32", comparison), ("candidate-audit", audit)):
         write_json(RESULTS / f"{PREFIX}-{suffix}.json", rows)
         write_csv(RESULTS / f"{PREFIX}-{suffix}.csv", rows)
-    write_json(RESULTS / f"{PREFIX}-evaluation-summary.json", summary)
-    (RESULTS / f"{PREFIX}-32-lines.txt").write_text("\n".join(lines) + "\n", encoding="utf-8")
+    summary_path = RESULTS / f"{PREFIX}-evaluation-summary.json"
+    lines_path = RESULTS / f"{PREFIX}-32-lines.txt"
+    write_json(summary_path, summary)
+    lines_path.write_text("\n".join(lines) + "\n", encoding="utf-8")
+    evaluation_outputs = [
+        RESULTS / f"{PREFIX}-{suffix}.{extension}"
+        for suffix in ("pairs", "missing", "surplus", "comparison-32", "candidate-audit")
+        for extension in ("json", "csv")
+    ] + [summary_path, lines_path]
+    audit_manifest = {
+        "evaluation_after_frozen_outputs": True,
+        "code": {
+            "audio_fallback_joint_a.py": sha256(LAB / "audio_fallback_joint_a.py"),
+            "run_fyh512_joint_selection_a.py": sha256(LAB / "run_fyh512_joint_selection_a.py"),
+            "evaluate_fyh512_joint_selection_a.py": sha256(Path(__file__)),
+            "test_joint_selection_a.py": sha256(LAB / "test_joint_selection_a.py"),
+        },
+        "inputs": {
+            path.relative_to(LAB).as_posix(): sha256(path)
+            for path in (
+                LAB / "fyh512_source.json", LAB / "fyh512_title_candidates.json",
+                LAB / "fyh512_reference.json", LAB / "fyh512_joint_selection_a_protocol.json",
+                LAB / "full_episode_protocol.json",
+                RESULTS / "fyh512-existing-engine-plus-voice-freeze-manifest.json",
+                RESULTS / "fyh512-reference-cache-provenance.json",
+                RESULTS / "fyh512-existing-engine-complete-voice-trace-frozen.json",
+                manifest_path,
+            )
+        },
+        "reference_cache_inventory": manifest["reference_inventory"],
+        "frozen_outputs": manifest["outputs"],
+        "evaluation_outputs": {path.name: sha256(path) for path in evaluation_outputs},
+    }
+    write_json(RESULTS / f"{PREFIX}-evaluation-manifest.json", audit_manifest)
     print(json.dumps(summary, ensure_ascii=False, indent=2))
     return 1 if verdict == "regression_stop" else 0
 

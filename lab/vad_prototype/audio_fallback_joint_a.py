@@ -50,6 +50,7 @@ VOICE_MIN_CONFIDENCE = 0.95
 VOICE_TITLE_MIN_SCORE = 0.72
 VOICE_TITLE_UNIQUENESS_MARGIN = 0.12
 VOICE_PRESENCE_TOLERANCE_SECONDS = 90.0
+JOINT_MAX_LANDMARK_CHAINS_PER_VOICE_SUBSET = 100_000
 
 
 class AudioFallbackError(RuntimeError):
@@ -827,6 +828,60 @@ def _landmark_corrections_from_presences(
     return corrections, confidence
 
 
+def _ordered_reliable_landmark_chains(
+    candidate_sets: list[list[LandmarkCandidate]],
+    candidate_presences: dict[LandmarkCandidate, LandmarkPresence | None],
+) -> list[dict[int, LandmarkCandidate]]:
+    """Énumère exactement les chaînes utiles, ou s'abstient à la limite.
+
+    Un candidat sans présence fiable est dominé ici : il ne participe ni à
+    l'objectif, ni aux corrections, ni aux couloirs du DP final. Le retirer
+    conserve donc exactement la même solution effective et ne peut que lever
+    une contrainte d'ordre inutile. Les candidats fiables restants sont
+    parcourus dans un ordre d'identité stable, avec au plus un candidat par
+    piste et la même contrainte d'espacement que ``select_ordered_landmarks``.
+    """
+    ordered_sets = [
+        sorted(
+            (item for item in candidates if candidate_presences.get(item) is not None),
+            key=lambda item: (
+                item.track, item.anchor, item.reference, item.speed, item.score, item.votes,
+            ),
+        )
+        for candidates in candidate_sets
+    ]
+    chains: list[dict[int, LandmarkCandidate]] = []
+
+    def visit(
+        track_offset: int,
+        previous: LandmarkCandidate | None,
+        chosen: dict[int, LandmarkCandidate],
+    ) -> None:
+        if track_offset == len(ordered_sets):
+            if len(chains) >= JOINT_MAX_LANDMARK_CHAINS_PER_VOICE_SUBSET:
+                raise AudioFallbackError(
+                    "Recherche conjointe tronquée à "
+                    f"{JOINT_MAX_LANDMARK_CHAINS_PER_VOICE_SUBSET} chaînes landmarks; "
+                    "abstention sans optimum prétendu"
+                )
+            chains.append(dict(chosen))
+            return
+        visit(track_offset + 1, previous, chosen)
+        for item in ordered_sets[track_offset]:
+            if previous is not None:
+                track_delta = item.track - previous.track
+                if track_delta <= 0:
+                    continue
+                if item.anchor - previous.anchor < MIN_TRACK_GAP_SECONDS * track_delta:
+                    continue
+            chosen[item.track] = item
+            visit(track_offset + 1, item, chosen)
+            del chosen[item.track]
+
+    visit(0, None, {})
+    return chains
+
+
 def select_joint_landmarks_and_voice(
     candidate_sets: list[list[LandmarkCandidate]],
     candidate_presences: dict[LandmarkCandidate, LandmarkPresence | None],
@@ -836,13 +891,16 @@ def select_joint_landmarks_and_voice(
     audio_candidates: list[tuple[float, float]],
 ) -> tuple[dict[int, LandmarkCandidate], dict[int, LandmarkPresence],
            dict[int, float], dict[int, str], dict[int, BoundaryAnchor], dict]:
-    """Sélection conjointe figée, exhaustive sur les annonces candidates.
+    """Sélection conjointe exacte, avec abstention explicite à la limite.
 
     Priorités: (1) nombre de présences landmarks fiables, puis (2) somme
     ``log1p(score_landmark) + confiance_voix``, puis (3) nombre d'annonces.
     Ainsi une annonce ne remplace jamais une couverture landmark plus longue,
     mais peut départager deux chaînes de même couverture. Chaque ensemble est
-    finalement soumis au DP de production, avec ses vrais couloirs et novelty.
+    Les chaînes landmarks fiables sont toutes construites avant rejet pour
+    conflit adjacent ou DP. Elles sont évaluées par objectif décroissant; le
+    premier passage du vrai DP est donc l'optimum exact du sous-ensemble voix.
+    Si l'énumération dépasse la limite publiée, toute la sélection s'abstient.
     """
     ordered_voice = sorted(
         voice_candidates,
@@ -867,6 +925,7 @@ def select_joint_landmarks_and_voice(
             continue
 
         filtered_sets: list[list[LandmarkCandidate]] = []
+        direct_conflict_candidates_filtered = 0
         for candidates in candidate_sets:
             compatible: list[LandmarkCandidate] = []
             for candidate in candidates:
@@ -875,45 +934,82 @@ def select_joint_landmarks_and_voice(
                 if presence is not None and anchor is not None:
                     musical_start = max(0.0, presence.anchor - DEEZER_PREVIEW_OFFSET_SECONDS)
                     if abs(musical_start - anchor.time_seconds) > VOICE_PRESENCE_TOLERANCE_SECONDS:
+                        direct_conflict_candidates_filtered += 1
                         continue
                 compatible.append(candidate)
             filtered_sets.append(compatible)
-        chosen = select_ordered_landmarks(filtered_sets)
-        presences = {
-            track: presence
-            for track, candidate in chosen.items()
-            if (presence := candidate_presences.get(candidate)) is not None
-        }
-        corrections, confidence = _landmark_corrections_from_presences(
-            presences, len(candidate_sets), audio_candidates,
-        )
-        conflict = next((
-            "adjacent_presence_conflict"
-            for anchor in subset
-            if anchor.track_index in corrections
-            and abs(corrections[anchor.track_index] - anchor.time_seconds) > VOICE_PRESENCE_TOLERANCE_SECONDS
-        ), None)
-        if conflict is not None:
-            row["reason"] = conflict
-            alternatives.append(row)
-            continue
-        try:
-            detect_constrained_transitions(
-                novelty, len(candidate_sets), duration, presences, anchors,
-            )
-        except AudioFallbackError as error:
-            if str(error) not in {
-                "Ancres audio incompatibles avec une suite de coupes cohérente",
-                "Optimisation audio contrainte incomplète",
-            }:
-                raise
-            row["reason"] = "optimizer_constraint_conflict"
-            alternatives.append(row)
-            continue
-        landmark_utility = sum(math.log1p(item.score) for item in presences.values())
+        chains = _ordered_reliable_landmark_chains(filtered_sets, candidate_presences)
+        ranked: list[tuple[tuple, dict[int, LandmarkCandidate],
+                           dict[int, LandmarkPresence], dict[int, float], dict[int, str]]] = []
+        adjacent_rejections = 0
         voice_utility = sum(anchor.confidence for anchor in subset)
+        for chosen in chains:
+            presences = {
+                track: candidate_presences[candidate]
+                for track, candidate in chosen.items()
+            }
+            corrections, confidence = _landmark_corrections_from_presences(
+                presences, len(candidate_sets), audio_candidates,
+            )
+            if any(
+                anchor.track_index in corrections
+                and abs(corrections[anchor.track_index] - anchor.time_seconds)
+                    > VOICE_PRESENCE_TOLERANCE_SECONDS
+                for anchor in subset
+            ):
+                adjacent_rejections += 1
+                continue
+            landmark_utility = sum(math.log1p(item.score) for item in presences.values())
+            stable_identity = tuple(
+                (item.track, round(item.anchor, 3), item.reference, round(item.speed, 4),
+                 round(item.score, 3), item.votes)
+                for item in sorted(chosen.values(), key=lambda value: value.track)
+            )
+            chain_objective = (
+                len(presences), round(landmark_utility, 8), stable_identity,
+            )
+            ranked.append((chain_objective, chosen, presences, corrections, confidence))
+        ranked.sort(key=lambda item: item[0], reverse=True)
+        selected_chain = None
+        optimizer_rejections = 0
+        for chain in ranked:
+            try:
+                detect_constrained_transitions(
+                    novelty, len(candidate_sets), duration, chain[2], anchors,
+                )
+            except AudioFallbackError as error:
+                if str(error) not in {
+                    "Ancres audio incompatibles avec une suite de coupes cohérente",
+                    "Optimisation audio contrainte incomplète",
+                }:
+                    raise
+                optimizer_rejections += 1
+                continue
+            selected_chain = chain
+            break
+        row["landmark_chain_search"] = {
+            "mode": "exact_enumeration",
+            "limit": JOINT_MAX_LANDMARK_CHAINS_PER_VOICE_SUBSET,
+            "examined": len(chains),
+            "direct_conflict_candidates_filtered": direct_conflict_candidates_filtered,
+            "adjacent_conflict_rejections": adjacent_rejections,
+            "optimizer_chains_tested": optimizer_rejections + (selected_chain is not None),
+            "optimizer_constraint_rejections": optimizer_rejections,
+            "truncated": False,
+        }
+        if selected_chain is None:
+            row["reason"] = (
+                "adjacent_presence_conflict"
+                if adjacent_rejections == len(chains)
+                else "optimizer_constraint_conflict"
+            )
+            alternatives.append(row)
+            continue
+        _, chosen, presences, corrections, confidence = selected_chain
+        landmark_utility = sum(math.log1p(item.score) for item in presences.values())
         stable_identity = tuple(
-            (item.track, round(item.anchor, 3), item.reference, round(item.speed, 4))
+            (item.track, round(item.anchor, 3), item.reference, round(item.speed, 4),
+             round(item.score, 3), item.votes)
             for item in sorted(chosen.values(), key=lambda value: value.track)
         )
         objective = (
@@ -946,6 +1042,9 @@ def select_joint_landmarks_and_voice(
             "priority_3": "maximize_voice_anchor_count",
             "tie_break": "stable_candidate_identity_independent_of_input_order",
             "feasibility": "production_detect_constrained_transitions_same_novelty_corridors_and_dp",
+            "landmark_search": "exact_reliable_presence_chain_enumeration_or_explicit_abstention_at_limit",
+            "landmark_chain_limit_per_voice_subset": JOINT_MAX_LANDMARK_CHAINS_PER_VOICE_SUBSET,
+            "unreliable_candidate_pruning": "safe_dominance_no_objective_correction_corridor_or_dp_effect",
         },
         "alternatives_examined": alternatives,
         "selected_voice_detection_ids": selected_ids,
