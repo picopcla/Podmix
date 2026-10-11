@@ -1,0 +1,178 @@
+[
+  {
+    "reference_number": 1,
+    "artist": "Mhammed El Alami & Josie Sandfeld",
+    "title": "Keep On Running",
+    "youtube_reference_seconds": 120,
+    "algorithm_track_number": 1,
+    "rss_algorithm_seconds": 120.0,
+    "algorithm_youtube_seconds": 118.6545,
+    "signed_error_seconds": -1.3455,
+    "absolute_error_seconds": 1.3455
+  },
+  {
+    "reference_number": 2,
+    "artist": "Against All Ødds",
+    "title": "Save Me",
+    "youtube_reference_seconds": 337,
+    "algorithm_track_number": 2,
+    "rss_algorithm_seconds": 339.71,
+    "algorithm_youtube_seconds": 338.3645,
+    "signed_error_seconds": 1.3645,
+    "absolute_error_seconds": 1.3645
+  },
+  {
+    "reference_number": 4,
+    "artist": "Phillip Castle & Aldor",
+    "title": "Embrace The Night",
+    "youtube_reference_seconds": 780,
+    "algorithm_track_number": 4,
+    "rss_algorithm_seconds": 783.62,
+    "algorithm_youtube_seconds": 782.2745,
+    "signed_error_seconds": 2.2745,
+    "absolute_error_seconds": 2.2745
+  },
+  {
+    "reference_number": 5,
+    "artist": "Freak E Beatz & JASSKALL",
+    "title": "No Escape",
+    "youtube_reference_seconds": 1006,
+    "algorithm_track_number": 5,
+    "rss_algorithm_seconds": 1007.94,
+    "algorithm_youtube_seconds": 1006.5945,
+    "signed_error_seconds": 0.5945,
+    "absolute_error_seconds": 0.5945
+  },
+  {
+    "reference_number": 6,
+    "artist": "Adriatique",
+    "title": "Palm Of Your Hands",
+    "youtube_reference_seconds": 1142,
+    "algorithm_track_number": 6,
+    "rss_algorithm_seconds": 1114.49,
+    "algorithm_youtube_seconds": 1113.1445,
+    "signed_error_seconds": -28.8555,
+    "absolute_error_seconds": 28.8555
+  },
+  {
+    "reference_number": 8,
+    "artist": "Cubicore",
+    "title": "Black Light",
+    "youtube_reference_seconds": 1554,
+    "algorithm_track_number": 8,
+    "rss_algorithm_seconds": 1556.93,
+    "algorithm_youtube_seconds": 1555.5845,
+    "signed_error_seconds": 1.5845,
+    "absolute_error_seconds": 1.5845
+  },
+  {
+    "reference_number": 10,
+    "artist": "Mike Williams, Three Drives, ANTICALM",
+    "title": "Greece 2000",
+    "youtube_reference_seconds": 1955,
+    "algorithm_track_number": 10,
+    "rss_algorithm_seconds": 1926.85,
+    "algorithm_youtube_seconds": 1925.5045,
+    "signed_error_seconds": -29.4955,
+    "absolute_error_seconds": 29.4955
+  },
+  {
+    "reference_number": 12,
+    "artist": "Spoiled and Zigo",
+    "title": "More & More (BLR Remix)",
+    "youtube_reference_seconds": 2366,
+    "algorithm_track_number": 12,
+    "rss_algorithm_seconds": 2365.68,
+    "algorithm_youtube_seconds": 2364.3345,
+    "signed_error_seconds": -1.6655,
+    "absolute_error_seconds": 1.6655
+  },
+  {
+    "reference_number": 13,
+    "artist": "Ashley Wallbridge, The Paper Outlet",
+    "title": "Forever Young",
+    "youtube_reference_seconds": 2614,
+    "algorithm_track_number": 13,
+    "rss_algorithm_seconds": 2618.56,
+    "algorithm_youtube_seconds": 2617.2145,
+    "signed_error_seconds": 3.2145,
+    "absolute_error_seconds": 3.2145
+  },
+  {
+    "reference_number": 14,
+    "artist": "Markus Schulz",
+    "title": "Second Tomorrow",
+    "youtube_reference_seconds": 2825,
+    "algorithm_track_number": 14,
+    "rss_algorithm_seconds": 2827.07,
+    "algorithm_youtube_seconds": 2825.7245,
+    "signed_error_seconds": 0.7245,
+    "absolute_error_seconds": 0.7245
+  },
+  {
+    "reference_number": 23,
+    "artist": "John Askew",
+    "title": "Through The Looking Glass (Nikolauss Remix)",
+    "youtube_reference_seconds": 5059,
+    "algorithm_track_number": 23,
+    "rss_algorithm_seconds": 5088.45,
+    "algorithm_youtube_seconds": 5086.7235,
+    "signed_error_seconds": 27.7235,
+    "absolute_error_seconds": 27.7235
+  },
+  {
+    "reference_number": 24,
+    "artist": "Andrew Rayel",
+    "title": "Acid On The Train (David Forbes Remix)",
+    "youtube_reference_seconds": 5348,
+    "algorithm_track_number": 24,
+    "rss_algorithm_seconds": 5349.38,
+    "algorithm_youtube_seconds": 5347.6535,
+    "signed_error_seconds": -0.3465,
+    "absolute_error_seconds": 0.3465
+  },
+  {
+    "reference_number": 26,
+    "artist": "Xincher & Rav3ver",
+    "title": "Echo",
+    "youtube_reference_seconds": 5827,
+    "algorithm_track_number": 26,
+    "rss_algorithm_seconds": 5858.11,
+    "algorithm_youtube_seconds": 5856.3835,
+    "signed_error_seconds": 29.3835,
+    "absolute_error_seconds": 29.3835
+  },
+  {
+    "reference_number": 28,
+    "artist": "Matt Bukovski & CJ Stone",
+    "title": "Stars",
+    "youtube_reference_seconds": 6185,
+    "algorithm_track_number": 28,
+    "rss_algorithm_seconds": 6187.58,
+    "algorithm_youtube_seconds": 6185.8535,
+    "signed_error_seconds": 0.8535,
+    "absolute_error_seconds": 0.8535
+  },
+  {
+    "reference_number": 29,
+    "artist": "LAWTON, Trancemaster Krause & Caroline Roxy",
+    "title": "Believe In",
+    "youtube_reference_seconds": 6383,
+    "algorithm_track_number": 29,
+    "rss_algorithm_seconds": 6391.0,
+    "algorithm_youtube_seconds": 6389.2735,
+    "signed_error_seconds": 6.2735,
+    "absolute_error_seconds": 6.2735
+  },
+  {
+    "reference_number": 32,
+    "artist": "Ferry Corsten",
+    "title": "Sweet Sorrow (The Thrillseekers Remix 2004)",
+    "youtube_reference_seconds": 6974,
+    "algorithm_track_number": 32,
+    "rss_algorithm_seconds": 6975.72,
+    "algorithm_youtube_seconds": 6973.9935,
+    "signed_error_seconds": -0.0065,
+    "absolute_error_seconds": 0.0065
+  }
+]

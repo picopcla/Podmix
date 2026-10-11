@@ -1,0 +1,452 @@
+--- 1391d7a/audio_fallback_voice.py
++++ A/audio_fallback_joint_a.py
+@@ -230,22 +230,29 @@
+     presences: dict[int, LandmarkPresence], corrections: dict[int, float],
+     novelty: np.ndarray | None = None,
+ ) -> tuple[dict[int, BoundaryAnchor], list[dict]]:
+-    """Conserve seulement les ancres dont l'optimiseur prouve la faisabilité."""
+-    accepted: dict[int, BoundaryAnchor] = {}
+-    decisions: list[dict] = []
++    """Choisit globalement le meilleur sous-ensemble faisable d'annonces.
++
++    L'objectif figé est: cardinalité, confiance cumulée, puis identité stable.
++    La faisabilité est toujours prouvée par ``detect_constrained_transitions``;
++    aucune approximation distincte des couloirs ou de la novelty n'est utilisée.
++    """
+     feasibility_novelty = novelty
+     if feasibility_novelty is None:
+         feasibility_novelty = np.zeros(
+             max(1, int(duration_seconds / HOP_SECONDS) + 1), dtype=np.float32,
+         )
+-    for anchor in sorted(anchors, key=lambda item: (item.time_seconds, item.track_index)):
+-        reason = None
++    ordered = sorted(
++        anchors,
++        key=lambda item: (item.track_index, item.time_seconds, item.detection_id),
++    )
++    static_reasons: dict[str, str] = {}
++    eligible: list[BoundaryAnchor] = []
++    for anchor in ordered:
++        reason: str | None = None
+         if not 0 <= anchor.track_index < track_count:
+             reason = "track_index_out_of_range"
+         elif anchor.time_seconds < 0.0 or anchor.time_seconds >= duration_seconds:
+             reason = "time_out_of_range"
+-        elif any(anchor.track_index <= item.track_index for item in accepted.values()):
+-            reason = "anchor_order_conflict"
+         presence = presences.get(anchor.track_index + 1)
+         if presence is not None:
+             musical_start = max(0.0, presence.anchor - DEEZER_PREVIEW_OFFSET_SECONDS)
+@@ -255,27 +262,59 @@
+         if correction is not None and abs(correction - anchor.time_seconds) > VOICE_PRESENCE_TOLERANCE_SECONDS:
+             reason = "adjacent_presence_conflict"
+         if reason is None:
+-            trial = {**accepted, anchor.track_index: anchor}
+-            try:
+-                # Source unique de vérité : mêmes couloirs, candidats et DP que
+-                # l'exécution finale. Aucun seuil parallèle n'est approximé ici.
+-                detect_constrained_transitions(
+-                    feasibility_novelty, track_count, duration_seconds, presences, trial,
+-                )
+-            except AudioFallbackError as error:
+-                if str(error) not in {
+-                    "Ancres audio incompatibles avec une suite de coupes cohérente",
+-                    "Optimisation audio contrainte incomplète",
+-                }:
+-                    raise
+-                reason = "optimizer_constraint_conflict"
++            eligible.append(anchor)
++        else:
++            static_reasons[anchor.detection_id] = reason
++
++    feasible: list[tuple[tuple[int, float, tuple[str, ...]], dict[int, BoundaryAnchor]]] = []
++    examined: dict[str, str] = {}
++    for mask in range(1 << len(eligible)):
++        subset = [eligible[index] for index in range(len(eligible)) if mask & (1 << index)]
++        trial = {anchor.track_index: anchor for anchor in subset}
++        ids = tuple(sorted(anchor.detection_id for anchor in subset))
++        if len(trial) != len(subset):
++            examined["|".join(ids)] = "duplicate_track_anchor"
++            continue
++        by_track = sorted(subset, key=lambda item: item.track_index)
++        if any(left.time_seconds >= right.time_seconds for left, right in zip(by_track, by_track[1:])):
++            examined["|".join(ids)] = "anchor_order_conflict"
++            continue
++        try:
++            detect_constrained_transitions(
++                feasibility_novelty, track_count, duration_seconds, presences, trial,
++            )
++        except AudioFallbackError as error:
++            if str(error) not in {
++                "Ancres audio incompatibles avec une suite de coupes cohérente",
++                "Optimisation audio contrainte incomplète",
++            } and not str(error).startswith("Transitions audio insuffisamment nettes"):
++                raise
++            examined["|".join(ids)] = "optimizer_constraint_conflict"
++            continue
++        stable_indexes = tuple(
++            -index for index, anchor in enumerate(eligible) if anchor in subset
++        )
++        objective = (
++            len(subset),
++            round(sum(anchor.confidence for anchor in subset), 8),
++            stable_indexes,
++        )
++        feasible.append((objective, trial))
++        examined["|".join(ids)] = "feasible"
++
++    accepted = max(feasible, key=lambda item: item[0])[1] if feasible else {}
++    decisions: list[dict] = []
++    for anchor in ordered:
++        reason = static_reasons.get(anchor.detection_id)
++        if reason is None and accepted.get(anchor.track_index) != anchor:
++            reason = "not_in_best_compatible_voice_set"
+         decisions.append({
+             "detection_id": anchor.detection_id, "track_index": anchor.track_index,
+             "time_seconds": anchor.time_seconds,
+             "decision": "accepted" if reason is None else "abstain", "reason": reason,
++            "objective": "max_voice_count_then_confidence_then_stable_identity",
++            "examined_subsets": len(examined),
+         })
+-        if reason is None and anchor.track_index not in accepted:
+-            accepted[anchor.track_index] = anchor
+     return accepted, decisions
+
+
+@@ -757,6 +796,164 @@
+     return chosen
+
+
++def _landmark_corrections_from_presences(
++    presences: dict[int, LandmarkPresence],
++    reference_count: int,
++    audio_candidates: list[tuple[float, float]],
++) -> tuple[dict[int, float], dict[int, str]]:
++    corrections: dict[int, float] = {}
++    confidence: dict[int, str] = {}
++    for incoming in range(2, reference_count + 1):
++        outgoing_presence = presences.get(incoming - 1)
++        incoming_presence = presences.get(incoming)
++        if outgoing_presence is None or incoming_presence is None:
++            continue
++        left, right = outgoing_presence.end, incoming_presence.start
++        midpoint = (left + right) / 2
++        position = midpoint
++        gap = right - left
++        if gap > 90.0:
++            local = [item for item in audio_candidates if left <= item[0] <= right]
++            if local:
++                nearest = min(local, key=lambda item: abs(item[0] - midpoint))
++                if abs(nearest[0] - midpoint) <= 30.0:
++                    position = nearest[0]
++        corrections[incoming - 1] = round(position, 2)
++        confidence[incoming - 1] = (
++            "high" if left >= right or abs(gap) <= 90.0
++            else "medium" if gap <= 180.0
++            else "low"
++        )
++    return corrections, confidence
++
++
++def select_joint_landmarks_and_voice(
++    candidate_sets: list[list[LandmarkCandidate]],
++    candidate_presences: dict[LandmarkCandidate, LandmarkPresence | None],
++    voice_candidates: list[BoundaryAnchor],
++    novelty: np.ndarray,
++    duration: float,
++    audio_candidates: list[tuple[float, float]],
++) -> tuple[dict[int, LandmarkCandidate], dict[int, LandmarkPresence],
++           dict[int, float], dict[int, str], dict[int, BoundaryAnchor], dict]:
++    """Sélection conjointe figée, exhaustive sur les annonces candidates.
++
++    Priorités: (1) nombre de présences landmarks fiables, puis (2) somme
++    ``log1p(score_landmark) + confiance_voix``, puis (3) nombre d'annonces.
++    Ainsi une annonce ne remplace jamais une couverture landmark plus longue,
++    mais peut départager deux chaînes de même couverture. Chaque ensemble est
++    finalement soumis au DP de production, avec ses vrais couloirs et novelty.
++    """
++    ordered_voice = sorted(
++        voice_candidates,
++        key=lambda item: (item.track_index, item.time_seconds, item.detection_id),
++    )
++    alternatives: list[dict] = []
++    feasible: list[tuple[tuple, dict[int, LandmarkCandidate], dict[int, LandmarkPresence],
++                         dict[int, float], dict[int, str], dict[int, BoundaryAnchor]]] = []
++    for mask in range(1 << len(ordered_voice)):
++        subset = [ordered_voice[index] for index in range(len(ordered_voice)) if mask & (1 << index)]
++        anchors = {anchor.track_index: anchor for anchor in subset}
++        ids = [anchor.detection_id for anchor in subset]
++        row: dict = {"voice_detection_ids": ids, "decision": "rejected"}
++        if len(anchors) != len(subset):
++            row["reason"] = "duplicate_track_anchor"
++            alternatives.append(row)
++            continue
++        by_track = sorted(subset, key=lambda item: item.track_index)
++        if any(left.time_seconds >= right.time_seconds for left, right in zip(by_track, by_track[1:])):
++            row["reason"] = "anchor_order_conflict"
++            alternatives.append(row)
++            continue
++
++        filtered_sets: list[list[LandmarkCandidate]] = []
++        for candidates in candidate_sets:
++            compatible: list[LandmarkCandidate] = []
++            for candidate in candidates:
++                presence = candidate_presences.get(candidate)
++                anchor = anchors.get(candidate.track - 1)
++                if presence is not None and anchor is not None:
++                    musical_start = max(0.0, presence.anchor - DEEZER_PREVIEW_OFFSET_SECONDS)
++                    if abs(musical_start - anchor.time_seconds) > VOICE_PRESENCE_TOLERANCE_SECONDS:
++                        continue
++                compatible.append(candidate)
++            filtered_sets.append(compatible)
++        chosen = select_ordered_landmarks(filtered_sets)
++        presences = {
++            track: presence
++            for track, candidate in chosen.items()
++            if (presence := candidate_presences.get(candidate)) is not None
++        }
++        corrections, confidence = _landmark_corrections_from_presences(
++            presences, len(candidate_sets), audio_candidates,
++        )
++        conflict = next((
++            "adjacent_presence_conflict"
++            for anchor in subset
++            if anchor.track_index in corrections
++            and abs(corrections[anchor.track_index] - anchor.time_seconds) > VOICE_PRESENCE_TOLERANCE_SECONDS
++        ), None)
++        if conflict is not None:
++            row["reason"] = conflict
++            alternatives.append(row)
++            continue
++        try:
++            detect_constrained_transitions(
++                novelty, len(candidate_sets), duration, presences, anchors,
++            )
++        except AudioFallbackError as error:
++            if str(error) not in {
++                "Ancres audio incompatibles avec une suite de coupes cohérente",
++                "Optimisation audio contrainte incomplète",
++            }:
++                raise
++            row["reason"] = "optimizer_constraint_conflict"
++            alternatives.append(row)
++            continue
++        landmark_utility = sum(math.log1p(item.score) for item in presences.values())
++        voice_utility = sum(anchor.confidence for anchor in subset)
++        stable_identity = tuple(
++            (item.track, round(item.anchor, 3), item.reference, round(item.speed, 4))
++            for item in sorted(chosen.values(), key=lambda value: value.track)
++        )
++        objective = (
++            len(presences), round(landmark_utility + voice_utility, 8),
++            len(subset), tuple(reversed(sorted(ids))), stable_identity,
++        )
++        row.update({
++            "decision": "feasible",
++            "reason": None,
++            "landmark_presence_count": len(presences),
++            "landmark_utility": round(landmark_utility, 8),
++            "voice_count": len(subset),
++            "voice_utility": round(voice_utility, 8),
++            "chosen_landmarks": [
++                {"track": item.track, "reference": item.reference, "anchor": item.anchor,
++                 "speed": item.speed, "score": item.score, "votes": item.votes}
++                for item in sorted(chosen.values(), key=lambda value: value.track)
++            ],
++        })
++        alternatives.append(row)
++        feasible.append((objective, chosen, presences, corrections, confidence, anchors))
++    if not feasible:
++        raise AudioFallbackError("Aucun ensemble conjoint landmarks/voix faisable")
++    selected = max(feasible, key=lambda item: item[0])
++    selected_ids = sorted(anchor.detection_id for anchor in selected[5].values())
++    trace = {
++        "objective": {
++            "priority_1": "maximize_reliable_landmark_presence_count",
++            "priority_2": "maximize_sum_log1p_landmark_score_plus_voice_confidence",
++            "priority_3": "maximize_voice_anchor_count",
++            "tie_break": "stable_candidate_identity_independent_of_input_order",
++            "feasibility": "production_detect_constrained_transitions_same_novelty_corridors_and_dp",
++        },
++        "alternatives_examined": alternatives,
++        "selected_voice_detection_ids": selected_ids,
++        "candidate_order_invariant": True,
++    }
++    return selected[1], selected[2], selected[3], selected[4], selected[5], trace
++
++
+ def landmark_presence(
+     candidate: LandmarkCandidate,
+     reference_events: list[LandmarkEvent],
+@@ -794,6 +991,9 @@
+     audio_candidates: list[tuple[float, float]],
+     *,
+     include_presences: bool = False,
++    boundary_candidates: list[BoundaryAnchor] | None = None,
++    novelty: np.ndarray | None = None,
++    include_joint_selection: bool = False,
+ ) -> tuple[dict[int, float], dict[int, str], int] | tuple[dict[int, float], dict[int, str], int, dict[int, LandmarkPresence]]:
+     """Retourne uniquement les transitions prouvées par deux pistes adjacentes.
+
+@@ -801,10 +1001,13 @@
+     qui empêche un mashup ou une mauvaise version catalogue de déplacer une
+     coupe spectrale correcte.
+     """
+-    if mix_features.spectral is None or not any(references):
++    if (mix_features.spectral is None or not any(references)) and not include_joint_selection:
+         empty = ({}, {}, 0)
+         return (*empty, {}) if include_presences else empty
+-    mix_events = landmark_hashes(landmark_constellation(mix_features.spectral))
++    mix_events = (
++        landmark_hashes(landmark_constellation(mix_features.spectral))
++        if mix_features.spectral is not None else []
++    )
+     mix_event_index = landmark_index(mix_events)
+     cached_events: dict[tuple[int, int, float], list[LandmarkEvent]] = {}
+     candidate_sets: list[list[LandmarkCandidate]] = []
+@@ -827,39 +1030,32 @@
+                 duration,
+             ))
+         candidate_sets.append(candidates)
+-    chosen = select_ordered_landmarks(candidate_sets)
+-    presences: dict[int, LandmarkPresence] = {}
+-    for track, candidate in chosen.items():
+-        presence = landmark_presence(
+-            candidate,
+-            cached_events[(track, candidate.reference, candidate.speed)],
+-            mix_event_index,
++    candidate_presences: dict[LandmarkCandidate, LandmarkPresence | None] = {}
++    for candidates in candidate_sets:
++        for candidate in candidates:
++            candidate_presences[candidate] = landmark_presence(
++                candidate,
++                cached_events[(candidate.track, candidate.reference, candidate.speed)],
++                mix_event_index,
++            )
++    if include_joint_selection:
++        if novelty is None:
++            raise ValueError("La sélection conjointe exige la novelty exacte")
++        chosen, presences, corrections, confidence, accepted_voice, joint_trace = (
++            select_joint_landmarks_and_voice(
++                candidate_sets, candidate_presences, boundary_candidates or [], novelty,
++                duration, audio_candidates,
++            )
+         )
+-        if presence is not None:
+-            presences[track] = presence
+-
+-    corrections: dict[int, float] = {}
+-    confidence: dict[int, str] = {}
+-    for incoming in range(2, len(references) + 1):
+-        outgoing_presence = presences.get(incoming - 1)
+-        incoming_presence = presences.get(incoming)
+-        if outgoing_presence is None or incoming_presence is None:
+-            continue
+-        left, right = outgoing_presence.end, incoming_presence.start
+-        midpoint = (left + right) / 2
+-        position = midpoint
+-        gap = right - left
+-        if gap > 90.0:
+-            local = [item for item in audio_candidates if left <= item[0] <= right]
+-            if local:
+-                nearest = min(local, key=lambda item: abs(item[0] - midpoint))
+-                if abs(nearest[0] - midpoint) <= 30.0:
+-                    position = nearest[0]
+-        corrections[incoming - 1] = round(position, 2)
+-        confidence[incoming - 1] = (
+-            "high" if left >= right or abs(gap) <= 90.0
+-            else "medium" if gap <= 180.0
+-            else "low"
++    else:
++        chosen = select_ordered_landmarks(candidate_sets)
++        presences = {
++            track: presence
++            for track, candidate in chosen.items()
++            if (presence := candidate_presences.get(candidate)) is not None
++        }
++        corrections, confidence = _landmark_corrections_from_presences(
++            presences, len(references), audio_candidates,
+         )
+
+     # Les corrections directes restent strictes : il faut les deux morceaux
+@@ -869,6 +1065,8 @@
+     # reconnues" est volontairement supprimée : elle pouvait créer une longue
+     # coupe arbitraire dans les parties peu couvertes.
+     result = (corrections, confidence, len(presences))
++    if include_joint_selection:
++        return (*result, presences, accepted_voice, joint_trace)
+     return (*result, presences) if include_presences else result
+
+
+@@ -1591,20 +1789,61 @@
+         novelty = pure_transition_novelty(mix_features)
+         audio_candidates = _transition_candidates(novelty, duration)
+         progress("Ancrage des empreintes et maillage théorique local", 93)
+-        corrections, landmark_confidence, matched_references, presences = landmark_transition_corrections(
+-            mix_features,
+-            references,
+-            duration,
+-            audio_candidates,
+-            include_presences=True,
+-        )
+-        boundary_anchors, anchor_decisions = validate_boundary_anchors(
+-            boundary_candidates, len(tracks), duration, presences, corrections, novelty,
+-        )
++        if voice_detector is None or not boundary_candidates:
++            corrections, landmark_confidence, matched_references, presences = landmark_transition_corrections(
++                mix_features,
++                references,
++                duration,
++                audio_candidates,
++                include_presences=True,
++            )
++            boundary_anchors: dict[int, BoundaryAnchor] = {}
++            anchor_decisions: list[dict] = []
++            joint_trace = {
++                "mode": "landmark_only_exact_base_fallback",
++                "reason": "voice_disabled_or_no_candidate",
++            }
++        else:
++            (
++                corrections, landmark_confidence, matched_references, presences,
++                boundary_anchors, joint_trace,
++            ) = landmark_transition_corrections(
++                mix_features,
++                references,
++                duration,
++                audio_candidates,
++                include_presences=True,
++                boundary_candidates=boundary_candidates,
++                novelty=novelty,
++                include_joint_selection=True,
++            )
++            accepted_ids = {anchor.detection_id for anchor in boundary_anchors.values()}
++            alternative_reasons = {
++                detection_id: row.get("reason")
++                for row in joint_trace["alternatives_examined"]
++                for detection_id in row["voice_detection_ids"]
++                if row.get("reason")
++            }
++            anchor_decisions = [
++                {
++                    "detection_id": anchor.detection_id,
++                    "track_index": anchor.track_index,
++                    "time_seconds": anchor.time_seconds,
++                    "decision": "accepted" if anchor.detection_id in accepted_ids else "abstain",
++                    "reason": None if anchor.detection_id in accepted_ids else alternative_reasons.get(
++                        anchor.detection_id, "not_in_best_joint_set",
++                    ),
++                }
++                for anchor in sorted(
++                    boundary_candidates,
++                    key=lambda item: (item.track_index, item.time_seconds, item.detection_id),
++                )
++            ]
+         if voice_trace is not None:
+             voice_trace.update({
+                 "interpretation": interpretation_trace,
+                 "validation": anchor_decisions,
++                "joint_selection": joint_trace,
+                 "boundary_anchors": {
+                     str(index): {
+                         "track_index": anchor.track_index,

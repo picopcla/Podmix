@@ -1,0 +1,38 @@
+{
+  "frozen_before_evaluation": true,
+  "scope": "FYH512 lab only; correction A only; no B final corrections",
+  "base_commit": "1391d7ab63d04e118c0d8df84fbc4c07199654a6",
+  "base_engine_sha256": "72e478f2c7fbeb208d1861320411f8e5630aaad95df81fedfa5c6feccf08ec0e",
+  "base_enabled_output_sha256": "199c10e9c35552206a81ddf782e689986e7f36628415b5a18ae1bd033f37070a",
+  "disabled_output_sha256": "e0200bae398de872f1b861f5db4fc1781c302cf193acd27a6935d56a37b2e208",
+  "media_sha256": "47814fb78f3f0236777b6c5ebf378d23e4938914c474df116c49f618b3fdaf69",
+  "voice_interpretation": {
+    "unchanged_from_base": true,
+    "minimum_confidence": 0.95,
+    "candidate_source": "automatic replay of the exact 10 frozen ASR events",
+    "new_vad_or_asr_claimed": false,
+    "preview_offset_applied": false,
+    "under_threshold_route_in_scope": false
+  },
+  "joint_objective_lexicographic": [
+    "maximize reliable landmark presence count",
+    "maximize sum(log1p(landmark score)) plus sum(voice confidence)",
+    "maximize selected voice anchor count",
+    "stable candidate identity tie-break independent of input order"
+  ],
+  "reliability_policy": "A voice anchor cannot reduce landmark coverage; among equal-coverage chains its confidence competes with landmark evidence strength, so a reliable fingerprint is not automatically displaced.",
+  "feasibility_proof": "detect_constrained_transitions with the same novelty, presences, local corridors, candidate construction and DP as final execution",
+  "voice_subset_search": "exhaustive over all interpreted voice candidates; no chronological greedy locking",
+  "landmark_alternative_search": "for each voice subset, candidates directly conflicting with that voice are excluded before the unchanged ordered-landmark DP chooses its best compatible chain",
+  "fallback_without_voice": "exact unchanged base landmark-only path",
+  "reference_timestamps_used_for_selection": false,
+  "youtube_or_1001tl_used_for_selection": false,
+  "retuning_after_reference_evaluation": false,
+  "evaluation": {
+    "matching": "free one-to-one within 30 seconds",
+    "comparison_primary": "16/32 base enabled output",
+    "comparison_secondary": "12/32 baseline disabled output",
+    "no_existing_match_regression_accepted": true,
+    "zero_gain_reported_honestly": true
+  }
+}

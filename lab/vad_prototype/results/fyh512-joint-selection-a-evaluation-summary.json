@@ -1,0 +1,34 @@
+{
+  "frozen_outputs_verified_by_sha256": true,
+  "replay_condition": "no new VAD or ASR claimed; exact 10-event trace replayed automatically through the delivered hook",
+  "matching_rule": "appariement libre glouton un-à-un par erreur absolue croissante <= 30 s",
+  "reference_count": 32,
+  "baseline_12_of_32": {
+    "matched": 12,
+    "missing": 20,
+    "surplus": 20
+  },
+  "immediate_16_of_32": {
+    "matched": 16,
+    "missing": 16,
+    "surplus": 16
+  },
+  "joint_selection_a": {
+    "matched": 16,
+    "missing": 16,
+    "surplus": 16,
+    "mean_absolute_error_seconds_on_matched": 8.4816,
+    "median_absolute_error_seconds_on_matched": 1.625,
+    "statistics_denominator": 16
+  },
+  "gained_reference_numbers_versus_immediate": [],
+  "lost_reference_numbers_versus_immediate": [],
+  "index_association_distance_distribution": {
+    "under_60_seconds": 21,
+    "from_60_to_under_120_seconds": 8,
+    "from_120_to_under_300_seconds": 3,
+    "at_least_300_seconds": 0,
+    "denominator": 32
+  },
+  "verdict": "validated_no_regression"
+}
