@@ -44,6 +44,41 @@ class ExistingEnginePlusVoiceTests(unittest.TestCase):
         self.assertEqual(anchors, [])
         self.assertTrue(all(row["decision"] == "abstain" for row in trace))
 
+    def test_strict_under_threshold_requires_unique_title_relation_and_identity(self):
+        segment = {"average_log_probability": -0.2, "no_speech_probability": 0.1}
+        events = [
+            {"detection_id": "valid", "voice_end_seconds": 100, "voice_internal_confidence": .84,
+             "segments": [segment], "transcript": "Back to the music with Vassmo, Stay."},
+            {"detection_id": "no-relation", "voice_end_seconds": 200, "voice_internal_confidence": .84,
+             "segments": [segment], "transcript": "Vassmo, Stay."},
+            {"detection_id": "chant", "voice_end_seconds": 300, "voice_internal_confidence": .84,
+             "segments": [segment], "transcript": "Stay, stay, stay with me."},
+        ]
+        anchors, trace = voice.interpret_voice_announcements(events, self.tracks)
+        self.assertEqual([(row.track_index, row.time_seconds) for row in anchors], [(6, 100.0)])
+        self.assertEqual(trace[0]["route"], "strict_under_threshold")
+        self.assertGreaterEqual(trace[0]["title_margin"], voice.VOICE_TITLE_UNIQUENESS_MARGIN)
+        self.assertEqual(trace[1]["reason"], "no_explicit_incoming_track_relation")
+        self.assertEqual(trace[2]["reason"], "no_explicit_incoming_track_relation")
+
+    def test_strict_under_threshold_rejects_ambiguous_remix(self):
+        event = {
+            "detection_id": "ambiguous-remix", "voice_end_seconds": 100,
+            "voice_internal_confidence": .9,
+            "segments": [{"average_log_probability": -0.2, "no_speech_probability": 0.1}],
+            "transcript": "Back to the music with Andrew Rayel, Dreaming.",
+        }
+        anchors, trace = voice.interpret_voice_announcements([event], self.tracks)
+        self.assertEqual(anchors, [])
+        self.assertEqual(trace[0]["reason"], "remix_variant_not_disambiguated")
+
+    def test_high_confidence_route_is_unchanged(self):
+        event = {"detection_id": "high", "voice_end_seconds": 100, "voice_internal_confidence": .99,
+                 "transcript": "Back to the music with Vassmo, Stay."}
+        anchors, trace = voice.interpret_voice_announcements([event], self.tracks)
+        self.assertEqual(anchors[0].track_index, 6)
+        self.assertEqual(trace[0]["route"], "high_confidence_unchanged")
+
     def test_intro_nonzero_and_no_preview_offset(self):
         anchors = {
             0: voice.BoundaryAnchor(0, 120.0, .99, "next", "intro", "a"),

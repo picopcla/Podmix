@@ -24,8 +24,23 @@
     "title_score_and_uniqueness": "constants from audio_fallback_voice.py",
     "relations": ["next", "current", "previous", "recap", "jingle", "ambiguous"],
     "youtube_input": false,
-    "frozen_event_replay": false,
+    "frozen_event_replay": true,
     "preview_offset_applied_to_voice": false
+  },
+  "strict_under_threshold_alternative": {
+    "vad_confidence_minimum_inclusive": 0.8,
+    "vad_confidence_maximum_exclusive": 0.95,
+    "asr_average_log_probability_minimum": -0.55,
+    "asr_max_no_speech_probability": 0.35,
+    "title_requirement": "exactly one exact main-title phrase in the untimed known tracklist",
+    "title_score_minimum": 0.72,
+    "title_uniqueness_margin_minimum": 0.12,
+    "relation_requirement": "explicit incoming-track cue; weak 'and now' additionally requires presentational 'this is'",
+    "identity_requirement": "artist evidence and, for remix titles, named variant evidence or explicit possessive remix",
+    "guards": ["narrative_or_lyrics", "jingle", "recap", "current", "previous", "ambiguous_remix"],
+    "optimizer_validation": "unchanged shared landmark/order/corridor/music-presence feasibility",
+    "reference_timestamps_used": false,
+    "preview_offset_applied": false
   },
   "non_retuning_statement": "All parameters above are frozen before loading FYH512 reference timestamps; no YouTube-score retuning is permitted."
 }

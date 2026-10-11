@@ -46,6 +46,7 @@ def main() -> int:
     parser.add_argument("--vad-python", required=True)
     parser.add_argument("--asr-python", required=True)
     parser.add_argument("--voice-work", type=Path, default=LAB / "output" / "fyh512_complete_voice")
+    parser.add_argument("--replay-trace", type=Path)
     args = parser.parse_args()
     media = args.media.resolve()
     if sha256(media) != AUDIO_SHA256:
@@ -59,6 +60,13 @@ def main() -> int:
     title_source = json.loads((LAB / "fyh512_title_candidates.json").read_text(encoding="utf-8"))
     tracks = [{"artist": row["artist"], "title": row["title"]} for row in title_source["tracks"]]
     protocol_path = LAB / "fyh512_complete_voice_protocol.json"
+    if args.replay_trace is None:
+        raise ValueError("Cette expérience exige le replay explicite des 10 événements ASR gelés")
+    replay_trace_path = args.replay_trace.resolve()
+    replay_trace = json.loads(replay_trace_path.read_text(encoding="utf-8"))
+    replay_events = replay_trace["voice"]["events"]
+    if len(replay_events) != 10:
+        raise ValueError("Le replay doit contenir exactement les 10 événements ASR de la passe complète")
     CACHE.mkdir(parents=True, exist_ok=True)
     RESULTS.mkdir(exist_ok=True)
 
@@ -136,12 +144,15 @@ def main() -> int:
             return result
 
         def complete_voice_detector(source_path, pcm_path, known_tracks):
-            events, coverage = run_complete_pass(
-                source_path, args.voice_work.resolve(), vad_python=args.vad_python, asr_python=args.asr_python,
-            )
-            trace["voice"]["local_pass"] = coverage
-            trace["voice"]["events"] = events
-            return events
+            del source_path, pcm_path, known_tracks
+            trace["voice"]["replay"] = {
+                "condition": "automatic_interpretation_only_no_new_vad_or_asr_claimed",
+                "source_trace": replay_trace_path.name,
+                "source_trace_sha256": sha256(replay_trace_path),
+                "event_count": len(replay_events),
+            }
+            trace["voice"]["events"] = replay_events
+            return replay_events
 
         engine._download_source = local_source
         engine._track_reference_urls = traced_urls
@@ -161,15 +172,16 @@ def main() -> int:
         return outputs, trace
 
     disabled, disabled_trace = run(False)
-    disabled_path = RESULTS / "fyh512-existing-engine-complete-voice-disabled-frozen.json"
+    prefix = "fyh512-existing-engine-strict-under-threshold"
+    disabled_path = RESULTS / f"{prefix}-disabled-frozen.json"
     write_json(disabled_path, disabled)
     if sha256(disabled_path) != BASELINE_SHA256:
         raise ValueError("Le mode voix desactive ne reproduit pas le baseline exact")
 
     enabled, enabled_trace = run(True)
-    enabled_path = RESULTS / "fyh512-existing-engine-complete-voice-frozen.json"
-    disabled_trace_path = RESULTS / "fyh512-existing-engine-complete-voice-disabled-trace-frozen.json"
-    enabled_trace_path = RESULTS / "fyh512-existing-engine-complete-voice-trace-frozen.json"
+    enabled_path = RESULTS / f"{prefix}-frozen.json"
+    disabled_trace_path = RESULTS / f"{prefix}-disabled-trace-frozen.json"
+    enabled_trace_path = RESULTS / f"{prefix}-trace-frozen.json"
     write_json(enabled_path, enabled)
     write_json(disabled_trace_path, disabled_trace)
     write_json(enabled_trace_path, enabled_trace)
@@ -180,11 +192,13 @@ def main() -> int:
     })
     manifest = {
         "reference_times_loaded": False,
-        "classification": "existing_engine_plus_real_complete_local_vad_asr_and_automatic_interpretation",
+        "classification": "existing_engine_plus_automatic_replay_interpretation_of_10_frozen_asr_events",
         "audio_sha256": AUDIO_SHA256,
         "baseline_sha256": BASELINE_SHA256,
         "immediate_frozen_voice_base_sha256": IMMEDIATE_BASE_SHA256,
-        "voice_replay": False,
+        "voice_replay": True,
+        "replay_condition": "no new VAD or ASR claimed; exact 10-event trace replayed automatically through the delivered hook",
+        "replay_source_sha256": sha256(replay_trace_path),
         "inputs": {path.relative_to(LAB).as_posix(): sha256(path) for path in (
             LAB / "fyh512_source.json", LAB / "fyh512_title_candidates.json", protocol_path, FULL_PROTOCOL,
         )},
@@ -194,7 +208,7 @@ def main() -> int:
         "outputs": {path.name: sha256(path) for path in (disabled_path, enabled_path, disabled_trace_path, enabled_trace_path)},
         "reference_inventory": [{"url": url, "sha256": digest, "bytes": size} for url, digest, size in inventory],
     }
-    write_json(RESULTS / "fyh512-existing-engine-complete-voice-freeze-manifest.json", manifest)
+    write_json(RESULTS / f"{prefix}-freeze-manifest.json", manifest)
     print(json.dumps({"disabled_reproduces_baseline": True,
                       "voice_candidates": len(enabled_trace["voice"]["events"]),
                       "voice_anchors": enabled_trace["voice"].get("boundary_anchors"),

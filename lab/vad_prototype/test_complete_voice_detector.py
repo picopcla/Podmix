@@ -28,7 +28,7 @@ class CompleteVoiceDetectorTests(unittest.TestCase):
         self.assertEqual(protocol["duration_seconds"], 7216.927375)
         self.assertEqual(protocol["vad_methods_in_execution_order"], ["ina", "silero"])
         self.assertIn("every automatically detected candidate", protocol["transcription"]["scope"])
-        self.assertFalse(protocol["interpretation"]["frozen_event_replay"])
+        self.assertTrue(protocol["interpretation"]["frozen_event_replay"])
 
     def test_real_run_trace_proves_complete_hook_execution(self):
         path = LAB / "results/fyh512-existing-engine-complete-voice-trace-frozen.json"
@@ -43,7 +43,7 @@ class CompleteVoiceDetectorTests(unittest.TestCase):
         self.assertEqual(local["candidates"], local["transcribed_candidates"])
         self.assertEqual(local["candidates"], len(trace["voice"]["events"]))
 
-    def test_d006_is_transcribed_then_rejected_without_threshold_change(self):
+    def test_d006_was_previously_rejected_before_text_interpretation(self):
         path = LAB / "results/fyh512-existing-engine-complete-voice-candidate-audit.json"
         if not path.exists():
             self.skipTest("L'evaluation lourde n'a pas encore ete executee")

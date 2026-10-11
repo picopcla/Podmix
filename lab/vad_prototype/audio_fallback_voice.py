@@ -50,6 +50,9 @@ VOICE_MIN_CONFIDENCE = 0.95
 VOICE_TITLE_MIN_SCORE = 0.72
 VOICE_TITLE_UNIQUENESS_MARGIN = 0.12
 VOICE_PRESENCE_TOLERANCE_SECONDS = 90.0
+VOICE_ALTERNATIVE_MIN_CONFIDENCE = 0.80
+VOICE_ALTERNATIVE_MAX_NO_SPEECH = 0.35
+VOICE_ALTERNATIVE_MIN_LOG_PROBABILITY = -0.55
 
 
 class AudioFallbackError(RuntimeError):
@@ -153,6 +156,150 @@ def _voice_track_score(clause: str, track: dict) -> float:
     return min(1.0, score)
 
 
+def _voice_exact_title(clause: str, track: dict) -> bool:
+    """Exige le titre principal comme suite de mots, même pour un titre court."""
+    haystack = f" {_voice_text(clause)} "
+    title_core = _voice_text(str(track.get("title") or "").split("(", 1)[0])
+    return bool(title_core and f" {title_core} " in haystack)
+
+
+def _voice_identity_evidence(clause: str, track: dict) -> tuple[bool, str]:
+    """Vérifie artiste et variante sans transformer un simple titre en identité."""
+    normalized = _voice_text(clause)
+    compact = normalized.replace(" ", "")
+    artist_tokens = [
+        token for token in _voice_text(track.get("artist")).split()
+        if len(token) >= 4 and token not in {"feat", "presents"}
+    ]
+    words = normalized.split()
+    artist_match = next((
+        token for token in artist_tokens
+        if token in words or token in compact or any(
+            SequenceMatcher(None, token, word).ratio() >= 0.84 for word in words
+        )
+    ), None)
+    title = str(track.get("title") or "")
+    variant_match = None
+    if "(" in title:
+        variant = _voice_text(title.split("(", 1)[1].rsplit(")", 1)[0])
+        distinctive = [
+            token for token in variant.split()
+            if len(token) >= 4 and token not in {"remix", "club", "original", "extended", "mix"}
+            and not token.isdigit()
+        ]
+        variant_match = next((token for token in distinctive if token in words), None)
+        if variant_match is None:
+            if any(marker in normalized for marker in ("my remix", "our remix")):
+                variant_match = "possessive_remix"
+            else:
+                return False, "remix_variant_not_disambiguated"
+    if artist_match is None and variant_match is None:
+        return False, "artist_not_confirmed"
+    evidence = f"artist:{artist_match}" if artist_match else f"variant:{variant_match or 'possessive_remix'}"
+    return True, evidence
+
+
+def _voice_asr_quality(event: dict) -> tuple[bool, float | None, float | None]:
+    segments = list(event.get("segments") or [])
+    if not segments:
+        return False, None, None
+    log_probability = sum(float(row.get("average_log_probability", -99.0)) for row in segments) / len(segments)
+    no_speech = max(float(row.get("no_speech_probability", 1.0)) for row in segments)
+    return (
+        log_probability >= VOICE_ALTERNATIVE_MIN_LOG_PROBABILITY
+        and no_speech <= VOICE_ALTERNATIVE_MAX_NO_SPEECH,
+        round(log_probability, 6), round(no_speech, 6),
+    )
+
+
+def _interpret_alternative_voice(event: dict, tracks: list[dict], row: dict) -> BoundaryAnchor | None:
+    """Voie stricte sous 0,95 : texte unique, relation explicite, identité contrôlée."""
+    transcript = str(event.get("transcript") or "").strip()
+    normalized = _voice_text(transcript)
+    quality_ok, log_probability, no_speech = _voice_asr_quality(event)
+    row.update({
+        "route": "strict_under_threshold",
+        "asr_average_log_probability": log_probability,
+        "asr_max_no_speech_probability": no_speech,
+    })
+    if not quality_ok:
+        row["reason"] = "asr_quality_below_threshold"
+        return None
+
+    relation_markers = (
+        ("get back to the music with", 1.0),
+        ("back to the music with", 1.0),
+        ("move on with", 1.0),
+        ("kicking things off with", 1.0),
+        ("now it s time for", 1.0),
+        ("closing the first hour with", 1.0),
+        ("closing this hour with", 1.0),
+        ("and now", 0.8),
+    )
+    marker_position, relation_score, marker = max(
+        ((normalized.rfind(marker), score, marker) for marker, score in relation_markers),
+        key=lambda item: item[0],
+    )
+    row["relation_score"] = relation_score if marker_position >= 0 else 0.0
+    if marker_position < 0:
+        row["reason"] = "no_explicit_incoming_track_relation"
+        return None
+    clause = normalized[marker_position + len(marker):]
+    if any(cue in clause for cue in (
+        "coming up tonight", "played so far", "tracks so far", "that was",
+        "you just heard", "previously", "you re listening to", "currently playing",
+    )):
+        row["reason"] = "recap_current_or_previous_after_relation"
+        return None
+    if marker == "and now" and "this is" not in clause:
+        row["reason"] = "weak_presentational_relation"
+        return None
+
+    scores = sorted(
+        ((_voice_track_score(clause, track), index) for index, track in enumerate(tracks)),
+        reverse=True,
+    )
+    best_score, best_index = scores[0]
+    second_score = scores[1][0] if len(scores) > 1 else 0.0
+    margin = best_score - second_score
+    row.update({
+        "title_candidates": [
+            {"track_index": index, "score": round(score, 4)} for score, index in scores[:3]
+        ],
+        "title_score": round(best_score, 4),
+        "title_margin": round(margin, 4),
+    })
+    exact_matches = [index for index, track in enumerate(tracks) if _voice_exact_title(clause, track)]
+    if exact_matches != [best_index]:
+        row["reason"] = "title_not_exactly_unique"
+        return None
+    if best_score < VOICE_TITLE_MIN_SCORE:
+        row["reason"] = "title_below_threshold"
+        return None
+    if margin < VOICE_TITLE_UNIQUENESS_MARGIN:
+        row["reason"] = "ambiguous_title"
+        return None
+    identity_ok, identity_evidence = _voice_identity_evidence(clause, tracks[best_index])
+    row["identity_evidence"] = identity_evidence
+    if not identity_ok:
+        row["reason"] = identity_evidence
+        return None
+    confidence = float(event.get("voice_internal_confidence") or 0.0)
+    anchor = BoundaryAnchor(
+        track_index=best_index,
+        time_seconds=round(float(event.get("voice_end_seconds")), 2),
+        confidence=round(confidence * best_score * relation_score, 4),
+        relation="next",
+        evidence=f"strict_under_threshold:{marker}: {clause}",
+        detection_id=row["detection_id"],
+    )
+    row.update({
+        "decision": "candidate_anchor", "relation": "next", "track_index": best_index,
+        "time_seconds": anchor.time_seconds, "internal_confidence": anchor.confidence,
+    })
+    return anchor
+
+
 def interpret_voice_announcements(
     events: list[dict], tracks: list[dict], *, minimum_confidence: float = VOICE_MIN_CONFIDENCE,
 ) -> tuple[list[BoundaryAnchor], list[dict]]:
@@ -179,9 +326,16 @@ def interpret_voice_announcements(
             "decision": "abstain",
         }
         if confidence < minimum_confidence:
-            row["reason"] = "voice_confidence_below_threshold"
+            if confidence < VOICE_ALTERNATIVE_MIN_CONFIDENCE:
+                row.update({"route": "strict_under_threshold", "reason": "voice_confidence_below_alternative_floor"})
+                trace.append(row)
+                continue
+            anchor = _interpret_alternative_voice(event, tracks, row)
+            if anchor is not None:
+                accepted.append(anchor)
             trace.append(row)
             continue
+        row["route"] = "high_confidence_unchanged"
         marker_position, marker = max((normalized.rfind(item), item) for item in next_markers)
         other_relation = next((name for name, markers in (
             ("recap", recap_markers), ("current", current_markers), ("previous", previous_markers)
