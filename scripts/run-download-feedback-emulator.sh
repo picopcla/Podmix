@@ -36,6 +36,11 @@ sleep 15
 adb shell pidof com.podmix.next.ng
 adb shell dumpsys package com.podmix.next.ng | grep -q 'versionCode=10218'
 adb shell dumpsys package com.podmix.next.ng | grep -q 'versionName=1.0.218-ng'
+adb shell uiautomator dump /sdcard/podmix-system-window.xml >/dev/null
+if adb exec-out cat /sdcard/podmix-system-window.xml | grep -q 'System UI isn.t responding'; then
+  node scripts/android-ui-text.mjs tap 'Wait'
+  sleep 3
+fi
 adb exec-out screencap -p > "$capture_dir/release-source.png"
 node scripts/android-ui-text.mjs assert 'Above & Beyond'
 node scripts/android-ui-text.mjs assert 'Find Your Harmony & Friends'
