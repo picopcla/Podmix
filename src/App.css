@@ -538,3 +538,10 @@ section.home-section.home-resume,section.home-section.home-offline,section.home-
 
 /* Main is the only grid child after removal of the desktop sidebar. */
 .app-shell>main{grid-column:1/-1;width:100%;min-width:0}
+
+/* A filter on html makes fixed players relative to the full document.
+   Apply the existing light-theme filter to each surface instead, so fixed
+   players stay anchored to the viewport. Keep all controls unchanged. */
+html{filter:none;background:#f4f6f0}
+html,body,#root,.app-shell{background:#f4f6f0!important}
+.app-shell>main,.app-shell>.mini-player-global,.app-shell>.full-player,.app-shell>.modal-backdrop{filter:invert(1) hue-rotate(180deg)}
