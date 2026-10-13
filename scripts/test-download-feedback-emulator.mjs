@@ -122,6 +122,9 @@ try {
   await send('Page.enable')
   await send('Runtime.enable')
   await installNativeFixtureBootstrap()
+  // Let the initial React effects finish before replacing emulator-only data.
+  await waitFor(`Boolean(document.querySelector('.app-shell .topbar'))`)
+  await new Promise((resolve) => setTimeout(resolve, 2000))
   await evaluate(`(() => {
     localStorage.clear()
     localStorage.setItem('podmix-emulator-download-fixture-v1', JSON.stringify({ id: 'episode-emulator-test', status: 'queued', bytesDownloaded: 0, totalBytes: 100 }))
@@ -279,6 +282,14 @@ try {
   await fs.writeFile(`${outputDir}/player-geometry.json`, JSON.stringify(geometry, null, 2))
 
   console.log(JSON.stringify({ status, button: text, ariaLabel: label, navigationRestored: true, completedDetailCheck, completedDetailTrash, callsAfterDoubleClick, retryCalls, entityTextsVerified: true }))
+} catch (error) {
+  try {
+    await screenshot('debug-failure.png')
+    const diagnostic = await evaluate(`({ url: location.href, ready: document.readyState, text: document.body.innerText, catalog: localStorage.getItem('podmix-catalog-v1'), viewport: {width: innerWidth, height: innerHeight} })`)
+    await fs.writeFile(`${outputDir}/debug-failure.json`, JSON.stringify(diagnostic, null, 2))
+    console.error(JSON.stringify({ startupDiagnostic: diagnostic }))
+  } catch (captureError) { console.error(String(captureError)) }
+  throw error
 } finally {
   socket.close()
 }
