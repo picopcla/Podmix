@@ -25,6 +25,7 @@ function streamFixture(response) {
 }
 
 const server = http.createServer((request, response) => {
+  console.log(`${request.method} ${request.url}`)
   if (request.url === '/stats') {
     response.writeHead(200, { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' })
     response.end(JSON.stringify(requests))

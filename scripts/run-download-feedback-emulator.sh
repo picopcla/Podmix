@@ -19,6 +19,7 @@ done
 curl --fail --silent http://127.0.0.1:18787/stats >/dev/null
 
 adb install -r out/app-ng-debug.apk
+adb shell pm grant com.podmix.next.ng android.permission.POST_NOTIFICATIONS
 adb shell am start -n com.podmix.next.ng/com.podmix.next.MainActivity
 
 pid=""
@@ -39,6 +40,7 @@ adb forward tcp:9222 "localabstract:webview_devtools_remote_$pid"
 node scripts/test-download-feedback-emulator.mjs
 
 adb install -r out/app-ng-release.apk
+adb logcat -c
 adb shell am start -n com.podmix.next.ng/com.podmix.next.MainActivity
 sleep 15
 adb shell pidof com.podmix.next.ng

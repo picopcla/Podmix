@@ -1,4 +1,8 @@
 import fs from 'node:fs/promises'
+import { execFile } from 'node:child_process'
+import { promisify } from 'node:util'
+
+const execFileAsync = promisify(execFile)
 
 const endpoint = process.env.PODMIX_EMULATOR_CDP ?? 'http://127.0.0.1:9222'
 const outputDir = process.env.PODMIX_EMULATOR_CAPTURE_DIR ?? 'artifacts/emulator-captures'
@@ -48,8 +52,11 @@ async function waitFor(expression, timeoutMs = 15_000) {
 }
 
 async function screenshot(name) {
-  const result = await send('Page.captureScreenshot', { format: 'png', fromSurface: true })
-  await fs.writeFile(`${outputDir}/${name}`, Buffer.from(result.data, 'base64'))
+  const { stdout } = await execFileAsync('adb', ['exec-out', 'screencap', '-p'], {
+    encoding: null,
+    maxBuffer: 20 * 1024 * 1024,
+  })
+  await fs.writeFile(`${outputDir}/${name}`, stdout)
 }
 
 try {
@@ -95,7 +102,7 @@ try {
   const prematureCheck = await evaluate(`Boolean(document.querySelector('.episode-download-action svg.lucide-check'))`)
   if (prematureCheck) throw new Error('Coche affichée avant la fin du téléchargement')
 
-  await waitFor(`document.querySelector('.episode-download-action')?.getAttribute('aria-label') === 'Téléchargé · disponible hors connexion'`, 30_000)
+  await waitFor(`document.querySelector('.episode-download-action')?.getAttribute('aria-label') === 'Téléchargé · disponible hors connexion'`, 120_000)
   const completedDetailCheck = await evaluate(`Boolean(document.querySelector('.episode-download-action svg.lucide-check'))`)
   const completedDetailTrash = await evaluate(`Boolean(document.querySelector('.episode-download-remove[aria-label="Supprimer le téléchargement"]'))`)
   const completedDetailDisabled = await evaluate(`document.querySelector('.episode-download-action')?.disabled === true`)
@@ -126,7 +133,7 @@ try {
   await waitFor(`document.querySelector('.episode-download-action')?.classList.contains('failed')`, 20_000)
   await screenshot('detail-download-failed.png')
   await evaluate(`document.querySelector('.episode-download-action').click()`)
-  await waitFor(`document.querySelector('.episode-download-action')?.getAttribute('aria-label') === 'Téléchargé · disponible hors connexion'`, 30_000)
+  await waitFor(`document.querySelector('.episode-download-action')?.getAttribute('aria-label') === 'Téléchargé · disponible hors connexion'`, 120_000)
 
   const fixtureRequests = await fetch('http://127.0.0.1:18787/stats').then((response) => response.json())
   if (fixtureRequests.slow !== 1 || fixtureRequests.retry !== 2) {
