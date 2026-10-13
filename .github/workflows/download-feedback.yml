@@ -99,7 +99,7 @@ jobs:
           arch: x86_64
           profile: pixel_7
           script: |
-            set -euo pipefail
+            set -eu
             mkdir -p artifacts/emulator-captures
             adb install -r out/app-ng-debug.apk
             adb shell am start -n com.podmix.next.ng/com.podmix.next.MainActivity
