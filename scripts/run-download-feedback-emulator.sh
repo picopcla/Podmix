@@ -43,8 +43,8 @@ if adb exec-out cat /sdcard/podmix-system-window.xml | grep -q 'System UI isn.t 
 fi
 adb exec-out screencap -p > "$capture_dir/release-source.png"
 node scripts/android-ui-text.mjs assert 'Above & Beyond'
+node scripts/android-ui-text.mjs tap 'Find You'
 node scripts/android-ui-text.mjs assert 'Find Your Harmony & Friends'
-node scripts/android-ui-text.mjs tap 'Find Your Harmony & Friends'
 sleep 3
 node scripts/android-ui-text.mjs assert 'Mark Sherry, BiXX & Sue McLaren'
 node scripts/android-ui-text.mjs assert 'Believe & Receive'
@@ -54,12 +54,14 @@ sleep 5
 adb exec-out screencap -p > "$capture_dir/release-entities-mini-player.png"
 node scripts/android-ui-text.mjs tap 'Mark Sherry, BiXX & Sue McLaren' last
 sleep 2
+node scripts/android-ui-text.mjs assert 'EN LECTURE'
 node scripts/android-ui-text.mjs assert 'Believe & Receive'
 adb exec-out screencap -p > "$capture_dir/release-entities-full-player.png"
 adb shell am force-stop com.podmix.next.ng
 adb shell am start -n com.podmix.next.ng/com.podmix.next.MainActivity --es podmixSourceId source-entities-release --es podmixEpisodeId episode-entities-release
 sleep 5
 adb shell pidof com.podmix.next.ng
+node scripts/android-ui-text.mjs tap 'Find You'
 node scripts/android-ui-text.mjs assert 'Find Your Harmony & Friends'
 adb logcat -d -b crash > "$capture_dir/crash.txt"
 test ! -s "$capture_dir/crash.txt"
