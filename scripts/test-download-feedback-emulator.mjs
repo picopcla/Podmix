@@ -76,7 +76,7 @@ async function installNativeDownloadFixture(download) {
 }
 
 async function reloadWithOffline(episodes) {
-  await evaluate(`localStorage.setItem('podmix-offline-v1', ${JSON.stringify(JSON.stringify(episodes))}); location.reload()`)
+  await evaluate(`localStorage.setItem('podmix-offline-v1', ${JSON.stringify(JSON.stringify(episodes))}); setTimeout(() => location.reload(), 0); true`)
   await waitFor(`Boolean(document.querySelector('[aria-label="Émission factice"]'))`, 120_000)
 }
 
@@ -104,7 +104,8 @@ try {
         duration: '08:00', audioUrl: 'https://example.test/retry.mp3', artworkUrl: ''
       }]
     }]))
-    location.reload()
+    setTimeout(() => location.reload(), 0)
+    return true
   })()`)
 
   await waitFor(`Boolean(document.querySelector('[aria-label="Émission factice"]'))`)
