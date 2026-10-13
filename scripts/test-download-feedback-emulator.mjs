@@ -1,4 +1,5 @@
 import fs from 'node:fs/promises'
+import { execFileSync } from 'node:child_process'
 
 const endpoint = process.env.PODMIX_EMULATOR_CDP ?? 'http://127.0.0.1:9222'
 const outputDir = process.env.PODMIX_EMULATOR_CAPTURE_DIR ?? 'artifacts/emulator-captures'
@@ -72,8 +73,8 @@ async function waitFor(expression, timeoutMs = 120_000) {
 }
 
 async function screenshot(name) {
-  const capture = await send('Page.captureScreenshot', { format: 'png', captureBeyondViewport: false })
-  await fs.writeFile(`${outputDir}/${name}`, Buffer.from(capture.data, 'base64'))
+  const capture = execFileSync('adb', ['exec-out', 'screencap', '-p'], { maxBuffer: 20 * 1024 * 1024 })
+  await fs.writeFile(`${outputDir}/${name}`, capture)
 }
 
 async function installNativeFixtureBootstrap() {
