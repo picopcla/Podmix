@@ -62,8 +62,8 @@ jobs:
           BADGING=$("$BT/aapt" dump badging out/app-ng-release.apk | head -1)
           printf '%s\n' "$BADGING"
           grep -Fq "name='com.podmix.next.ng'" <<<"$BADGING"
-          grep -Fq "versionCode='10216'" <<<"$BADGING"
-          grep -Fq "versionName='1.0.216-ng'" <<<"$BADGING"
+          grep -Fq "versionCode='10217'" <<<"$BADGING"
+          grep -Fq "versionName='1.0.217-ng'" <<<"$BADGING"
           "$BT/apksigner" verify out/app-ng-release.apk
           CERT_DIGEST=$("$BT/apksigner" verify --print-certs out/app-ng-release.apk | sed -n 's/.*certificate SHA-256 digest: //p' | head -1 | tr '[:upper:]' '[:lower:]')
           printf 'Certificat SHA-256 public: %s\n' "$CERT_DIGEST"
@@ -85,7 +85,7 @@ jobs:
 
   emulator:
     needs: build-test
-    runs-on: ubuntu-latest
+    runs-on: macos-13
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -97,9 +97,10 @@ jobs:
           path: out
       - uses: reactivecircus/android-emulator-runner@v2
         with:
-          api-level: 35
+          api-level: 33
           arch: x86_64
-          profile: pixel_7
+          profile: pixel_2
+          emulator-options: -no-snapshot -no-window -noaudio -no-boot-anim -gpu swiftshader_indirect -camera-back none
           script: sh scripts/run-download-feedback-emulator.sh
       - uses: actions/upload-artifact@v4
         if: always()
@@ -121,13 +122,13 @@ jobs:
         with:
           name: podmix-download-feedback-emulator
           path: captures
-      - name: Publier la préversion 1.0.216-ng
+      - name: Publier la préversion 1.0.217-ng
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh release create v1.0.216-ng-download-feedback out/app-ng-release.apk out/app-ng-release.apk.sha256 captures/*.png \
+          gh release create v1.0.217-ng-download-feedback out/app-ng-release.apk out/app-ng-release.apk.sha256 captures/*.png \
             --repo "$GITHUB_REPOSITORY" \
             --target "$GITHUB_SHA" \
             --prerelease \
-            --title "Podmix 1.0.216-ng — retour du téléchargement" \
-            --notes "Le bouton confirme immédiatement la demande, affiche ensuite la file d’attente ou la progression, empêche les doublons et permet de réessayer après un échec. Test ciblé et émulateur Android avec données factices validés."
+            --title "Podmix 1.0.217-ng — téléchargement clairement terminé" \
+            --notes "Le bouton confirme immédiatement la demande, suit la file d’attente et la progression, puis devient une coche Téléchargé. La corbeille reste une action séparée. Les doubles demandes et les échecs avec réessai sont couverts sur fiche et liste avec données factices."

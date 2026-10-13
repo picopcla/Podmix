@@ -168,7 +168,7 @@ function downloadButtonText(status: DownloadUiStatus, percent: number) {
   if (status === 'queued') return 'File d’attente'
   if (status === 'downloading') return percent > 0 ? `Téléchargement · ${percent} %` : 'Téléchargement en cours'
   if (status === 'paused') return 'En pause'
-  if (status === 'completed') return 'Disponible'
+  if (status === 'completed') return 'Téléchargé'
   if (status === 'failed') return 'Réessayer'
   return 'Hors connexion'
 }
@@ -186,7 +186,7 @@ function downloadStatusText(status: DownloadUiStatus, percent: number) {
 function downloadAriaLabel(status: DownloadUiStatus, percent: number) {
   if (status === 'idle') return 'Télécharger pour écouter hors connexion'
   if (status === 'failed') return 'Téléchargement échoué · toucher pour relancer'
-  if (status === 'completed') return 'Disponible hors connexion'
+  if (status === 'completed') return 'Téléchargé · disponible hors connexion'
   return downloadStatusText(status, percent)
 }
 
@@ -5019,7 +5019,7 @@ function App() {
             <span className="dj-set-copy"><strong className="dj-set-title-window"><span className="dj-set-title-scroll">{source.title}</span></strong><small>{episode?.duration || 'Durée inconnue'} · {trackCount ? `${trackCount} titres` : 'Tracklist à trouver'}</small></span>
             {timestamp && <span className={`dj-set-timestamp ${timestamp.tone}`}>{timestamp.shortLabel}</span>}
           </button>
-          <button className={`episode-download ${downloadState}`} style={{ '--download-progress': `${downloadPercent}%` } as CSSProperties} onClick={() => { if (episode && downloadState !== 'completed') void downloadSourceEpisode(source, episode) }} disabled={!episode || !canDownload || downloadState === 'completed' || downloadActive} aria-label={downloadLabel} title={downloadLabel}>{downloadState === 'failed' ? '!' : downloadActive ? downloadState === 'downloading' ? `${downloadPercent}%` : <LoaderCircle className="spinning" size={15} /> : <Download size={16} />}</button>
+          <button className={`episode-download ${downloadState}`} style={{ '--download-progress': `${downloadPercent}%` } as CSSProperties} onClick={() => { if (episode && downloadState !== 'completed') void downloadSourceEpisode(source, episode) }} disabled={!episode || !canDownload || downloadState === 'completed' || downloadActive} aria-label={downloadLabel} title={downloadLabel}>{downloadState === 'completed' ? <Check size={17} /> : downloadState === 'failed' ? '!' : downloadActive ? downloadState === 'downloading' ? `${downloadPercent}%` : <LoaderCircle className="spinning" size={15} /> : <Download size={16} />}</button>
           {downloadState === 'completed' && offline && <button className="episode-download remove-download" onClick={() => void removeOffline(offline)} aria-label="Supprimer le téléchargement" title="Supprimer le téléchargement"><Trash2 size={15} /></button>}
           <button className="dj-set-chevron" type="button" onClick={openSet} aria-label={`Ouvrir le set ${source.title}`}><ChevronRight size={18} /></button>
         </article>
@@ -5274,13 +5274,15 @@ function App() {
                       {selectedSource.kind !== 'show' && <button onClick={() => void (selectedSource.kind === 'dj' ? refreshLiveSetEpisode(selectedSource, selectedEpisode) : refreshEpisodeAnalysis(selectedSource, selectedEpisode))} disabled={selectedSource.kind === 'dj' && liveSetBusyId === selectedEpisode.id}><RotateCcw size={14} /> {selectedSource.kind === 'dj' && liveSetBusyId === selectedEpisode.id ? 'Actualisation…' : 'Actualiser'}</button>}
                       <button
                         className={`episode-download-action ${selectedEpisodeDownloadState} ${selectedEpisodeIsOffline ? 'offline-ready' : ''}`}
-                        onClick={() => selectedEpisodeIsOffline && selectedEpisodeOffline ? void removeOffline(selectedEpisodeOffline) : void downloadSourceEpisode(selectedSource, selectedEpisode)}
-                        disabled={selectedEpisodeDownloadActive || (!selectedEpisode.audioUrl && !(selectedSource.kind === 'dj' && selectedEpisode.sourceUrl))}
+                        onClick={() => { if (!selectedEpisodeIsOffline) void downloadSourceEpisode(selectedSource, selectedEpisode) }}
+                        disabled={selectedEpisodeIsOffline || selectedEpisodeDownloadActive || (!selectedEpisode.audioUrl && !(selectedSource.kind === 'dj' && selectedEpisode.sourceUrl))}
                         aria-label={downloadAriaLabel(selectedEpisodeDownloadState, selectedEpisodeDownloadPercent)}
+                        title={downloadAriaLabel(selectedEpisodeDownloadState, selectedEpisodeDownloadPercent)}
                       >
                         {selectedEpisodeDownloadActive ? <LoaderCircle className="spinning" size={14} /> : selectedEpisodeIsOffline ? <Check size={14} /> : <Download size={14} />}
                         {selectedEpisodeDownloadText}
                       </button>
+                      {selectedEpisodeIsOffline && selectedEpisodeOffline && <button className="episode-download-remove" onClick={() => void removeOffline(selectedEpisodeOffline)} aria-label="Supprimer le téléchargement" title="Supprimer le téléchargement"><Trash2 size={14} /> Supprimer</button>}
                       {selectedSource.kind === 'dj' && selectedEpisode.sourceUrl && /(?:youtube\.com|youtu\.be)/i.test(selectedEpisode.sourceUrl) && <a className="source-youtube-link" href={selectedEpisode.sourceUrl} target="_blank" rel="noreferrer" aria-label="Ouvrir ce DJ set sur YouTube" title="Ouvrir sur YouTube"><Youtube size={16} /> YouTube</a>}
                     </div>
                     {selectedEpisodeDownloadStatus && <p className={`episode-download-feedback ${selectedEpisodeDownloadState}`} role="status" aria-live="polite">{selectedEpisodeDownloadStatus}</p>}
@@ -5358,7 +5360,7 @@ function App() {
                       </button>
                       {timestampStatus && <button className={`episode-timestamp-indicator ${timestampStatus.tone}`} onClick={(event) => { event.stopPropagation(); void openEpisodeInStudio(selectedSource, episode) }} aria-label={`Origine des repères : ${timestampStatus.label}`} title={`Origine des repères : ${timestampStatus.label}`}>{timestampStatus.shortLabel}</button>}
                       <span>{episode.duration}</span>
-                      <button className={`episode-download ${downloadState}`} style={{ '--download-progress': `${downloadPercent}%` } as CSSProperties} onClick={() => { if (downloadState !== 'completed') void downloadSourceEpisode(selectedSource, episode) }} disabled={!canDownload || downloadState === 'completed' || downloadActive} aria-label={downloadLabel} title={downloadLabel}>{downloadState === 'failed' ? '!' : downloadActive ? downloadState === 'downloading' ? `${downloadPercent}%` : <LoaderCircle className="spinning" size={15} /> : <Download size={16} />}</button>
+                      <button className={`episode-download ${downloadState}`} style={{ '--download-progress': `${downloadPercent}%` } as CSSProperties} onClick={() => { if (downloadState !== 'completed') void downloadSourceEpisode(selectedSource, episode) }} disabled={!canDownload || downloadState === 'completed' || downloadActive} aria-label={downloadLabel} title={downloadLabel}>{downloadState === 'completed' ? <Check size={17} /> : downloadState === 'failed' ? '!' : downloadActive ? downloadState === 'downloading' ? `${downloadPercent}%` : <LoaderCircle className="spinning" size={15} /> : <Download size={16} />}</button>
                       {downloadState === 'completed' && offline && <button className="episode-download remove-download" onClick={() => void removeOffline(offline)} aria-label="Supprimer le téléchargement" title="Supprimer le téléchargement"><Trash2 size={15} /></button>}
                     </article>
                   })}
@@ -5631,4 +5633,3 @@ function App() {
 }
 
 export default App
-

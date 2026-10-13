@@ -636,12 +636,21 @@ test('le téléchargement confirme immédiatement la demande et suit son état n
     const state = (window as typeof window & { __podmixDownloadTest: { download: object } }).__podmixDownloadTest
     state.download = { id: 'episode-download', status: 'completed', bytesDownloaded: 100, totalBytes: 100, localUri: 'file:///data/factice.mp3' }
   })
-  await expect(detail.getByRole('button', { name: 'Disponible hors connexion' })).toContainText('Disponible', { timeout: 5_000 })
+  const completedDetail = detail.getByRole('button', { name: 'Téléchargé · disponible hors connexion' })
+  await expect(completedDetail).toContainText('Téléchargé', { timeout: 5_000 })
+  await expect(completedDetail.locator('svg.lucide-check')).toBeVisible()
+  await expect(completedDetail).toBeDisabled()
+  await expect(detail.getByRole('button', { name: 'Supprimer le téléchargement' })).toBeVisible()
   await expect(detail.getByText(/Téléchargement terminé.*disponible hors connexion/)).toBeVisible()
 
   await page.getByRole('button', { name: /Retour à/ }).click()
+  const completedRow = page.locator('.episode-item').filter({ hasText: 'Épisode factice' })
+  const completedRowStatus = completedRow.getByRole('button', { name: 'Téléchargé · disponible hors connexion' })
+  await expect(completedRowStatus.locator('svg.lucide-check')).toBeVisible()
+  await expect(completedRowStatus).toBeDisabled()
+  await expect(completedRow.getByRole('button', { name: 'Supprimer le téléchargement' })).toBeVisible()
   await page.locator('.episode-info').filter({ hasText: 'Épisode factice' }).click()
-  await expect(page.locator('.episode-detail').getByRole('button', { name: 'Disponible hors connexion' })).toBeVisible()
+  await expect(page.locator('.episode-detail').getByRole('button', { name: 'Téléchargé · disponible hors connexion' })).toBeVisible()
 
   await page.getByRole('button', { name: /Retour à/ }).click()
   await page.locator('.episode-info').filter({ hasText: 'Épisode à réessayer' }).click()

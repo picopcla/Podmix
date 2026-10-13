@@ -62,7 +62,11 @@ try {
       episodes: [{
         id: 'episode-emulator-test', title: 'Épisode de test hors connexion',
         description: 'Donnée factice destinée au test émulateur.', publishedAt: '2026-10-13',
-        duration: '10:00', audioUrl: 'https://example.test/podmix-factice.mp3', artworkUrl: ''
+        duration: '10:00', audioUrl: 'http://10.0.2.2:18787/slow.mp3', artworkUrl: ''
+      }, {
+        id: 'episode-emulator-retry', title: 'Épisode de test à réessayer',
+        description: 'Donnée factice destinée au test émulateur.', publishedAt: '2026-10-12',
+        duration: '08:00', audioUrl: 'http://10.0.2.2:18787/retry.mp3', artworkUrl: ''
       }]
     }]))
     location.reload()
@@ -78,22 +82,58 @@ try {
   if (!/Télécharger pour écouter hors connexion/.test(initialLabel)) throw new Error(`État initial inattendu : ${initialLabel}`)
   await screenshot('download-before.png')
 
-  await evaluate(`document.querySelector('.episode-download-action').click()`)
+  await evaluate(`document.querySelector('.episode-download-action').click(); document.querySelector('.episode-download-action').click()`)
   await waitFor(`Boolean(document.querySelector('.episode-download-feedback')?.textContent.trim())`)
   const status = await evaluate(`document.querySelector('.episode-download-feedback').textContent.trim()`)
   if (!/Demande envoyée|Demande reçue|Téléchargement démarré/.test(status)) throw new Error(`Statut inattendu après le clic : ${status}`)
-  await screenshot('download-after.png')
+  await screenshot('detail-download-pending.png')
 
   const label = await evaluate(`document.querySelector('.episode-download-action').getAttribute('aria-label')`)
   const text = await evaluate(`document.querySelector('.episode-download-action').textContent.trim()`)
   if (!label || !text || text === 'Hors connexion') throw new Error(`Bouton non actualisé : label=${label} texte=${text}`)
 
+  const prematureCheck = await evaluate(`Boolean(document.querySelector('.episode-download-action svg.lucide-check'))`)
+  if (prematureCheck) throw new Error('Coche affichée avant la fin du téléchargement')
+
+  await waitFor(`document.querySelector('.episode-download-action')?.getAttribute('aria-label') === 'Téléchargé · disponible hors connexion'`, 30_000)
+  const completedDetailCheck = await evaluate(`Boolean(document.querySelector('.episode-download-action svg.lucide-check'))`)
+  const completedDetailTrash = await evaluate(`Boolean(document.querySelector('.episode-download-remove[aria-label="Supprimer le téléchargement"]'))`)
+  const completedDetailDisabled = await evaluate(`document.querySelector('.episode-download-action')?.disabled === true`)
+  if (!completedDetailCheck || !completedDetailTrash || !completedDetailDisabled) {
+    throw new Error('État terminé incomplet dans la fiche')
+  }
+  await screenshot('detail-download-completed.png')
+
   await evaluate(`document.querySelector('.back-button').click()`)
   await waitFor(`Boolean([...document.querySelectorAll('.episode-info')].find((node) => node.textContent.includes('Épisode de test hors connexion')))`)
-  await evaluate(`[...document.querySelectorAll('.episode-info')].find((node) => node.textContent.includes('Épisode de test hors connexion')).click()`)
-  await waitFor(`Boolean(document.querySelector('.episode-download-feedback')?.textContent.trim())`)
+  await waitFor(`Boolean([...document.querySelectorAll('.episode-item')].find((node) => node.textContent.includes('Épisode de test hors connexion'))?.querySelector('.episode-download.completed svg.lucide-check'))`)
+  const completedRowActions = await evaluate(`(() => {
+    const row = [...document.querySelectorAll('.episode-item')].find((node) => node.textContent.includes('Épisode de test hors connexion'))
+    return {
+      label: row?.querySelector('.episode-download.completed')?.getAttribute('aria-label'),
+      disabled: row?.querySelector('.episode-download.completed')?.disabled,
+      trash: Boolean(row?.querySelector('.remove-download[aria-label="Supprimer le téléchargement"]')),
+    }
+  })()`)
+  if (completedRowActions.label !== 'Téléchargé · disponible hors connexion' || !completedRowActions.disabled || !completedRowActions.trash) {
+    throw new Error(`État terminé incomplet dans la liste : ${JSON.stringify(completedRowActions)}`)
+  }
+  await screenshot('list-download-completed.png')
 
-  console.log(JSON.stringify({ status, button: text, ariaLabel: label, navigationRestored: true }))
+  await evaluate(`[...document.querySelectorAll('.episode-info')].find((node) => node.textContent.includes('Épisode de test à réessayer')).click()`)
+  await waitFor(`Boolean(document.querySelector('.episode-download-action'))`)
+  await evaluate(`document.querySelector('.episode-download-action').click()`)
+  await waitFor(`document.querySelector('.episode-download-action')?.classList.contains('failed')`, 20_000)
+  await screenshot('detail-download-failed.png')
+  await evaluate(`document.querySelector('.episode-download-action').click()`)
+  await waitFor(`document.querySelector('.episode-download-action')?.getAttribute('aria-label') === 'Téléchargé · disponible hors connexion'`, 30_000)
+
+  const fixtureRequests = await fetch('http://127.0.0.1:18787/stats').then((response) => response.json())
+  if (fixtureRequests.slow !== 1 || fixtureRequests.retry !== 2) {
+    throw new Error(`Nombre de requêtes inattendu : ${JSON.stringify(fixtureRequests)}`)
+  }
+
+  console.log(JSON.stringify({ status, button: text, ariaLabel: label, navigationRestored: true, completedDetailCheck, completedDetailTrash, fixtureRequests }))
 } finally {
   socket.close()
 }
