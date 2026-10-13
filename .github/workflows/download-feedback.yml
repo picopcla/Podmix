@@ -60,11 +60,13 @@ jobs:
           cp android/app/build/outputs/apk/ng/debug/app-ng-debug.apk out/app-ng-debug.apk
           BT=$(find "$ANDROID_HOME/build-tools" -mindepth 1 -maxdepth 1 -type d | sort -V | tail -1)
           BADGING=$("$BT/aapt" dump badging out/app-ng-release.apk | head -1)
-          test "$(sed -n "s/.*name='\([^']*\)'.*/\1/p" <<<"$BADGING")" = com.podmix.next.ng
-          test "$(sed -n "s/.*versionCode='\([^']*\)'.*/\1/p" <<<"$BADGING")" = 10216
-          test "$(sed -n "s/.*versionName='\([^']*\)'.*/\1/p" <<<"$BADGING")" = 1.0.216-ng
+          printf '%s\n' "$BADGING"
+          grep -Fq "name='com.podmix.next.ng'" <<<"$BADGING"
+          grep -Fq "versionCode='10216'" <<<"$BADGING"
+          grep -Fq "versionName='1.0.216-ng'" <<<"$BADGING"
           "$BT/apksigner" verify out/app-ng-release.apk
-          CERT_DIGEST=$("$BT/apksigner" verify --print-certs out/app-ng-release.apk | sed -n 's/.*certificate SHA-256 digest: //p' | head -1)
+          CERT_DIGEST=$("$BT/apksigner" verify --print-certs out/app-ng-release.apk | sed -n 's/.*certificate SHA-256 digest: //p' | head -1 | tr '[:upper:]' '[:lower:]')
+          printf 'Certificat SHA-256 public: %s\n' "$CERT_DIGEST"
           test "$CERT_DIGEST" = b27d46c092c63432e7e274d227c0e465cf91ab4656f67c1a0b511402505c8b8c
           sha256sum out/app-ng-release.apk > out/app-ng-release.apk.sha256
       - name: Retirer le matériel de signature
@@ -134,11 +136,15 @@ jobs:
         with:
           name: podmix-download-feedback-apks
           path: out
+      - uses: actions/download-artifact@v4
+        with:
+          name: podmix-download-feedback-emulator
+          path: captures
       - name: Publier la préversion 1.0.216-ng
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh release create v1.0.216-ng-download-feedback out/app-ng-release.apk out/app-ng-release.apk.sha256 \
+          gh release create v1.0.216-ng-download-feedback out/app-ng-release.apk out/app-ng-release.apk.sha256 captures/*.png \
             --repo "$GITHUB_REPOSITORY" \
             --target "$GITHUB_SHA" \
             --prerelease \
