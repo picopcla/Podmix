@@ -59,31 +59,36 @@ async function screenshot(name) {
   await fs.writeFile(`${outputDir}/${name}`, Buffer.from(capture.data, 'base64'))
 }
 
-async function installNativeDownloadFixture(download) {
-  await evaluate(`(() => {
-    const originalNativePromise = window.Capacitor.nativePromise.bind(window.Capacitor)
-    const testState = { calls: 0, failNext: false, download: ${JSON.stringify(download)} }
-    window.__podmixEmulatorTest = testState
-    window.Capacitor.nativePromise = (plugin, method, options = {}) => {
-      if (plugin !== 'PodmixPlayer') return originalNativePromise(plugin, method, options)
-      if (method === 'download') {
-        testState.calls += 1
-        if (testState.failNext) {
-          testState.failNext = false
-          return Promise.reject(new Error('Échec natif factice'))
+async function installNativeFixtureBootstrap() {
+  await send('Page.addScriptToEvaluateOnNewDocument', { source: `(() => {
+    let capacitor
+    Object.defineProperty(window, 'Capacitor', {
+      configurable: true,
+      get: () => capacitor,
+      set: (value) => {
+        capacitor = value
+        const originalNativePromise = value.nativePromise.bind(value)
+        value.nativePromise = (plugin, method, options = {}) => {
+          if (plugin !== 'PodmixPlayer') return originalNativePromise(plugin, method, options)
+          const fixture = JSON.parse(localStorage.getItem('podmix-emulator-download-fixture-v1') || 'null')
+          if (!fixture) return originalNativePromise(plugin, method, options)
+          if (method === 'download') {
+            const calls = Number(localStorage.getItem('podmix-emulator-download-calls-v1') || '0') + 1
+            localStorage.setItem('podmix-emulator-download-calls-v1', String(calls))
+            return Promise.resolve({ ...fixture, id: options.id ?? fixture.id })
+          }
+          if (method === 'getDownload') return Promise.resolve({ ...fixture, id: options.id ?? fixture.id })
+          if (method === 'listDownloads') return Promise.resolve({ downloads: [] })
+          if (method === 'removeDownload') return Promise.resolve({ id: options.id, status: 'not_found', removed: true })
+          return originalNativePromise(plugin, method, options)
         }
-        return Promise.resolve({ ...testState.download, id: options.id ?? testState.download.id })
-      }
-      if (method === 'getDownload') return Promise.resolve({ ...testState.download, id: options.id ?? testState.download.id })
-      if (method === 'listDownloads') return Promise.resolve({ downloads: [] })
-      if (method === 'removeDownload') return Promise.resolve({ id: options.id, status: 'not_found', removed: true })
-      return originalNativePromise(plugin, method, options)
-    }
-  })()`)
+      },
+    })
+  })()` })
 }
 
-async function reloadWithOffline(episodes) {
-  await evaluate(`localStorage.setItem('podmix-offline-v1', ${JSON.stringify(JSON.stringify(episodes))}); setTimeout(() => location.reload(), 1000); true`)
+async function reloadWithOffline(episodes, fixture) {
+  await evaluate(`localStorage.setItem('podmix-offline-v1', ${JSON.stringify(JSON.stringify(episodes))}); localStorage.setItem('podmix-emulator-download-fixture-v1', ${JSON.stringify(JSON.stringify(fixture))}); setTimeout(() => location.reload(), 1000); true`)
   await waitFor(`Boolean(document.querySelector('[aria-label="Émission factice"]'))`, 120_000)
 }
 
@@ -97,8 +102,11 @@ async function openEpisode(title) {
 try {
   await send('Page.enable')
   await send('Runtime.enable')
+  await installNativeFixtureBootstrap()
   await evaluate(`(() => {
     localStorage.clear()
+    localStorage.setItem('podmix-emulator-download-fixture-v1', JSON.stringify({ id: 'episode-emulator-test', status: 'queued', bytesDownloaded: 0, totalBytes: 100 }))
+    localStorage.setItem('podmix-emulator-download-calls-v1', '0')
     localStorage.setItem('podmix-catalog-v1', JSON.stringify([{
       id: 'source-emulator-test', kind: 'show', title: 'Émission factice', description: '', artworkUrl: '',
       episodes: [{
@@ -116,7 +124,6 @@ try {
   })()`)
 
   await waitFor(`Boolean(document.querySelector('[aria-label="Émission factice"]'))`)
-  await installNativeDownloadFixture({ id: 'episode-emulator-test', status: 'queued', bytesDownloaded: 0, totalBytes: 100 })
   await openEpisode('Épisode de test hors connexion')
 
   const initialLabel = await evaluate(`document.querySelector('.episode-download-action').getAttribute('aria-label')`)
@@ -135,7 +142,7 @@ try {
 
   const prematureCheck = await evaluate(`Boolean(document.querySelector('.episode-download-action svg.lucide-check'))`)
   if (prematureCheck) throw new Error('Coche affichée avant la fin du téléchargement')
-  const callsAfterDoubleClick = await evaluate(`window.__podmixEmulatorTest.calls`)
+  const callsAfterDoubleClick = await evaluate(`Number(localStorage.getItem('podmix-emulator-download-calls-v1'))`)
   if (callsAfterDoubleClick !== 1) throw new Error(`Double requête native : ${callsAfterDoubleClick}`)
 
   const completedEpisode = {
@@ -143,16 +150,15 @@ try {
     remoteUrl: 'https://example.test/slow.mp3', status: 'completed', bytesDownloaded: 100,
     totalBytes: 100, localUri: 'file:///data/factice.mp3', addedAt: '2026-10-13T00:00:00.000Z',
   }
-  await reloadWithOffline([{ ...completedEpisode, status: 'downloading', bytesDownloaded: 45, localUri: undefined }])
-  await installNativeDownloadFixture({ id: 'episode-emulator-test', status: 'downloading', bytesDownloaded: 45, totalBytes: 100 })
+  const progressEpisode = { ...completedEpisode, status: 'downloading', bytesDownloaded: 45, localUri: undefined }
+  await reloadWithOffline([progressEpisode], progressEpisode)
   await openEpisode('Épisode de test hors connexion')
   await waitFor(`document.querySelector('.episode-download-action')?.textContent.includes('45%')`, 120_000)
   const progressCheck = await evaluate(`Boolean(document.querySelector('.episode-download-action svg.lucide-check'))`)
   if (progressCheck) throw new Error('Coche affichée pendant la progression')
   await screenshot('detail-download-progress.png')
 
-  await reloadWithOffline([completedEpisode])
-  await installNativeDownloadFixture({ id: 'episode-emulator-test', status: 'completed', bytesDownloaded: 100, totalBytes: 100, localUri: 'file:///data/factice.mp3' })
+  await reloadWithOffline([completedEpisode], completedEpisode)
   await openEpisode('Épisode de test hors connexion')
   await waitFor(`document.querySelector('.episode-download-action')?.getAttribute('aria-label') === 'Téléchargé · disponible hors connexion'`, 120_000)
   const completedDetailCheck = await evaluate(`Boolean(document.querySelector('.episode-download-action svg.lucide-check'))`)
@@ -184,15 +190,14 @@ try {
     remoteUrl: 'https://example.test/retry.mp3', status: 'failed', bytesDownloaded: 0,
     totalBytes: 100, addedAt: '2026-10-13T00:00:00.000Z',
   }
-  await reloadWithOffline([completedEpisode, failedEpisode])
-  await installNativeDownloadFixture({ id: 'episode-emulator-retry', status: 'failed', bytesDownloaded: 0, totalBytes: 100 })
+  await reloadWithOffline([completedEpisode, failedEpisode], failedEpisode)
   await openEpisode('Épisode de test à réessayer')
   await waitFor(`document.querySelector('.episode-download-action')?.classList.contains('failed')`, 120_000)
   await screenshot('detail-download-failed.png')
-  await evaluate(`window.__podmixEmulatorTest.download.status = 'queued'`)
+  await evaluate(`localStorage.setItem('podmix-emulator-download-fixture-v1', JSON.stringify({ id: 'episode-emulator-retry', status: 'queued', bytesDownloaded: 0, totalBytes: 100 })); localStorage.setItem('podmix-emulator-download-calls-v1', '0')`)
   await evaluate(`document.querySelector('.episode-download-action').click(); document.querySelector('.episode-download-action').click()`)
   await waitFor(`document.querySelector('.episode-download-action')?.classList.contains('queued')`, 120_000)
-  const retryCalls = await evaluate(`window.__podmixEmulatorTest.calls`)
+  const retryCalls = await evaluate(`Number(localStorage.getItem('podmix-emulator-download-calls-v1'))`)
   if (retryCalls !== 1) throw new Error(`Double requête native au réessai : ${retryCalls}`)
   const retryCheck = await evaluate(`Boolean(document.querySelector('.episode-download-action svg.lucide-check'))`)
   if (retryCheck) throw new Error('Coche affichée pendant le réessai en file d’attente')
