@@ -11,7 +11,7 @@ adb shell am start -n com.podmix.next.ng/com.podmix.next.MainActivity
 pid=""
 socket_found=""
 attempt=1
-while test "$attempt" -le 30; do
+while test "$attempt" -le 120; do
   pid=$(adb shell pidof com.podmix.next.ng | tr -d '\r')
   if test -n "$pid" && adb shell cat /proc/net/unix | grep -q "webview_devtools_remote_$pid"; then
     socket_found=yes
