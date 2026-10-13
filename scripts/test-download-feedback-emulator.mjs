@@ -90,7 +90,8 @@ async function installNativeFixtureBootstrap() {
 }
 
 async function reloadWithOffline(episodes, fixture) {
-  await evaluate(`localStorage.setItem('podmix-offline-v1', ${JSON.stringify(JSON.stringify(episodes))}); localStorage.setItem('podmix-emulator-download-fixture-v1', ${JSON.stringify(JSON.stringify(fixture))}); setTimeout(() => location.reload(), 1000); true`)
+  await evaluate(`localStorage.setItem('podmix-offline-v1', ${JSON.stringify(JSON.stringify(episodes))}); localStorage.setItem('podmix-emulator-download-fixture-v1', ${JSON.stringify(JSON.stringify(fixture))}); true`)
+  await send('Page.reload')
   await waitFor(`Boolean(document.querySelector('[aria-label="Émission factice"]'))`, 120_000)
 }
 
@@ -121,9 +122,9 @@ try {
         duration: '08:00', audioUrl: 'https://example.test/retry.mp3', artworkUrl: ''
       }]
     }]))
-    setTimeout(() => location.reload(), 1000)
     return true
   })()`)
+  await send('Page.reload')
 
   await waitFor(`Boolean(document.querySelector('[aria-label="Émission factice"]'))`)
   await openEpisode('Épisode de test hors connexion')
