@@ -61,14 +61,16 @@ async function screenshot(name) {
 
 async function installNativeFixtureBootstrap() {
   await send('Page.addScriptToEvaluateOnNewDocument', { source: `(() => {
-    let capacitor
-    Object.defineProperty(window, 'Capacitor', {
-      configurable: true,
-      get: () => capacitor,
-      set: (value) => {
-        capacitor = value
-        const originalNativePromise = value.nativePromise.bind(value)
-        value.nativePromise = (plugin, method, options = {}) => {
+    const install = () => {
+      const capacitor = window.Capacitor
+      if (!capacitor?.nativePromise) {
+        setTimeout(install, 0)
+        return
+      }
+      if (capacitor.__podmixFixtureInstalled) return
+      capacitor.__podmixFixtureInstalled = true
+      const originalNativePromise = capacitor.nativePromise.bind(capacitor)
+      capacitor.nativePromise = (plugin, method, options = {}) => {
           if (plugin !== 'PodmixPlayer') return originalNativePromise(plugin, method, options)
           const fixture = JSON.parse(localStorage.getItem('podmix-emulator-download-fixture-v1') || 'null')
           if (!fixture) return originalNativePromise(plugin, method, options)
@@ -81,9 +83,9 @@ async function installNativeFixtureBootstrap() {
           if (method === 'listDownloads') return Promise.resolve({ downloads: [] })
           if (method === 'removeDownload') return Promise.resolve({ id: options.id, status: 'not_found', removed: true })
           return originalNativePromise(plugin, method, options)
-        }
-      },
-    })
+      }
+    }
+    install()
   })()` })
 }
 
