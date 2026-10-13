@@ -534,3 +534,7 @@ section.source-detail,.workspace .source-detail{background:#000000!important}
 .source-modal,[role="dialog"]:not(.full-player){background:#000000!important;background-image:none!important}
 .source-modal input:not([type=range]),.source-modal textarea,[role="dialog"]:not(.full-player) input:not([type=range]){background:#100e16!important}
 section.home-section.home-resume,section.home-section.home-offline,section.home-section.home-history{background:#000000!important;background-image:none!important}
+
+
+/* Main is the only grid child after removal of the desktop sidebar. */
+.app-shell>main{grid-column:1/-1;width:100%;min-width:0}
