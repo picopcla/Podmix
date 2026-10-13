@@ -52,10 +52,15 @@ adb exec-out screencap -p > "$capture_dir/release-entities-tracklist.png"
 node scripts/android-ui-text.mjs tap 'Believe & Receive'
 sleep 5
 adb exec-out screencap -p > "$capture_dir/release-entities-mini-player.png"
-adb shell input swipe 540 1700 540 1100 450
+node scripts/android-ui-text.mjs tap 'Mark Sherry, BiXX & Sue McLaren'
 sleep 2
-node scripts/android-ui-text.mjs assert 'Lecteur en cours'
+node scripts/android-ui-text.mjs assert 'Believe & Receive'
 adb exec-out screencap -p > "$capture_dir/release-entities-full-player.png"
+adb shell am force-stop com.podmix.next.ng
+adb shell am start -n com.podmix.next.ng/com.podmix.next.MainActivity --es podmixSourceId source-entities-release --es podmixEpisodeId episode-entities-release
+sleep 5
+adb shell pidof com.podmix.next.ng
+node scripts/android-ui-text.mjs assert 'Find Your Harmony & Friends'
 adb logcat -d -b crash > "$capture_dir/crash.txt"
 test ! -s "$capture_dir/crash.txt"
 adb exec-out screencap -p > "$capture_dir/release-launch.png"
