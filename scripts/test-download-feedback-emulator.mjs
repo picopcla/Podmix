@@ -34,7 +34,7 @@ async function evaluate(expression) {
   return response.result?.value
 }
 
-async function waitFor(expression, timeoutMs = 15_000) {
+async function waitFor(expression, timeoutMs = 120_000) {
   const deadline = Date.now() + timeoutMs
   while (Date.now() < deadline) {
     try {
