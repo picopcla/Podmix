@@ -2,6 +2,23 @@ import fs from 'node:fs/promises'
 
 const endpoint = process.env.PODMIX_EMULATOR_CDP ?? 'http://127.0.0.1:9222'
 const outputDir = process.env.PODMIX_EMULATOR_CAPTURE_DIR ?? 'artifacts/emulator-captures'
+const sampleRate = 8_000
+const audioSeconds = 60
+const audioDataSize = sampleRate * audioSeconds * 2
+const audioFixture = Buffer.alloc(44 + audioDataSize)
+audioFixture.write('RIFF', 0)
+audioFixture.writeUInt32LE(36 + audioDataSize, 4)
+audioFixture.write('WAVEfmt ', 8)
+audioFixture.writeUInt32LE(16, 16)
+audioFixture.writeUInt16LE(1, 20)
+audioFixture.writeUInt16LE(1, 22)
+audioFixture.writeUInt32LE(sampleRate, 24)
+audioFixture.writeUInt32LE(sampleRate * 2, 28)
+audioFixture.writeUInt16LE(2, 32)
+audioFixture.writeUInt16LE(16, 34)
+audioFixture.write('data', 36)
+audioFixture.writeUInt32LE(audioDataSize, 40)
+await fs.writeFile(`${outputDir}/entities.wav`, audioFixture)
 const [target] = await fetch(`${endpoint}/json/list`).then((response) => response.json())
 if (!target?.webSocketDebuggerUrl) throw new Error('WebView Podmix introuvable')
 
@@ -108,7 +125,21 @@ try {
     localStorage.clear()
     localStorage.setItem('podmix-emulator-download-fixture-v1', JSON.stringify({ id: 'episode-emulator-test', status: 'queued', bytesDownloaded: 0, totalBytes: 100 }))
     localStorage.setItem('podmix-emulator-download-calls-v1', '0')
+    localStorage.setItem('podmix-settings-v1', JSON.stringify({ automaticAnalysis: false }))
     localStorage.setItem('podmix-catalog-v1', JSON.stringify([{
+      id: 'source-entities-release', kind: 'podcast', title: 'Above &amp;amp; Beyond', description: '', artworkUrl: '',
+      feedUrl: 'https://example.test/feed?a=1&amp;b=2',
+      episodes: [{
+        id: 'episode-entities-release', title: 'Find Your Harmony &amp;amp; Friends',
+        description: 'Donnée factice &lt;b&gt;non interprétée&lt;/b&gt;.', publishedAt: '2026-10-13',
+        duration: '01:00', audioUrl: 'http://10.0.2.2:8765/entities.wav?a=1&amp;b=2', artworkUrl: '',
+        tracks: [{
+          id: 1, time: 0, artist: 'Mark Sherry, BiXX &amp; Sue McLaren', title: 'Believe &#38; Receive', confidence: 100, source: 'manual'
+        }, {
+          id: 2, time: 30, artist: 'David Forbes &amp;amp; Lostly', title: 'Second &amp; Final', confidence: 100, source: 'manual'
+        }]
+      }]
+    }, {
       id: 'source-emulator-test', kind: 'show', title: 'Émission factice', description: '', artworkUrl: '',
       episodes: [{
         id: 'episode-emulator-test', title: 'Épisode de test en attente',
@@ -217,7 +248,33 @@ try {
   const retryCheck = await evaluate(`Boolean(document.querySelector('.episode-download-action svg.lucide-check'))`)
   if (retryCheck) throw new Error('Coche affichée pendant le réessai en file d’attente')
 
-  console.log(JSON.stringify({ status, button: text, ariaLabel: label, navigationRestored: true, completedDetailCheck, completedDetailTrash, callsAfterDoubleClick, retryCalls }))
+  await evaluate(`document.querySelector('.back-button')?.click()`)
+  await waitFor(`Boolean([...document.querySelectorAll('.episode-info')].find((node) => node.textContent.includes('Épisode de test à réessayer')))`)
+  await evaluate(`document.querySelector('.back-button')?.click()`)
+  await waitFor(`Boolean(document.querySelector('[aria-label="Above & Beyond"]'))`)
+  await evaluate(`document.querySelector('[aria-label="Above & Beyond"]').click()`)
+  await waitFor(`Boolean([...document.querySelectorAll('.episode-info')].find((node) => node.textContent.includes('Find Your Harmony & Friends')))`)
+  await evaluate(`[...document.querySelectorAll('.episode-info')].find((node) => node.textContent.includes('Find Your Harmony & Friends')).click()`)
+  await waitFor(`Boolean([...document.querySelectorAll('.episode-track')].find((node) => node.textContent.includes('Mark Sherry, BiXX & Sue McLaren')))`)
+  const entityTexts = await evaluate(`(() => ({
+    detail: document.querySelector('.episode-detail')?.textContent,
+    stored: JSON.parse(localStorage.getItem('podmix-catalog-v1') || '[]').find((source) => source.id === 'source-entities-release')
+  }))()`)
+  if (!entityTexts.detail?.includes('Believe & Receive') || !entityTexts.detail?.includes('David Forbes & Lostly') || entityTexts.detail.includes('&amp;')) {
+    throw new Error(`Entités encore visibles dans la tracklist : ${JSON.stringify(entityTexts.detail)}`)
+  }
+  if (entityTexts.stored.id !== 'source-entities-release' || entityTexts.stored.feedUrl !== 'https://example.test/feed?a=1&amp;b=2' || entityTexts.stored.episodes[0].audioUrl !== 'http://10.0.2.2:8765/entities.wav?a=1&amp;b=2') {
+    throw new Error('Une URL ou un identifiant a été modifié pendant la normalisation')
+  }
+  await screenshot('entities-tracklist.png')
+  await evaluate(`[...document.querySelectorAll('.episode-track')].find((node) => node.textContent.includes('Believe & Receive')).click()`)
+  await waitFor(`document.querySelector('.mini-player-global')?.textContent.includes('Mark Sherry, BiXX & Sue McLaren')`)
+  await screenshot('entities-mini-player.png')
+  await evaluate(`document.querySelector('.mini-meta').click()`)
+  await waitFor(`document.querySelector('.full-player')?.textContent.includes('Believe & Receive')`)
+  await screenshot('entities-full-player.png')
+
+  console.log(JSON.stringify({ status, button: text, ariaLabel: label, navigationRestored: true, completedDetailCheck, completedDetailTrash, callsAfterDoubleClick, retryCalls, entityTextsVerified: true }))
 } finally {
   socket.close()
 }

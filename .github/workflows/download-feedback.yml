@@ -41,17 +41,17 @@ jobs:
           printf '%s' "$KS_B64" | base64 -d > android/podmix-release.keystore
           printf 'storeFile=podmix-release.keystore\nstorePassword=%s\nkeyAlias=%s\nkeyPassword=%s\n' "$KS_PASS" "$KEY_ALIAS" "$KEY_PASS" > android/release-signing.properties
       - run: npm ci
-      - run: node --experimental-strip-types tests/unit/player-state-order.test.mjs
+      - run: npm run test:unit
       - run: npm run lint
       - run: npm run build
       - run: npx playwright install chromium
-      - name: Test ciblé du retour de téléchargement
-        run: npx playwright test --project=mobile-chromium --grep "confirme immédiatement"
+      - name: Tests ciblés du téléchargement et des entités HTML
+        run: npx playwright test --project=mobile-chromium --grep "entités HTML|confirme immédiatement"
       - name: Construire les APK Android
         run: |
           npm run android:build:ng
           cd android
-          ./gradlew assembleNgDebug
+          ./gradlew testNgDebugUnitTest assembleNgDebug
       - name: Vérifier et collecter les APK
         run: |
           set -euo pipefail
@@ -62,8 +62,8 @@ jobs:
           BADGING=$("$BT/aapt" dump badging out/app-ng-release.apk | head -1)
           printf '%s\n' "$BADGING"
           grep -Fq "name='com.podmix.next.ng'" <<<"$BADGING"
-          grep -Fq "versionCode='10217'" <<<"$BADGING"
-          grep -Fq "versionName='1.0.217-ng'" <<<"$BADGING"
+          grep -Fq "versionCode='10218'" <<<"$BADGING"
+          grep -Fq "versionName='1.0.218-ng'" <<<"$BADGING"
           "$BT/apksigner" verify out/app-ng-release.apk
           CERT_DIGEST=$("$BT/apksigner" verify --print-certs out/app-ng-release.apk | sed -n 's/.*certificate SHA-256 digest: //p' | head -1 | tr '[:upper:]' '[:lower:]')
           printf 'Certificat SHA-256 public: %s\n' "$CERT_DIGEST"
@@ -76,7 +76,7 @@ jobs:
         run: rm -f android/podmix-release.keystore android/release-signing.properties
       - uses: actions/upload-artifact@v4
         with:
-          name: podmix-download-feedback-apks
+          name: podmix-html-entities-apks
           path: |
             out/app-ng-release.apk
             out/app-ng-debug.apk
@@ -93,7 +93,7 @@ jobs:
           node-version: 22
       - uses: actions/download-artifact@v4
         with:
-          name: podmix-download-feedback-apks
+          name: podmix-html-entities-apks
           path: out
       - uses: reactivecircus/android-emulator-runner@v2
         with:
@@ -105,7 +105,7 @@ jobs:
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: podmix-download-feedback-emulator
+          name: podmix-html-entities-emulator
           path: artifacts/emulator-captures/
           retention-days: 14
 
@@ -116,19 +116,19 @@ jobs:
     steps:
       - uses: actions/download-artifact@v4
         with:
-          name: podmix-download-feedback-apks
+          name: podmix-html-entities-apks
           path: out
       - uses: actions/download-artifact@v4
         with:
-          name: podmix-download-feedback-emulator
+          name: podmix-html-entities-emulator
           path: captures
-      - name: Publier la préversion 1.0.217-ng
+      - name: Publier la préversion 1.0.218-ng
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh release create v1.0.217-ng-download-feedback out/app-ng-release.apk out/app-ng-release.apk.sha256 captures/*.png \
+          gh release create v1.0.218-ng-html-entities out/app-ng-release.apk out/app-ng-release.apk.sha256 captures/*.png \
             --repo "$GITHUB_REPOSITORY" \
             --target "$GITHUB_SHA" \
             --prerelease \
-            --title "Podmix 1.0.217-ng — téléchargement clairement terminé" \
-            --notes "Le bouton confirme immédiatement la demande, suit la file d’attente et la progression, puis devient une coche Téléchargé. La corbeille reste une action séparée. Les doubles demandes et les échecs avec réessai sont couverts sur fiche et liste avec données factices."
+            --title "Podmix 1.0.218-ng — textes propres et téléchargement clair" \
+            --notes "Les artistes, titres, épisodes et tracklists affichent correctement les esperluettes, y compris après un double encodage. Le bouton de téléchargement confirme immédiatement la demande, suit progression/erreur/réessai, puis devient une coche Téléchargé avec corbeille séparée. Les contrôles ont été exécutés avec des données factices."

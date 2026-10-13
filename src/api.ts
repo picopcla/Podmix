@@ -1,5 +1,16 @@
 import type { CatalogSource, DetectionJob, DjSearchResult, LiveSetDetails, LiveSetSearchResult, LiveSetTrack, PodcastSearchResult } from './domain'
 import { Capacitor } from '@capacitor/core'
+import {
+  decodeTextEntities,
+  normalizeCatalogSourceText,
+  normalizeDetectionJobText,
+  normalizeDjSearchResultText,
+  normalizeLiveSetDetailsText,
+  normalizeLiveSetSearchResultText,
+  normalizeLiveSetTrackText,
+  normalizePodcastSearchResultText,
+  normalizeTrackText,
+} from './text'
 
 const API_TIMEOUT_MS = 45_000
 
@@ -106,14 +117,14 @@ export async function importRssFeed(url: string, kind: 'podcast' | 'show' = 'pod
   })
   const payload = await response.json()
   if (!response.ok) throw new Error(payload.message ?? 'Import du flux impossible')
-  return payload
+  return normalizeCatalogSourceText(payload as CatalogSource)
 }
 
 export async function searchRadios(query: string): Promise<CatalogSource[]> {
   const response = await apiFetch(`${getApiUrl()}/v1/catalog/radios?q=${encodeURIComponent(query)}`)
   const payload = await response.json()
   if (!response.ok) throw new Error(payload.message ?? 'Annuaire radio indisponible')
-  return payload.items
+  return (payload.items as CatalogSource[]).map(normalizeCatalogSourceText)
 }
 
 export async function searchPodcasts(query: string): Promise<PodcastSearchResult[]> {
@@ -122,7 +133,7 @@ export async function searchPodcasts(query: string): Promise<PodcastSearchResult
   const response = await apiFetch(`${getApiUrl()}/v1/catalog/podcasts?q=${encodeURIComponent(query)}`)
   const payload = await response.json().catch(() => ({})) as { items?: PodcastSearchResult[]; message?: string }
   if (!response.ok) throw new Error(payload.message ?? 'Annuaire podcasts indisponible')
-  return payload.items ?? []
+  return (payload.items ?? []).map(normalizePodcastSearchResultText)
 }
 
 export async function importDjSet(url: string): Promise<CatalogSource> {
@@ -131,14 +142,14 @@ export async function importDjSet(url: string): Promise<CatalogSource> {
   })
   const payload = await response.json()
   if (!response.ok) throw new Error(payload.message ?? 'Import du DJ set impossible')
-  return payload
+  return normalizeCatalogSourceText(payload as CatalogSource)
 }
 
 export async function searchDjSets(query: string): Promise<DjSearchResult[]> {
   const response = await apiFetch(`${getApiUrl()}/v1/catalog/dj?q=${encodeURIComponent(query)}`)
   const payload = await response.json()
   if (!response.ok) throw new Error(payload.message ?? 'Recherche DJ indisponible')
-  return payload.items
+  return (payload.items as DjSearchResult[]).map(normalizeDjSearchResultText)
 }
 
 /** Recherche dédiée aux live sets : aucune donnée podcast ni job d'analyse. */
@@ -146,7 +157,7 @@ export async function searchLiveSets(query: string, limit = 24): Promise<LiveSet
   const response = await apiFetch(`${getApiUrl()}/v1/live-sets/search?q=${encodeURIComponent(query)}&limit=${encodeURIComponent(limit)}`)
   const payload = await response.json()
   if (!response.ok) throw new Error(payload.message ?? 'Recherche de live sets indisponible')
-  return payload.items ?? []
+  return (payload.items as LiveSetSearchResult[] | undefined)?.map(normalizeLiveSetSearchResultText) ?? []
 }
 
 export function liveSetStreamUrl(url: string) {
@@ -162,10 +173,10 @@ export async function resolveLiveSet(url: string): Promise<Partial<LiveSetDetail
   // Les URL audio YouTube/SoundCloud sont éphémères et certaines demandent
   // les en-têtes du client de résolution. La lecture passe donc par le relais
   // DJ du serveur, sans toucher au pipeline RSS/podcast.
-  return {
+  return normalizeLiveSetDetailsText({
     ...payload,
     audioUrl: liveSetStreamUrl(url),
-  }
+  } as LiveSetDetails)
 }
 
 export async function resolveLiveSetTracklist(url: string, title: string, text = ''): Promise<{ tracks: LiveSetTrack[]; origin: string; sourceUrl: string }> {
@@ -174,7 +185,7 @@ export async function resolveLiveSetTracklist(url: string, title: string, text =
   })
   const payload = await response.json()
   if (!response.ok) throw new Error(payload.message ?? 'Tracklist DJ indisponible')
-  return payload
+  return { ...payload, tracks: (payload.tracks as LiveSetTrack[]).map(normalizeLiveSetTrackText) }
 }
 
 export async function findTrackArtwork(
@@ -212,21 +223,21 @@ export async function findTrackLinks(
 export async function getDetectionJob(jobId: string): Promise<DetectionJob> {
   const response = await apiFetch(`${getApiUrl()}/v1/detection-jobs/${jobId}`)
   if (!response.ok) throw new Error(`État de l’analyse indisponible (${response.status})`)
-  return response.json() as Promise<DetectionJob>
+  return normalizeDetectionJobText(await response.json() as DetectionJob)
 }
 
 export async function cancelDetectionJob(jobId: string): Promise<DetectionJob> {
   const response = await apiFetch(`${getApiUrl()}/v1/detection-jobs/${jobId}`, { method: 'DELETE' })
   const payload = await response.json()
   if (!response.ok) throw new Error(payload.message ?? `Annulation impossible (${response.status})`)
-  return payload as DetectionJob
+  return normalizeDetectionJobText(payload as DetectionJob)
 }
 
 export async function findDetectionJob(requestKey: string): Promise<DetectionJob | undefined> {
   const response = await apiFetch(`${getApiUrl()}/v1/detection-jobs?requestKey=${encodeURIComponent(requestKey)}`)
   if (response.status === 404) return undefined
   if (!response.ok) throw new Error(`Recherche de l’analyse indisponible (${response.status})`)
-  return response.json() as Promise<DetectionJob>
+  return normalizeDetectionJobText(await response.json() as DetectionJob)
 }
 
 export async function createEpisodeAnalysisJob(
@@ -264,7 +275,7 @@ export async function createEpisodeAnalysisJob(
   })
   const payload = await response.json() as DetectionJob & { message?: string }
   if (!response.ok) throw new Error(payload.message ?? `Planification impossible (${response.status})`)
-  return payload
+  return normalizeDetectionJobText(payload)
 }
 
 export function observeDetectionJob(
@@ -278,7 +289,7 @@ export function observeDetectionJob(
   let pollTimer = 0
   let pollFailures = 0
   const finish = (job: DetectionJob) => {
-    onUpdate(job)
+    onUpdate(normalizeDetectionJobText(job))
     terminal = ['completed', 'failed', 'cancelled'].includes(job.status)
     if (terminal) {
       events.close()
@@ -332,7 +343,7 @@ export async function alignTracklist(jobId: string, text: string, options: { tim
     body: JSON.stringify({ text, timestampSource: options.timestampSource }),
   })
   if (!response.ok) throw new Error(response.status === 422 ? 'Aucun morceau reconnu dans ce texte' : `Alignement impossible (${response.status})`)
-  return response.json() as Promise<DetectionJob>
+  return normalizeDetectionJobText(await response.json() as DetectionJob)
 }
 
 export async function claimWebTimestampJob(): Promise<{
@@ -346,7 +357,20 @@ export async function claimWebTimestampJob(): Promise<{
   const response = await apiFetch(`${getApiUrl()}/v1/web-timestamp-jobs/next`)
   if (!response.ok) throw new Error(`File Web indisponible (${response.status})`)
   const payload = await response.json()
-  return payload?.id ? payload : null
+  if (!payload?.id) return null
+  return {
+    ...payload,
+    title: decodeTextEntities(payload.title ?? ''),
+    referenceFirstTrack: payload.referenceFirstTrack ? {
+      ...payload.referenceFirstTrack,
+      artist: payload.referenceFirstTrack.artist === undefined ? undefined : decodeTextEntities(payload.referenceFirstTrack.artist),
+      title: payload.referenceFirstTrack.title === undefined ? undefined : decodeTextEntities(payload.referenceFirstTrack.title),
+    } : undefined,
+    webCandidates: payload.webCandidates?.map((candidate: { url: string; title: string; domain: string; address?: string }) => ({
+      ...candidate,
+      title: decodeTextEntities(candidate.title),
+    })),
+  }
 }
 
 export async function completeWebTimestampJob(jobId: string, sourceUrl: string, candidates: Array<{ artist: string; title: string; providedTime: number }>): Promise<DetectionJob> {
@@ -356,7 +380,7 @@ export async function completeWebTimestampJob(jobId: string, sourceUrl: string, 
   })
   const payload = await response.json()
   if (!response.ok) throw new Error(payload.message ?? `Import Web impossible (${response.status})`)
-  return payload as DetectionJob
+  return normalizeDetectionJobText(payload as DetectionJob)
 }
 
 export async function failWebTimestampJob(jobId: string, message: string): Promise<DetectionJob> {
@@ -366,7 +390,7 @@ export async function failWebTimestampJob(jobId: string, message: string): Promi
   })
   const payload = await response.json()
   if (!response.ok) throw new Error(payload.message ?? `Échec Web impossible à enregistrer (${response.status})`)
-  return payload as DetectionJob
+  return normalizeDetectionJobText(payload as DetectionJob)
 }
 export async function discoverTracklist(jobId: string, url: string): Promise<{ tracks: DetectionJob['tracks']; candidateCount: number; message?: string }> {
   const response = await apiFetch(`${getApiUrl()}/v1/detection-jobs/${jobId}/discover`, {
@@ -376,7 +400,7 @@ export async function discoverTracklist(jobId: string, url: string): Promise<{ t
   })
   const payload = await response.json() as { tracks: DetectionJob['tracks']; candidateCount: number; message?: string }
   if (!response.ok) throw new Error(payload.message ?? `Découverte impossible (${response.status})`)
-  return payload
+  return { ...payload, tracks: payload.tracks.map(normalizeTrackText) }
 }
 
 export async function discover1001Tracklist(jobId: string, value: string): Promise<{ tracks: DetectionJob['tracks']; candidateCount: number; source?: string; sourceUrl?: string; message?: string }> {
@@ -388,7 +412,7 @@ export async function discover1001Tracklist(jobId: string, value: string): Promi
   })
   const payload = await response.json() as { tracks: DetectionJob['tracks']; candidateCount: number; source?: string; sourceUrl?: string; message?: string }
   if (!response.ok) throw new Error(payload.message ?? `Recherche de tracklist impossible (${response.status})`)
-  return payload
+  return { ...payload, tracks: payload.tracks.map(normalizeTrackText) }
 }
 
 export async function searchTracklistCandidates(query: string): Promise<Array<{ url: string; title: string; snippet: string; domain: string; address?: string }>> {
@@ -398,12 +422,16 @@ export async function searchTracklistCandidates(query: string): Promise<Array<{ 
     message?: string
   }
   if (!response.ok) throw new Error(payload.message ?? `Recherche web impossible (${response.status})`)
-  return payload.results ?? []
+  return (payload.results ?? []).map((item) => ({
+    ...item,
+    title: decodeTextEntities(item.title),
+    snippet: decodeTextEntities(item.snippet),
+  }))
 }
 
 export async function validateCatalogTrack(jobId: string, trackId: number): Promise<{ track: DetectionJob['tracks'][number]; accepted: boolean; artworkUrl?: string; deezerUrl?: string; spotifyUrl?: string }> {
   const response = await apiFetch(`${getApiUrl()}/v1/detection-jobs/${jobId}/tracks/${trackId}/validate`, { method: 'POST' })
   const payload = await response.json() as { track: DetectionJob['tracks'][number]; accepted: boolean; artworkUrl?: string; deezerUrl?: string; spotifyUrl?: string; message?: string }
   if (!response.ok) throw new Error(payload.message ?? `Catalogue indisponible (${response.status})`)
-  return payload
+  return { ...payload, track: normalizeTrackText(payload.track) }
 }

@@ -11,7 +11,6 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
-import android.text.Html;
 
 import androidx.annotation.Nullable;
 import androidx.annotation.OptIn;
@@ -60,8 +59,11 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import org.json.JSONArray;
 import org.json.JSONObject;
+import org.jsoup.parser.Parser;
 
 @OptIn(markerClass = UnstableApi.class)
 public class PodmixPlaybackService extends MediaLibraryService {
@@ -85,6 +87,10 @@ public class PodmixPlaybackService extends MediaLibraryService {
     public static final String ARG_ABSOLUTE_POSITION_MS = "podmixAbsolutePositionMs";
     private static final String EXTRA_LIVE = "podmixLive";
     private static final String EXTRA_SOURCE_KIND = "podmixSourceKind";
+    private static final int MAX_ENTITY_DECODE_PASSES = 4;
+    private static final Pattern COMPLETE_HTML_ENTITY = Pattern.compile(
+        "&(?:#[xX][0-9A-Fa-f]{1,8}|#[0-9]{1,10}|[A-Za-z][A-Za-z0-9]{1,31});"
+    );
     private static WeakReference<PodmixPlaybackService> activeService = new WeakReference<>(null);
     private ExoPlayer player;
     private TrackAwarePlayer trackAwarePlayer;
@@ -1987,9 +1993,26 @@ public class PodmixPlaybackService extends MediaLibraryService {
         return false;
     }
 
-    private static String decodeHtmlEntities(String value) {
+    static String decodeHtmlEntities(String value) {
         if (value == null || value.indexOf('&') < 0) return value == null ? "" : value;
-        return Html.fromHtml(value, Html.FROM_HTML_MODE_LEGACY).toString().trim();
+        String result = value;
+        for (int pass = 0; pass < MAX_ENTITY_DECODE_PASSES; pass++) {
+            Matcher matcher = COMPLETE_HTML_ENTITY.matcher(result);
+            StringBuffer decoded = new StringBuffer(result.length());
+            boolean changed = false;
+            while (matcher.find()) {
+                String entity = matcher.group();
+                // Parse only the complete entity token. Surrounding text is
+                // never interpreted as markup, so literal tags stay literal.
+                String replacement = Parser.unescapeEntities(entity, false);
+                if (!replacement.equals(entity)) changed = true;
+                matcher.appendReplacement(decoded, Matcher.quoteReplacement(replacement));
+            }
+            matcher.appendTail(decoded);
+            result = decoded.toString();
+            if (!changed || result.indexOf('&') < 0) break;
+        }
+        return result;
     }
 
     private static Bundle contentStyles(int browsableStyle, int playableStyle) {

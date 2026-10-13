@@ -22,6 +22,7 @@ import type { ListeningSession, PlaybackHistoryItem } from './history'
 import podmixInfinityLogo from './assets/podmix-logo-radio-c.png'
 import './App.css'
 import './identification.css'
+import { decodeTextEntities, normalizeCatalogSourceText, normalizeOfflineEpisodeText, normalizeTrackText } from './text'
 
 const initialTracks: Track[] = []
 
@@ -335,7 +336,7 @@ function descriptionToText(value: string): string {
     .replace(/<\s*br\s*\/?>/gi, '\n')
     .replace(/<\s*\/p\s*>\s*<\s*p[^>]*>/gi, '\n\n')
   const parsed = new DOMParser().parseFromString(html, 'text/html').body.textContent ?? ''
-  return parsed.replace(/\u00a0/g, ' ').replace(/[ \t]+\n/g, '\n').replace(/\n{3,}/g, '\n\n').trim()
+  return decodeTextEntities(parsed.replace(/\u00a0/g, ' ').replace(/[ \t]+\n/g, '\n').replace(/\n{3,}/g, '\n\n').trim())
 }
 
 function publishedTimestamp(value: string | undefined) {
@@ -4607,14 +4608,15 @@ function App() {
         studio?: { audioName?: string; tracks?: Track[] }
       }
       if (payload.format !== 'podmix-next-backup' || !Array.isArray(payload.catalog)) throw new Error('Format de sauvegarde invalide')
-      setCatalog((current) => [...payload.catalog!, ...current.filter((source) => !payload.catalog!.some((imported) => imported.id === source.id))])
+      const importedCatalog = payload.catalog.map(normalizeCatalogSourceText)
+      setCatalog((current) => [...importedCatalog, ...current.filter((source) => !importedCatalog.some((imported) => imported.id === source.id))])
       setFavoriteTrackIds((payload.favoriteTrackIds ?? []).map(String))
-      setHistory(payload.history ?? [])
-      setListeningSessions(payload.listeningSessions ?? [])
-      setOfflineEpisodes(payload.offlineEpisodes ?? [])
+      setHistory((payload.history ?? []).map((item) => ({ ...item, title: decodeTextEntities(item.title), artist: decodeTextEntities(item.artist) })))
+      setListeningSessions((payload.listeningSessions ?? []).map((item) => ({ ...item, title: decodeTextEntities(item.title), artist: decodeTextEntities(item.artist) })))
+      setOfflineEpisodes((payload.offlineEpisodes ?? []).map(normalizeOfflineEpisodeText))
       if (payload.settings) setSettings(payload.settings)
       if (payload.studio?.tracks?.length) {
-        setTracks(payload.studio.tracks)
+        setTracks(payload.studio.tracks.map(normalizeTrackText))
         setAudioName(payload.studio.audioName ?? 'Session migrée')
         setSelectedId(payload.studio.tracks[0].id)
       }
@@ -5332,7 +5334,7 @@ function App() {
                   {!selectedEpisode.tracks?.length && <div className="empty-state"><AudioLines size={24} /><strong>Aucune tracklist enregistrée</strong><span>Lancez l’analyse pour rechercher les titres et calculer leurs repères.</span></div>}
                 </div>}
               </div> : <>
-                <div className="source-heading"><CachedArtwork artworkUrl={selectedSource.artworkUrl} cachedArtworkUrl={cachedHomeArtwork[selectedSource.id]} title={selectedSource.title} Icon={Mic2} size={38} /><div><span>{sourceKindLabel(selectedSource)}{selectedSource.musical ? ` · musicale` : ""}</span><h2>{selectedSource.title}</h2>{selectedSource.kind === "radio" && selectedSource.description && <p>{selectedSource.description}</p>}{selectedSource.kind !== "radio" && <span className="episode-count-badge">{selectedSource.episodes.length} épisodes</span>}<div className="source-actions">{selectedSource.kind !== 'radio' && <button onClick={() => void playSource(selectedSource)} disabled={!selectedSource.episodes.some((episode) => episode.audioUrl || (selectedSource.kind === 'dj' && episode.sourceUrl))}><Play size={14} fill="currentColor" /> Lire</button>}{selectedSource.feedUrl && <button onClick={refreshSelectedSource} disabled={refreshingSource}><RotateCcw size={14} /> {refreshingSource ? "Actualisation…" : "Actualiser"}</button>}<button onClick={removeSelectedSource}><Trash2 size={14} /> Supprimer</button></div></div></div>
+                <div className="source-heading"><CachedArtwork artworkUrl={selectedSource.artworkUrl} cachedArtworkUrl={cachedHomeArtwork[selectedSource.id]} title={selectedSource.title} Icon={Mic2} size={38} /><div><span>{sourceKindLabel(selectedSource)}{selectedSource.musical ? ` · musicale` : ""}</span><h2>{selectedSource.title}</h2>{selectedSource.kind === "radio" && selectedSource.description && <p>{decodeTextEntities(selectedSource.description)}</p>}{selectedSource.kind !== "radio" && <span className="episode-count-badge">{selectedSource.episodes.length} épisodes</span>}<div className="source-actions">{selectedSource.kind !== 'radio' && <button onClick={() => void playSource(selectedSource)} disabled={!selectedSource.episodes.some((episode) => episode.audioUrl || (selectedSource.kind === 'dj' && episode.sourceUrl))}><Play size={14} fill="currentColor" /> Lire</button>}{selectedSource.feedUrl && <button onClick={refreshSelectedSource} disabled={refreshingSource}><RotateCcw size={14} /> {refreshingSource ? "Actualisation…" : "Actualiser"}</button>}<button onClick={removeSelectedSource}><Trash2 size={14} /> Supprimer</button></div></div></div>
                 {selectedSource.kind === 'radio' && selectedSource.streamUrl && <button className="listen-live" onClick={() => playEpisode(selectedSource.id, selectedSource.title, 'Radio en direct', selectedSource.streamUrl!, selectedSource.artworkUrl, 0, 'radio')}>{nowPlaying?.id === selectedSource.id && globalPlaying ? <Pause size={17} /> : <Play size={17} fill="currentColor" />} Écouter en direct</button>}
                 {selectedSource.kind !== 'radio' && <div className="episode-list">
                   {selectedSource.episodes.map((episode) => {
@@ -5488,7 +5490,7 @@ function App() {
           {!searchingPodcasts && podcastQuery.trim().length >= 2 && !podcastResults.length && !feedError && <div className="directory-empty">Aucun podcast trouvé. Essayez le nom de l’émission ou de son auteur.</div>}
           <div className="radio-results podcast-results" aria-live="polite">{podcastResults.map((podcast) => <button key={podcast.id} onClick={() => void addPodcastResult(podcast)} disabled={addingFeed}><span className="podcast-thumb"><CachedArtwork artworkUrl={podcast.artworkUrl} title={podcast.title} Icon={Mic2} size={16} /></span><span><strong>{podcast.title}</strong><small>{podcast.artist || podcast.genre || 'Podcast'}{podcast.episodeCount ? ` · ${podcast.episodeCount} épisodes` : ''}</small></span><Plus size={15} /></button>)}</div>
           <label>Ou URL du flux RSS<input type="url" value={feedUrl} onChange={(event) => setFeedUrl(event.target.value)} placeholder="https://exemple.com/podcast.xml" /></label></> : sourceMode === 'radio' ? <><p>Recherchez une station dans l’annuaire communautaire Radio Browser.</p><label className="directory-search">Nom de la radio<input value={radioQuery} onChange={(event) => setRadioQuery(event.target.value)} placeholder="FIP, NTS, KEXP…" autoFocus /></label>{searchingRadios && <span className="live-search-status" role="status"><LoaderCircle className="spinning" size={14} /> Recherche des radios…</span>}
-          <div className="radio-results">{radioResults.map((radio) => <button key={radio.id} onClick={() => addRadio(radio)}><Radio size={16} /><span><strong>{radio.title}</strong><small>{radio.description}</small></span><Plus size={15} /></button>)}</div></> : <><p>Recherche YouTube et SoundCloud, sans flux RSS ni analyse des podcasts.</p>
+          <div className="radio-results">{radioResults.map((radio) => <button key={radio.id} onClick={() => addRadio(radio)}><Radio size={16} /><span><strong>{radio.title}</strong><small>{decodeTextEntities(radio.description)}</small></span><Plus size={15} /></button>)}</div></> : <><p>Recherche YouTube et SoundCloud, sans flux RSS ni analyse des podcasts.</p>
           <form className="live-sets-search" onSubmit={(event) => void runLiveSetSearch(event)}><Search size={21} /><input value={liveSetQuery} onChange={(event) => setLiveSetQuery(event.target.value)} placeholder="Armin Tomorrowland 2026, Daxon…" autoFocus /><button type="submit" disabled={liveSetSearching || liveSetQuery.trim().length < 2}>{liveSetSearching ? <><LoaderCircle className="spinning" size={15} /> Recherche…</> : 'Rechercher'}</button></form>
           {liveSetSearching && <span className="live-search-status" role="status"><LoaderCircle className="spinning" size={14} /> Recherche des DJ sets…</span>}
           <div className="live-sets-toolbar"><div className="live-sets-chips" aria-label="Filtrer les plateformes">{(['all', 'youtube', 'soundcloud'] as const).map((provider) => <button type="button" key={provider} className={liveSetProvider === provider ? 'active' : ''} onClick={() => setLiveSetProvider(provider)}>{provider === 'all' ? 'Toutes' : provider === 'youtube' ? 'YouTube' : 'SoundCloud'}</button>)}</div><div className="live-sets-chips" aria-label="Trier les résultats">{(['relevance', 'recent', 'popular'] as const).map((sort) => <button type="button" key={sort} className={liveSetSort === sort ? 'active' : ''} onClick={() => setLiveSetSort(sort)}>{sort === 'relevance' ? 'Pertinence' : sort === 'recent' ? 'Récent' : 'Populaire'}</button>)}</div>{liveSetLimitControl}</div>

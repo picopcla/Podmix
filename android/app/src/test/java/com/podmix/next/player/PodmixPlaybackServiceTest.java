@@ -58,4 +58,28 @@ public class PodmixPlaybackServiceTest {
             false, false, Player.STATE_READY));
     }
 
+    @Test
+    public void decodesCompleteNestedEntitiesWithoutParsingTextAsMarkup() {
+        assertEquals(
+            "Mark Sherry, BiXX & Sue McLaren",
+            PodmixPlaybackService.decodeHtmlEntities("Mark Sherry, BiXX &amp;amp; Sue McLaren")
+        );
+        assertEquals(
+            "Kyros & KRPDS & Friends",
+            PodmixPlaybackService.decodeHtmlEntities("Kyros &#38; KRPDS &#x26; Friends")
+        );
+        assertEquals(
+            "<b>littéral</b>",
+            PodmixPlaybackService.decodeHtmlEntities("<b>littéral</b>")
+        );
+        assertEquals(
+            "Rock &amp sans point-virgule",
+            PodmixPlaybackService.decodeHtmlEntities("Rock &amp sans point-virgule")
+        );
+        assertEquals(
+            "&amp;",
+            PodmixPlaybackService.decodeHtmlEntities("&amp;amp;amp;amp;amp;")
+        );
+    }
+
 }

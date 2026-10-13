@@ -1,3 +1,5 @@
+import { decodeTextEntities } from './text'
+
 export const PLAYBACK_HISTORY_KEY = 'podmix-history-v1'
 export const LISTENING_SESSIONS_KEY = 'podmix-listening-sessions-v1'
 export const COMPLETED_EPISODES_KEY = 'podmix-completed-episodes-v1'
@@ -29,8 +31,8 @@ export function normalizeHistoryItem(value: unknown): PlaybackHistoryItem | unde
   const duration = finiteNumber(item.duration)
   return {
     id: item.id,
-    title: item.title,
-    artist: typeof item.artist === 'string' ? item.artist : '',
+    title: decodeTextEntities(item.title),
+    artist: typeof item.artist === 'string' ? decodeTextEntities(item.artist) : '',
     url: item.url,
     position: finiteNumber(item.position),
     ...(duration > 0 ? { duration } : {}),

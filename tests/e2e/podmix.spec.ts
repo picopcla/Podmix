@@ -528,6 +528,78 @@ test('les favoris gardent leur épisode et s’enchaînent', async ({ page }) =>
   await expect(page.locator('.mini-player-global')).not.toContainText('Titre étranger à la file')
 })
 
+test('les entités HTML sont corrigées dans les données existantes, la tracklist et les deux lecteurs', async ({ page }) => {
+  await page.addInitScript(() => {
+    localStorage.setItem('podmix-settings-v1', JSON.stringify({ automaticAnalysis: false }))
+    localStorage.setItem('podmix-catalog-v1', JSON.stringify([{
+      id: 'source-entities&amp;stable',
+      kind: 'podcast',
+      title: 'Above &amp;amp; Beyond',
+      description: 'Source &amp; description',
+      artworkUrl: '',
+      feedUrl: 'https://example.test/feed?a=1&amp;b=2',
+      episodes: [{
+        id: 'episode-entities&amp;stable',
+        title: 'Find Your Harmony &amp;amp; Friends',
+        description: 'Une balise &lt;b&gt;reste du texte&lt;/b&gt;.',
+        publishedAt: '2026-10-13',
+        duration: '00:30',
+        audioUrl: 'https://example.test/entities.wav?a=1&amp;b=2',
+        artworkUrl: '',
+        tracks: [{
+          id: 1, time: 0, artist: 'Mark Sherry, BiXX &amp; Sue McLaren',
+          title: 'Believe &#38; Receive', confidence: 100, source: 'manual',
+        }, {
+          id: 2, time: 20, artist: 'David Forbes &amp;amp; Lostly',
+          title: 'Incomplete &amp stays', confidence: 100, source: 'manual',
+        }],
+      }],
+    }]))
+  })
+  await page.route('**/entities.wav?*', (route) => route.fulfill({ body: silentWav(30), contentType: 'audio/wav' }))
+
+  await page.goto('/')
+  await page.getByLabel('Above & Beyond', { exact: true }).click()
+  await expect(page.locator('.episode-info')).toContainText('Find Your Harmony & Friends')
+  await page.locator('.episode-info').click()
+
+  const track = page.locator('.episode-track').first()
+  await expect(track).toContainText('Believe & Receive')
+  await expect(track).toContainText('Mark Sherry, BiXX & Sue McLaren')
+  await expect(page.locator('.episode-track').nth(1)).toContainText('David Forbes & Lostly')
+  await expect(page.locator('.episode-track').nth(1)).toContainText('Incomplete &amp stays')
+
+  await track.click()
+  const mini = page.locator('.mini-player-global')
+  await expect(mini).toContainText('Believe & Receive')
+  await expect(mini).toContainText('Mark Sherry, BiXX & Sue McLaren')
+  await mini.locator('.mini-meta').click()
+  const full = page.getByRole('dialog', { name: 'Lecteur en cours' })
+  await expect(full).toContainText('Believe & Receive')
+  await expect(full).toContainText('Mark Sherry, BiXX & Sue McLaren')
+
+  await expect.poll(() => page.evaluate(() => {
+    const [source] = JSON.parse(localStorage.getItem('podmix-catalog-v1') ?? '[]')
+    return {
+      sourceId: source?.id,
+      feedUrl: source?.feedUrl,
+      episodeId: source?.episodes?.[0]?.id,
+      audioUrl: source?.episodes?.[0]?.audioUrl,
+      sourceTitle: source?.title,
+      episodeTitle: source?.episodes?.[0]?.title,
+      artist: source?.episodes?.[0]?.tracks?.[0]?.artist,
+    }
+  })).toEqual({
+    sourceId: 'source-entities&amp;stable',
+    feedUrl: 'https://example.test/feed?a=1&amp;b=2',
+    episodeId: 'episode-entities&amp;stable',
+    audioUrl: 'https://example.test/entities.wav?a=1&amp;b=2',
+    sourceTitle: 'Above & Beyond',
+    episodeTitle: 'Find Your Harmony & Friends',
+    artist: 'Mark Sherry, BiXX & Sue McLaren',
+  })
+})
+
 test('le téléchargement confirme immédiatement la demande et suit son état natif', async ({ page }) => {
   await page.addInitScript(() => {
     const nativeState = {

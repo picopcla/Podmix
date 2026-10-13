@@ -1,6 +1,7 @@
 import { createPlayerStateOrder } from './playerStateOrder'
 import { Capacitor, registerPlugin } from '@capacitor/core'
 import type { PluginListenerHandle } from '@capacitor/core'
+import { decodeTextEntities } from './text'
 
 export type PlayerState = {
   stateSequence?: number
@@ -60,7 +61,12 @@ function normalizedNativeLibrary(items: LibraryItem[]) {
   const includedIds = new Set<string>()
 
   for (const item of items) {
-    const normalized = item.url ? { ...item, url: secureMediaUrl(item.url) } : item
+    const normalized: LibraryItem = {
+      ...item,
+      url: item.url === undefined ? undefined : secureMediaUrl(item.url),
+      title: item.title === undefined ? undefined : decodeTextEntities(item.title),
+      artist: item.artist === undefined ? undefined : decodeTextEntities(item.artist),
+    }
     if (normalized.parentId !== 'podmix-root' && !includedIds.has(normalized.parentId)) continue
     snapshot.push(normalized)
     includedIds.add(normalized.id)
@@ -186,7 +192,12 @@ type PodmixPlayerPlugin = {
 const NativePlayer = registerPlugin<PodmixPlayerPlugin>('PodmixPlayer')
 const nativeStateOrder = createPlayerStateOrder<PlayerState>()
 async function orderedNativeState(request: Promise<PlayerState>) {
-  return nativeStateOrder.resolve(await request)
+  const state = await request
+  return nativeStateOrder.resolve({
+    ...state,
+    title: decodeTextEntities(state.title),
+    artist: decodeTextEntities(state.artist),
+  })
 }
 const webAudio = new Audio()
 webAudio.volume = Math.max(0, Math.min(1, Number(localStorage.getItem('podmix-player-volume') ?? 1)))
@@ -204,8 +215,8 @@ function webItemStart(item?: LoadOptions) {
 async function loadWebQueueItem(item: LoadOptions & { id: string }, autoplay: boolean) {
   const safeItem = secureLoadOptions(item)
   webAudio.src = safeItem.url
-  webTitle = item.title ?? 'Podmix'
-  webArtist = item.artist ?? ''
+  webTitle = safeItem.title ?? 'Podmix'
+  webArtist = safeItem.artist ?? ''
   webAudio.load()
   const start = webItemStart(item)
   if (start > 0) webAudio.currentTime = start
@@ -253,7 +264,12 @@ function secureMediaUrl(url: string): string {
 }
 
 function secureLoadOptions<T extends LoadOptions>(options: T): T {
-  return { ...options, url: secureMediaUrl(options.url) }
+  return {
+    ...options,
+    url: secureMediaUrl(options.url),
+    title: options.title === undefined ? undefined : decodeTextEntities(options.title),
+    artist: options.artist === undefined ? undefined : decodeTextEntities(options.artist),
+  }
 }
 
 function webState(): PlayerState {
@@ -287,8 +303,8 @@ export const podmixPlayer = {
     webQueue = []
     webQueueIndex = 0
     webAudio.src = safeOptions.url
-    webTitle = options.title ?? 'Podmix'
-    webArtist = options.artist ?? ''
+    webTitle = safeOptions.title ?? 'Podmix'
+    webArtist = safeOptions.artist ?? ''
     webAudio.load()
     if (options.autoplay) await webAudio.play()
     return webState()
@@ -331,7 +347,8 @@ export const podmixPlayer = {
   },
   async recognizeMusic(options: { apiUrl: string }) {
     if (!Capacitor.isNativePlatform()) throw new Error('La reconnaissance au microphone nécessite l’application Android')
-    return NativePlayer.recognizeMusic(options)
+    const result = await NativePlayer.recognizeMusic(options)
+    return { ...result, title: decodeTextEntities(result.title), artist: decodeTextEntities(result.artist) }
   },
   async getAppInfo() {
     if (Capacitor.isNativePlatform()) return NativePlayer.getAppInfo()
@@ -348,7 +365,8 @@ export const podmixPlayer = {
   async onStateChanged(listener: (state: PlayerState) => void) {
     if (!Capacitor.isNativePlatform()) return { remove: async () => undefined }
     return NativePlayer.addListener('stateChanged', (state) => {
-      if (nativeStateOrder.accept(state)) listener(state)
+      const normalized = { ...state, title: decodeTextEntities(state.title), artist: decodeTextEntities(state.artist) }
+      if (nativeStateOrder.accept(normalized)) listener(normalized)
     })
   },
   async syncLibrary(items: LibraryItem[]) {
@@ -383,7 +401,10 @@ export const podmixPlayer = {
   },
   async syncResume(items: Array<{ id: string; episodeId: string; title: string; artist: string; url: string; artworkUrl: string; positionSeconds: number; durationSeconds: number }>, completedEpisodeIds: string[] = []) {
     if (!Capacitor.isNativePlatform()) return { count: items.length }
-    return NativePlayer.syncResume({ items, completedEpisodeIds })
+    return NativePlayer.syncResume({
+      items: items.map((item) => ({ ...item, title: decodeTextEntities(item.title), artist: decodeTextEntities(item.artist) })),
+      completedEpisodeIds,
+    })
   },
   async getCompletedEpisodeIds() {
     if (!Capacitor.isNativePlatform()) return [] as string[]
@@ -396,7 +417,7 @@ export const podmixPlayer = {
   },
   async syncSubscriptions(items: Array<{ id: string; title: string; feedUrl: string }>) {
     if (!Capacitor.isNativePlatform()) return { count: items.length }
-    return NativePlayer.syncSubscriptions({ items })
+    return NativePlayer.syncSubscriptions({ items: items.map((item) => ({ ...item, title: decodeTextEntities(item.title) })) })
   },
   async getStorage() {
     if (!Capacitor.isNativePlatform()) {
@@ -448,7 +469,7 @@ export const podmixPlayer = {
   },
   async download(id: string, url: string, title?: string) {
     if (!Capacitor.isNativePlatform()) throw new Error('Les téléchargements durables nécessitent l’application Android')
-    return NativePlayer.download({ id, url: secureMediaUrl(url), title })
+    return NativePlayer.download({ id, url: secureMediaUrl(url), title: title === undefined ? undefined : decodeTextEntities(title) })
   },
   async getDownload(id: string) {
     if (!Capacitor.isNativePlatform()) return { id, status: 'not_found' as const }
@@ -519,7 +540,7 @@ export const podmixPlayer = {
   },
   async bosePlay(ip: string, url: string, title?: string, positionSeconds = 0) {
     if (!Capacitor.isNativePlatform()) throw new Error('Bose SoundTouch nécessite l’application Android')
-    return NativePlayer.bosePlay({ ip, url: secureMediaUrl(url), title, positionSeconds })
+    return NativePlayer.bosePlay({ ip, url: secureMediaUrl(url), title: title === undefined ? undefined : decodeTextEntities(title), positionSeconds })
   },
   async boseDiscover() {
     if (!Capacitor.isNativePlatform()) return { devices: [] as BoseDevice[] }
@@ -535,15 +556,18 @@ export const podmixPlayer = {
   },
   async boseGetState(ip: string) {
     if (!Capacitor.isNativePlatform()) throw new Error('Bose SoundTouch nécessite l’application Android')
-    return NativePlayer.boseGetState({ ip })
+    const result = await NativePlayer.boseGetState({ ip })
+    return { ...result, title: result.title === undefined ? undefined : decodeTextEntities(result.title) }
   },
   async fetchTracklist1001(url: string, address?: string) {
     if (!Capacitor.isNativePlatform()) throw new Error('La récupération 1001Tracklists directe nécessite Android')
-    return NativePlayer.fetchTracklist1001({ url, address })
+    const result = await NativePlayer.fetchTracklist1001({ url, address })
+    return { ...result, pageTitle: decodeTextEntities(result.pageTitle), tracks: result.tracks.map((track) => ({ ...track, artist: decodeTextEntities(track.artist), title: decodeTextEntities(track.title) })) }
   },
   async fetchPublishedTracklist(url: string) {
     if (!Capacitor.isNativePlatform()) throw new Error('La récupération des liens publiés nécessite Android')
-    return NativePlayer.fetchPublishedTracklist({ url })
+    const result = await NativePlayer.fetchPublishedTracklist({ url })
+    return { ...result, pageTitle: decodeTextEntities(result.pageTitle), tracks: result.tracks.map((track) => ({ ...track, artist: decodeTextEntities(track.artist), title: decodeTextEntities(track.title) })) }
   },
   async startWebTimestampWorker(apiUrl: string) {
     if (!Capacitor.isNativePlatform()) return { started: false }
@@ -551,6 +575,7 @@ export const podmixPlayer = {
   },
   async searchTracklists1001(query: string) {
     if (!Capacitor.isNativePlatform()) throw new Error('La recherche 1001Tracklists directe nécessite Android')
-    return NativePlayer.searchTracklists1001({ query })
+    const result = await NativePlayer.searchTracklists1001({ query })
+    return { ...result, candidates: result.candidates.map((candidate) => ({ ...candidate, title: decodeTextEntities(candidate.title) })) }
   },
 }

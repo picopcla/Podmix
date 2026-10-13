@@ -1,4 +1,5 @@
 import type { CatalogSource, OfflineEpisode, Track } from './domain'
+import { normalizeCatalogSourceText, normalizeOfflineEpisodeText, normalizeTrackText } from './text'
 
 const DATABASE = 'podmix-studio'
 const STORE = 'sessions'
@@ -24,7 +25,10 @@ export async function loadSession(): Promise<Session | undefined> {
   return new Promise((resolve, reject) => {
     const transaction = db.transaction(STORE, 'readonly')
     const request = transaction.objectStore(STORE).get(SESSION_KEY)
-    request.onsuccess = () => resolve(request.result as Session | undefined)
+    request.onsuccess = () => {
+      const session = request.result as Session | undefined
+      resolve(session ? { ...session, audioName: session.audioName, tracks: session.tracks.map(normalizeTrackText) } : undefined)
+    }
     request.onerror = () => reject(request.error)
     transaction.oncomplete = () => db.close()
   })
@@ -51,7 +55,8 @@ export function loadCatalog(): CatalogSource[] {
     // 1.0.11 could keep the default "podcast" type when Add was opened from
     // the Emissions filter. Preserve the imported episodes while correcting
     // the source reported by the affected installation.
-    return sources.map((source) => {
+    return sources.map((storedSource) => {
+      const source = normalizeCatalogSourceText(storedSource)
       if (source.kind === 'podcast' && source.title.trim().toLocaleLowerCase('fr') === 'legend') {
         return { ...source, kind: 'show', musical: false }
       }
@@ -104,7 +109,7 @@ export function saveCatalog(sources: CatalogSource[]) {
 export function loadOfflineEpisodes(): OfflineEpisode[] {
   try {
     const episodes: unknown = JSON.parse(localStorage.getItem(OFFLINE_KEY) ?? '[]')
-    return Array.isArray(episodes) ? episodes as OfflineEpisode[] : []
+    return Array.isArray(episodes) ? (episodes as OfflineEpisode[]).map(normalizeOfflineEpisodeText) : []
   } catch {
     return []
   }
