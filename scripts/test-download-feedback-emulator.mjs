@@ -274,6 +274,9 @@ try {
   await evaluate(`document.querySelector('.mini-meta').click()`)
   await waitFor(`document.querySelector('.full-player')?.textContent.includes('Believe & Receive')`)
   await screenshot('entities-full-player.png')
+  const geometry = await evaluate(`(() => ({ viewport: { width: innerWidth, height: innerHeight, scrollY, visual: { width: visualViewport?.width, height: visualViewport?.height, offsetTop: visualViewport?.offsetTop } }, elements: [...document.querySelectorAll('html,body,#root,.app-shell,.mini-player-global,.full-player')].map(e => ({ tag: e.tagName, className: e.className, rect: e.getBoundingClientRect().toJSON(), filter: getComputedStyle(e).filter, transform: getComputedStyle(e).transform, position: getComputedStyle(e).position, display: getComputedStyle(e).display, visibility: getComputedStyle(e).visibility })) }))()` )
+  console.log(JSON.stringify({ playerGeometry: geometry }))
+  await fs.writeFile(`${outputDir}/player-geometry.json`, JSON.stringify(geometry, null, 2))
 
   console.log(JSON.stringify({ status, button: text, ariaLabel: label, navigationRestored: true, completedDetailCheck, completedDetailTrash, callsAfterDoubleClick, retryCalls, entityTextsVerified: true }))
 } finally {
