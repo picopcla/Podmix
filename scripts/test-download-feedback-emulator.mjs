@@ -16,8 +16,9 @@ const pending = new Map()
 socket.addEventListener('message', (event) => {
   const message = JSON.parse(event.data)
   if (!message.id || !pending.has(message.id)) return
-  const { resolve, reject } = pending.get(message.id)
+  const { resolve, reject, timer } = pending.get(message.id)
   pending.delete(message.id)
+  clearTimeout(timer)
   if (message.error) reject(new Error(message.error.message))
   else resolve(message.result)
 })
@@ -25,7 +26,13 @@ socket.addEventListener('message', (event) => {
 function send(method, params = {}) {
   const id = ++requestId
   socket.send(JSON.stringify({ id, method, params }))
-  return new Promise((resolve, reject) => pending.set(id, { resolve, reject }))
+  return new Promise((resolve, reject) => {
+    const timer = setTimeout(() => {
+      pending.delete(id)
+      reject(new Error(`Commande CDP sans réponse : ${method}`))
+    }, 60_000)
+    pending.set(id, { resolve, reject, timer })
+  })
 }
 
 async function evaluate(expression) {
@@ -76,7 +83,7 @@ async function installNativeDownloadFixture(download) {
 }
 
 async function reloadWithOffline(episodes) {
-  await evaluate(`localStorage.setItem('podmix-offline-v1', ${JSON.stringify(JSON.stringify(episodes))}); setTimeout(() => location.reload(), 0); true`)
+  await evaluate(`localStorage.setItem('podmix-offline-v1', ${JSON.stringify(JSON.stringify(episodes))}); setTimeout(() => location.reload(), 1000); true`)
   await waitFor(`Boolean(document.querySelector('[aria-label="Émission factice"]'))`, 120_000)
 }
 
@@ -104,7 +111,7 @@ try {
         duration: '08:00', audioUrl: 'https://example.test/retry.mp3', artworkUrl: ''
       }]
     }]))
-    setTimeout(() => location.reload(), 0)
+    setTimeout(() => location.reload(), 1000)
     return true
   })()`)
 
