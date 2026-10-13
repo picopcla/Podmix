@@ -27,7 +27,10 @@ function decodeXmlAttribute(value) {
 let match
 for (let attempt = 0; attempt < 30 && !match; attempt += 1) {
   match = dumpNodes().find((node) => `${node.text ?? ''} ${node['content-desc'] ?? ''}`.includes(wanted))
-  if (!match) execFileSync('sleep', ['1'])
+  if (!match) {
+    execFileSync('adb', ['shell', 'input', 'swipe', '540', '1500', '540', '500', '350'])
+    execFileSync('sleep', ['1'])
+  }
 }
 if (!match) throw new Error(`Texte Android introuvable : ${wanted}`)
 

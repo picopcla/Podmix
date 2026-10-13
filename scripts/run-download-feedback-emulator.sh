@@ -36,6 +36,8 @@ sleep 15
 adb shell pidof com.podmix.next.ng
 adb shell dumpsys package com.podmix.next.ng | grep -q 'versionCode=10218'
 adb shell dumpsys package com.podmix.next.ng | grep -q 'versionName=1.0.218-ng'
+adb exec-out screencap -p > "$capture_dir/release-source.png"
+node scripts/android-ui-text.mjs assert 'Above & Beyond'
 node scripts/android-ui-text.mjs assert 'Find Your Harmony & Friends'
 node scripts/android-ui-text.mjs tap 'Find Your Harmony & Friends'
 sleep 3
