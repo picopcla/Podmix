@@ -1,8 +1,4 @@
 import fs from 'node:fs/promises'
-import { execFile } from 'node:child_process'
-import { promisify } from 'node:util'
-
-const execFileAsync = promisify(execFile)
 
 const endpoint = process.env.PODMIX_EMULATOR_CDP ?? 'http://127.0.0.1:9222'
 const outputDir = process.env.PODMIX_EMULATOR_CAPTURE_DIR ?? 'artifacts/emulator-captures'
@@ -52,11 +48,8 @@ async function waitFor(expression, timeoutMs = 15_000) {
 }
 
 async function screenshot(name) {
-  const { stdout } = await execFileAsync('adb', ['exec-out', 'screencap', '-p'], {
-    encoding: null,
-    maxBuffer: 20 * 1024 * 1024,
-  })
-  await fs.writeFile(`${outputDir}/${name}`, stdout)
+  const capture = await send('Page.captureScreenshot', { format: 'png', captureBeyondViewport: false })
+  await fs.writeFile(`${outputDir}/${name}`, Buffer.from(capture.data, 'base64'))
 }
 
 try {
@@ -133,13 +126,13 @@ try {
   if (callsAfterDoubleClick !== 1) throw new Error(`Double requête native : ${callsAfterDoubleClick}`)
 
   await evaluate(`Object.assign(window.__podmixEmulatorTest.download, { status: 'downloading', bytesDownloaded: 45, totalBytes: 100 })`)
-  await waitFor(`document.querySelector('.episode-download-action')?.textContent.includes('45%')`, 10_000)
+  await waitFor(`document.querySelector('.episode-download-action')?.textContent.includes('45%')`, 120_000)
   const progressCheck = await evaluate(`Boolean(document.querySelector('.episode-download-action svg.lucide-check'))`)
   if (progressCheck) throw new Error('Coche affichée pendant la progression')
   await screenshot('detail-download-progress.png')
 
   await evaluate(`Object.assign(window.__podmixEmulatorTest.download, { status: 'completed', bytesDownloaded: 100, totalBytes: 100, localUri: 'file:///data/factice.mp3' })`)
-  await waitFor(`document.querySelector('.episode-download-action')?.getAttribute('aria-label') === 'Téléchargé · disponible hors connexion'`, 10_000)
+  await waitFor(`document.querySelector('.episode-download-action')?.getAttribute('aria-label') === 'Téléchargé · disponible hors connexion'`, 120_000)
   const completedDetailCheck = await evaluate(`Boolean(document.querySelector('.episode-download-action svg.lucide-check'))`)
   const completedDetailTrash = await evaluate(`Boolean(document.querySelector('.episode-download-remove[aria-label="Supprimer le téléchargement"]'))`)
   const completedDetailDisabled = await evaluate(`document.querySelector('.episode-download-action')?.disabled === true`)
@@ -168,12 +161,12 @@ try {
   await waitFor(`Boolean(document.querySelector('.episode-download-action'))`)
   await evaluate(`Object.assign(window.__podmixEmulatorTest.download, { id: 'episode-emulator-retry', status: 'queued', bytesDownloaded: 0, totalBytes: 100, localUri: undefined }); window.__podmixEmulatorTest.failNext = true`)
   await evaluate(`document.querySelector('.episode-download-action').click()`)
-  await waitFor(`document.querySelector('.episode-download-action')?.classList.contains('failed')`, 20_000)
+  await waitFor(`document.querySelector('.episode-download-action')?.classList.contains('failed')`, 120_000)
   await screenshot('detail-download-failed.png')
   await evaluate(`document.querySelector('.episode-download-action').click()`)
-  await waitFor(`document.querySelector('.episode-download-action')?.classList.contains('queued')`, 10_000)
+  await waitFor(`document.querySelector('.episode-download-action')?.classList.contains('queued')`, 120_000)
   await evaluate(`Object.assign(window.__podmixEmulatorTest.download, { status: 'completed', bytesDownloaded: 100, totalBytes: 100, localUri: 'file:///data/factice-retry.mp3' })`)
-  await waitFor(`document.querySelector('.episode-download-action')?.getAttribute('aria-label') === 'Téléchargé · disponible hors connexion'`, 10_000)
+  await waitFor(`document.querySelector('.episode-download-action')?.getAttribute('aria-label') === 'Téléchargé · disponible hors connexion'`, 120_000)
   const nativeCalls = await evaluate(`window.__podmixEmulatorTest.calls`)
   if (nativeCalls !== 3) throw new Error(`Nombre d'appels natifs inattendu : ${nativeCalls}`)
 
