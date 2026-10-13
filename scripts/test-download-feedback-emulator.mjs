@@ -159,7 +159,17 @@ try {
   await evaluate(`localStorage.setItem('podmix-emulator-download-fixture-v1', JSON.stringify({ id: 'episode-emulator-progress', status: 'downloading', bytesDownloaded: 45, totalBytes: 100 })); localStorage.setItem('podmix-emulator-download-calls-v1', '0')`)
   await openEpisode('Épisode de test à 45 pour cent')
   await evaluate(`document.querySelector('.episode-download-action').click()`)
-  await waitFor(`document.querySelector('.episode-download-action')?.textContent.includes('45%')`, 120_000)
+  await waitFor(`Number(localStorage.getItem('podmix-emulator-download-calls-v1')) === 1`, 120_000)
+  const progressState = await evaluate(`(() => ({
+    fixture: JSON.parse(localStorage.getItem('podmix-emulator-download-fixture-v1') || 'null'),
+    text: document.querySelector('.episode-download-action')?.textContent.trim(),
+    label: document.querySelector('.episode-download-action')?.getAttribute('aria-label'),
+    className: document.querySelector('.episode-download-action')?.className,
+    feedback: document.querySelector('.episode-download-feedback')?.textContent.trim(),
+    offline: JSON.parse(localStorage.getItem('podmix-offline-v1') || '[]'),
+  }))()`)
+  console.log(JSON.stringify({ progressState }))
+  if (!progressState.text?.includes('45%')) throw new Error(`Progression Android inattendue : ${JSON.stringify(progressState)}`)
   const progressCheck = await evaluate(`Boolean(document.querySelector('.episode-download-action svg.lucide-check'))`)
   if (progressCheck) throw new Error('Coche affichée pendant la progression')
   await screenshot('detail-download-progress.png')
