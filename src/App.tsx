@@ -153,6 +153,45 @@ function formatEpisodeDate(value?: string) {
   return new Intl.DateTimeFormat('fr-FR', { dateStyle: 'medium' }).format(new Date(timestamp))
 }
 
+type DownloadUiStatus = OfflineEpisode['status'] | 'idle'
+
+function downloadIsActive(status: DownloadUiStatus) {
+  return ['preparing', 'queued', 'downloading', 'paused'].includes(status)
+}
+
+function downloadProgress(offline?: OfflineEpisode) {
+  return offline?.totalBytes && offline.totalBytes > 0
+    ? Math.min(100, Math.round(((offline.bytesDownloaded ?? 0) / offline.totalBytes) * 100))
+    : 0
+}
+
+function downloadButtonText(status: DownloadUiStatus, percent: number) {
+  if (status === 'preparing') return 'Préparation…'
+  if (status === 'queued') return 'File d’attente'
+  if (status === 'downloading') return percent > 0 ? `Téléchargement · ${percent} %` : 'Téléchargement en cours'
+  if (status === 'paused') return 'En pause'
+  if (status === 'completed') return 'Disponible'
+  if (status === 'failed') return 'Réessayer'
+  return 'Hors connexion'
+}
+
+function downloadStatusText(status: DownloadUiStatus, percent: number) {
+  if (status === 'preparing') return 'Demande envoyée · préparation du téléchargement…'
+  if (status === 'queued') return 'Demande reçue · téléchargement dans la file d’attente.'
+  if (status === 'downloading') return percent > 0 ? `Téléchargement démarré · ${percent} %` : 'Téléchargement démarré.'
+  if (status === 'paused') return 'Téléchargement en pause.'
+  if (status === 'completed') return 'Téléchargement terminé · disponible hors connexion.'
+  if (status === 'failed') return 'Le téléchargement a échoué. Touchez « Réessayer ». '
+  return ''
+}
+
+function downloadAriaLabel(status: DownloadUiStatus, percent: number) {
+  if (status === 'idle') return 'Télécharger pour écouter hors connexion'
+  if (status === 'failed') return 'Téléchargement échoué · toucher pour relancer'
+  if (status === 'completed') return 'Disponible hors connexion'
+  return downloadStatusText(status, percent)
+}
+
 function usesEstimatedPositions(tracks: Track[] | undefined) {
   return (tracks ?? []).some((track) =>
     track.timestampStatus === 'pending'
@@ -754,6 +793,7 @@ function App() {
   const [historyQuery, setHistoryQuery] = useState('')
   const [offlineEpisodes, setOfflineEpisodes] = useState<OfflineEpisode[]>(loadOfflineEpisodes)
   const offlineEpisodesRef = useRef(offlineEpisodes)
+  const pendingDownloadIdsRef = useRef(new Set<string>())
   const [showSearch, setShowSearch] = useState(false)
   const [globalQuery, setGlobalQuery] = useState('')
   const [castMessage, setCastMessage] = useState('')
@@ -2115,7 +2155,9 @@ function App() {
     let cancelled = false
     const refresh = async () => {
       const results = await Promise.allSettled(
-        offlineEpisodesRef.current.map((episode) => podmixPlayer.getDownload(episode.id)),
+        offlineEpisodesRef.current
+          .filter((episode) => episode.status !== 'preparing')
+          .map((episode) => podmixPlayer.getDownload(episode.id)),
       )
       const states = results.flatMap((result) => result.status === 'fulfilled' ? [result.value] : [])
       if (cancelled) return
@@ -3747,20 +3789,42 @@ function App() {
 
   async function downloadEpisode(id: string, title: string, url: string, artist = nowPlaying?.artist ?? 'Podmix', extractFrom?: string) {
     if (!url) return
+    const current = offlineEpisodesRef.current.find((item) => item.id === id)
+    if (pendingDownloadIdsRef.current.has(id) || (current && ['preparing', 'queued', 'downloading', 'paused'].includes(current.status))) return
+
+    pendingDownloadIdsRef.current.add(id)
+    setDownloadMessage('Demande de téléchargement envoyée')
+    setOfflineEpisodes((items) => [{
+      id,
+      title,
+      artist,
+      remoteUrl: url,
+      status: 'preparing',
+      addedAt: current?.addedAt ?? new Date().toISOString(),
+    }, ...items.filter((item) => item.id !== id)])
     try {
       const state = await podmixPlayer.download(id, url, title, extractFrom)
+      const status = state.status === 'not_found' || state.status === 'unknown' ? 'failed' : state.status
       setOfflineEpisodes((items) => [{
         id,
         title,
         artist,
         remoteUrl: url,
         localUri: state.localUri,
-        status: state.status === 'not_found' || state.status === 'unknown' ? 'queued' : state.status,
+        status,
         bytesDownloaded: state.bytesDownloaded,
         totalBytes: state.totalBytes,
-        addedAt: new Date().toISOString(),
+        addedAt: current?.addedAt ?? new Date().toISOString(),
       }, ...items.filter((item) => item.id !== id)])
-      setDownloadMessage(state.status === 'completed' ? 'Déjà disponible hors connexion' : 'Téléchargement lancé')
+      setDownloadMessage(status === 'completed'
+        ? 'Déjà disponible hors connexion'
+        : status === 'queued'
+          ? 'Demande reçue · téléchargement dans la file d’attente'
+          : status === 'downloading'
+            ? 'Téléchargement démarré'
+            : status === 'failed'
+              ? 'Téléchargement impossible · vous pouvez réessayer'
+              : 'Téléchargement en pause')
       
       // If download completed and episode has tracks, extract them
       if (state.status === 'completed' && state.localUri) {
@@ -3784,7 +3848,17 @@ function App() {
         }
       }
     } catch (error) {
-      setDownloadMessage(error instanceof Error ? error.message : 'Téléchargement impossible')
+      setOfflineEpisodes((items) => [{
+        id,
+        title,
+        artist,
+        remoteUrl: url,
+        status: 'failed',
+        addedAt: current?.addedAt ?? new Date().toISOString(),
+      }, ...items.filter((item) => item.id !== id)])
+      setDownloadMessage(error instanceof Error ? `Téléchargement impossible : ${error.message}` : 'Téléchargement impossible · vous pouvez réessayer')
+    } finally {
+      pendingDownloadIdsRef.current.delete(id)
     }
   }
 
@@ -4708,6 +4782,11 @@ function App() {
     ? offlineEpisodes.find((episode) => episode.id === selectedEpisode.id)
     : undefined
   const selectedEpisodeIsOffline = selectedEpisodeOffline?.status === 'completed'
+  const selectedEpisodeDownloadState: DownloadUiStatus = selectedEpisodeOffline?.status ?? 'idle'
+  const selectedEpisodeDownloadPercent = downloadProgress(selectedEpisodeOffline)
+  const selectedEpisodeDownloadActive = downloadIsActive(selectedEpisodeDownloadState)
+  const selectedEpisodeDownloadText = downloadButtonText(selectedEpisodeDownloadState, selectedEpisodeDownloadPercent)
+  const selectedEpisodeDownloadStatus = downloadStatusText(selectedEpisodeDownloadState, selectedEpisodeDownloadPercent)
   const selectedEpisodeResumePosition = selectedEpisode
     ? savedResumeForEpisode(selectedEpisode).position
     : 0
@@ -4891,17 +4970,10 @@ function App() {
         const trackCount = episode?.tracks?.length ?? 0
         const offline = episode ? offlineEpisodes.find((item) => item.id === episode.id) : undefined
         const downloadState = offline?.status ?? 'idle'
-        const downloadPercent = offline?.totalBytes && offline.totalBytes > 0
-          ? Math.min(100, Math.round(((offline.bytesDownloaded ?? 0) / offline.totalBytes) * 100))
-          : 0
+        const downloadPercent = downloadProgress(offline)
         const canDownload = Boolean(episode?.audioUrl || episode?.sourceUrl)
-        const downloadLabel = downloadState === 'completed'
-          ? 'Disponible hors connexion · toucher pour supprimer'
-          : downloadState === 'failed'
-            ? 'Téléchargement échoué · toucher pour relancer'
-            : ['downloading', 'queued', 'paused'].includes(downloadState)
-              ? `Téléchargement ${downloadPercent}%`
-              : 'Télécharger pour écouter hors connexion'
+        const downloadLabel = downloadAriaLabel(downloadState, downloadPercent)
+        const downloadActive = downloadIsActive(downloadState)
         const openSet = () => {
           setSelectedSourceId(source.id)
           if (episode) setSelectedEpisodeId(episode.id)
@@ -4912,7 +4984,7 @@ function App() {
             <span className="dj-set-copy"><strong className="dj-set-title-window"><span className="dj-set-title-scroll">{source.title}</span></strong><small>{episode?.duration || 'Durée inconnue'} · {trackCount ? `${trackCount} titres` : 'Tracklist à trouver'}</small></span>
             {timestamp && <span className={`dj-set-timestamp ${timestamp.tone}`}>{timestamp.shortLabel}</span>}
           </button>
-          <button className={`episode-download ${downloadState}`} style={{ '--download-progress': `${downloadPercent}%` } as CSSProperties} onClick={() => { if (episode && downloadState !== 'completed') void downloadSourceEpisode(source, episode) }} disabled={!episode || !canDownload || downloadState === 'completed'} aria-label={downloadState === 'completed' ? 'Disponible hors connexion' : downloadLabel} title={downloadState === 'completed' ? 'Disponible hors connexion' : downloadLabel}>{downloadState === 'failed' ? '!' : ['downloading', 'queued', 'paused'].includes(downloadState) ? `${downloadPercent}%` : <Download size={16} />}</button>
+          <button className={`episode-download ${downloadState}`} style={{ '--download-progress': `${downloadPercent}%` } as CSSProperties} onClick={() => { if (episode && downloadState !== 'completed') void downloadSourceEpisode(source, episode) }} disabled={!episode || !canDownload || downloadState === 'completed' || downloadActive} aria-label={downloadLabel} title={downloadLabel}>{downloadState === 'failed' ? '!' : downloadActive ? downloadState === 'downloading' ? `${downloadPercent}%` : <LoaderCircle className="spinning" size={15} /> : <Download size={16} />}</button>
           {downloadState === 'completed' && offline && <button className="episode-download remove-download" onClick={() => void removeOffline(offline)} aria-label="Supprimer le téléchargement" title="Supprimer le téléchargement"><Trash2 size={15} /></button>}
           <button className="dj-set-chevron" type="button" onClick={openSet} aria-label={`Ouvrir le set ${source.title}`}><ChevronRight size={18} /></button>
         </article>
@@ -5133,12 +5205,12 @@ function App() {
                   <div className="section-heading" onPointerDown={(e) => { if (e.pointerType === 'touch' || e.pointerType === 'pen') handleSectionDragStart('offline', e.clientY) }} onTouchStart={(e) => handleSectionDragStart('offline', e.touches[0].clientY)}><button className="resume-toggle" type="button" aria-expanded={offlineExpanded} onPointerDown={(event) => event.stopPropagation()} onTouchStart={(event) => event.stopPropagation()} onClick={() => setOfflineExpanded((expanded) => !expanded)}><Download size={17} /><h2>Hors connexion</h2></button><div className="section-heading-actions"><button className="resume-expand-icon" type="button" aria-label={offlineExpanded ? 'Replier Hors connexion' : 'Déplier Hors connexion'} onPointerDown={(event) => event.stopPropagation()} onTouchStart={(event) => event.stopPropagation()} onClick={() => setOfflineExpanded((expanded) => !expanded)}><ChevronDown size={18} /></button></div></div>
                   {offlineExpanded && <div className="episode-list">
                     {offlineEpisodes.map((episode) => {
-                      const progressValue = episode.totalBytes && episode.totalBytes > 0 ? Math.round(((episode.bytesDownloaded ?? 0) / episode.totalBytes) * 100) : 0
+                      const progressValue = downloadProgress(episode)
                       return <article className={`episode-item offline-item ${nowPlaying?.id === episode.id ? 'playing' : ''}`} key={episode.id}>
                         <button className="episode-play" onClick={() => playOffline(episode)} disabled={episode.status !== 'completed'}>
                           {nowPlaying?.id === episode.id && globalPlaying ? <Pause size={16} /> : <Play size={16} fill="currentColor" />}
                         </button>
-                        <div><h3>{episode.title}</h3><p>{episode.artist}</p><span className={`offline-download-status ${episode.status}`}>{episode.status === 'completed' ? <><Check size={12} /> Disponible{episode.bytesDownloaded ? ` · ${(episode.bytesDownloaded / 1_048_576).toFixed(1)} Mo` : ''}</> : episode.status === 'failed' ? <>! Téléchargement échoué</> : <><LoaderCircle className="spinning" size={12} /> Téléchargement {progressValue}%</>}</span>{episode.status !== 'completed' && episode.status !== 'failed' && <div className="download-progress"><i style={{ width: `${progressValue}%` }} /></div>}</div>
+                        <div><h3>{episode.title}</h3><p>{episode.artist}</p><span className={`offline-download-status ${episode.status}`}>{episode.status === 'completed' ? <><Check size={12} /> Disponible{episode.bytesDownloaded ? ` · ${(episode.bytesDownloaded / 1_048_576).toFixed(1)} Mo` : ''}</> : episode.status === 'failed' ? <>! Téléchargement échoué · réessayez depuis l’épisode</> : <><LoaderCircle className="spinning" size={12} /> {downloadButtonText(episode.status, progressValue)}</>}</span>{episode.status !== 'completed' && episode.status !== 'failed' && <div className="download-progress"><i style={{ width: `${progressValue}%` }} /></div>}</div>
                         <button className="episode-download remove-download" onClick={() => removeOffline(episode)} aria-label="Supprimer"><Trash2 size={16} /></button>
                       </article>
                     })}
@@ -5160,7 +5232,31 @@ function App() {
                 else setSelectedSourceId('')
               }}>← Retour {selectedSource.kind === 'dj' ? 'aux DJ sets' : selectedEpisode ? `à ${selectedSource.title}` : 'à l’accueil'}</button>
               {selectedEpisode ? <div className="episode-detail">
-                <div className="source-heading"><CachedArtwork artworkUrl={selectedEpisode.artworkUrl || selectedSource.artworkUrl} cachedArtworkUrl={cachedHomeArtwork[selectedSource.id]} title={selectedEpisode.title} Icon={AudioLines} size={38} /><div><span>{selectedSource.title}</span><h2>{selectedEpisode.title}</h2>{selectedSource.kind === 'show' && selectedEpisode.description && <p className="episode-description">{descriptionToText(selectedEpisode.description)}</p>}{selectedSource.kind !== 'show' && <span className={`episode-timestamp-status ${selectedEpisodeTimestampStatus?.tone ?? 'idle'}`}>Origine des repères · {selectedEpisodeTimestampStatus?.label ?? 'À vérifier'}</span>}<div className="source-actions"><button onClick={() => playFromSource(selectedSource, selectedEpisode.id)} disabled={!selectedEpisode.audioUrl && !(selectedSource.kind === 'dj' && selectedEpisode.sourceUrl)}>{nowPlaying?.id === selectedEpisode.id && nowPlaying.scope === 'episode' && globalPlaying ? <Pause size={14} /> : <Play size={14} fill="currentColor" />} {selectedEpisodeResumePosition > 1 ? `Reprendre · ${formatTime(selectedEpisodeResumePosition)}` : 'Lire depuis le début'}</button>{selectedEpisodeResumePosition > 1 && <button onClick={() => playFromSource(selectedSource, selectedEpisode.id, 0)} disabled={!selectedEpisode.audioUrl && !(selectedSource.kind === 'dj' && selectedEpisode.sourceUrl)}><RotateCcw size={14} /> Depuis le début</button>}{selectedSource.kind !== 'show' && <button onClick={() => void (selectedSource.kind === 'dj' ? refreshLiveSetEpisode(selectedSource, selectedEpisode) : refreshEpisodeAnalysis(selectedSource, selectedEpisode))} disabled={selectedSource.kind === 'dj' && liveSetBusyId === selectedEpisode.id}><RotateCcw size={14} /> {selectedSource.kind === 'dj' && liveSetBusyId === selectedEpisode.id ? 'Actualisation…' : 'Actualiser'}</button>}<button className={selectedEpisodeIsOffline ? 'offline-ready' : ''} onClick={() => selectedEpisodeIsOffline && selectedEpisodeOffline ? void removeOffline(selectedEpisodeOffline) : void downloadSourceEpisode(selectedSource, selectedEpisode)} disabled={!selectedEpisode.audioUrl && !(selectedSource.kind === 'dj' && selectedEpisode.sourceUrl)}><Download size={14} /> {selectedEpisodeIsOffline ? 'Disponible' : 'Hors connexion'}</button>{selectedSource.kind === 'dj' && selectedEpisode.sourceUrl && /(?:youtube\.com|youtu\.be)/i.test(selectedEpisode.sourceUrl) && <a className="source-youtube-link" href={selectedEpisode.sourceUrl} target="_blank" rel="noreferrer" aria-label="Ouvrir ce DJ set sur YouTube" title="Ouvrir sur YouTube"><Youtube size={16} /> YouTube</a>}</div></div></div>
+                <div className="source-heading">
+                  <CachedArtwork artworkUrl={selectedEpisode.artworkUrl || selectedSource.artworkUrl} cachedArtworkUrl={cachedHomeArtwork[selectedSource.id]} title={selectedEpisode.title} Icon={AudioLines} size={38} />
+                  <div>
+                    <span>{selectedSource.title}</span>
+                    <h2>{selectedEpisode.title}</h2>
+                    {selectedSource.kind === 'show' && selectedEpisode.description && <p className="episode-description">{descriptionToText(selectedEpisode.description)}</p>}
+                    {selectedSource.kind !== 'show' && <span className={`episode-timestamp-status ${selectedEpisodeTimestampStatus?.tone ?? 'idle'}`}>Origine des repères · {selectedEpisodeTimestampStatus?.label ?? 'À vérifier'}</span>}
+                    <div className="source-actions">
+                      <button onClick={() => playFromSource(selectedSource, selectedEpisode.id)} disabled={!selectedEpisode.audioUrl && !(selectedSource.kind === 'dj' && selectedEpisode.sourceUrl)}>{nowPlaying?.id === selectedEpisode.id && nowPlaying.scope === 'episode' && globalPlaying ? <Pause size={14} /> : <Play size={14} fill="currentColor" />} {selectedEpisodeResumePosition > 1 ? `Reprendre · ${formatTime(selectedEpisodeResumePosition)}` : 'Lire depuis le début'}</button>
+                      {selectedEpisodeResumePosition > 1 && <button onClick={() => playFromSource(selectedSource, selectedEpisode.id, 0)} disabled={!selectedEpisode.audioUrl && !(selectedSource.kind === 'dj' && selectedEpisode.sourceUrl)}><RotateCcw size={14} /> Depuis le début</button>}
+                      {selectedSource.kind !== 'show' && <button onClick={() => void (selectedSource.kind === 'dj' ? refreshLiveSetEpisode(selectedSource, selectedEpisode) : refreshEpisodeAnalysis(selectedSource, selectedEpisode))} disabled={selectedSource.kind === 'dj' && liveSetBusyId === selectedEpisode.id}><RotateCcw size={14} /> {selectedSource.kind === 'dj' && liveSetBusyId === selectedEpisode.id ? 'Actualisation…' : 'Actualiser'}</button>}
+                      <button
+                        className={`episode-download-action ${selectedEpisodeDownloadState} ${selectedEpisodeIsOffline ? 'offline-ready' : ''}`}
+                        onClick={() => selectedEpisodeIsOffline && selectedEpisodeOffline ? void removeOffline(selectedEpisodeOffline) : void downloadSourceEpisode(selectedSource, selectedEpisode)}
+                        disabled={selectedEpisodeDownloadActive || (!selectedEpisode.audioUrl && !(selectedSource.kind === 'dj' && selectedEpisode.sourceUrl))}
+                        aria-label={downloadAriaLabel(selectedEpisodeDownloadState, selectedEpisodeDownloadPercent)}
+                      >
+                        {selectedEpisodeDownloadActive ? <LoaderCircle className="spinning" size={14} /> : selectedEpisodeIsOffline ? <Check size={14} /> : <Download size={14} />}
+                        {selectedEpisodeDownloadText}
+                      </button>
+                      {selectedSource.kind === 'dj' && selectedEpisode.sourceUrl && /(?:youtube\.com|youtu\.be)/i.test(selectedEpisode.sourceUrl) && <a className="source-youtube-link" href={selectedEpisode.sourceUrl} target="_blank" rel="noreferrer" aria-label="Ouvrir ce DJ set sur YouTube" title="Ouvrir sur YouTube"><Youtube size={16} /> YouTube</a>}
+                    </div>
+                    {selectedEpisodeDownloadStatus && <p className={`episode-download-feedback ${selectedEpisodeDownloadState}`} role="status" aria-live="polite">{selectedEpisodeDownloadStatus}</p>}
+                  </div>
+                </div>
                 {selectedSource.kind === 'podcast' && <section className={`episode-analysis-card ${selectedEpisodeTimestampStatus?.tone ?? 'idle'}`}>
                   <span className="analysis-card-icon"><WandSparkles size={20} /></span>
                   <div>
@@ -5214,17 +5310,10 @@ function App() {
                     const playbackStatus = playbackStatusFor(episode)
                     const timestampStatus = selectedSource.kind === 'show' ? undefined : episodeTimestampStatus(episode)
                     const offline = offlineEpisodes.find((item) => item.id === episode.id)
-                    const downloadPercent = offline?.totalBytes && offline.totalBytes > 0
-                      ? Math.min(100, Math.round(((offline.bytesDownloaded ?? 0) / offline.totalBytes) * 100))
-                      : 0
+                    const downloadPercent = downloadProgress(offline)
                     const downloadState = offline?.status ?? 'idle'
-                    const downloadLabel = downloadState === 'completed'
-                      ? 'Disponible hors connexion · toucher pour supprimer'
-                      : downloadState === 'failed'
-                        ? 'Téléchargement échoué · toucher pour relancer'
-                        : ['downloading', 'queued', 'paused'].includes(downloadState)
-                          ? `Téléchargement ${downloadPercent}%`
-                          : 'Télécharger pour écouter hors connexion'
+                    const downloadLabel = downloadAriaLabel(downloadState, downloadPercent)
+                    const downloadActive = downloadIsActive(downloadState)
                     const progressBars = Math.min(5, Math.max(0, Math.round(playbackStatus.percent / 20)))
                     const barClass = playbackStatus.kind === 'done' ? 'done' : 'filled'
                     return <article className={`episode-item ${nowPlaying?.id === episode.id ? 'playing' : ''} ${playbackStatus.kind === 'done' ? 'done' : ''} ${isNewEpisode ? 'is-new' : ''}`} key={episode.id}>
@@ -5240,7 +5329,7 @@ function App() {
                       </button>
                       {timestampStatus && <button className={`episode-timestamp-indicator ${timestampStatus.tone}`} onClick={(event) => { event.stopPropagation(); void openEpisodeInStudio(selectedSource, episode) }} aria-label={`Origine des repères : ${timestampStatus.label}`} title={`Origine des repères : ${timestampStatus.label}`}>{timestampStatus.shortLabel}</button>}
                       <span>{episode.duration}</span>
-                      <button className={`episode-download ${downloadState}`} style={{ '--download-progress': `${downloadPercent}%` } as CSSProperties} onClick={() => { if (downloadState !== 'completed') void downloadSourceEpisode(selectedSource, episode) }} disabled={!canDownload || downloadState === 'completed'} aria-label={downloadState === 'completed' ? 'Disponible hors connexion' : downloadLabel} title={downloadState === 'completed' ? 'Disponible hors connexion' : downloadLabel}>{downloadState === 'failed' ? '!' : ['downloading', 'queued', 'paused'].includes(downloadState) ? `${downloadPercent}%` : <Download size={16} />}</button>
+                      <button className={`episode-download ${downloadState}`} style={{ '--download-progress': `${downloadPercent}%` } as CSSProperties} onClick={() => { if (downloadState !== 'completed') void downloadSourceEpisode(selectedSource, episode) }} disabled={!canDownload || downloadState === 'completed' || downloadActive} aria-label={downloadLabel} title={downloadLabel}>{downloadState === 'failed' ? '!' : downloadActive ? downloadState === 'downloading' ? `${downloadPercent}%` : <LoaderCircle className="spinning" size={15} /> : <Download size={16} />}</button>
                       {downloadState === 'completed' && offline && <button className="episode-download remove-download" onClick={() => void removeOffline(offline)} aria-label="Supprimer le téléchargement" title="Supprimer le téléchargement"><Trash2 size={15} /></button>}
                     </article>
                   })}
