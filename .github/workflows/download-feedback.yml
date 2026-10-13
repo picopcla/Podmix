@@ -1,0 +1,146 @@
+name: download-feedback
+
+on:
+  push:
+    branches: [fix/download-feedback-20261013]
+  workflow_dispatch:
+    inputs:
+      publish:
+        description: Publier la préversion après validation complète
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+
+jobs:
+  build-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+      - name: Préparer la signature existante
+        env:
+          KS_B64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          KS_PASS: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          KEY_PASS: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: |
+          set -euo pipefail
+          for value in KS_B64 KS_PASS KEY_ALIAS KEY_PASS; do
+            test -n "${!value}"
+          done
+          umask 077
+          printf '%s' "$KS_B64" | base64 -d > android/podmix-release.keystore
+          printf 'storeFile=podmix-release.keystore\nstorePassword=%s\nkeyAlias=%s\nkeyPassword=%s\n' "$KS_PASS" "$KEY_ALIAS" "$KEY_PASS" > android/release-signing.properties
+      - run: npm ci
+      - run: node --experimental-strip-types tests/unit/player-state-order.test.mjs
+      - run: npm run lint
+      - run: npm run build
+      - run: npx playwright install chromium
+      - name: Test ciblé du retour de téléchargement
+        run: npx playwright test --project=mobile-chromium --grep "confirme immédiatement"
+      - name: Construire les APK Android
+        run: |
+          npm run android:build:ng
+          cd android
+          ./gradlew assembleNgDebug
+      - name: Vérifier et collecter les APK
+        run: |
+          set -euo pipefail
+          mkdir -p out
+          cp android/app/build/outputs/apk/ng/release/app-ng-release.apk out/app-ng-release.apk
+          cp android/app/build/outputs/apk/ng/debug/app-ng-debug.apk out/app-ng-debug.apk
+          BT=$(find "$ANDROID_HOME/build-tools" -mindepth 1 -maxdepth 1 -type d | sort -V | tail -1)
+          BADGING=$("$BT/aapt" dump badging out/app-ng-release.apk | head -1)
+          test "$(sed -n "s/.*name='\([^']*\)'.*/\1/p" <<<"$BADGING")" = com.podmix.next.ng
+          test "$(sed -n "s/.*versionCode='\([^']*\)'.*/\1/p" <<<"$BADGING")" = 10216
+          test "$(sed -n "s/.*versionName='\([^']*\)'.*/\1/p" <<<"$BADGING")" = 1.0.216-ng
+          "$BT/apksigner" verify out/app-ng-release.apk
+          CERT_DIGEST=$("$BT/apksigner" verify --print-certs out/app-ng-release.apk | sed -n 's/.*certificate SHA-256 digest: //p' | head -1)
+          test "$CERT_DIGEST" = b27d46c092c63432e7e274d227c0e465cf91ab4656f67c1a0b511402505c8b8c
+          sha256sum out/app-ng-release.apk > out/app-ng-release.apk.sha256
+      - name: Retirer le matériel de signature
+        if: always()
+        run: rm -f android/podmix-release.keystore android/release-signing.properties
+      - uses: actions/upload-artifact@v4
+        with:
+          name: podmix-download-feedback-apks
+          path: |
+            out/app-ng-release.apk
+            out/app-ng-debug.apk
+            out/app-ng-release.apk.sha256
+          retention-days: 14
+
+  emulator:
+    needs: build-test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - uses: actions/download-artifact@v4
+        with:
+          name: podmix-download-feedback-apks
+          path: out
+      - uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 35
+          arch: x86_64
+          profile: pixel_7
+          script: |
+            set -euo pipefail
+            mkdir -p artifacts/emulator-captures
+            adb install -r out/app-ng-debug.apk
+            adb shell am start -n com.podmix.next.ng/com.podmix.next.MainActivity
+            for attempt in $(seq 1 30); do
+              PID=$(adb shell pidof com.podmix.next.ng | tr -d '\r')
+              if test -n "$PID" && adb shell cat /proc/net/unix | grep -q "webview_devtools_remote_$PID"; then break; fi
+              sleep 2
+            done
+            test -n "${PID:-}"
+            adb forward tcp:9222 "localabstract:webview_devtools_remote_$PID"
+            node scripts/test-download-feedback-emulator.mjs
+            adb install -r out/app-ng-release.apk
+            adb shell am start -n com.podmix.next.ng/com.podmix.next.MainActivity
+            sleep 15
+            adb shell pidof com.podmix.next.ng
+            adb shell dumpsys package com.podmix.next.ng | grep -q 'versionCode=10216'
+            adb shell dumpsys package com.podmix.next.ng | grep -q 'versionName=1.0.216-ng'
+            adb logcat -d -b crash > artifacts/emulator-captures/crash.txt
+            test ! -s artifacts/emulator-captures/crash.txt
+            adb exec-out screencap -p > artifacts/emulator-captures/release-launch.png
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: podmix-download-feedback-emulator
+          path: artifacts/emulator-captures/
+          retention-days: 14
+
+  release:
+    if: github.event_name == 'workflow_dispatch' && inputs.publish
+    needs: [build-test, emulator]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: podmix-download-feedback-apks
+          path: out
+      - name: Publier la préversion 1.0.216-ng
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create v1.0.216-ng-download-feedback out/app-ng-release.apk out/app-ng-release.apk.sha256 \
+            --repo "$GITHUB_REPOSITORY" \
+            --target "$GITHUB_SHA" \
+            --prerelease \
+            --title "Podmix 1.0.216-ng — retour du téléchargement" \
+            --notes "Le bouton confirme immédiatement la demande, affiche ensuite la file d’attente ou la progression, empêche les doublons et permet de réessayer après un échec. Test ciblé et émulateur Android avec données factices validés."

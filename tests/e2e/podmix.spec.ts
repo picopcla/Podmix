@@ -604,7 +604,7 @@ test('le téléchargement confirme immédiatement la demande et suit son état n
   })
 
   await page.goto('/')
-  await page.locator('.media-card').filter({ hasText: 'Émission factice' }).click()
+  await page.getByLabel('Émission factice', { exact: true }).click()
   await page.locator('.episode-info').filter({ hasText: 'Épisode factice' }).click()
 
   const detail = page.locator('.episode-detail')
