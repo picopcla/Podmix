@@ -69,17 +69,45 @@ try {
       episodes: [{
         id: 'episode-emulator-test', title: 'Épisode de test hors connexion',
         description: 'Donnée factice destinée au test émulateur.', publishedAt: '2026-10-13',
-        duration: '10:00', audioUrl: 'http://10.0.2.2:18787/slow.mp3', artworkUrl: ''
+        duration: '10:00', audioUrl: 'https://example.test/slow.mp3', artworkUrl: ''
       }, {
         id: 'episode-emulator-retry', title: 'Épisode de test à réessayer',
         description: 'Donnée factice destinée au test émulateur.', publishedAt: '2026-10-12',
-        duration: '08:00', audioUrl: 'http://10.0.2.2:18787/retry.mp3', artworkUrl: ''
+        duration: '08:00', audioUrl: 'https://example.test/retry.mp3', artworkUrl: ''
       }]
     }]))
     location.reload()
   })()`)
 
   await waitFor(`Boolean(document.querySelector('[aria-label="Émission factice"]'))`)
+  await evaluate(`(() => {
+    const originalNativePromise = window.Capacitor.nativePromise.bind(window.Capacitor)
+    const testState = {
+      calls: 0,
+      failNext: false,
+      download: { id: 'episode-emulator-test', status: 'queued', bytesDownloaded: 0, totalBytes: 100 },
+    }
+    window.__podmixEmulatorTest = testState
+    window.Capacitor.nativePromise = (plugin, method, options = {}) => {
+      if (plugin !== 'PodmixPlayer') return originalNativePromise(plugin, method, options)
+      if (method === 'download') {
+        testState.calls += 1
+        if (testState.failNext) {
+          testState.failNext = false
+          return Promise.reject(new Error('Échec natif factice'))
+        }
+        return Promise.resolve({ ...testState.download, id: options.id ?? testState.download.id })
+      }
+      if (method === 'getDownload') {
+        return Promise.resolve({ ...testState.download, id: options.id ?? testState.download.id })
+      }
+      if (method === 'listDownloads') return Promise.resolve({ downloads: [] })
+      if (method === 'removeDownload') {
+        return Promise.resolve({ id: options.id, status: 'not_found', removed: true })
+      }
+      return originalNativePromise(plugin, method, options)
+    }
+  })()`)
   await evaluate(`document.querySelector('[aria-label="Émission factice"]').click()`)
   await waitFor(`Boolean([...document.querySelectorAll('.episode-info')].find((node) => node.textContent.includes('Épisode de test hors connexion')))`)
   await evaluate(`[...document.querySelectorAll('.episode-info')].find((node) => node.textContent.includes('Épisode de test hors connexion')).click()`)
@@ -101,8 +129,17 @@ try {
 
   const prematureCheck = await evaluate(`Boolean(document.querySelector('.episode-download-action svg.lucide-check'))`)
   if (prematureCheck) throw new Error('Coche affichée avant la fin du téléchargement')
+  const callsAfterDoubleClick = await evaluate(`window.__podmixEmulatorTest.calls`)
+  if (callsAfterDoubleClick !== 1) throw new Error(`Double requête native : ${callsAfterDoubleClick}`)
 
-  await waitFor(`document.querySelector('.episode-download-action')?.getAttribute('aria-label') === 'Téléchargé · disponible hors connexion'`, 120_000)
+  await evaluate(`Object.assign(window.__podmixEmulatorTest.download, { status: 'downloading', bytesDownloaded: 45, totalBytes: 100 })`)
+  await waitFor(`document.querySelector('.episode-download-action')?.textContent.includes('45%')`, 10_000)
+  const progressCheck = await evaluate(`Boolean(document.querySelector('.episode-download-action svg.lucide-check'))`)
+  if (progressCheck) throw new Error('Coche affichée pendant la progression')
+  await screenshot('detail-download-progress.png')
+
+  await evaluate(`Object.assign(window.__podmixEmulatorTest.download, { status: 'completed', bytesDownloaded: 100, totalBytes: 100, localUri: 'file:///data/factice.mp3' })`)
+  await waitFor(`document.querySelector('.episode-download-action')?.getAttribute('aria-label') === 'Téléchargé · disponible hors connexion'`, 10_000)
   const completedDetailCheck = await evaluate(`Boolean(document.querySelector('.episode-download-action svg.lucide-check'))`)
   const completedDetailTrash = await evaluate(`Boolean(document.querySelector('.episode-download-remove[aria-label="Supprimer le téléchargement"]'))`)
   const completedDetailDisabled = await evaluate(`document.querySelector('.episode-download-action')?.disabled === true`)
@@ -129,18 +166,18 @@ try {
 
   await evaluate(`[...document.querySelectorAll('.episode-info')].find((node) => node.textContent.includes('Épisode de test à réessayer')).click()`)
   await waitFor(`Boolean(document.querySelector('.episode-download-action'))`)
+  await evaluate(`Object.assign(window.__podmixEmulatorTest.download, { id: 'episode-emulator-retry', status: 'queued', bytesDownloaded: 0, totalBytes: 100, localUri: undefined }); window.__podmixEmulatorTest.failNext = true`)
   await evaluate(`document.querySelector('.episode-download-action').click()`)
   await waitFor(`document.querySelector('.episode-download-action')?.classList.contains('failed')`, 20_000)
   await screenshot('detail-download-failed.png')
   await evaluate(`document.querySelector('.episode-download-action').click()`)
-  await waitFor(`document.querySelector('.episode-download-action')?.getAttribute('aria-label') === 'Téléchargé · disponible hors connexion'`, 120_000)
+  await waitFor(`document.querySelector('.episode-download-action')?.classList.contains('queued')`, 10_000)
+  await evaluate(`Object.assign(window.__podmixEmulatorTest.download, { status: 'completed', bytesDownloaded: 100, totalBytes: 100, localUri: 'file:///data/factice-retry.mp3' })`)
+  await waitFor(`document.querySelector('.episode-download-action')?.getAttribute('aria-label') === 'Téléchargé · disponible hors connexion'`, 10_000)
+  const nativeCalls = await evaluate(`window.__podmixEmulatorTest.calls`)
+  if (nativeCalls !== 3) throw new Error(`Nombre d'appels natifs inattendu : ${nativeCalls}`)
 
-  const fixtureRequests = await fetch('http://127.0.0.1:18787/stats').then((response) => response.json())
-  if (fixtureRequests.slow !== 1 || fixtureRequests.retry !== 2) {
-    throw new Error(`Nombre de requêtes inattendu : ${JSON.stringify(fixtureRequests)}`)
-  }
-
-  console.log(JSON.stringify({ status, button: text, ariaLabel: label, navigationRestored: true, completedDetailCheck, completedDetailTrash, fixtureRequests }))
+  console.log(JSON.stringify({ status, button: text, ariaLabel: label, navigationRestored: true, completedDetailCheck, completedDetailTrash, callsAfterDoubleClick, nativeCalls }))
 } finally {
   socket.close()
 }

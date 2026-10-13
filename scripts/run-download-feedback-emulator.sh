@@ -4,20 +4,6 @@ set -eu
 capture_dir="artifacts/emulator-captures"
 mkdir -p "$capture_dir"
 
-node scripts/serve-download-fixture.mjs > "$capture_dir/fixture-server.log" 2>&1 &
-fixture_pid=$!
-trap 'kill "$fixture_pid" 2>/dev/null || true' EXIT
-
-attempt=1
-while test "$attempt" -le 30; do
-  if curl --fail --silent http://127.0.0.1:18787/stats >/dev/null; then
-    break
-  fi
-  sleep 1
-  attempt=$((attempt + 1))
-done
-curl --fail --silent http://127.0.0.1:18787/stats >/dev/null
-
 adb install -r out/app-ng-debug.apk
 adb shell pm grant com.podmix.next.ng android.permission.POST_NOTIFICATIONS
 adb shell am start -n com.podmix.next.ng/com.podmix.next.MainActivity
