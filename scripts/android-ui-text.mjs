@@ -33,7 +33,9 @@ for (let attempt = 0; attempt < 15 && !match; attempt++) {
     execFileSync('adb', ['shell', 'input', 'tap', String(Math.round(word.x + word.w / 2)), String(Math.round(word.y + word.h / 2))])
   } else {
     // Match the actual rendered text. Never enable debugging on the release APK.
-    match = seen.find(line => normalize(line.text).includes(normalize(wanted)))
+    const candidates = seen.flatMap((line, i) => [line, ...[2, 3].map(n => ({ text: seen.slice(i, i + n).map(l => l.text).join(' '), words: seen.slice(i, i + n).flatMap(l => l.words) }))])
+    const matches = candidates.filter(line => normalize(line.text).includes(normalize(wanted)))
+    match = process.argv[4] === 'last' ? matches.at(-1) : matches[0]
     if (match && /\bamp\b|&#\d+;|&amp;/i.test(match.text)) throw new Error(`Encoded entity remains visible: ${match.text}`)
   }
   if (!match) execFileSync('sleep', ['2'])
