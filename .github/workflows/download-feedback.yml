@@ -68,6 +68,8 @@ jobs:
           CERT_DIGEST=$("$BT/apksigner" verify --print-certs out/app-ng-release.apk | sed -n 's/.*certificate SHA-256 digest: //p' | head -1 | tr '[:upper:]' '[:lower:]')
           printf 'Certificat SHA-256 public: %s\n' "$CERT_DIGEST"
           test "$CERT_DIGEST" = b27d46c092c63432e7e274d227c0e465cf91ab4656f67c1a0b511402505c8b8c
+          DEBUG_CERT_DIGEST=$("$BT/apksigner" verify --print-certs out/app-ng-debug.apk | sed -n 's/.*certificate SHA-256 digest: //p' | head -1 | tr '[:upper:]' '[:lower:]')
+          test "$DEBUG_CERT_DIGEST" = "$CERT_DIGEST"
           sha256sum out/app-ng-release.apk > out/app-ng-release.apk.sha256
       - name: Retirer le matériel de signature
         if: always()
@@ -98,28 +100,7 @@ jobs:
           api-level: 35
           arch: x86_64
           profile: pixel_7
-          script: |
-            set -eu
-            mkdir -p artifacts/emulator-captures
-            adb install -r out/app-ng-debug.apk
-            adb shell am start -n com.podmix.next.ng/com.podmix.next.MainActivity
-            for attempt in $(seq 1 30); do
-              PID=$(adb shell pidof com.podmix.next.ng | tr -d '\r')
-              if test -n "$PID" && adb shell cat /proc/net/unix | grep -q "webview_devtools_remote_$PID"; then break; fi
-              sleep 2
-            done
-            test -n "${PID:-}"
-            adb forward tcp:9222 "localabstract:webview_devtools_remote_$PID"
-            node scripts/test-download-feedback-emulator.mjs
-            adb install -r out/app-ng-release.apk
-            adb shell am start -n com.podmix.next.ng/com.podmix.next.MainActivity
-            sleep 15
-            adb shell pidof com.podmix.next.ng
-            adb shell dumpsys package com.podmix.next.ng | grep -q 'versionCode=10216'
-            adb shell dumpsys package com.podmix.next.ng | grep -q 'versionName=1.0.216-ng'
-            adb logcat -d -b crash > artifacts/emulator-captures/crash.txt
-            test ! -s artifacts/emulator-captures/crash.txt
-            adb exec-out screencap -p > artifacts/emulator-captures/release-launch.png
+          script: sh scripts/run-download-feedback-emulator.sh
       - uses: actions/upload-artifact@v4
         if: always()
         with:
