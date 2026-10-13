@@ -3,6 +3,9 @@ import react from '@vitejs/plugin-react'
 import { VitePWA } from 'vite-plugin-pwa'
 
 export default defineConfig({
+  // Android emulator images can ship a WebView older than Vite's baseline.
+  // Keep responsive CSS in syntax supported before media-query ranges.
+  build: { cssTarget: 'chrome100' },
   plugins: [
     react(),
     VitePWA({
