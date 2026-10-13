@@ -52,7 +52,7 @@ adb exec-out screencap -p > "$capture_dir/release-entities-tracklist.png"
 node scripts/android-ui-text.mjs tap 'Believe & Receive'
 sleep 5
 adb exec-out screencap -p > "$capture_dir/release-entities-mini-player.png"
-node scripts/android-ui-text.mjs tap 'Mark Sherry, BiXX & Sue McLaren'
+node scripts/android-ui-text.mjs tap 'Mark Sherry, BiXX & Sue McLaren' last
 sleep 2
 node scripts/android-ui-text.mjs assert 'Believe & Receive'
 adb exec-out screencap -p > "$capture_dir/release-entities-full-player.png"
