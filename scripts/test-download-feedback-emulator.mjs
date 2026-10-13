@@ -200,7 +200,7 @@ try {
     offline: JSON.parse(localStorage.getItem('podmix-offline-v1') || '[]'),
   }))()`)
   console.log(JSON.stringify({ progressState }))
-  if (!progressState.text?.includes('45%')) throw new Error(`Progression Android inattendue : ${JSON.stringify(progressState)}`)
+  if (!/45\s*%/.test(progressState.text ?? '')) throw new Error(`Progression Android inattendue : ${JSON.stringify(progressState)}`)
   const progressCheck = await evaluate(`Boolean(document.querySelector('.episode-download-action svg.lucide-check'))`)
   if (progressCheck) throw new Error('Coche affichée pendant la progression')
   await screenshot('detail-download-progress.png')
