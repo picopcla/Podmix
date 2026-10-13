@@ -89,7 +89,7 @@ export type OfflineEpisode = {
   artist: string
   remoteUrl: string
   localUri?: string
-  status: 'queued' | 'downloading' | 'paused' | 'completed' | 'failed'
+  status: 'preparing' | 'queued' | 'downloading' | 'paused' | 'completed' | 'failed'
   bytesDownloaded?: number
   totalBytes?: number
   addedAt: string
