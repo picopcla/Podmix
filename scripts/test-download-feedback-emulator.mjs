@@ -77,9 +77,10 @@ async function installNativeFixtureBootstrap() {
           if (method === 'download') {
             const calls = Number(localStorage.getItem('podmix-emulator-download-calls-v1') || '0') + 1
             localStorage.setItem('podmix-emulator-download-calls-v1', String(calls))
+            if (fixture.reject) return Promise.reject(new Error('Échec natif factice'))
             return Promise.resolve({ ...fixture, id: options.id ?? fixture.id })
           }
-          if (method === 'getDownload') return Promise.resolve({ ...fixture, id: options.id ?? fixture.id })
+          if (method === 'getDownload') return Promise.resolve({ id: options.id, status: 'unknown' })
           if (method === 'listDownloads') return Promise.resolve({ downloads: [] })
           if (method === 'removeDownload') return Promise.resolve({ id: options.id, status: 'not_found', removed: true })
           return originalNativePromise(plugin, method, options)
@@ -89,15 +90,12 @@ async function installNativeFixtureBootstrap() {
   })()` })
 }
 
-async function reloadWithOffline(episodes, fixture) {
-  await evaluate(`localStorage.setItem('podmix-offline-v1', ${JSON.stringify(JSON.stringify(episodes))}); localStorage.setItem('podmix-emulator-download-fixture-v1', ${JSON.stringify(JSON.stringify(fixture))}); true`)
-  await send('Page.reload')
-  await waitFor(`Boolean(document.querySelector('[aria-label="Émission factice"]'))`, 120_000)
-}
-
 async function openEpisode(title) {
-  await evaluate(`document.querySelector('[aria-label="Émission factice"]').click()`)
-  await waitFor(`Boolean([...document.querySelectorAll('.episode-info')].find((node) => node.textContent.includes(${JSON.stringify(title)})))`, 120_000)
+  const episodeVisible = await evaluate(`Boolean([...document.querySelectorAll('.episode-info')].find((node) => node.textContent.includes(${JSON.stringify(title)})))`)
+  if (!episodeVisible) {
+    await evaluate(`document.querySelector('[aria-label="Émission factice"]').click()`)
+    await waitFor(`Boolean([...document.querySelectorAll('.episode-info')].find((node) => node.textContent.includes(${JSON.stringify(title)})))`, 120_000)
+  }
   await evaluate(`[...document.querySelectorAll('.episode-info')].find((node) => node.textContent.includes(${JSON.stringify(title)})).click()`)
   await waitFor(`Boolean(document.querySelector('.episode-download-action'))`, 120_000)
 }
@@ -113,12 +111,20 @@ try {
     localStorage.setItem('podmix-catalog-v1', JSON.stringify([{
       id: 'source-emulator-test', kind: 'show', title: 'Émission factice', description: '', artworkUrl: '',
       episodes: [{
-        id: 'episode-emulator-test', title: 'Épisode de test hors connexion',
+        id: 'episode-emulator-test', title: 'Épisode de test en attente',
         description: 'Donnée factice destinée au test émulateur.', publishedAt: '2026-10-13',
         duration: '10:00', audioUrl: 'https://example.test/slow.mp3', artworkUrl: ''
       }, {
-        id: 'episode-emulator-retry', title: 'Épisode de test à réessayer',
+        id: 'episode-emulator-progress', title: 'Épisode de test à 45 pour cent',
         description: 'Donnée factice destinée au test émulateur.', publishedAt: '2026-10-12',
+        duration: '09:00', audioUrl: 'https://example.test/progress.mp3', artworkUrl: ''
+      }, {
+        id: 'episode-emulator-completed', title: 'Épisode de test téléchargé',
+        description: 'Donnée factice destinée au test émulateur.', publishedAt: '2026-10-11',
+        duration: '08:30', audioUrl: 'https://example.test/completed.mp3', artworkUrl: ''
+      }, {
+        id: 'episode-emulator-retry', title: 'Épisode de test à réessayer',
+        description: 'Donnée factice destinée au test émulateur.', publishedAt: '2026-10-10',
         duration: '08:00', audioUrl: 'https://example.test/retry.mp3', artworkUrl: ''
       }]
     }]))
@@ -127,7 +133,7 @@ try {
   await send('Page.reload')
 
   await waitFor(`Boolean(document.querySelector('[aria-label="Émission factice"]'))`)
-  await openEpisode('Épisode de test hors connexion')
+  await openEpisode('Épisode de test en attente')
 
   const initialLabel = await evaluate(`document.querySelector('.episode-download-action').getAttribute('aria-label')`)
   if (!/Télécharger pour écouter hors connexion/.test(initialLabel)) throw new Error(`État initial inattendu : ${initialLabel}`)
@@ -148,21 +154,21 @@ try {
   const callsAfterDoubleClick = await evaluate(`Number(localStorage.getItem('podmix-emulator-download-calls-v1'))`)
   if (callsAfterDoubleClick !== 1) throw new Error(`Double requête native : ${callsAfterDoubleClick}`)
 
-  const completedEpisode = {
-    id: 'episode-emulator-test', title: 'Épisode de test hors connexion', artist: 'Émission factice',
-    remoteUrl: 'https://example.test/slow.mp3', status: 'completed', bytesDownloaded: 100,
-    totalBytes: 100, localUri: 'file:///data/factice.mp3', addedAt: '2026-10-13T00:00:00.000Z',
-  }
-  const progressEpisode = { ...completedEpisode, status: 'downloading', bytesDownloaded: 45, localUri: undefined }
-  await reloadWithOffline([progressEpisode], progressEpisode)
-  await openEpisode('Épisode de test hors connexion')
+  await evaluate(`document.querySelector('.back-button').click()`)
+  await waitFor(`Boolean([...document.querySelectorAll('.episode-info')].find((node) => node.textContent.includes('Épisode de test à 45 pour cent')))`)
+  await evaluate(`localStorage.setItem('podmix-emulator-download-fixture-v1', JSON.stringify({ id: 'episode-emulator-progress', status: 'downloading', bytesDownloaded: 45, totalBytes: 100 })); localStorage.setItem('podmix-emulator-download-calls-v1', '0')`)
+  await openEpisode('Épisode de test à 45 pour cent')
+  await evaluate(`document.querySelector('.episode-download-action').click()`)
   await waitFor(`document.querySelector('.episode-download-action')?.textContent.includes('45%')`, 120_000)
   const progressCheck = await evaluate(`Boolean(document.querySelector('.episode-download-action svg.lucide-check'))`)
   if (progressCheck) throw new Error('Coche affichée pendant la progression')
   await screenshot('detail-download-progress.png')
 
-  await reloadWithOffline([completedEpisode], completedEpisode)
-  await openEpisode('Épisode de test hors connexion')
+  await evaluate(`document.querySelector('.back-button').click()`)
+  await waitFor(`Boolean([...document.querySelectorAll('.episode-info')].find((node) => node.textContent.includes('Épisode de test téléchargé')))`)
+  await evaluate(`localStorage.setItem('podmix-emulator-download-fixture-v1', JSON.stringify({ id: 'episode-emulator-completed', status: 'completed', bytesDownloaded: 100, totalBytes: 100, localUri: 'file:///data/factice.mp3' })); localStorage.setItem('podmix-emulator-download-calls-v1', '0')`)
+  await openEpisode('Épisode de test téléchargé')
+  await evaluate(`document.querySelector('.episode-download-action').click()`)
   await waitFor(`document.querySelector('.episode-download-action')?.getAttribute('aria-label') === 'Téléchargé · disponible hors connexion'`, 120_000)
   const completedDetailCheck = await evaluate(`Boolean(document.querySelector('.episode-download-action svg.lucide-check'))`)
   const completedDetailTrash = await evaluate(`Boolean(document.querySelector('.episode-download-remove[aria-label="Supprimer le téléchargement"]'))`)
@@ -173,10 +179,10 @@ try {
   await screenshot('detail-download-completed.png')
 
   await evaluate(`document.querySelector('.back-button').click()`)
-  await waitFor(`Boolean([...document.querySelectorAll('.episode-info')].find((node) => node.textContent.includes('Épisode de test hors connexion')))`)
-  await waitFor(`Boolean([...document.querySelectorAll('.episode-item')].find((node) => node.textContent.includes('Épisode de test hors connexion'))?.querySelector('.episode-download.completed svg.lucide-check'))`)
+  await waitFor(`Boolean([...document.querySelectorAll('.episode-info')].find((node) => node.textContent.includes('Épisode de test téléchargé')))`)
+  await waitFor(`Boolean([...document.querySelectorAll('.episode-item')].find((node) => node.textContent.includes('Épisode de test téléchargé'))?.querySelector('.episode-download.completed svg.lucide-check'))`)
   const completedRowActions = await evaluate(`(() => {
-    const row = [...document.querySelectorAll('.episode-item')].find((node) => node.textContent.includes('Épisode de test hors connexion'))
+    const row = [...document.querySelectorAll('.episode-item')].find((node) => node.textContent.includes('Épisode de test téléchargé'))
     return {
       label: row?.querySelector('.episode-download.completed')?.getAttribute('aria-label'),
       disabled: row?.querySelector('.episode-download.completed')?.disabled,
@@ -188,13 +194,9 @@ try {
   }
   await screenshot('list-download-completed.png')
 
-  const failedEpisode = {
-    id: 'episode-emulator-retry', title: 'Épisode de test à réessayer', artist: 'Émission factice',
-    remoteUrl: 'https://example.test/retry.mp3', status: 'failed', bytesDownloaded: 0,
-    totalBytes: 100, addedAt: '2026-10-13T00:00:00.000Z',
-  }
-  await reloadWithOffline([completedEpisode, failedEpisode], failedEpisode)
+  await evaluate(`localStorage.setItem('podmix-emulator-download-fixture-v1', JSON.stringify({ id: 'episode-emulator-retry', reject: true })); localStorage.setItem('podmix-emulator-download-calls-v1', '0')`)
   await openEpisode('Épisode de test à réessayer')
+  await evaluate(`document.querySelector('.episode-download-action').click()`)
   await waitFor(`document.querySelector('.episode-download-action')?.classList.contains('failed')`, 120_000)
   await screenshot('detail-download-failed.png')
   await evaluate(`localStorage.setItem('podmix-emulator-download-fixture-v1', JSON.stringify({ id: 'episode-emulator-retry', status: 'queued', bytesDownloaded: 0, totalBytes: 100 })); localStorage.setItem('podmix-emulator-download-calls-v1', '0')`)
