@@ -974,12 +974,29 @@ def notify_worker() -> None:
 
 def worker_loop() -> None:
     while True:
-        claimed = claim_next_job()
-        if not claimed:
-            with WORKER_CONDITION:
-                WORKER_CONDITION.wait(timeout=2)
+        claimed = None
+        try:
+            claimed = claim_next_job()
+            if not claimed:
+                with WORKER_CONDITION:
+                    WORKER_CONDITION.wait(timeout=2)
+                continue
+            run_research_job(claimed["id"])
+        except Exception as error:
+            print(f"Worker error: {error}", flush=True)
+            if claimed:
+                try:
+                    update_job(
+                        claimed["id"],
+                        status="failed",
+                        stage="Echec du traitement",
+                        progress=100,
+                        error=str(error),
+                    )
+                except Exception as update_error:
+                    print(f"Worker job update error: {update_error}", flush=True)
+            time.sleep(2)
             continue
-        run_research_job(claimed["id"])
 
 
 def start_worker() -> None:
