@@ -3719,10 +3719,10 @@ function App() {
     }
   }
 
-  async function downloadEpisode(id: string, title: string, url: string, artist = nowPlaying?.artist ?? 'Podmix') {
+  async function downloadEpisode(id: string, title: string, url: string, artist = nowPlaying?.artist ?? 'Podmix', extractFrom?: string) {
     if (!url) return
     try {
-      const state = await podmixPlayer.download(id, url, title)
+      const state = await podmixPlayer.download(id, url, title, extractFrom)
       setOfflineEpisodes((items) => [{
         id,
         title,
@@ -3764,12 +3764,14 @@ function App() {
 
   async function downloadSourceEpisode(source: CatalogSource, episode: Episode) {
     let downloadUrl = episode.audioUrl
+    let extractFrom: string | undefined
     if (source.kind === 'dj' && episode.sourceUrl) {
       // DownloadManager ne doit jamais recevoir l'URL CDN temporaire de
       // YouTube/SoundCloud : elle expire souvent avant la fin du fichier.
       downloadUrl = liveSetStreamUrl(episode.sourceUrl)
+      extractFrom = episode.sourceUrl
     }
-    await downloadEpisode(episode.id, episode.title, downloadUrl, source.title)
+    await downloadEpisode(episode.id, episode.title, downloadUrl, source.title, extractFrom)
   }
 
   async function playOffline(episode: OfflineEpisode) {

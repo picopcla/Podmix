@@ -1811,6 +1811,7 @@ public class PodmixPlayerPlugin extends Plugin implements Player.Listener {
         ensureNotificationPermission();
         String url = call.getString("url");
         String id = call.getString("id");
+        String extractFrom = call.getString("extractFrom");
         if (url == null || url.isBlank() || id == null || id.isBlank()) {
             call.reject("url et id sont obligatoires");
             return;
@@ -1877,6 +1878,7 @@ public class PodmixPlayerPlugin extends Plugin implements Player.Listener {
             Data input = new Data.Builder()
                 .putString(OfflineDownloadWorker.INPUT_ID, id)
                 .putString(OfflineDownloadWorker.INPUT_URL, url)
+                .putString(OfflineDownloadWorker.INPUT_EXTRACT_FROM, extractFrom)
                 .putString(OfflineDownloadWorker.INPUT_PATH, destination.getAbsolutePath())
                 .build();
             OneTimeWorkRequest work = new OneTimeWorkRequest.Builder(OfflineDownloadWorker.class)

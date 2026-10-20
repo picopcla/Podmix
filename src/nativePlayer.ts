@@ -153,7 +153,7 @@ type PodmixPlayerPlugin = {
   next(): Promise<PlayerState>
   previous(): Promise<PlayerState>
   setRepeatMode(options: { mode: 0 | 1 | 2 }): Promise<PlayerState>
-  download(options: { id: string; url: string; title?: string }): Promise<DownloadState>
+  download(options: { id: string; url: string; title?: string; extractFrom?: string }): Promise<DownloadState>
   getDownload(options: { id: string }): Promise<DownloadState>
   listDownloads(): Promise<{ downloads: DownloadState[] }>
   removeDownload(options: { id: string }): Promise<DownloadState>
@@ -438,9 +438,9 @@ export const podmixPlayer = {
     if (Capacitor.isNativePlatform()) return NativePlayer.setRepeatMode({ mode })
     return webState()
   },
-  async download(id: string, url: string, title?: string) {
+  async download(id: string, url: string, title?: string, extractFrom?: string) {
     if (!Capacitor.isNativePlatform()) throw new Error('Les téléchargements durables nécessitent l’application Android')
-    return NativePlayer.download({ id, url: secureMediaUrl(url), title })
+    return NativePlayer.download({ id, url: secureMediaUrl(url), title, extractFrom })
   },
   async getDownload(id: string) {
     if (!Capacitor.isNativePlatform()) return { id, status: 'not_found' as const }
