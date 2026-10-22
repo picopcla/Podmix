@@ -153,10 +153,11 @@ jobs:
           set -euo pipefail
           SHA=$(cut -d' ' -f1 out/app-ng-release.apk.sha256)
           TAG="v1.0.220-ng-icon"
-          if gh release view "$TAG" >/dev/null 2>&1; then
-            gh release upload "$TAG" out/app-ng-release.apk --clobber
+          if gh release view "$TAG" -R ${{ github.repository }} >/dev/null 2>&1; then
+            gh release upload "$TAG" out/app-ng-release.apk --clobber -R ${{ github.repository }}
           else
             gh release create "$TAG" out/app-ng-release.apk --prerelease \
+              -R ${{ github.repository }} \
               --target "${{ needs.build.outputs.head_sha }}" \
               --title "Podmix 1.0.220-ng (icone)" \
               --notes "APK release signe. sha256: $SHA"
