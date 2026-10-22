@@ -80,7 +80,7 @@ jobs:
           "$BT/apksigner" verify out/app-ng-release.apk
           CERT=$("$BT/apksigner" verify --print-certs out/app-ng-release.apk | sed -n 's/.*certificate SHA-256 digest: //p' | head -1 | tr '[:upper:]' '[:lower:]')
           printf 'cert sha256: %s\n' "$CERT"
-          if [ "$CERT" = "c71b4ac76187cef2cfbe21b68e5eb83d65d6ea73d38cea0ee37aa4392afb2012" ]; then
+          if [ "$CERT" = "b27d46c092c63432e7e274d227c0e465cf91ab4656f67c1a0b511402505c8b8c" ]; then
             echo "cert_match=yes" >> "$GITHUB_OUTPUT"
           else
             echo "cert_match=no" >> "$GITHUB_OUTPUT"
