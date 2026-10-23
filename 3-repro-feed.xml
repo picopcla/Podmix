@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0" xmlns:itunes="http://www.itunes.com/dtds/podcast-1.0.dtd">
+<channel>
+<title>Repro Flap</title>
+<link>https://example.com/repro</link>
+<description>Flux de reproduction play/pause</description>
+<language>fr</language>
+<pubDate>Thu, 23 Oct 2026 20:00:00 GMT</pubDate>
+<item>
+<title>Episode repro long</title>
+<description>Episode de test pour la reproduction du flap play/pause.</description>
+<pubDate>Thu, 23 Oct 2026 20:00:00 GMT</pubDate>
+<guid isPermaLink="false">repro-ep-1</guid>
+<enclosure url="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3" length="111" type="audio/mpeg"/>
+<itunes:duration>372</itunes:duration>
+</item>
+</channel>
+</rss>
