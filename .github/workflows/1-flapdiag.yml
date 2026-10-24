@@ -229,6 +229,9 @@ jobs:
             set -eu
             mkdir -p artifacts
             adb install out/app-ng-release.apk
+            # Eviter que la demande Android 13 de notifications masque tardivement
+            # le lecteur pendant l observation visuelle hors ligne.
+            adb shell pm grant com.podmix.next.ng android.permission.POST_NOTIFICATIONS
             adb root || true
             sleep 2
             node /tmp/flapdiag.mjs
