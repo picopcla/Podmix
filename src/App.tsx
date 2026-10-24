@@ -372,6 +372,21 @@ function playbackIntentActive(state: { playing: boolean; playRequested?: boolean
   return state.playRequested ?? state.playing
 }
 
+// DIAG-ONLY (branche de test, observation pure : aucune logique lecteur modifiee).
+const FLAP_DIAG_TRACKS: Track[] = [0, 45, 90, 135, 180, 225].map((time, index) => ({
+  id: index + 1,
+  time,
+  artist: 'Diag',
+  title: `Piste ${index + 1}`,
+  confidence: 1,
+  source: 'manual' as const,
+  timestampSource: 'manual' as const,
+  timestampStatus: 'manual' as const,
+}))
+function flapDiag(event: string, details: Record<string, unknown>) {
+  try { console.info(`FLAPDIAG ${JSON.stringify({ t: Math.round(performance.now()), event, ...details })}`) } catch { /* observation pure, jamais d impact */ }
+}
+
 function sameNowPlaying(left: NowPlayingItem | undefined, right: NowPlayingItem) {
   return Boolean(left
     && left.id === right.id
@@ -1893,6 +1908,7 @@ function App() {
     if (!podmixPlayer.isNative) return
     const listener = podmixPlayer.onStateChanged((state) => {
       if (!isBoseOutputActive()) {
+        flapDiag('gp', { by: 'evt', v: playbackIntentActive(state), playing: state.playing, playReq: state.playRequested })
         setGlobalPlaying(playbackIntentActive(state))
         setGlobalPosition(Math.max(0, state.positionSeconds))
         setGlobalDuration(Math.max(0, state.durationSeconds))
@@ -1913,6 +1929,7 @@ function App() {
         const queued = catalogRef.current
           .flatMap((source) => source.episodes.map((episode) => ({ ...episode, artist: source.title })))
           .find((episode) => episode.id === state.mediaId)
+        flapDiag('evt', { mediaId: state.mediaId, qIdx: state.queueIndex, playing: state.playing, playReq: state.playRequested, epRef: episodePlaybackRef.current, tqEp: trackQueue?.episodeId, fav: Boolean(favoriteItem), at: Boolean(activeTrack), curId: nowPlayingRef.current?.id, curScope: nowPlayingRef.current?.scope })
         setNowPlaying((current) => {
           const next = {
           id: favoriteItem?.episode.id ?? (activeTrack ? trackQueue!.episodeId : state.mediaId),
@@ -1928,6 +1945,7 @@ function App() {
               ? trackQueue?.artworkUrls[state.queueIndex]
               : queued?.artworkUrl ?? current?.artworkUrl,
           } as NowPlayingItem
+          flapDiag('evt-write', { id: next.id, scope: next.scope, same: sameNowPlaying(current, next) })
           return sameNowPlaying(current, next) ? current : next
         })
       }
@@ -1937,6 +1955,17 @@ function App() {
     })
     return () => { void listener.then((handle) => handle.remove()).catch(() => undefined) }
   }, [])
+  // DIAG-ONLY (branche de test) : tracklist fixe injectee dans l episode de repro pour activer le mode continu.
+  useEffect(() => {
+    if (!catalog.length) return
+    const needsSeed = catalog.some((source) => source.episodes.some((episode) => /repro long/i.test(episode.title) && !(episode.tracks?.length)))
+    if (!needsSeed) return
+    flapDiag('seed', { note: 'tracklist diag injectee (6 pistes, repere toutes les 45 s)' })
+    setCatalog((sources) => sources.map((source) => ({
+      ...source,
+      episodes: source.episodes.map((episode) => (/repro long/i.test(episode.title) && !(episode.tracks?.length)) ? { ...episode, tracks: FLAP_DIAG_TRACKS } : episode),
+    })))
+  }, [catalog])
   useEffect(() => {
     // The Android service can keep playing while the WebView is recreated.
     // Rebuild the track queue from its media ID so opening an episode after a
@@ -1960,6 +1989,7 @@ function App() {
       setGlobalPlaying(playbackIntentActive(state))
       setCanSkipNext(state.hasNext)
       setCanSkipPrevious(state.hasPrevious)
+      flapDiag('restoreFx', { mediaId: state.mediaId, id: restored.queue.episodeId, scope: 'track' })
       setNowPlaying({
         id: restored.queue.episodeId,
         title: activeTrack.title,
@@ -2043,6 +2073,7 @@ function App() {
           return
         }
         if (pollGeneration !== playbackRequestRef.current) return
+        flapDiag('gp', { by: 'poll', v: playbackIntentActive(state), playing: state.playing, playReq: state.playRequested })
         setGlobalPlaying(playbackIntentActive(state))
         setGlobalPosition(Math.max(0, state.positionSeconds))
         setGlobalDuration(Math.max(0, state.durationSeconds))
@@ -2053,6 +2084,7 @@ function App() {
         const trackQueue = trackQueueRef.current
         const favoriteItem = favoriteQueueEntryForState(state)
         const activeTrack = trackQueue && state.queueIndex >= 0 && state.queueIndex < trackQueue.mediaIds.length ? trackQueue.tracks[state.queueIndex] : undefined
+        flapDiag('poll', { mediaId: state.mediaId, qIdx: state.queueIndex, playing: state.playing, playReq: state.playRequested, epRef: episodePlaybackRef.current, tqEp: trackQueue?.episodeId, fav: Boolean(favoriteItem), at: Boolean(activeTrack), curId: nowPlayingRef.current?.id, curScope: nowPlayingRef.current?.scope })
         if (favoriteItem) {
           const nextPlaying: NowPlayingItem = {
             id: favoriteItem.episode.id,
@@ -2062,7 +2094,7 @@ function App() {
             scope: 'favorite',
             artworkUrl: trackArtwork(favoriteItem.track, favoriteItem.episode, favoriteItem.source),
           }
-          setNowPlaying((current) => sameNowPlaying(current, nextPlaying) ? current : nextPlaying)
+          setNowPlaying((current) => { const same = sameNowPlaying(current, nextPlaying); flapDiag('poll-write', { id: nextPlaying.id, scope: nextPlaying.scope, same }); return same ? current : nextPlaying })
         }
         else if (trackQueue && activeTrack) {
           const nextPlaying: NowPlayingItem = {
@@ -2073,7 +2105,7 @@ function App() {
             scope: episodePlaybackRef.current === trackQueue.episodeId ? 'episode' : 'track',
             artworkUrl: trackQueue.artworkUrls[state.queueIndex],
           }
-          setNowPlaying((current) => sameNowPlaying(current, nextPlaying) ? current : nextPlaying)
+          setNowPlaying((current) => { const same = sameNowPlaying(current, nextPlaying); flapDiag('poll-write', { id: nextPlaying.id, scope: nextPlaying.scope, same }); return same ? current : nextPlaying })
         }
         persistPlaybackState(state)
       } finally {
@@ -3210,6 +3242,7 @@ function App() {
   }
 
   async function playEpisode(id: string, title: string, artist: string, url: string, artworkUrl?: string, resumePosition = 0, scope: NowPlayingItem['scope'] = 'episode', existingRequestId?: number) {
+    flapDiag('play', { fn: 'episode', id, resumePosition, scope })
     if (!url) return
     const requestId = existingRequestId ?? beginPlaybackRequest()
     // Les raccourcis « Reprendre », l'historique et certaines commandes
@@ -3327,6 +3360,7 @@ function App() {
         return
       }
     }
+    flapDiag('play', { fn: 'fromSource', episodeId: episode.id, tracks: episode.tracks?.length ?? 0, index })
     const resume = savedResumeForEpisode(episode).position
     const playbackPosition = Math.max(0, startPosition ?? resume)
     const queue = settings.continuousPlayback && source.kind !== 'dj' ? playable : [episode]
@@ -3398,6 +3432,7 @@ function App() {
   }
 
   async function playTrackFromSource(source: CatalogSource, episode: Episode, trackIndex: number, startAbsolutePosition?: number, episodeMode = false, existingRequestId?: number) {
+    flapDiag('play', { fn: 'track', episodeId: episode.id, episodeMode, trackIndex, startAbsolutePosition, tracks: episode.tracks?.length ?? 0 })
     const tracklist = episode.tracks ?? []
     const selectedTrack = tracklist[trackIndex]
     // Les rangées de morceaux doivent utiliser le même fichier local que
