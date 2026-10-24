@@ -128,51 +128,51 @@ jobs:
           replace_once(
               "function startApp() {\n  const res = sh(`adb shell am start -n ${PKG}/com.podmix.next.MainActivity 2>&1`)\n  logd('am start: ' + res.replace(/\\n/g, ' ; ').slice(0, 200))\n}\n",
               """function startApp() {
-  const res = sh(`adb shell am start -n ${PKG}/com.podmix.next.MainActivity 2>&1`)
-  logd('am start: ' + res.replace(/\\n/g, ' ; ').slice(0, 200))
-}
+            const res = sh(`adb shell am start -n ${PKG}/com.podmix.next.MainActivity 2>&1`)
+            logd('am start: ' + res.replace(/\\n/g, ' ; ').slice(0, 200))
+          }
 
-async function cutNetworkAfterImport() {
-  const airplaneResult = sh('adb shell cmd connectivity airplane-mode enable').trim()
-  sh('adb shell svc wifi disable')
-  sh('adb shell svc data disable')
-  await sleep(5000)
-  out.network = {
-    airplaneRequested: airplaneResult || 'commande envoyee',
-    airplaneSetting: sh('adb shell settings get global airplane_mode_on').trim(),
-    wifi: sh('adb shell cmd wifi status').trim().slice(0, 300),
-    data: sh('adb shell dumpsys telephony.registry | grep -m1 -E "mDataConnectionState|mDataNetworkType"').trim().slice(0, 300),
-    pingRc: sh("adb shell 'ping -c 1 -W 2 1.1.1 >/dev/null 2>&1; echo $?' ").trim(),
-  }
-  logd('reseau coupe apres import et telechargement: ' + JSON.stringify(out.network))
-  if (out.network.airplaneSetting !== '1' || out.network.pingRc === '0') {
-    throw new Error('preuve de mise hors ligne insuffisante: ' + JSON.stringify(out.network))
-  }
-}
-""",
+          async function cutNetworkAfterImport() {
+            const airplaneResult = sh('adb shell cmd connectivity airplane-mode enable').trim()
+            sh('adb shell svc wifi disable')
+            sh('adb shell svc data disable')
+            await sleep(5000)
+            out.network = {
+              airplaneRequested: airplaneResult || 'commande envoyee',
+              airplaneSetting: sh('adb shell settings get global airplane_mode_on').trim(),
+              wifi: sh('adb shell cmd wifi status').trim().slice(0, 300),
+              data: sh('adb shell dumpsys telephony.registry | grep -m1 -E "mDataConnectionState|mDataNetworkType"').trim().slice(0, 300),
+              pingRc: sh("adb shell 'ping -c 1 -W 2 1.1.1 >/dev/null 2>&1; echo $?' ").trim(),
+            }
+            logd('reseau coupe apres import et telechargement: ' + JSON.stringify(out.network))
+            if (out.network.airplaneSetting !== '1' || out.network.pingRc === '0') {
+              throw new Error('preuve de mise hors ligne insuffisante: ' + JSON.stringify(out.network))
+            }
+          }
+          """,
           )
           replace_once(
               """  tapNode(carte)
-  await sleep(5000)
-  let fr = screencapRaw()
-""",
+            await sleep(5000)
+            let fr = screencapRaw()
+          """,
               """  tapNode(carte)
-  await sleep(5000)
+            await sleep(5000)
 
-  // L episode doit etre reellement disponible sans reseau avant le test.
-  const { hit: download } = await waitFor('bouton telechargement hors connexion', (ns) => findByTextOrDesc(ns, 'Telecharger pour ecouter hors connexion') || findByTextOrDesc(ns, 'Télécharger pour écouter hors connexion') || findByTextOrDesc(ns, 'Hors connexion'), 30000)
-  tapNode(download)
-  logd('telechargement hors connexion demande apres import')
-  await waitFor('episode disponible hors connexion', (ns) => findByTextOrDesc(ns, 'Disponible hors connexion') || findByTextOrDesc(ns, 'Disponible'), 300000)
-  logd('telechargement hors connexion termine et confirme par UI')
-  cap('artifacts/episode-disponible-hors-ligne.png')
+            // L episode doit etre reellement disponible sans reseau avant le test.
+            const { hit: download } = await waitFor('bouton telechargement hors connexion', (ns) => findByTextOrDesc(ns, 'Telecharger pour ecouter hors connexion') || findByTextOrDesc(ns, 'Télécharger pour écouter hors connexion') || findByTextOrDesc(ns, 'Hors connexion'), 30000)
+            tapNode(download)
+            logd('telechargement hors connexion demande apres import')
+            await waitFor('episode disponible hors connexion', (ns) => findByTextOrDesc(ns, 'Disponible hors connexion') || findByTextOrDesc(ns, 'Disponible'), 300000)
+            logd('telechargement hors connexion termine et confirme par UI')
+            cap('artifacts/episode-disponible-hors-ligne.png')
 
-  // Ecart de conditions principal : toutes les observations ci-dessous sont hors ligne.
-  await cutNetworkAfterImport()
-  cap('artifacts/vue-podcast-mode-avion-avant-lire.png')
+            // Ecart de conditions principal : toutes les observations ci-dessous sont hors ligne.
+            await cutNetworkAfterImport()
+            cap('artifacts/vue-podcast-mode-avion-avant-lire.png')
 
-  let fr = screencapRaw()
-""",
+            let fr = screencapRaw()
+          """,
           )
           replace_once(
               "out.phases.push({ label: 'A-lecture-continue-70s', video: va, ms: msA })",
