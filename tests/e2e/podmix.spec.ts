@@ -423,7 +423,7 @@ test('les favoris gardent leur épisode et s’enchaînent', async ({ page }) =>
       contentType: 'application/json',
       body: JSON.stringify({
         items: request.tracks.map((track) => track.key.includes('episode-favori-a')
-          ? { key: track.key, spotifyUrl: 'https://open.spotify.com/track/detected-a' }
+          ? { key: track.key, spotifyUrl: 'https://open.spotify.com/track/detected-a', youtubeUrl: 'https://www.youtube.com/watch?v=detected-a' }
           : { key: track.key, deezerUrl: 'https://www.deezer.com/track/detected-b' }),
       }),
     })
@@ -495,6 +495,8 @@ test('les favoris gardent leur épisode et s’enchaînent', async ({ page }) =>
   await expect(favorites.getByLabel('Spotify disponible : ouvrir le morceau').nth(0)).toHaveAttribute('href', 'https://open.spotify.com/track/detected-a')
   await expect(favorites.getByLabel('Deezer disponible : ouvrir le morceau').nth(1)).toHaveAttribute('href', 'https://www.deezer.com/track/detected-b')
   await expect(favorites.getByLabel('Spotify disponible : ouvrir le morceau').nth(1)).toHaveAttribute('href', 'https://open.spotify.com/track/abc')
+  await expect(favorites.getByLabel('YouTube disponible : ouvrir le morceau')).toHaveAttribute('href', 'https://www.youtube.com/watch?v=detected-a')
+  await expect(favorites.getByRole('button', { name: 'YouTube indisponible pour ce morceau' })).toHaveCount(1)
   await expect(favorites.getByRole('button', { name: 'Partager Favori du premier épisode' })).toBeVisible()
   await expect(favorites.locator('.favorite-track-actions')).toHaveCount(2)
   const copyBox = await favorites.locator('.favorite-track-copy').first().boundingBox()

@@ -19,6 +19,7 @@ export type Track = {
   artworkUrl?: string
   spotifyUrl?: string
   deezerUrl?: string
+  youtubeUrl?: string
 }
 
 export type DetectionJobStatus = 'queued' | 'running' | 'web_pending' | 'completed' | 'failed' | 'cancelled'
