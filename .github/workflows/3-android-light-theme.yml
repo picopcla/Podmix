@@ -1,0 +1,211 @@
+name: android-light-theme
+
+on:
+  push:
+    branches: [fix/light-theme-restore-20261024]
+  workflow_dispatch:
+
+concurrency:
+  group: podmix-light-theme-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    outputs:
+      cert_match: ${{ steps.certcheck.outputs.cert_match }}
+      head_sha: ${{ steps.pushsrc.outputs.head_sha }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+      - name: Restaurer le theme clair et passer en 1.0.223
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          cat >> src/App.css <<'CSSEOF'
+
+          /* === Theme clair Podmix : inversion globale + corrections cibles === */
+          html{filter:invert(1) hue-rotate(180deg);background:#0b090f}
+          html img,html video,html canvas,html .brand-wordmark{filter:invert(1) hue-rotate(180deg)}
+          :root{--ink:#0b090f!important;--panel:#000000!important;--cream:#e3e2ed!important;--orange:#ff714a!important;--line:#282333!important}
+          html,body,#root,.app-shell{background:#0b090f!important}
+          .topbar{background:#0b090f!important;border-bottom-color:#1f1b29!important}
+          section.home-section{background:#000000!important;background-image:none!important;border-color:#1f1a28!important;box-shadow:0 6px 20px rgba(60,30,120,.10)!important}
+          section.home-section.home-podcasts{background:#1a1120!important}
+          section.home-section.home-shows{background:#06140c!important}
+          section.home-section.home-radios{background:#08141e!important}
+          section.home-section.home-djSets{background:#1b1003!important}
+          .media-art{background:#17141f!important}
+          .home-source-card .media-art{background:transparent!important;padding:0!important}
+          section.source-detail,.workspace .source-detail{background:#000000!important}
+          .source-heading>img,.source-heading>svg{background:#ebe8f3!important}
+          .modal-backdrop{background:rgba(255,255,255,.45)!important}
+          .source-modal,[role="dialog"]:not(.full-player){background:#000000!important;background-image:none!important}
+          .source-modal input:not([type=range]),.source-modal textarea,[role="dialog"]:not(.full-player) input:not([type=range]){background:#100e16!important}
+          section.home-section.home-resume,section.home-section.home-offline,section.home-section.home-history{background:#000000!important;background-image:none!important}
+
+
+          /* Main est le seul enfant de la grille apres retrait de la sidebar desktop. */
+          .app-shell>main{grid-column:1/-1;width:100%;min-width:0}
+
+          /* Filtre par surface pour garder les lecteurs fixes ancres au viewport (comme en 1.0.218). */
+          html{filter:none;background:#f4f6f0}
+          html,body,#root,.app-shell{background:#f4f6f0!important}
+          .app-shell>main,.app-shell>.mini-player-global,.app-shell>.full-player,.app-shell>.modal-backdrop{filter:invert(1) hue-rotate(180deg)}
+          CSSEOF
+          tail -12 src/App.css
+          sed -i 's/"version": "1.0.222"/"version": "1.0.223"/' package.json
+          node scripts/sync-version.mjs sync
+          git add -A
+          if ! git diff --cached --quiet; then
+            git commit -m "Restaurer le theme clair (1.0.223)"
+          fi
+      - name: Pousser l'etat source
+        id: pushsrc
+        run: |
+          set -euo pipefail
+          git push origin "HEAD:${{ GITHUB_REF_NAME }}"
+          echo "head_sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+      - name: Preparer la signature
+        env:
+          KS_B64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          KS_PASS: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          KEY_PASS: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: |
+          set -euo pipefail
+          for value in KS_B64 KS_PASS KEY_ALIAS KEY_PASS; do
+            test -n "${!value}"
+          done
+          umask 077
+          printf '%s' "$KS_B64" | base64 -d > android/podmix-release.keystore
+          printf 'storeFile=podmix-release.keystore\nstorePassword=%s\nkeyAlias=%s\nkeyPassword=%s\n' "$KS_PASS" "$KEY_ALIAS" "$KEY_PASS" > android/release-signing.properties
+      - run: npm ci
+      - name: Construire l'APK ng release
+        run: npm run android:build:ng
+      - name: Verifier et collecter l'APK
+        id: certcheck
+        run: |
+          set -euo pipefail
+          mkdir -p out
+          cp android/app/build/outputs/apk/ng/release/app-ng-release.apk out/app-ng-release.apk
+          BT=$(find "$ANDROID_HOME/build-tools" -mindepth 1 -maxdepth 1 -type d | sort -V | tail -1)
+          BADGING=$("$BT/aapt2" dump badging out/app-ng-release.apk | head -1)
+          printf '%s\n' "$BADGING"
+          grep -Fq "name='com.podmix.next.ng'" <<<"$BADGING"
+          grep -Fq "versionCode='10223'" <<<"$BADGING"
+          grep -Fq "versionName='1.0.223-ng'" <<<"$BADGING"
+          "$BT/apksigner" verify out/app-ng-release.apk
+          CERT=$("$BT/apksigner" verify --print-certs out/app-ng-release.apk | sed -n 's/.*certificate SHA-256 digest: //p' | head -1 | tr '[:upper:]' '[:lower:]')
+          printf 'cert sha256: %s\n' "$CERT"
+          if [ "$CERT" = "b27d46c092c63432e7e274d227c0e465cf91ab4656f67c1a0b511402505c8b8c" ]; then
+            echo "cert_match=yes" >> "$GITHUB_OUTPUT"
+          else
+            echo "cert_match=no" >> "$GITHUB_OUTPUT"
+          fi
+          sha256sum out/app-ng-release.apk > out/app-ng-release.apk.sha256
+      - name: Retirer le materiel de signature
+        if: always()
+        run: rm -f android/podmix-release.keystore android/release-signing.properties
+      - uses: actions/upload-artifact@v4
+        with:
+          name: podmix-light-theme-apk
+          path: |
+            out/app-ng-release.apk
+            out/app-ng-release.apk.sha256
+          retention-days: 14
+
+  emulator:
+    needs: build
+    timeout-minutes: 25
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: podmix-light-theme-apk
+          path: out
+      - name: Recuperer l'APK 1.0.222 actuellement installe
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release download v1.0.222-ng-badges -R ${{ github.repository }} -p app-ng-release.apk -O out/app-ng-release-1.0.222.apk --clobber
+      - name: Preparer l'emulateur accelere
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+          ls -l /dev/kvm
+          sudo chmod 666 /dev/kvm
+          test -r /dev/kvm && test -w /dev/kvm
+      - uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 33
+          arch: x86_64
+          profile: pixel_2
+          emulator-options: -no-snapshot -no-window -noaudio -no-boot-anim -gpu swiftshader_indirect -camera-back none
+          script: |
+            set -eu
+            mkdir -p artifacts/emulator-captures
+            adb install out/app-ng-release-1.0.222.apk
+            adb shell am start -n com.podmix.next.ng/com.podmix.next.MainActivity
+            sleep 12
+            adb root || true
+            sleep 2
+            adb shell "echo podmix-data-marker > /data/data/com.podmix.next.ng/files/.update-check"
+            adb shell "cat /data/data/com.podmix.next.ng/files/.update-check"
+            adb shell am force-stop com.podmix.next.ng
+            adb install -r out/app-ng-release.apk
+            adb shell dumpsys package com.podmix.next.ng | grep -q 'versionCode=10223'
+            adb shell dumpsys package com.podmix.next.ng | grep -q 'versionName=1.0.223-ng'
+            adb shell "cat /data/data/com.podmix.next.ng/files/.update-check"
+            adb shell "cat /data/data/com.podmix.next.ng/files/.update-check" | grep -q podmix-data-marker
+            adb shell am start -n com.podmix.next.ng/com.podmix.next.MainActivity
+            sleep 15
+            adb shell pidof com.podmix.next.ng
+            adb exec-out screencap -p > artifacts/emulator-captures/app-boot.png
+            sleep 8
+            adb exec-out screencap -p > artifacts/emulator-captures/app-boot-2.png
+            adb shell am force-stop com.podmix.next.ng
+      - uses: actions/upload-artifact@v4
+        with:
+          name: podmix-light-theme-emulator
+          path: artifacts/emulator-captures/
+          retention-days: 14
+
+  publish:
+    needs: [build, emulator]
+    if: needs.build.outputs.cert_match == 'yes'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: podmix-light-theme-apk
+          path: out
+      - name: Publier la pre-release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          SHA=$(cut -d' ' -f1 out/app-ng-release.apk.sha256)
+          TAG="v1.0.223-ng-theme-clair"
+          if gh release view "$TAG" -R ${{ github.repository }} >/dev/null 2>&1; then
+            gh release upload "$TAG" out/app-ng-release.apk --clobber -R ${{ github.repository }}
+          else
+            gh release create "$TAG" out/app-ng-release.apk --prerelease \
+              -R ${{ github.repository }} \
+              --target "${{ needs.build.outputs.head_sha }}" \
+              --title "Podmix 1.0.223-ng (theme clair)" \
+              --notes "APK release signe. sha256: $SHA"
+          fi
