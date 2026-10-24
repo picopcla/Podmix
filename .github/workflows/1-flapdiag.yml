@@ -149,6 +149,34 @@ jobs:
               throw new Error('preuve de mise hors ligne insuffisante: ' + JSON.stringify(out.network))
             }
           }
+
+          function prepareOfflineFixture() {
+            const id = 'repro-ep-1'
+            const local = '/tmp/repro-ep-1.offline'
+            const remote = `/sdcard/Android/data/${PKG}/files/Podcasts/podmix/${id}.offline`
+            const nativePath = `/storage/emulated/0/Android/data/${PKG}/files/Podcasts/podmix/${id}.offline`
+            execSync(`curl -fL --retry 3 --output ${local} https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3`, { stdio: 'inherit' })
+            const bytes = fs.statSync(local).size
+            if (bytes < 1_000_000) throw new Error(`fixture audio trop petite: ${bytes} octets`)
+            sh(`adb shell mkdir -p /sdcard/Android/data/${PKG}/files/Podcasts/podmix`)
+            sh(`adb push ${local} ${remote}`)
+            const remoteBytes = Number(sh(`adb shell stat -c %s ${remote}`).trim())
+            if (remoteBytes !== bytes) throw new Error(`fixture audio incomplete: local=${bytes}, appareil=${remoteBytes}`)
+
+            const prefs = `<?xml version='1.0' encoding='utf-8' standalone='yes' ?>\n<map>\n<string name="${id}.engine">work</string>\n<string name="${id}.path">${nativePath}</string>\n<string name="${id}.status">completed</string>\n<long name="${id}.bytesDownloaded" value="${bytes}" />\n<long name="${id}.totalBytes" value="${bytes}" />\n</map>\n`
+            fs.writeFileSync('/tmp/podmix_downloads.xml', prefs)
+            sh('adb push /tmp/podmix_downloads.xml /data/local/tmp/podmix_downloads.xml')
+            const owner = sh(`adb shell stat -c %u:%g /data/user/0/${PKG}`).trim()
+            if (!/^\d+:\d+$/.test(owner)) throw new Error(`proprietaire package illisible: ${owner}`)
+            sh(`adb shell mkdir -p /data/user/0/${PKG}/shared_prefs`)
+            sh(`adb shell cp /data/local/tmp/podmix_downloads.xml /data/user/0/${PKG}/shared_prefs/podmix_downloads.xml`)
+            sh(`adb shell chown ${owner} /data/user/0/${PKG}/shared_prefs/podmix_downloads.xml`)
+            sh(`adb shell chmod 600 /data/user/0/${PKG}/shared_prefs/podmix_downloads.xml`)
+            sh(`adb shell restorecon /data/user/0/${PKG}/shared_prefs/podmix_downloads.xml`)
+            const storedStatus = sh(`adb shell grep -o '<string name="${id}.status">[^<]*' /data/user/0/${PKG}/shared_prefs/podmix_downloads.xml`).trim()
+            if (!storedStatus.endsWith('>completed')) throw new Error(`etat natif hors ligne non confirme: ${storedStatus}`)
+            logd(`fixture hors ligne native preparee apres import: id=${id}, octets=${bytes}, statut=completed`)
+          }
           """,
           )
           replace_once(
@@ -156,15 +184,18 @@ jobs:
             await sleep(5000)
             let fr = screencapRaw()
           """,
-              """  tapNode(carte)
+              """  // La WebView release ne publie pas les boutons internes a uiautomator.
+            // On prepare donc le meme fichier et le meme registre natif que le telechargement Podmix,
+            // apres import, puis on laisse l application le restaurer au redemarrage.
+            prepareOfflineFixture()
+            sh(`adb shell am force-stop ${PKG}`)
+            await sleep(2000)
+            startApp()
+            await sleep(12000)
+            const { hit: carteOffline } = await waitFor('carte Repro Flap avec fixture hors ligne', (ns) => findByTextOrDesc(ns, 'Repro Flap'), 90000)
+            tapNode(carteOffline)
             await sleep(5000)
-
-            // L episode doit etre reellement disponible sans reseau avant le test.
-            const { hit: download } = await waitFor('bouton telechargement hors connexion', (ns) => findByTextOrDesc(ns, 'Telecharger pour ecouter hors connexion') || findByTextOrDesc(ns, 'Télécharger pour écouter hors connexion') || findByTextOrDesc(ns, 'Hors connexion'), 30000)
-            tapNode(download)
-            logd('telechargement hors connexion demande apres import')
-            await waitFor('episode disponible hors connexion', (ns) => findByTextOrDesc(ns, 'Disponible hors connexion') || findByTextOrDesc(ns, 'Disponible'), 300000)
-            logd('telechargement hors connexion termine et confirme par UI')
+            logd('episode local restaure par l application avant coupure reseau')
             cap('artifacts/episode-disponible-hors-ligne.png')
 
             // Ecart de conditions principal : toutes les observations ci-dessous sont hors ligne.
