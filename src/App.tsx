@@ -383,8 +383,15 @@ const FLAP_DIAG_TRACKS: Track[] = [0, 45, 90, 135, 180, 225].map((time, index) =
   timestampSource: 'manual' as const,
   timestampStatus: 'manual' as const,
 }))
+const flapDiagSid = `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`
 function flapDiag(event: string, details: Record<string, unknown>) {
-  try { console.info(`FLAPDIAG ${JSON.stringify({ t: Math.round(performance.now()), event, ...details })}`) } catch { /* observation pure, jamais d impact */ }
+  try {
+    const line = `FLAPDIAG ${JSON.stringify({ t: Math.round(performance.now()), ts: Date.now(), sid: flapDiagSid, event, ...details })}`
+    console.info(line)
+    // Canal de repli (release WebView ne relaie pas console.* vers logcat) : tampon borne en localStorage, lu via adb root apres le test.
+    const prev = localStorage.getItem('FLAPDIAG_LOG') ?? ''
+    localStorage.setItem('FLAPDIAG_LOG', (prev + line + '\n').slice(-180000))
+  } catch { /* observation pure, jamais d impact */ }
 }
 
 function sameNowPlaying(left: NowPlayingItem | undefined, right: NowPlayingItem) {
@@ -1958,6 +1965,8 @@ function App() {
   // DIAG-ONLY (branche de test) : tracklist fixe injectee dans l episode de repro pour activer le mode continu.
   useEffect(() => {
     if (!catalog.length) return
+    const hasDiag = catalog.some((source) => source.episodes.some((episode) => /repro long/i.test(episode.title) && (episode.tracks?.length ?? 0) === 6 && episode.tracks?.every((track) => track.artist === 'Diag')))
+    if (hasDiag) { flapDiag('seed-present', { note: 'tracklist diag deja en place (6 pistes)' }); return }
     const needsSeed = catalog.some((source) => source.episodes.some((episode) => /repro long/i.test(episode.title) && !(episode.tracks?.length)))
     if (!needsSeed) return
     flapDiag('seed', { note: 'tracklist diag injectee (6 pistes, repere toutes les 45 s)' })
