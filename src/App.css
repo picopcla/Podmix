@@ -555,3 +555,6 @@ html,body,#root,.app-shell{background:#f4f6f0!important}
 
 /* Correctif theme clair : pilule de marque blanche (sous filtre d'inversion, #000 rend #fff). */
 .topbar .brand{background:#000!important}
+
+/* Correctif theme clair : pilule de marque blanche (sous filtre d'inversion, #000 rend #fff). */
+.topbar .brand{background:#000!important}
