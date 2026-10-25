@@ -24,7 +24,7 @@ from urllib.parse import parse_qs, urljoin, urlparse
 from urllib.request import HTTPRedirectHandler, Request, build_opener
 
 from audio_fallback import AudioFallbackError, analyze_known_tracklist
-from catalog import search_deezer, search_spotify, validate_track
+from catalog import search_deezer, search_spotify, search_youtube, validate_track
 from discovery import discover_tracklist, import_dj_set, search_dj_sets
 from live_sets import invalidate_live_set_resolution, parse_live_set_tracklist, resolve_live_set, resolve_live_set_tracklist, search_live_sets
 from music_recognition import MAX_SAMPLE_BYTES, MusicRecognitionError, recognize_music
@@ -241,7 +241,8 @@ def initialize() -> None:
     with connect() as database:
         database.executescript("""
         CREATE TABLE IF NOT EXISTS catalog_cache (
-          cache_key TEXT PRIMARY KEY, response_json TEXT NOT NULL, created_at TEXT NOT NULL
+          cache_key TEXT PRIMARY KEY, response_json TEXT NOT NULL, created_at TEXT NOT NULL,
+          deezer_url TEXT, spotify_url TEXT, youtube_url TEXT
         );
         CREATE TABLE IF NOT EXISTS jobs (
           id TEXT PRIMARY KEY, episode_id TEXT NOT NULL,
@@ -278,6 +279,10 @@ def initialize() -> None:
         );
         CREATE INDEX IF NOT EXISTS share_pages_expires_at ON share_pages(expires_at);
         """)
+        catalog_columns = {row[1] for row in database.execute("PRAGMA table_info(catalog_cache)")}
+        for column in ("deezer_url", "spotify_url", "youtube_url"):
+            if column not in catalog_columns:
+                database.execute(f"ALTER TABLE catalog_cache ADD COLUMN {column} TEXT")
         cast_columns = {row[1] for row in database.execute("PRAGMA table_info(cast_sessions)")}
         if "start_seconds" not in cast_columns:
             database.execute("ALTER TABLE cast_sessions ADD COLUMN start_seconds REAL NOT NULL DEFAULT 0")
@@ -318,6 +323,62 @@ def initialize() -> None:
             "UPDATE jobs SET status = 'queued', stage = 'Recherche reprise après redémarrage', updated_at = ? WHERE status = 'running'",
             (now(),),
         )
+
+
+def catalog_cache_key(artist: str, title: str) -> str:
+    return f"{artist.lower().strip()}::{title.lower().strip()}"
+
+
+def resolve_catalog_links(artist: str, title: str) -> dict:
+    """Resolve and cache service links; empty strings cache confirmed misses."""
+    cache_key = catalog_cache_key(artist, title)
+    with DB_LOCK, connect() as database:
+        cached = database.execute(
+            "SELECT response_json, deezer_url, spotify_url, youtube_url FROM catalog_cache WHERE cache_key = ?",
+            (cache_key,),
+        ).fetchone()
+    cached_payload = json.loads(cached["response_json"]) if cached else {}
+    resolved: dict[str, str | None] = {}
+    searches = {
+        "deezerUrl": ("deezer_url", search_deezer),
+        "spotifyUrl": ("spotify_url", search_spotify),
+        "youtubeUrl": ("youtube_url", search_youtube),
+    }
+    matches: dict[str, dict | None] = {}
+    for response_key, (column, search) in searches.items():
+        column_value = cached[column] if cached else None
+        if column_value is not None:
+            resolved[response_key] = column_value or None
+            continue
+        if response_key in cached_payload:
+            resolved[response_key] = cached_payload.get(response_key) or None
+            continue
+        try:
+            matches[response_key] = search(artist, title)
+        except Exception:
+            matches[response_key] = None
+        resolved[response_key] = (matches[response_key] or {}).get("url")
+
+    artwork_url = cached_payload.get("artworkUrl") or next(
+        ((match or {}).get("artworkUrl") for match in matches.values() if (match or {}).get("artworkUrl")),
+        None,
+    )
+    merged_payload = {**cached_payload, **resolved, "artworkUrl": artwork_url}
+    stored_urls = tuple(str(resolved[key] or "") for key in ("deezerUrl", "spotifyUrl", "youtubeUrl"))
+    with DB_LOCK, connect() as database:
+        database.execute(
+            """INSERT INTO catalog_cache (
+                 cache_key, response_json, created_at, deezer_url, spotify_url, youtube_url
+               ) VALUES (?, ?, ?, ?, ?, ?)
+               ON CONFLICT(cache_key) DO UPDATE SET
+                 response_json = excluded.response_json,
+                 created_at = excluded.created_at,
+                 deezer_url = excluded.deezer_url,
+                 spotify_url = excluded.spotify_url,
+                 youtube_url = excluded.youtube_url""",
+            (cache_key, json.dumps(merged_payload, ensure_ascii=False), now(), *stored_urls),
+        )
+    return {"artworkUrl": artwork_url, **resolved}
 
 
 def share_token_hash(token: str) -> str:
@@ -1507,20 +1568,7 @@ class Handler(BaseHTTPRequestHandler):
                     title = str(item.get("title") or "").strip()[:300]
                     if not key or not artist or not title:
                         continue
-                    try:
-                        deezer = search_deezer(artist, title)
-                    except Exception:
-                        deezer = None
-                    try:
-                        spotify = search_spotify(artist, title)
-                    except Exception:
-                        spotify = None
-                    items.append({
-                        "key": key,
-                        "artworkUrl": (deezer or spotify or {}).get("artworkUrl"),
-                        "deezerUrl": (deezer or {}).get("url"),
-                        "spotifyUrl": (spotify or {}).get("url"),
-                    })
+                    items.append({"key": key, **resolve_catalog_links(artist, title)})
             except (AttributeError, json.JSONDecodeError, TypeError, ValueError) as error:
                 self.json_response({"error": "invalid_request", "message": str(error)}, 400)
                 return
@@ -1792,23 +1840,32 @@ class Handler(BaseHTTPRequestHandler):
                 track = next(track for track in job["tracks"] if int(track["id"]) == track_id)
             except (ValueError, StopIteration):
                 self.json_response({"error": "track_not_found"}, 404); return
-            cache_key = f"{track['artist'].lower().strip()}::{track['title'].lower().strip()}"
+            cache_key = catalog_cache_key(track["artist"], track["title"])
             with DB_LOCK, connect() as database:
                 cached = database.execute("SELECT response_json FROM catalog_cache WHERE cache_key = ?", (cache_key,)).fetchone()
             try:
                 result = json.loads(cached["response_json"]) if cached else validate_track(track["artist"], track["title"])
-                if cached and not result.get("artworkUrl"):
+                if cached and ("accepted" not in result or not result.get("artworkUrl")):
                     result = validate_track(track["artist"], track["title"])
                     with DB_LOCK, connect() as database:
                         database.execute(
-                            "INSERT OR REPLACE INTO catalog_cache VALUES (?, ?, ?)",
-                            (cache_key, json.dumps(result, ensure_ascii=False), now()),
+                            """INSERT OR REPLACE INTO catalog_cache (
+                                 cache_key, response_json, created_at, deezer_url, spotify_url, youtube_url
+                               ) VALUES (?, ?, ?, ?, ?, ?)""",
+                            (cache_key, json.dumps(result, ensure_ascii=False), now(),
+                             result.get("deezerUrl") or "", result.get("spotifyUrl") or "", result.get("youtubeUrl") or ""),
                         )
             except Exception as error:
                 self.json_response({"error": "catalog_unavailable", "message": str(error)}, 502); return
             if not cached:
                 with DB_LOCK, connect() as database:
-                    database.execute("INSERT OR REPLACE INTO catalog_cache VALUES (?, ?, ?)", (cache_key, json.dumps(result, ensure_ascii=False), now()))
+                    database.execute(
+                        """INSERT OR REPLACE INTO catalog_cache (
+                             cache_key, response_json, created_at, deezer_url, spotify_url, youtube_url
+                           ) VALUES (?, ?, ?, ?, ?, ?)""",
+                        (cache_key, json.dumps(result, ensure_ascii=False), now(),
+                         result.get("deezerUrl") or "", result.get("spotifyUrl") or "", result.get("youtubeUrl") or ""),
+                    )
             best = result.get("bestMatch")
             evidence = list(track.get("evidence") or [])
             evidence = [item for item in evidence if not item.startswith("MusicBrainz")]

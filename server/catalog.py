@@ -88,6 +88,10 @@ def validate_track(artist: str, title: str) -> dict:
         spotify = search_spotify(artist, title)
     except Exception:
         spotify = None
+    try:
+        youtube = search_youtube(artist, title)
+    except Exception:
+        youtube = None
     return {
         "accepted": accepted,
         "bestMatch": best,
@@ -95,11 +99,14 @@ def validate_track(artist: str, title: str) -> dict:
         "artworkUrl": (
             (deezer or {}).get("artworkUrl")
             or (spotify or {}).get("artworkUrl")
+            or (youtube or {}).get("artworkUrl")
         ),
         "deezerUrl": deezer.get("url") if deezer else None,
         "spotifyUrl": spotify.get("url") if spotify else None,
+        "youtubeUrl": youtube.get("url") if youtube else None,
         "deezerMatch": deezer,
         "spotifyMatch": spotify,
+        "youtubeMatch": youtube,
     }
 
 
@@ -120,6 +127,75 @@ def _score_match(wanted_artist: str, wanted_title: str, found_artist: str, found
     artist_score = 1.0 if canonical(wanted_artist) == canonical(found_artist) else len(artist_words & found_artist_words) / max(1, len(artist_words))
     title_score = 1.0 if canonical(wanted_title) == canonical(found_title) else len(title_words & found_title_words) / max(1, len(title_words))
     return round((artist_score * 0.45 + title_score * 0.55) * 100)
+
+
+YOUTUBE_VERSION_WORDS = {
+    "acoustic", "bootleg", "cover", "dub", "edit", "extended", "instrumental",
+    "live", "mix", "radio", "remaster", "remastered", "remix", "rework", "version",
+}
+
+
+def _required_version_words(title: str) -> set[str]:
+    """Return words that identify an explicitly requested track version."""
+    required: set[str] = set()
+    for marker in re.findall(r"[\[(]([^)\]]+)[)\]]", _clean_credit(title)):
+        words = _words(marker)
+        if words & YOUTUBE_VERSION_WORDS:
+            required.update(words)
+    return required
+
+
+def _youtube_version_matches(wanted_title: str, found_title: str) -> bool:
+    required = _required_version_words(wanted_title)
+    return not required or required <= _words(found_title)
+
+
+def search_youtube(artist: str, title: str) -> dict | None:
+    """Search YouTube metadata only, without downloading media."""
+    import yt_dlp
+
+    artist = _clean_credit(artist)
+    # Keep parentheses/brackets intact: they may identify a required remix or edit.
+    title = _clean_credit(title)
+    query = f"{artist} {title}".strip()
+    options = {
+        "quiet": True,
+        "no_warnings": True,
+        "skip_download": True,
+        "extract_flat": True,
+        "playlistend": 5,
+        "socket_timeout": 18,
+    }
+    with yt_dlp.YoutubeDL(options) as downloader:
+        payload = downloader.extract_info(f"ytsearch5:{query}", download=False)
+        payload = downloader.sanitize_info(payload)
+
+    candidates = []
+    for item in payload.get("entries") or []:
+        if not isinstance(item, dict):
+            continue
+        found_artist = str(item.get("artist") or item.get("uploader") or item.get("channel") or "")
+        found_title = str(item.get("track") or item.get("title") or "")
+        if not _youtube_version_matches(title, found_title):
+            continue
+        media_id = str(item.get("id") or "").strip()
+        url = str(item.get("webpage_url") or item.get("original_url") or item.get("url") or "").strip()
+        if media_id and not url.startswith("http"):
+            url = f"https://www.youtube.com/watch?v={media_id}"
+        host = (urllib.parse.urlparse(url).hostname or "").casefold()
+        if not media_id or not (host == "youtu.be" or host == "youtube.com" or host.endswith(".youtube.com")):
+            continue
+        score = _score_match(artist, title, found_artist, found_title)
+        candidates.append({
+            "url": url,
+            "artworkUrl": str(item.get("thumbnail") or "") or None,
+            "artist": found_artist,
+            "title": found_title,
+            "score": score,
+            "id": media_id,
+        })
+    best = max(candidates, key=lambda item: item["score"], default=None)
+    return best if best and best["score"] >= 60 else None
 
 
 def _get_json(url: str, headers: dict[str, str] | None = None) -> dict:
