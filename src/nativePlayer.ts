@@ -1,5 +1,6 @@
 import { Capacitor, registerPlugin } from '@capacitor/core'
 import type { PluginListenerHandle } from '@capacitor/core'
+import { decodeCredits } from './credits'
 
 export type PlayerState = {
   playing: boolean
@@ -58,7 +59,8 @@ function normalizedNativeLibrary(items: LibraryItem[]) {
   const includedIds = new Set<string>()
 
   for (const item of items) {
-    const normalized = item.url ? { ...item, url: secureMediaUrl(item.url) } : item
+    const decoded = decodeCredits(item)
+    const normalized = decoded.url ? { ...decoded, url: secureMediaUrl(decoded.url) } : decoded
     if (normalized.parentId !== 'podmix-root' && !includedIds.has(normalized.parentId)) continue
     snapshot.push(normalized)
     includedIds.add(normalized.id)
@@ -198,8 +200,8 @@ function webItemStart(item?: LoadOptions) {
 async function loadWebQueueItem(item: LoadOptions & { id: string }, autoplay: boolean) {
   const safeItem = secureLoadOptions(item)
   webAudio.src = safeItem.url
-  webTitle = item.title ?? 'Podmix'
-  webArtist = item.artist ?? ''
+  webTitle = safeItem.title ?? 'Podmix'
+  webArtist = safeItem.artist ?? ''
   webAudio.load()
   const start = webItemStart(item)
   if (start > 0) webAudio.currentTime = start
@@ -276,13 +278,13 @@ function webState(): PlayerState {
 export const podmixPlayer = {
   isNative: Capacitor.isNativePlatform(),
   async load(options: LoadOptions) {
-    const safeOptions = secureLoadOptions(options)
+    const safeOptions = secureLoadOptions(decodeCredits(options))
     if (Capacitor.isNativePlatform()) return NativePlayer.load(safeOptions)
     webQueue = []
     webQueueIndex = 0
     webAudio.src = safeOptions.url
-    webTitle = options.title ?? 'Podmix'
-    webArtist = options.artist ?? ''
+    webTitle = safeOptions.title ?? 'Podmix'
+    webArtist = safeOptions.artist ?? ''
     webAudio.load()
     if (options.autoplay) await webAudio.play()
     return webState()
@@ -402,7 +404,7 @@ export const podmixPlayer = {
     return NativePlayer.getPendingPlaybackTarget()
   },
   async setQueue(items: Array<LoadOptions & { id: string }>, startIndex = 0, autoplay = false, startPositionSeconds = 0) {
-    const safeItems = items.map(secureLoadOptions)
+    const safeItems = items.map((item) => secureLoadOptions(decodeCredits(item)))
     if (Capacitor.isNativePlatform()) {
       return NativePlayer.setQueue({ items: safeItems, startIndex, startPositionSeconds, autoplay })
     }
