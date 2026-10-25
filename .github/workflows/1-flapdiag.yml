@@ -200,8 +200,86 @@ jobs:
           """,
           )
           replace_once(
+              """async function recordPhase(tag, seconds) {
+            sh(`adb shell "screenrecord --time-limit ${seconds} /sdcard/flap-${tag}.mp4 > /dev/null 2>&1 &"`)
+            logd('screenrecord ' + tag + ' lance (' + seconds + 's)')
+          }
+          """,
+              """async function recordPhase(tag, seconds) {
+            sh(`adb shell "rm -f /sdcard/flap-${tag}.mp4; screenrecord --time-limit ${seconds} /sdcard/flap-${tag}.mp4 > /dev/null 2>&1 &"`)
+            const t0 = Date.now()
+            let pid = ''
+            while (Date.now() - t0 < 5000) {
+              pid = sh('adb shell pidof screenrecord').trim()
+              if (pid) break
+              await sleep(250)
+            }
+            if (!pid) throw new Error(`screenrecord ${tag} non actif avant interaction`)
+            logd(`screenrecord ${tag} confirme actif pid=${pid} (${seconds}s)`)
+            // Pre-roll explicite : la capture doit etre active 1 a 2 s avant Lire/Reprendre.
+            await sleep(1500)
+          }
+          """,
+          )
+          replace_once(
+              """async function pullPhase(tag) {
+            for (let i = 0; i < 30; i++) {
+              const pid = sh('adb shell pidof screenrecord').trim()
+              if (!pid) break
+              await sleep(2000)
+            }
+            sh(`adb pull /sdcard/flap-${tag}.mp4 /tmp/flap-${tag}.mp4`)
+            sh(`adb pull /sdcard/mslog-${tag}.txt /tmp/mslog-${tag}.txt`)
+            const okV = fs.existsSync(`/tmp/flap-${tag}.mp4`) && fs.statSync(`/tmp/flap-${tag}.mp4`).size > 10000
+            logd(`pull ${tag}: video=${okV ? fs.statSync('/tmp/flap-' + tag + '.mp4').size : 0}o`)
+            return okV
+          }
+          """,
+              """async function pullPhase(tag) {
+            for (let i = 0; i < 45; i++) {
+              const pid = sh('adb shell pidof screenrecord').trim()
+              if (!pid) break
+              await sleep(2000)
+            }
+            sh(`adb pull /sdcard/flap-${tag}.mp4 /tmp/flap-${tag}.mp4`)
+            sh(`adb pull /sdcard/mslog-${tag}.txt /tmp/mslog-${tag}.txt`)
+            const videoPath = `/tmp/flap-${tag}.mp4`
+            const okV = fs.existsSync(videoPath) && fs.statSync(videoPath).size > 10000
+            if (!okV) throw new Error(`video ${tag} absente ou vide apres screenrecord`)
+            const probeRaw = sh(`ffprobe -v error -count_frames -select_streams v:0 -show_entries stream=nb_read_frames,duration:format=duration -of json ${videoPath}`)
+            let probe
+            try { probe = JSON.parse(probeRaw) } catch { throw new Error(`ffprobe ${tag} illisible: ${probeRaw.slice(0, 300)}`) }
+            const stream = probe.streams?.[0] ?? {}
+            const duration = Number(probe.format?.duration ?? stream.duration)
+            const frames = Number(stream.nb_read_frames)
+            logd(`ffprobe ${tag}: duree=${duration}s, frames=${frames}, octets=${fs.statSync(videoPath).size}`)
+            if (!Number.isFinite(duration) || duration < 70) throw new Error(`video ${tag} incomplete: duree=${duration}s (<70s)`)
+            if (!Number.isInteger(frames) || frames < 100) throw new Error(`video ${tag} incomplete: frames=${frames} (<100)`)
+            out.videoValidation ??= {}
+            out.videoValidation[tag] = { duration, frames, bytes: fs.statSync(videoPath).size }
+            return true
+          }
+          """,
+          )
+          replace_once(
+              "  await recordPhase('A', 70)\n  await sleep(2000)\n  tap(lire.x, lire.y)",
+              "  await recordPhase('A', 75)\n  tap(lire.x, lire.y)",
+          )
+          replace_once(
+              "  logd('lecture demarree (mode continu attendu via tracklist seedee)')",
+              "  logd('media_session=playing confirme apres Lire (mode continu attendu via tracklist seedee)')",
+          )
+          replace_once(
+              "  await recordPhase('B', 70)\n  await sleep(2000)\n  tap(reprendre.x, reprendre.y)",
+              "  await recordPhase('B', 75)\n  tap(reprendre.x, reprendre.y)",
+          )
+          replace_once(
+              "  logd('reprise: ' + (resumed ? 'OK' : 'jamais repartie (media_session)'))",
+              "  if (!resumed) throw new Error('reprise jamais repartie (media_session)')\n  logd('media_session=playing confirme apres Reprendre')",
+          )
+          replace_once(
               "out.phases.push({ label: 'A-lecture-continue-70s', video: va, ms: msA })",
-              "out.phases.push({ label: 'A-mode-avion-lecture-continue-70s', video: va, ms: msA })",
+              "out.phases.push({ label: 'A-mode-avion-lecture-continue-70s', video: va, probe: out.videoValidation?.A, ms: msA })",
           )
           replace_once(
               "out.phases.push({ label: 'A-lecture-continue-70s', ms: msA, note: 'screenrecord indisponible' })",
@@ -209,7 +287,7 @@ jobs:
           )
           replace_once(
               "out.phases.push({ label: 'B-apres-pause-reprendre-70s', video: vb, ms: msB })",
-              "out.phases.push({ label: 'B-mode-avion-apres-pause-reprendre-70s', video: vb, ms: msB })",
+              "out.phases.push({ label: 'B-mode-avion-apres-pause-reprendre-70s', video: vb, probe: out.videoValidation?.B, ms: msB })",
           )
           replace_once(
               "out.phases.push({ label: 'B-apres-pause-reprendre-70s', ms: msB, note: 'screenrecord indisponible' })",
