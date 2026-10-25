@@ -19,6 +19,7 @@ import type { UpdateManifest, UpdateProgress } from './updates'
 import { mergeCatalogSource, mergeEpisode, newEpisodesFromFeed } from './catalogMerge'
 import { loadCompletedEpisodeIds, loadListeningSessions, loadPlaybackHistory, saveCompletedEpisodeIds, saveListeningSessions, savePlaybackHistory, searchListeningSessions, updateListeningSessions } from './history'
 import type { ListeningSession, PlaybackHistoryItem } from './history'
+import { decodeCredit, decodeCredits } from './credits'
 import podmixInfinityLogo from './assets/podmix-logo-radio-c.png'
 import './App.css'
 import './identification.css'
@@ -386,16 +387,13 @@ function trackArtwork(track: Track, episode: Episode, source: CatalogSource) {
   return track.artworkUrl || episode.artworkUrl || source.artworkUrl || ''
 }
 
-type FavoriteService = 'deezer' | 'spotify' | 'youtube'
-
-function ServiceLogo({ service }: { service: FavoriteService }) {
+function ServiceLogo({ service }: { service: 'deezer' | 'spotify' }) {
   if (service === 'spotify') {
     return <svg className="favorite-service-logo spotify-logo" viewBox="0 0 24 24" aria-hidden="true">
       <circle cx="12" cy="12" r="11" fill="currentColor" />
       <path d="M6.4 9.1c3.9-1.15 8.25-.73 11.2.88M6.9 12.2c3.28-.93 6.95-.57 9.75.72M7.5 15.15c2.55-.66 5.34-.38 7.48.55" fill="none" stroke="#151615" strokeWidth="1.55" strokeLinecap="round" />
     </svg>
   }
-  if (service === 'youtube') return <Youtube className="favorite-service-logo youtube-logo" aria-hidden="true" />
   return <svg className="favorite-service-logo deezer-logo" viewBox="0 0 24 24" aria-hidden="true">
     <rect x="2" y="4" width="3.1" height="4" rx=".5" fill="#ff5f4a" /><rect x="2" y="9" width="3.1" height="4" rx=".5" fill="#ff9e3d" /><rect x="2" y="14" width="3.1" height="6" rx=".5" fill="#f6d94c" />
     <rect x="6.2" y="7" width="3.1" height="6" rx=".5" fill="#93d953" /><rect x="6.2" y="14" width="3.1" height="6" rx=".5" fill="#50d3b0" />
@@ -405,8 +403,8 @@ function ServiceLogo({ service }: { service: FavoriteService }) {
   </svg>
 }
 
-function favoriteServiceControl(service: FavoriteService, url?: string, artist = '', title = '') {
-  const label = service === 'deezer' ? 'Deezer' : service === 'spotify' ? 'Spotify' : 'YouTube'
+function favoriteServiceControl(service: 'deezer' | 'spotify', url?: string, artist = '', title = '') {
+  const label = service === 'deezer' ? 'Deezer' : 'Spotify'
   // Spotify ne propose pas de recherche publique fiable par API sans clé. Si
   // le morceau exact n'est pas encore résolu, le bouton ouvre donc la recherche
   // Spotify déjà remplie : l'accès reste utile au lieu de disparaître en gris.
@@ -1471,7 +1469,7 @@ function App() {
       (episode.tracks ?? []).flatMap((track, trackIndex) => {
         const key = favoriteTrackKey(episode.id, track, trackIndex)
         return favoriteTrackIds.includes(key)
-          && (!track.deezerUrl || !track.spotifyUrl || !track.youtubeUrl)
+          && (!track.deezerUrl || !track.spotifyUrl)
           && track.artist.trim()
           && track.title.trim()
           && !linkLookupAttempted.current.has(key)
@@ -1496,7 +1494,6 @@ function App() {
               artworkUrl: track.artworkUrl || links.artworkUrl,
               deezerUrl: track.deezerUrl || links.deezerUrl,
               spotifyUrl: track.spotifyUrl || links.spotifyUrl,
-              youtubeUrl: track.youtubeUrl || links.youtubeUrl,
             }
           }),
         })),
@@ -3723,10 +3720,10 @@ function App() {
     }
   }
 
-  async function downloadEpisode(id: string, title: string, url: string, artist = nowPlaying?.artist ?? 'Podmix', extractFrom?: string) {
+  async function downloadEpisode(id: string, title: string, url: string, artist = nowPlaying?.artist ?? 'Podmix') {
     if (!url) return
     try {
-      const state = await podmixPlayer.download(id, url, title, extractFrom)
+      const state = await podmixPlayer.download(id, url, title)
       setOfflineEpisodes((items) => [{
         id,
         title,
@@ -3768,14 +3765,12 @@ function App() {
 
   async function downloadSourceEpisode(source: CatalogSource, episode: Episode) {
     let downloadUrl = episode.audioUrl
-    let extractFrom: string | undefined
     if (source.kind === 'dj' && episode.sourceUrl) {
       // DownloadManager ne doit jamais recevoir l'URL CDN temporaire de
       // YouTube/SoundCloud : elle expire souvent avant la fin du fichier.
       downloadUrl = liveSetStreamUrl(episode.sourceUrl)
-      extractFrom = episode.sourceUrl
     }
-    await downloadEpisode(episode.id, episode.title, downloadUrl, source.title, extractFrom)
+    await downloadEpisode(episode.id, episode.title, downloadUrl, source.title)
   }
 
   async function playOffline(episode: OfflineEpisode) {
@@ -4706,6 +4701,7 @@ function App() {
     return track ? { key: favoriteTrackKey(episode.id, track, trackIndex), title: track.title } : undefined
   })()
   const playerFavoriteActive = Boolean(playerFavorite && favoriteTrackIds.includes(playerFavorite.key))
+  const displayedNowPlaying = nowPlaying ? decodeCredits(nowPlaying) : undefined
   const playbackHistoryById = new Map(history.map((item) => [item.id, item]))
   const playbackStatusFor = (episode: Episode) => {
     // « Lu » is a durable historical fact. Starting a second play or selecting
@@ -5022,7 +5018,7 @@ function App() {
               {savedLiveSets.map((item) => <div className={`saved-live-set ${activeLiveSetId === item.id ? 'active' : ''}`} key={item.id}><button className="saved-live-set-open" onClick={() => setActiveLiveSetId(item.id)}><span>{item.provider === 'youtube' ? 'YouTube' : 'SoundCloud'}</span><strong>{item.title}</strong></button><button className="saved-live-set-play" onClick={() => void playLiveSet(item)} disabled={liveSetBusyId === item.id} aria-label={`Lire ${item.title}`}>{liveSetBusyId === item.id ? <LoaderCircle className="spinning" size={14} /> : <Play size={14} fill="currentColor" />}</button><a href={item.url} target="_blank" rel="noreferrer"><ExternalLink size={14} /></a><button onClick={() => removeLiveSet(item.id)} aria-label={`Retirer ${item.title}`}><Trash2 size={14} /></button></div>)}
               {savedLiveSets.filter((item) => item.id === activeLiveSetId).map((item) => <div className="live-set-detail" key={`${item.id}:detail`}>
                 <div className="live-set-detail-head"><div><span>Tracklist DJ · {item.tracklistOrigin || 'non recherchée'}</span><h3>{item.title}</h3></div><button onClick={() => void loadLiveSetTracklist(item)} disabled={liveSetBusyId === item.id}>{liveSetBusyId === item.id ? 'Recherche…' : item.tracks?.length ? 'Actualiser' : 'Trouver la tracklist'}</button></div>
-                {item.tracks?.length ? <div className="live-set-tracks">{item.tracks.map((track, index) => <button key={`${track.id}:${index}`} disabled={track.time === null} onClick={() => void playLiveSet(item, track.time ?? 0)}><time>{track.time === null ? '—' : formatTime(track.time)}</time><strong>{track.title}<small>{track.artist}</small></strong><i>{track.timestampStatus === 'provided' ? 'Repère source' : 'Sans repère'}</i></button>)}</div> : <div className="live-set-manual"><p>La recherche examine séparément la description, les chapitres et les commentaires, puis les sources DJ externes. Rien n’est envoyé aux jobs podcasts.</p><textarea value={liveSetTracklistText} onChange={(event) => setLiveSetTracklistText(event.target.value)} placeholder={'00:00 Artiste — Titre\n04:32 Artiste — Titre'} /><button onClick={() => void loadLiveSetTracklist(item, liveSetTracklistText)} disabled={!liveSetTracklistText.trim() || liveSetBusyId === item.id}>Importer la tracklist collée</button></div>}
+                {item.tracks?.length ? <div className="live-set-tracks">{item.tracks.map((track, index) => <button key={`${track.id}:${index}`} disabled={track.time === null} onClick={() => void playLiveSet(item, track.time ?? 0)}><time>{track.time === null ? '—' : formatTime(track.time)}</time><strong>{decodeCredit(track.title)}<small>{decodeCredit(track.artist)}</small></strong><i>{track.timestampStatus === 'provided' ? 'Repère source' : 'Sans repère'}</i></button>)}</div> : <div className="live-set-manual"><p>La recherche examine séparément la description, les chapitres et les commentaires, puis les sources DJ externes. Rien n’est envoyé aux jobs podcasts.</p><textarea value={liveSetTracklistText} onChange={(event) => setLiveSetTracklistText(event.target.value)} placeholder={'00:00 Artiste — Titre\n04:32 Artiste — Titre'} /><button onClick={() => void loadLiveSetTracklist(item, liveSetTracklistText)} disabled={!liveSetTracklistText.trim() || liveSetBusyId === item.id}>Importer la tracklist collée</button></div>}
               </div>)}
             </section>}
           </section> : activeView === 'settings' ? <div className="settings-grid">
@@ -5062,7 +5058,7 @@ function App() {
               <div className="section-heading"><div><Heart size={17} fill="currentColor" /><h2>Morceaux favoris</h2></div><div className="favorite-heading-actions"><button className="favorite-links-refresh" onClick={() => { linkLookupAttempted.current.clear(); setLinkLookupRefresh((value) => value + 1) }} aria-label="Rafraîchir les liens musicaux" title="Rafraîchir les liens Spotify, Deezer et YouTube"><RotateCcw size={14} /></button><button className="play-all-favorites" onClick={() => void playFavoriteTracks(0)}><Play size={14} fill="currentColor" /> Tout lire</button><span>{favoriteTrackEntries.length}</span></div></div>
               <div className="episode-list favorite-simple-list">{favoriteTrackEntries.map((entry, index) => <article className={`episode-item favorite-track-item ${activeMediaId === entry.key ? 'playing' : ''}`} key={entry.key}>
                 <button className="episode-play track-cover-button" onClick={() => void playFavoriteTracks(index)} aria-label={`Lire ${entry.track.title}`}><CachedArtwork artworkUrl={trackArtwork(entry.track, entry.episode, entry.source)} title={entry.track.title} Icon={Mic2} size={16} /><Play className="track-cover-play" size={14} fill="currentColor" /></button>
-                <button className="favorite-track-copy" onClick={() => void playFavoriteTracks(index)} aria-label={`Lire ${entry.track.title}`}><h3>{entry.track.title}</h3><p>{entry.track.artist}</p></button>
+                <button className="favorite-track-copy" onClick={() => void playFavoriteTracks(index)} aria-label={`Lire ${entry.track.title}`}><h3>{decodeCredit(entry.track.title)}</h3><p>{decodeCredit(entry.track.artist)}</p></button>
                 <div className="favorite-track-actions">{favoriteServiceControl('deezer', entry.track.deezerUrl, entry.track.artist, entry.track.title)}{favoriteServiceControl('spotify', entry.track.spotifyUrl, entry.track.artist, entry.track.title)}{favoriteServiceControl('youtube', entry.track.youtubeUrl, entry.track.artist, entry.track.title)}<button className="favorite-share" onClick={() => void shareFavoriteTrack(entry)} disabled={sharingFavoriteKey === entry.key} aria-label={`Partager ${entry.track.title}`} title="Partager ce passage">{sharingFavoriteKey === entry.key ? <LoaderCircle className="spinning" size={15} /> : <Share2 size={15} />}</button><button className="episode-download" onClick={() => toggleTrackFavorite(entry.key)} aria-label={`Retirer ${entry.track.title} des favoris`} title="Retirer des favoris"><Heart size={16} fill="currentColor" /></button></div>
               </article>)}</div>
             </section>}
@@ -5174,7 +5170,7 @@ function App() {
                     )
                     const isResume = !active && savedPosition > 1 && index === resumeTrackIndex
                     return <div key={track.id} className={`episode-track-row ${active ? 'playing' : ''} ${isResume ? 'resume' : ''}`}>
-                      <button className={`episode-track ${active ? 'playing' : ''}`} onClick={() => playTrackFromSource(selectedSource, selectedEpisode, index)}><span className="track-time"><time>{formatTime(track.time)}</time></span><strong><span>{track.title}</span><small>{track.artist}</small></strong>{playing ? <Pause size={14} fill="currentColor" /> : <Play size={14} />}</button>
+                      <button className={`episode-track ${active ? 'playing' : ''}`} onClick={() => playTrackFromSource(selectedSource, selectedEpisode, index)}><span className="track-time"><time>{formatTime(track.time)}</time></span><strong><span>{decodeCredit(track.title)}</span><small>{decodeCredit(track.artist)}</small></strong>{playing ? <Pause size={14} fill="currentColor" /> : <Play size={14} />}</button>
                       <button className={`episode-track-favorite ${favorite ? 'active' : ''}`} onClick={() => toggleTrackFavorite(mediaId)} aria-label={`${favorite ? 'Retirer' : 'Ajouter'} ${track.title} ${favorite ? 'des' : 'aux'} favoris`} title={favorite ? 'Retirer des favoris' : 'Ajouter aux favoris'}><Heart size={15} fill={favorite ? 'currentColor' : 'none'} /></button>
                     </div>
                   })}
@@ -5326,7 +5322,7 @@ function App() {
             <div className="table-head"><span>Début</span><span>Morceau</span><span>État</span></div>
             {tracks.map((track) => <button className={`track-row ${track.id === selectedId ? 'active' : ''}`} key={track.id} onClick={() => seek(track.time, track.id)}>
               <span className="track-time">{formatTime(track.time)}</span>
-              <span className="track-title"><strong>{track.title}</strong><small>{track.artist}</small></span>
+              <span className="track-title"><strong>{decodeCredit(track.title)}</strong><small>{decodeCredit(track.artist)}</small></span>
               <span className="status">{track.verified ? <><Check size={14} /> Vérifié</> : timestampSourceLabel(track)}</span>
             </button>)}
           </section>
@@ -5352,7 +5348,7 @@ function App() {
           {!liveSetSearching && liveSetQuery.trim().length >= 2 && !liveSetResults.length && !liveSetError && <div className="live-sets-empty">Aucun set public trouvé. Essayez le nom du DJ, puis une année ou « live set ».</div>}
           {liveSetError && <div className="form-error">{liveSetError}</div>}
           <div className="live-sets-grid" aria-live="polite">{displayedLiveSets.map((item) => { const imported = catalog.some((source) => source.id === liveSetCatalogId(item)); const importing = liveSetBusyId === item.id; return <article className="live-set-card" key={item.id}><div className="live-set-art"><CachedArtwork artworkUrl={item.artworkUrl} title={item.title} Icon={Disc3} size={30} /><span className={item.provider}>{item.provider === 'youtube' ? 'YT' : 'SC'}</span></div><div className="live-set-copy"><h3>{item.title}</h3><p>{item.channel || 'Artiste non précisé'}</p><small>{item.duration ? formatTime(item.duration) : 'Durée inconnue'}{item.viewCount ? ` · ${new Intl.NumberFormat('fr-FR', { notation: 'compact' }).format(item.viewCount)} vues` : ''}</small></div><div className="live-set-actions"><a href={item.url} target="_blank" rel="noreferrer" aria-label={`Ouvrir ${item.title}`}><ExternalLink size={15} /></a><button type="button" className={imported ? 'saved' : ''} onClick={() => void saveLiveSet(item)} disabled={importing}>{importing ? <LoaderCircle className="spinning" size={15} /> : imported ? <Check size={15} /> : <Plus size={15} />}{importing ? 'Import…' : imported ? 'Réimporter' : 'Importer'}</button></div></article>})}</div>
-          {savedLiveSets.length > 0 && <section className="saved-live-sets"><div className="section-heading"><div><Disc3 size={17} /><h2>Ma sélection DJ</h2></div><span>{savedLiveSets.length} set{savedLiveSets.length > 1 ? 's' : ''}</span></div>{savedLiveSets.map((item) => <div className={`saved-live-set ${activeLiveSetId === item.id ? 'active' : ''}`} key={item.id}><button className="saved-live-set-open" onClick={() => setActiveLiveSetId(item.id)}><span>{item.provider === 'youtube' ? 'YouTube' : 'SoundCloud'}</span><strong>{item.title}</strong></button><button className="saved-live-set-play" onClick={() => void playLiveSet(item)} disabled={liveSetBusyId === item.id} aria-label={`Lire ${item.title}`}>{liveSetBusyId === item.id ? <LoaderCircle className="spinning" size={14} /> : <Play size={14} fill="currentColor" />}</button><a href={item.url} target="_blank" rel="noreferrer"><ExternalLink size={14} /></a><button onClick={() => removeLiveSet(item.id)} aria-label={`Retirer ${item.title}`}><Trash2 size={14} /></button></div>)}{savedLiveSets.filter((item) => item.id === activeLiveSetId).map((item) => <div className="live-set-detail" key={`${item.id}:detail`}><div className="live-set-detail-head"><div><span>Tracklist DJ · {item.tracklistOrigin || 'non recherchée'}</span><h3>{item.title}</h3></div><button onClick={() => void loadLiveSetTracklist(item)} disabled={liveSetBusyId === item.id}>{liveSetBusyId === item.id ? 'Recherche…' : item.tracks?.length ? 'Actualiser' : 'Trouver la tracklist'}</button></div>{item.tracks?.length ? <div className="live-set-tracks">{item.tracks.map((track, index) => <button key={`${track.id}:${index}`} disabled={track.time === null} onClick={() => void playLiveSet(item, track.time ?? 0)}><span>{String(index + 1).padStart(2, '0')}</span><time>{track.time === null ? '—' : formatTime(track.time)}</time><strong>{track.title}<small>{track.artist}</small></strong><i>{track.timestampStatus === 'provided' ? 'Repère source' : 'Sans repère'}</i></button>)}</div> : <div className="live-set-manual"><p>La recherche examine séparément la description, les chapitres et les sources DJ externes. Rien n’est envoyé aux jobs podcasts.</p><textarea value={liveSetTracklistText} onChange={(event) => setLiveSetTracklistText(event.target.value)} placeholder={'00:00 Artiste — Titre\n04:32 Artiste — Titre'} /><button onClick={() => void loadLiveSetTracklist(item, liveSetTracklistText)} disabled={!liveSetTracklistText.trim() || liveSetBusyId === item.id}>Importer la tracklist collée</button></div>}</div>)}</section>}</>}
+          {savedLiveSets.length > 0 && <section className="saved-live-sets"><div className="section-heading"><div><Disc3 size={17} /><h2>Ma sélection DJ</h2></div><span>{savedLiveSets.length} set{savedLiveSets.length > 1 ? 's' : ''}</span></div>{savedLiveSets.map((item) => <div className={`saved-live-set ${activeLiveSetId === item.id ? 'active' : ''}`} key={item.id}><button className="saved-live-set-open" onClick={() => setActiveLiveSetId(item.id)}><span>{item.provider === 'youtube' ? 'YouTube' : 'SoundCloud'}</span><strong>{item.title}</strong></button><button className="saved-live-set-play" onClick={() => void playLiveSet(item)} disabled={liveSetBusyId === item.id} aria-label={`Lire ${item.title}`}>{liveSetBusyId === item.id ? <LoaderCircle className="spinning" size={14} /> : <Play size={14} fill="currentColor" />}</button><a href={item.url} target="_blank" rel="noreferrer"><ExternalLink size={14} /></a><button onClick={() => removeLiveSet(item.id)} aria-label={`Retirer ${item.title}`}><Trash2 size={14} /></button></div>)}{savedLiveSets.filter((item) => item.id === activeLiveSetId).map((item) => <div className="live-set-detail" key={`${item.id}:detail`}><div className="live-set-detail-head"><div><span>Tracklist DJ · {item.tracklistOrigin || 'non recherchée'}</span><h3>{item.title}</h3></div><button onClick={() => void loadLiveSetTracklist(item)} disabled={liveSetBusyId === item.id}>{liveSetBusyId === item.id ? 'Recherche…' : item.tracks?.length ? 'Actualiser' : 'Trouver la tracklist'}</button></div>{item.tracks?.length ? <div className="live-set-tracks">{item.tracks.map((track, index) => <button key={`${track.id}:${index}`} disabled={track.time === null} onClick={() => void playLiveSet(item, track.time ?? 0)}><span>{String(index + 1).padStart(2, '0')}</span><time>{track.time === null ? '—' : formatTime(track.time)}</time><strong>{decodeCredit(track.title)}<small>{decodeCredit(track.artist)}</small></strong><i>{track.timestampStatus === 'provided' ? 'Repère source' : 'Sans repère'}</i></button>)}</div> : <div className="live-set-manual"><p>La recherche examine séparément la description, les chapitres et les sources DJ externes. Rien n’est envoyé aux jobs podcasts.</p><textarea value={liveSetTracklistText} onChange={(event) => setLiveSetTracklistText(event.target.value)} placeholder={'00:00 Artiste — Titre\n04:32 Artiste — Titre'} /><button onClick={() => void loadLiveSetTracklist(item, liveSetTracklistText)} disabled={!liveSetTracklistText.trim() || liveSetBusyId === item.id}>Importer la tracklist collée</button></div>}</div>)}</section>}</>}
           {feedError && <div className="form-error">{feedError}</div>}
           {(sourceMode === 'rss' || sourceMode === 'show') && <button className="modal-submit" onClick={addFeed} disabled={addingFeed}>{addingFeed ? 'Import en cours…' : `Importer ${sourceMode === 'show' ? 'l’émission' : 'le podcast'}`}</button>}
         </section>
@@ -5416,8 +5412,8 @@ function App() {
           ><Cast size={20} /></button>
         </header>
         <div className="full-player-stage">
-          <div className="full-player-art"><CachedArtwork artworkUrl={nowPlaying.artworkUrl} title={nowPlaying.title} Icon={AudioLines} size={64} /></div>
-          <div className="full-player-copy"><span>EN LECTURE</span><h2>{nowPlaying.title}</h2><p>{nowPlaying.artist}</p></div>
+          <div className="full-player-art"><CachedArtwork artworkUrl={nowPlaying.artworkUrl} title={displayedNowPlaying!.title} Icon={AudioLines} size={64} /></div>
+          <div className="full-player-copy"><span>EN LECTURE</span><h2>{displayedNowPlaying!.title}</h2><p>{displayedNowPlaying!.artist}</p></div>
           <div className="full-player-actions">
             {playerFavorite && <button className={`full-player-favorite ${playerFavoriteActive ? 'active' : ''}`} onClick={() => toggleTrackFavorite(playerFavorite.key)} aria-label={`${playerFavoriteActive ? 'Retirer' : 'Ajouter'} ${playerFavorite.title} ${playerFavoriteActive ? 'des' : 'aux'} favoris`} title={playerFavoriteActive ? 'Retirer des favoris' : 'Ajouter aux favoris'}><Heart size={23} fill={playerFavoriteActive ? 'currentColor' : 'none'} /></button>}
           </div>
@@ -5445,8 +5441,8 @@ function App() {
         </div>
       </section>}
       {nowPlaying && <div className="mini-player-global" onTouchStart={(event) => { if (!(event.target as HTMLElement).closest('button,input,label')) { miniPlayerIgnoreTap.current = false; miniPlayerSwipeStart.current = event.touches[0]?.clientY ?? null } }} onTouchEnd={(event) => { const start = miniPlayerSwipeStart.current; miniPlayerSwipeStart.current = null; if (start !== null && (event.changedTouches[0]?.clientY ?? start) < start - 45) { miniPlayerIgnoreTap.current = true; setFullPlayerOpen(true) } }} onClick={(e) => { if (!(e.target as HTMLElement).closest('button,input,label')) { if (miniPlayerIgnoreTap.current) { miniPlayerIgnoreTap.current = false; return } handleMiniPlayerTap() } }} style={{ cursor: 'pointer' }}>
-        <div className="mini-art"><CachedArtwork artworkUrl={nowPlaying.artworkUrl} title={nowPlaying.title} Icon={AudioLines} size={19} /></div>
-        <div className="mini-meta"><strong>{nowPlaying.title}</strong><span>{nowPlaying.artist}</span></div>
+        <div className="mini-art"><CachedArtwork artworkUrl={nowPlaying.artworkUrl} title={displayedNowPlaying!.title} Icon={AudioLines} size={19} /></div>
+        <div className="mini-meta"><strong>{displayedNowPlaying!.title}</strong><span>{displayedNowPlaying!.artist}</span></div>
         <button onClick={() => void cycleRepeatMode()} aria-label={repeatMode === 0 ? 'Activer la répétition' : repeatMode === 1 ? 'Répéter le morceau' : 'Répéter la file'} aria-pressed={repeatMode !== 0} className={repeatMode !== 0 ? 'active repeat-control' : 'repeat-control'}><Repeat size={16} /><small>{repeatMode === 1 ? '1' : repeatMode === 2 ? '∞' : ''}</small></button>
         <button
           onClick={() => skip('previous')}
