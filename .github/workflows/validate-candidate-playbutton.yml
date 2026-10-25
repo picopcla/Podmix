@@ -1,0 +1,24 @@
+name: validate-candidate-playbutton
+on:
+  push:
+    branches:
+      - fix/studio-playbutton-intent-20261025
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  web-checks:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - name: Lint (real exit code)
+        run: npm run lint
+      - name: Typecheck and build (real exit code)
+        run: npm run build
+      - name: Show diff vs 225 head
+        run: git diff --stat 90ca200 HEAD -- src || true
