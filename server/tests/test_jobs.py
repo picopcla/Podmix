@@ -40,6 +40,31 @@ class ResearchJobTests(unittest.TestCase):
                  request_key, created, created, duration),
             )
 
+    def test_stored_tracklist_html_entities_are_decoded_once(self):
+        self.insert_job("completed")
+        tracks = [
+            {
+                "artist": "Kayosa &amp; Tolland",
+                "title": "Tell Me When It&apos;s Over [Regenerate]",
+            },
+            {
+                "artist": "Already & Correct",
+                "title": "Literal &amp;lt; reference",
+            },
+        ]
+        with dev_server.connect() as database:
+            database.execute(
+                "UPDATE jobs SET tracks_json = ? WHERE id = 'job-1'",
+                (json.dumps(tracks),),
+            )
+
+        job = dev_server.get_job("job-1")
+
+        self.assertEqual("Kayosa & Tolland", job["tracks"][0]["artist"])
+        self.assertEqual("Tell Me When It's Over [Regenerate]", job["tracks"][0]["title"])
+        self.assertEqual("Already & Correct", job["tracks"][1]["artist"])
+        self.assertEqual("Literal &lt; reference", job["tracks"][1]["title"])
+
     def test_running_research_is_requeued_after_restart(self):
         self.insert_job("running")
         dev_server.initialize()
