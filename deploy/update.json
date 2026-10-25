@@ -1,13 +1,13 @@
 {
-  "versionCode": 10204,
-  "versionName": "1.0.204-ng",
+  "versionCode": 10208,
+  "versionName": "1.0.208-ng",
   "minimumVersionCode": 10000,
-  "apkUrl": "https://podmix.mb4.fr/podmix/podmix-1.0.204-ng.apk",
-  "publishedAt": "2026-09-20T17:28:24Z",
-  "sha256": "267cc6d9abc344dcfc02e888d359d502d31af15f36f4f1e90c20a65424f9ffc8",
+  "apkUrl": "https://podmix.mb4.fr/podmix/podmix-1.0.208-ng.apk",
+  "publishedAt": "2026-10-25T07:06:09Z",
+  "sha256": "b8b51c7930b14c23a4eae3132174fe19cc6b15b3ee2d0d69a8ca5b7d1a211299",
   "notes": [
-    "Les boutons précédent et suivant changent correctement de morceau, y compris dans Android Auto",
-    "Le lecteur inférieur est agrandi et retrouve les commandes Favori et Lecture en boucle",
+    "Les crédits de morceaux affichent correctement les caractères spéciaux dans les listes et le lecteur",
+    "Chaque favori propose désormais ses accès Deezer, Spotify et YouTube",
     "La mise à jour s’installe sur la version existante sans supprimer la bibliothèque ni les contenus enregistrés"
   ]
 }
