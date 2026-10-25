@@ -195,14 +195,14 @@ export async function findTrackArtwork(
 
 export async function findTrackLinks(
   tracks: Array<{ key: string; artist: string; title: string }>,
-): Promise<Array<{ key: string; artworkUrl?: string; deezerUrl?: string; spotifyUrl?: string }>> {
+): Promise<Array<{ key: string; artworkUrl?: string; deezerUrl?: string; spotifyUrl?: string; youtubeUrl?: string }>> {
   const response = await apiFetch(`${getApiUrl()}/v1/catalog/links`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ tracks: tracks.slice(0, 10) }),
   })
   const payload = await response.json() as {
-    items?: Array<{ key: string; artworkUrl?: string; deezerUrl?: string; spotifyUrl?: string }>
+    items?: Array<{ key: string; artworkUrl?: string; deezerUrl?: string; spotifyUrl?: string; youtubeUrl?: string }>
     message?: string
   }
   if (!response.ok) throw new Error(payload.message ?? 'Liens musicaux indisponibles')

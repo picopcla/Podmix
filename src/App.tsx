@@ -386,13 +386,16 @@ function trackArtwork(track: Track, episode: Episode, source: CatalogSource) {
   return track.artworkUrl || episode.artworkUrl || source.artworkUrl || ''
 }
 
-function ServiceLogo({ service }: { service: 'deezer' | 'spotify' }) {
+type FavoriteService = 'deezer' | 'spotify' | 'youtube'
+
+function ServiceLogo({ service }: { service: FavoriteService }) {
   if (service === 'spotify') {
     return <svg className="favorite-service-logo spotify-logo" viewBox="0 0 24 24" aria-hidden="true">
       <circle cx="12" cy="12" r="11" fill="currentColor" />
       <path d="M6.4 9.1c3.9-1.15 8.25-.73 11.2.88M6.9 12.2c3.28-.93 6.95-.57 9.75.72M7.5 15.15c2.55-.66 5.34-.38 7.48.55" fill="none" stroke="#151615" strokeWidth="1.55" strokeLinecap="round" />
     </svg>
   }
+  if (service === 'youtube') return <Youtube className="favorite-service-logo youtube-logo" aria-hidden="true" />
   return <svg className="favorite-service-logo deezer-logo" viewBox="0 0 24 24" aria-hidden="true">
     <rect x="2" y="4" width="3.1" height="4" rx=".5" fill="#ff5f4a" /><rect x="2" y="9" width="3.1" height="4" rx=".5" fill="#ff9e3d" /><rect x="2" y="14" width="3.1" height="6" rx=".5" fill="#f6d94c" />
     <rect x="6.2" y="7" width="3.1" height="6" rx=".5" fill="#93d953" /><rect x="6.2" y="14" width="3.1" height="6" rx=".5" fill="#50d3b0" />
@@ -402,8 +405,8 @@ function ServiceLogo({ service }: { service: 'deezer' | 'spotify' }) {
   </svg>
 }
 
-function favoriteServiceControl(service: 'deezer' | 'spotify', url?: string, artist = '', title = '') {
-  const label = service === 'deezer' ? 'Deezer' : 'Spotify'
+function favoriteServiceControl(service: FavoriteService, url?: string, artist = '', title = '') {
+  const label = service === 'deezer' ? 'Deezer' : service === 'spotify' ? 'Spotify' : 'YouTube'
   // Spotify ne propose pas de recherche publique fiable par API sans clé. Si
   // le morceau exact n'est pas encore résolu, le bouton ouvre donc la recherche
   // Spotify déjà remplie : l'accès reste utile au lieu de disparaître en gris.
@@ -1468,7 +1471,7 @@ function App() {
       (episode.tracks ?? []).flatMap((track, trackIndex) => {
         const key = favoriteTrackKey(episode.id, track, trackIndex)
         return favoriteTrackIds.includes(key)
-          && (!track.deezerUrl || !track.spotifyUrl)
+          && (!track.deezerUrl || !track.spotifyUrl || !track.youtubeUrl)
           && track.artist.trim()
           && track.title.trim()
           && !linkLookupAttempted.current.has(key)
@@ -1493,6 +1496,7 @@ function App() {
               artworkUrl: track.artworkUrl || links.artworkUrl,
               deezerUrl: track.deezerUrl || links.deezerUrl,
               spotifyUrl: track.spotifyUrl || links.spotifyUrl,
+              youtubeUrl: track.youtubeUrl || links.youtubeUrl,
             }
           }),
         })),
@@ -5053,11 +5057,11 @@ function App() {
             })}</div> : <div className="empty-state catalog-empty"><ListMusic size={28} /><strong>Rien à reprendre</strong><span>Les épisodes commencés apparaîtront ici.</span></div>}
           </section> : activeView === 'favorites' ? <section className="favorites-view">
             {favoriteTrackEntries.length > 0 && <section className="recent-list favorite-tracks">
-              <div className="section-heading"><div><Heart size={17} fill="currentColor" /><h2>Morceaux favoris</h2></div><div className="favorite-heading-actions"><button className="favorite-links-refresh" onClick={() => { linkLookupAttempted.current.clear(); setLinkLookupRefresh((value) => value + 1) }} aria-label="Rafraîchir les liens Spotify" title="Rafraîchir les liens Spotify et Deezer"><RotateCcw size={14} /></button><button className="play-all-favorites" onClick={() => void playFavoriteTracks(0)}><Play size={14} fill="currentColor" /> Tout lire</button><span>{favoriteTrackEntries.length}</span></div></div>
+              <div className="section-heading"><div><Heart size={17} fill="currentColor" /><h2>Morceaux favoris</h2></div><div className="favorite-heading-actions"><button className="favorite-links-refresh" onClick={() => { linkLookupAttempted.current.clear(); setLinkLookupRefresh((value) => value + 1) }} aria-label="Rafraîchir les liens musicaux" title="Rafraîchir les liens Spotify, Deezer et YouTube"><RotateCcw size={14} /></button><button className="play-all-favorites" onClick={() => void playFavoriteTracks(0)}><Play size={14} fill="currentColor" /> Tout lire</button><span>{favoriteTrackEntries.length}</span></div></div>
               <div className="episode-list favorite-simple-list">{favoriteTrackEntries.map((entry, index) => <article className={`episode-item favorite-track-item ${activeMediaId === entry.key ? 'playing' : ''}`} key={entry.key}>
                 <button className="episode-play track-cover-button" onClick={() => void playFavoriteTracks(index)} aria-label={`Lire ${entry.track.title}`}><CachedArtwork artworkUrl={trackArtwork(entry.track, entry.episode, entry.source)} title={entry.track.title} Icon={Mic2} size={16} /><Play className="track-cover-play" size={14} fill="currentColor" /></button>
                 <button className="favorite-track-copy" onClick={() => void playFavoriteTracks(index)} aria-label={`Lire ${entry.track.title}`}><h3>{entry.track.title}</h3><p>{entry.track.artist}</p></button>
-                <div className="favorite-track-actions">{favoriteServiceControl('deezer', entry.track.deezerUrl, entry.track.artist, entry.track.title)}{favoriteServiceControl('spotify', entry.track.spotifyUrl, entry.track.artist, entry.track.title)}<button className="favorite-share" onClick={() => void shareFavoriteTrack(entry)} disabled={sharingFavoriteKey === entry.key} aria-label={`Partager ${entry.track.title}`} title="Partager ce passage">{sharingFavoriteKey === entry.key ? <LoaderCircle className="spinning" size={15} /> : <Share2 size={15} />}</button><button className="episode-download" onClick={() => toggleTrackFavorite(entry.key)} aria-label={`Retirer ${entry.track.title} des favoris`} title="Retirer des favoris"><Heart size={16} fill="currentColor" /></button></div>
+                <div className="favorite-track-actions">{favoriteServiceControl('deezer', entry.track.deezerUrl, entry.track.artist, entry.track.title)}{favoriteServiceControl('spotify', entry.track.spotifyUrl, entry.track.artist, entry.track.title)}{favoriteServiceControl('youtube', entry.track.youtubeUrl, entry.track.artist, entry.track.title)}<button className="favorite-share" onClick={() => void shareFavoriteTrack(entry)} disabled={sharingFavoriteKey === entry.key} aria-label={`Partager ${entry.track.title}`} title="Partager ce passage">{sharingFavoriteKey === entry.key ? <LoaderCircle className="spinning" size={15} /> : <Share2 size={15} />}</button><button className="episode-download" onClick={() => toggleTrackFavorite(entry.key)} aria-label={`Retirer ${entry.track.title} des favoris`} title="Retirer des favoris"><Heart size={16} fill="currentColor" /></button></div>
               </article>)}</div>
             </section>}
             {!favoriteTrackEntries.length && <div className="empty-state catalog-empty"><Heart size={28} /><strong>Aucun favori</strong><span>Ajoutez des morceaux à vos favoris pour les retrouver ici.</span></div>}
