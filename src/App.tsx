@@ -661,6 +661,7 @@ function App() {
   const [cachedHomeArtwork, setCachedHomeArtwork] = useState<Record<string, string>>({})
   const [linkLookupRefresh, setLinkLookupRefresh] = useState(0)
   const catalogRef = useRef(catalog)
+  const catalogRevisionRef = useRef(0)
   const nativeLibrarySignatureRef = useRef('')
 
   function restoreTrackQueueForMediaId(mediaId: string) {
@@ -1389,6 +1390,13 @@ function App() {
   }, [audioName, tracks])
   useEffect(() => {
     catalogRef.current = catalog
+    catalogRevisionRef.current += 1
+    flapDiag('catalog-change', {
+      rev: catalogRevisionRef.current,
+      sources: catalog.length,
+      episodes: catalog.reduce((count, source) => count + source.episodes.length, 0),
+      tracks: catalog.reduce((count, source) => count + source.episodes.reduce((sum, episode) => sum + (episode.tracks?.length ?? 0), 0), 0),
+    })
     saveCatalog(catalog)
   }, [catalog])
   useEffect(() => {
@@ -1524,13 +1532,20 @@ function App() {
   useEffect(() => {
     let stopped = false
     const refreshFeeds = async () => {
-      if (!navigator.onLine) return
+      if (!navigator.onLine) {
+        flapDiag('feed-refresh', { phase: 'skip-offline', online: navigator.onLine })
+        return
+      }
       const lastRefresh = Number(localStorage.getItem('podmix-last-feed-refresh') || 0)
       const hasDuplicateEpisodeIds = catalogRef.current.some((source) => {
         const ids = source.episodes.map((episode) => episode.id)
         return new Set(ids).size !== ids.length
       })
-      if (!hasDuplicateEpisodeIds && Date.now() - lastRefresh < 15 * 60 * 1000) return
+      if (!hasDuplicateEpisodeIds && Date.now() - lastRefresh < 15 * 60 * 1000) {
+        flapDiag('feed-refresh', { phase: 'skip-fresh', online: navigator.onLine, ageMs: Date.now() - lastRefresh })
+        return
+      }
+      flapDiag('feed-refresh', { phase: 'start', online: navigator.onLine, ageMs: Date.now() - lastRefresh, hasDuplicateEpisodeIds })
       const enteredEpisodes: Array<{ source: CatalogSource; episode: Episode }> = []
       let attemptedFeeds = 0
       let refreshedFeeds = 0
@@ -1560,7 +1575,8 @@ function App() {
             newEpisodeIds: [...new Set([...(merged.newEpisodeIds ?? []), ...newIds])].filter((id) => visibleEpisodeIds.has(id)),
             unseenEpisodeIds: [...new Set([...(merged.unseenEpisodeIds ?? []), ...newIds])].filter((id) => visibleEpisodeIds.has(id)),
           }
-        } catch {
+        } catch (error) {
+          flapDiag('feed-refresh', { phase: 'source-failed', sourceId: source.id, message: error instanceof Error ? error.message : String(error) })
           return source
         }
       }))
@@ -1568,6 +1584,7 @@ function App() {
         if (attemptedFeeds === 0 || refreshedFeeds > 0) {
           localStorage.setItem('podmix-last-feed-refresh', String(Date.now()))
         }
+        flapDiag('feed-refresh', { phase: 'commit', attemptedFeeds, refreshedFeeds, stopped })
         setCatalog(refreshed)
         enqueueNewEpisodesForTimestamping(enteredEpisodes.map(({ episode }) => episode))
         const nextEpisode = enteredEpisodes.sort((left, right) =>
@@ -1998,7 +2015,7 @@ function App() {
       setGlobalPlaying(playbackIntentActive(state))
       setCanSkipNext(state.hasNext)
       setCanSkipPrevious(state.hasPrevious)
-      flapDiag('restoreFx', { mediaId: state.mediaId, id: restored.queue.episodeId, scope: 'track' })
+      flapDiag('restoreFx', { mediaId: state.mediaId, id: restored.queue.episodeId, scope: 'track', epRef: episodePlaybackRef.current, catalogRev: catalogRevisionRef.current, playing: state.playing, playReq: state.playRequested })
       setNowPlaying({
         id: restored.queue.episodeId,
         title: activeTrack.title,
@@ -4726,6 +4743,35 @@ function App() {
     ? offlineEpisodes.find((episode) => episode.id === selectedEpisode.id)
     : undefined
   const selectedEpisodeIsOffline = selectedEpisodeOffline?.status === 'completed'
+  const episodeInlinePlaying = Boolean(
+    selectedSource
+      && !selectedEpisode
+      && selectedSource.episodes.some((episode) => episode.id === nowPlaying?.id)
+      && nowPlaying?.scope === 'episode'
+      && globalPlaying,
+  )
+  const episodeDetailPlaying = Boolean(
+    selectedEpisode
+      && nowPlaying?.id === selectedEpisode.id
+      && nowPlaying.scope === 'episode'
+      && globalPlaying,
+  )
+  useEffect(() => {
+    const component = selectedEpisode ? 'episode-detail-top' : selectedSource ? 'episode-inline' : 'hidden'
+    flapDiag('ui-play-control', {
+      component,
+      state: component === 'episode-inline'
+        ? (episodeInlinePlaying ? 'green-pause' : 'orange-play')
+        : component === 'episode-detail-top'
+          ? (episodeDetailPlaying ? 'pause' : 'play')
+          : 'hidden',
+      globalPlaying,
+      nowId: nowPlaying?.id,
+      scope: nowPlaying?.scope,
+      selectedSourceId: selectedSource?.id,
+      selectedEpisodeId: selectedEpisode?.id,
+    })
+  }, [episodeDetailPlaying, episodeInlinePlaying, globalPlaying, nowPlaying?.id, nowPlaying?.scope, selectedEpisode, selectedSource])
   const selectedEpisodeResumePosition = selectedEpisode
     ? savedResumeForEpisode(selectedEpisode).position
     : 0
