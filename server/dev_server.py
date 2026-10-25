@@ -3,6 +3,7 @@
 
 from __future__ import annotations
 
+import html
 import json
 import ipaddress
 import os
@@ -424,12 +425,25 @@ def get_share(token: str) -> dict | None:
     return dict(row) if row else None
 
 
+def _decode_track_credits(tracks: list[dict]) -> list[dict]:
+    """Decode persisted HTML entities once when tracks leave the server."""
+    decoded = []
+    for track in tracks:
+        item = dict(track)
+        for field in ("artist", "title"):
+            if isinstance(item.get(field), str):
+                item[field] = html.unescape(item[field])
+        decoded.append(item)
+    return decoded
+
+
 def row_to_job(row: sqlite3.Row) -> dict:
+    tracks = json.loads(row["tracks_json"])
     return {
         "id": row["id"], "episodeId": row["episode_id"], "status": row["status"],
         "stage": row["stage"], "progress": row["progress"],
         "createdAt": row["created_at"], "updatedAt": row["updated_at"],
-        "tracks": json.loads(row["tracks_json"]), "duration": row["duration"],
+        "tracks": _decode_track_credits(tracks), "duration": row["duration"],
         "operation": row["operation"],
         **({"error": row["error"]} if row["error"] else {}),
     }
