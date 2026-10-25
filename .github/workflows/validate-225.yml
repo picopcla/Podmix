@@ -1,0 +1,82 @@
+name: validate-225
+on:
+  push:
+    branches: [test/validate-225-b]
+permissions:
+  contents: read
+jobs:
+  web-tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: npm ci
+      - name: Build
+        run: npm run build
+      - name: Unit
+        id: unit
+        continue-on-error: true
+        run: npm run test:unit
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Server tests
+        id: server
+        continue-on-error: true
+        run: |
+          python -m venv .venv
+          .venv/bin/pip install -r server/requirements.txt
+          .venv/bin/python -m unittest discover -s server/tests -v
+      - name: Playwright browsers
+        run: npx playwright install --with-deps chromium
+      - name: Playwright E2E
+        id: e2e
+        continue-on-error: true
+        run: npx playwright test
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: validate-225-web
+          path: |
+            test-results
+            playwright-report
+          if-no-files-found: ignore
+      - name: Resume
+        if: always()
+        run: |
+          echo "## validate-225 head ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
+          echo "- unit: ${{ steps.unit.outcome }}" >> $GITHUB_STEP_SUMMARY
+          echo "- server: ${{ steps.server.outcome }}" >> $GITHUB_STEP_SUMMARY
+          echo "- e2e (favoris YouTube, lecture, persistance...): ${{ steps.e2e.outcome }}" >> $GITHUB_STEP_SUMMARY
+  android-unit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+      - run: npm ci
+      - run: npm run build
+      - run: npx cap sync android
+      - name: Android unit tests
+        id: aut
+        continue-on-error: true
+        run: cd android && ./gradlew testNgReleaseUnitTest --continue
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: validate-225-android-unit
+          path: android/app/build/reports/tests
+          if-no-files-found: ignore
+      - name: Resume
+        if: always()
+        run: |
+          echo "- android unit tests: ${{ steps.aut.outcome }}" >> $GITHUB_STEP_SUMMARY
