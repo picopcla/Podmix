@@ -1,0 +1,52 @@
+name: validate-225-aa
+on:
+  push:
+    paths: ['.github/workflows/validate-225-aa.yml']
+    branches: [test/validate-225-d]
+permissions:
+  contents: read
+jobs:
+  instrumented:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    strategy:
+      fail-fast: false
+      matrix:
+        ref: [90ca200fb981d6e430c5eee50f9d4666f5c4ec76, a743147bfa5add717961f8682a416a075be8fd06]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ matrix.ref }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+      - run: npm ci
+      - run: npm run build
+      - run: npx cap sync android
+      - name: Preparer KVM
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+          sudo chmod 666 /dev/kvm
+      - uses: reactivecircus/android-emulator-runner@v2
+        id: inst
+        continue-on-error: true
+        with:
+          api-level: 33
+          arch: x86_64
+          profile: pixel_2
+          emulator-options: -no-snapshot -no-window -noaudio -no-boot-anim -gpu swiftshader_indirect -camera-back none
+          script: |
+            mkdir -p artifacts
+            adb logcat -c
+            (cd android && ./gradlew connectedNgDebugAndroidTest --continue) || echo INST_FAILED
+            for f in $(find android/app/build/outputs/androidTest-results -name '*.xml'); do echo "XML $f"; grep -E '<testcase|<failure' $f | cut -c1-400; grep -A8 '<failure' $f | grep -E 'at com.podmix|PlaybackInstrumentedTest.java' | head -10; done
+            adb logcat -d > artifacts/logcat.txt || true
+      - name: Resume
+        if: always()
+        run: echo "- ${{ matrix.ref }} instrumented ${{ steps.inst.outcome }}" >> $GITHUB_STEP_SUMMARY
