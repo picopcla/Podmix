@@ -14,7 +14,14 @@ from discovery import _page_metadata, candidates_from_info, tracklist_text_from_
 from discovery import _cookie_file
 from bs4 import BeautifulSoup
 
-from catalog import _spotify_track_from_page, search_deezer, search_spotify
+from catalog import (
+    _required_version_words,
+    _spotify_track_from_page,
+    _youtube_version_matches,
+    search_deezer,
+    search_spotify,
+    search_youtube,
+)
 from feeds import _safe_url, import_feed
 from mixesdb import parse_mixesdb_html
 from openai_timestamping import extract_tracklist_with_openai
@@ -98,6 +105,67 @@ class TracklistPipelineTests(unittest.TestCase):
             result = search_deezer("TH;EN", "Ciento [Now]")
         self.assertIsNotNone(result)
         self.assertEqual("https://www.deezer.com/track/44", result["url"])
+
+    def test_youtube_keeps_and_requires_the_requested_version(self):
+        original = {
+            "id": "original",
+            "title": "Max Richter - Nuvole Bianche",
+            "artist": "Max Richter",
+            "url": "original",
+        }
+        remix = {
+            "id": "remix",
+            "title": "Max Richter - Nuvole Bianche (Yelow Remix)",
+            "artist": "Max Richter",
+            "url": "remix",
+            "thumbnail": "https://i.ytimg.com/remix.jpg",
+        }
+        downloader = Mock()
+        downloader.__enter__ = Mock(return_value=downloader)
+        downloader.__exit__ = Mock(return_value=False)
+        downloader.extract_info.return_value = {"entries": [original, remix]}
+        downloader.sanitize_info.side_effect = lambda value: value
+        with patch("yt_dlp.YoutubeDL", return_value=downloader) as factory:
+            result = search_youtube("Max Richter", "Nuvole Bianche (Yelow Remix)")
+        self.assertIsNotNone(result)
+        self.assertEqual("https://www.youtube.com/watch?v=remix", result["url"])
+        downloader.extract_info.assert_called_once_with(
+            "ytsearch5:Max Richter Nuvole Bianche (Yelow Remix)", download=False,
+        )
+        self.assertTrue(factory.call_args.args[0]["skip_download"])
+
+    def test_youtube_version_rejects_candidate_without_requested_marker(self):
+        wanted = "Nuvole Bianche (Yelow Remix)"
+        self.assertEqual({"yelow", "remix"}, _required_version_words(wanted))
+        self.assertFalse(_youtube_version_matches(wanted, "Nuvole Bianche"))
+
+    def test_youtube_version_accepts_candidate_with_requested_marker(self):
+        self.assertTrue(_youtube_version_matches(
+            "Nuvole Bianche (Yelow Remix)",
+            "Nuvole Bianche (Yelow Remix) - Official Audio",
+        ))
+
+    def test_youtube_version_without_marker_accepts_candidate(self):
+        self.assertEqual(set(), _required_version_words("Nuvole Bianche"))
+        self.assertTrue(_youtube_version_matches(
+            "Nuvole Bianche",
+            "Nuvole Bianche (Live at the Royal Albert Hall)",
+        ))
+
+    def test_youtube_rejects_original_when_a_remix_is_requested(self):
+        downloader = Mock()
+        downloader.__enter__ = Mock(return_value=downloader)
+        downloader.__exit__ = Mock(return_value=False)
+        downloader.extract_info.return_value = {"entries": [{
+            "id": "original",
+            "title": "Max Richter - Nuvole Bianche",
+            "artist": "Max Richter",
+            "url": "original",
+        }]}
+        downloader.sanitize_info.side_effect = lambda value: value
+        with patch("yt_dlp.YoutubeDL", return_value=downloader):
+            result = search_youtube("Max Richter", "Nuvole Bianche (Yelow Remix)")
+        self.assertIsNone(result)
 
     def test_spotify_public_page_extracts_exact_track(self):
         page = BeautifulSoup(
