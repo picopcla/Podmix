@@ -387,13 +387,16 @@ function trackArtwork(track: Track, episode: Episode, source: CatalogSource) {
   return track.artworkUrl || episode.artworkUrl || source.artworkUrl || ''
 }
 
-function ServiceLogo({ service }: { service: 'deezer' | 'spotify' }) {
+type FavoriteService = 'deezer' | 'spotify' | 'youtube'
+
+function ServiceLogo({ service }: { service: FavoriteService }) {
   if (service === 'spotify') {
     return <svg className="favorite-service-logo spotify-logo" viewBox="0 0 24 24" aria-hidden="true">
       <circle cx="12" cy="12" r="11" fill="currentColor" />
       <path d="M6.4 9.1c3.9-1.15 8.25-.73 11.2.88M6.9 12.2c3.28-.93 6.95-.57 9.75.72M7.5 15.15c2.55-.66 5.34-.38 7.48.55" fill="none" stroke="#151615" strokeWidth="1.55" strokeLinecap="round" />
     </svg>
   }
+  if (service === 'youtube') return <Youtube className="favorite-service-logo youtube-logo" aria-hidden="true" />
   return <svg className="favorite-service-logo deezer-logo" viewBox="0 0 24 24" aria-hidden="true">
     <rect x="2" y="4" width="3.1" height="4" rx=".5" fill="#ff5f4a" /><rect x="2" y="9" width="3.1" height="4" rx=".5" fill="#ff9e3d" /><rect x="2" y="14" width="3.1" height="6" rx=".5" fill="#f6d94c" />
     <rect x="6.2" y="7" width="3.1" height="6" rx=".5" fill="#93d953" /><rect x="6.2" y="14" width="3.1" height="6" rx=".5" fill="#50d3b0" />
@@ -403,8 +406,8 @@ function ServiceLogo({ service }: { service: 'deezer' | 'spotify' }) {
   </svg>
 }
 
-function favoriteServiceControl(service: 'deezer' | 'spotify', url?: string, artist = '', title = '') {
-  const label = service === 'deezer' ? 'Deezer' : 'Spotify'
+function favoriteServiceControl(service: FavoriteService, url?: string, artist = '', title = '') {
+  const label = service === 'deezer' ? 'Deezer' : service === 'spotify' ? 'Spotify' : 'YouTube'
   // Spotify ne propose pas de recherche publique fiable par API sans clé. Si
   // le morceau exact n'est pas encore résolu, le bouton ouvre donc la recherche
   // Spotify déjà remplie : l'accès reste utile au lieu de disparaître en gris.
@@ -1469,7 +1472,7 @@ function App() {
       (episode.tracks ?? []).flatMap((track, trackIndex) => {
         const key = favoriteTrackKey(episode.id, track, trackIndex)
         return favoriteTrackIds.includes(key)
-          && (!track.deezerUrl || !track.spotifyUrl)
+          && (!track.deezerUrl || !track.spotifyUrl || !track.youtubeUrl)
           && track.artist.trim()
           && track.title.trim()
           && !linkLookupAttempted.current.has(key)
@@ -1494,6 +1497,7 @@ function App() {
               artworkUrl: track.artworkUrl || links.artworkUrl,
               deezerUrl: track.deezerUrl || links.deezerUrl,
               spotifyUrl: track.spotifyUrl || links.spotifyUrl,
+              youtubeUrl: track.youtubeUrl || links.youtubeUrl,
             }
           }),
         })),
@@ -3720,10 +3724,10 @@ function App() {
     }
   }
 
-  async function downloadEpisode(id: string, title: string, url: string, artist = nowPlaying?.artist ?? 'Podmix') {
+  async function downloadEpisode(id: string, title: string, url: string, artist = nowPlaying?.artist ?? 'Podmix', extractFrom?: string) {
     if (!url) return
     try {
-      const state = await podmixPlayer.download(id, url, title)
+      const state = await podmixPlayer.download(id, url, title, extractFrom)
       setOfflineEpisodes((items) => [{
         id,
         title,
@@ -3765,12 +3769,14 @@ function App() {
 
   async function downloadSourceEpisode(source: CatalogSource, episode: Episode) {
     let downloadUrl = episode.audioUrl
+    let extractFrom: string | undefined
     if (source.kind === 'dj' && episode.sourceUrl) {
       // DownloadManager ne doit jamais recevoir l'URL CDN temporaire de
       // YouTube/SoundCloud : elle expire souvent avant la fin du fichier.
       downloadUrl = liveSetStreamUrl(episode.sourceUrl)
+      extractFrom = episode.sourceUrl
     }
-    await downloadEpisode(episode.id, episode.title, downloadUrl, source.title)
+    await downloadEpisode(episode.id, episode.title, downloadUrl, source.title, extractFrom)
   }
 
   async function playOffline(episode: OfflineEpisode) {
