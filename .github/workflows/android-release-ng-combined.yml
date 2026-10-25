@@ -1,0 +1,161 @@
+name: android-release-ng-combined
+
+on:
+  push:
+    branches: [release/combined-youtube-decode-ng]
+  workflow_dispatch:
+
+concurrency:
+  group: podmix-release-ng-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    outputs:
+      cert_match: ${{ steps.certcheck.outputs.cert_match }}
+      head_sha: ${{ steps.pushsrc.outputs.head_sha }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+      - name: Etat source
+        id: pushsrc
+        run: echo "head_sha=${GITHUB_SHA}" >> "$GITHUB_OUTPUT"
+      - name: Preparer la signature
+        env:
+          KS_B64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          KS_PASS: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          KEY_PASS: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: |
+          set -euo pipefail
+          for value in KS_B64 KS_PASS KEY_ALIAS KEY_PASS; do
+            test -n "${!value}"
+          done
+          umask 077
+          printf '%s' "$KS_B64" | base64 -d > android/podmix-release.keystore
+          printf 'storeFile=podmix-release.keystore\nstorePassword=%s\nkeyAlias=%s\nkeyPassword=%s\n' "$KS_PASS" "$KEY_ALIAS" "$KEY_PASS" > android/release-signing.properties
+      - run: npm ci
+      - name: Construire l'APK ng release
+        run: npm run android:build:ng
+      - name: Verifier et collecter l'APK
+        id: certcheck
+        run: |
+          set -euo pipefail
+          mkdir -p out
+          cp android/app/build/outputs/apk/ng/release/app-ng-release.apk out/app-ng-release.apk
+          BT=$(find "$ANDROID_HOME/build-tools" -mindepth 1 -maxdepth 1 -type d | sort -V | tail -1)
+          BADGING=$("$BT/aapt2" dump badging out/app-ng-release.apk | head -1)
+          printf '%s\n' "$BADGING"
+          grep -Fq "name='com.podmix.next.ng'" <<<"$BADGING"
+          grep -Fq "versionCode='10225'" <<<"$BADGING"
+          grep -Fq "versionName='1.0.225-ng'" <<<"$BADGING"
+          "$BT/apksigner" verify out/app-ng-release.apk
+          CERT=$("$BT/apksigner" verify --print-certs out/app-ng-release.apk | sed -n 's/.*certificate SHA-256 digest: //p' | head -1 | tr '[:upper:]' '[:lower:]')
+          printf 'cert sha256: %s\n' "$CERT"
+          if [ "$CERT" = "b27d46c092c63432e7e274d227c0e465cf91ab4656f67c1a0b511402505c8b8c" ]; then
+            echo "cert_match=yes" >> "$GITHUB_OUTPUT"
+          else
+            echo "cert_match=no" >> "$GITHUB_OUTPUT"
+          fi
+          sha256sum out/app-ng-release.apk > out/app-ng-release.apk.sha256
+      - name: Retirer le materiel de signature
+        if: always()
+        run: rm -f android/podmix-release.keystore android/release-signing.properties
+      - uses: actions/upload-artifact@v4
+        with:
+          name: podmix-release-ng-combined-apk
+          path: |
+            out/app-ng-release.apk
+            out/app-ng-release.apk.sha256
+          retention-days: 14
+
+  emulator:
+    needs: build
+    timeout-minutes: 25
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: podmix-release-ng-combined-apk
+          path: out
+      - name: Recuperer l'APK 1.0.222 actuellement installe
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release download v1.0.224-ng-theme-clair -R ${{ github.repository }} -p app-ng-release.apk -O out/app-ng-release-1.0.222.apk --clobber
+      - name: Preparer l'emulateur accelere
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+          ls -l /dev/kvm
+          sudo chmod 666 /dev/kvm
+          test -r /dev/kvm && test -w /dev/kvm
+      - uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 33
+          arch: x86_64
+          profile: pixel_2
+          emulator-options: -no-snapshot -no-window -noaudio -no-boot-anim -gpu swiftshader_indirect -camera-back none
+          script: |
+            set -eu
+            mkdir -p artifacts/emulator-captures
+            adb install out/app-ng-release-1.0.222.apk
+            adb shell am start -n com.podmix.next.ng/com.podmix.next.MainActivity
+            sleep 12
+            adb root || true
+            sleep 2
+            adb shell "echo podmix-data-marker > /data/data/com.podmix.next.ng/files/.update-check"
+            adb shell "cat /data/data/com.podmix.next.ng/files/.update-check"
+            adb shell am force-stop com.podmix.next.ng
+            adb install -r out/app-ng-release.apk
+            adb shell dumpsys package com.podmix.next.ng | grep -q 'versionCode=10225'
+            adb shell dumpsys package com.podmix.next.ng | grep -q 'versionName=1.0.225-ng'
+            adb shell "cat /data/data/com.podmix.next.ng/files/.update-check"
+            adb shell "cat /data/data/com.podmix.next.ng/files/.update-check" | grep -q podmix-data-marker
+            adb shell am start -n com.podmix.next.ng/com.podmix.next.MainActivity
+            sleep 15
+            adb shell pidof com.podmix.next.ng
+            adb exec-out screencap -p > artifacts/emulator-captures/app-boot.png
+            sleep 8
+            adb exec-out screencap -p > artifacts/emulator-captures/app-boot-2.png
+            adb shell am force-stop com.podmix.next.ng
+      - uses: actions/upload-artifact@v4
+        with:
+          name: podmix-release-ng-combined-emulator
+          path: artifacts/emulator-captures/
+          retention-days: 14
+
+  publish:
+    needs: [build, emulator]
+    if: needs.build.outputs.cert_match == 'yes'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: podmix-release-ng-combined-apk
+          path: out
+      - name: Publier la pre-release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          SHA=$(cut -d' ' -f1 out/app-ng-release.apk.sha256)
+          TAG="v1.0.225-ng-combined"
+          if gh release view "$TAG" -R ${{ github.repository }} >/dev/null 2>&1; then
+            gh release upload "$TAG" out/app-ng-release.apk --clobber -R ${{ github.repository }}
+          else
+            gh release create "$TAG" out/app-ng-release.apk --prerelease               -R ${{ github.repository }}               --target "${{ needs.build.outputs.head_sha }}"               --title "Podmix 1.0.225-ng (favoris YouTube + credits decodes)"               --notes "APK release signe. sha256: $SHA"
+          fi
