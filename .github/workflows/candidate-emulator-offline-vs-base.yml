@@ -1,0 +1,178 @@
+name: candidate-emulator-offline-vs-base
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - fix/studio-playbutton-intent-20261025
+    paths:
+      - .github/workflows/candidate-emulator-offline-vs-base.yml
+permissions:
+  contents: read
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        include:
+          - tag: candidate
+            ref: fix/studio-playbutton-intent-20261025
+          - tag: base225
+            ref: 90ca200fb981d6e430c5eee50f9d4666f5c4ec76
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ matrix.ref }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+      - run: npm ci --no-audit --no-fund
+      - name: Build ng debug APK (no publication)
+        run: |
+          npm run version:sync
+          npm run build
+          npx cap sync android
+          cd android && ./gradlew assembleNgDebug
+      - run: |
+          mkdir -p out
+          cp android/app/build/outputs/apk/ng/debug/*.apk out/app-${{ matrix.tag }}.apk
+          git rev-parse HEAD > out/${{ matrix.tag }}.sha
+      - uses: actions/upload-artifact@v4
+        with:
+          name: apk-${{ matrix.tag }}
+          path: out/
+          retention-days: 7
+  emulator:
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: apks
+          pattern: apk-*
+          merge-multiple: true
+      - name: Prepare audio (70 s, 32 kbps) and test script
+        run: |
+          set -euo pipefail
+          sudo apt-get update -qq && sudo apt-get install -y -qq ffmpeg
+          mkdir -p /home/runner/t/www /home/runner/t/artifacts
+          ffmpeg -y -f lavfi -i "sine=frequency=440:duration=70" -ac 1 -b:a 32k /home/runner/t/www/ep.mp3
+          ls -l /home/runner/t/www apks
+          cat apks/*.sha
+          cat > /home/runner/t/t.mjs <<'EOF_T'
+          import { execSync, exec } from 'node:child_process'
+          import fs from 'node:fs'
+          const sleep = (ms) => new Promise((r) => setTimeout(r, ms))
+          const PKG = 'com.podmix.next.ng'
+          const TAG = process.argv[2]
+          const OBS_MS = 50000
+          const out = { tag: TAG, diag: [], errors: [] }
+          const logd = (m) => { out.diag.push(m); console.log('[diag] ' + m) }
+          const sh = (c) => { try { return execSync(c, { stdio: ['ignore', 'pipe', 'pipe'], timeout: 20000 }).toString() } catch (e) { return '' } }
+          const msNow = () => { const m = sh('adb shell dumpsys media_session').match(/state=PlaybackState \{state=(\d+), position=(-?\d+)/); return m ? { state: +m[1], pos: +m[2] } : { state: null, pos: null } }
+          fs.mkdirSync('artifacts', { recursive: true })
+          let ws, nid = 0; const pend = new Map()
+          function cdp(method, params = {}) { return new Promise((res, rej) => { const id = ++nid; pend.set(id, { res, rej }); ws.send(JSON.stringify({ id, method, params })); setTimeout(() => { if (pend.has(id)) { pend.delete(id); rej(new Error('cdp timeout ' + method)) } }, 8000) }) }
+          async function ev(expr) { const r = await cdp('Runtime.evaluate', { expression: expr, returnByValue: true }); return r.result && r.result.result ? r.result.result.value : undefined }
+          async function connect() {
+            sh(`adb shell am start -n ${PKG}/com.podmix.next.MainActivity`)
+            await sleep(10000)
+            const pid = sh(`adb shell pidof ${PKG}`).trim().split(/\s+/)[0]
+            logd('pid ' + pid + ' sockets: ' + sh('adb shell cat /proc/net/unix').split('\n').filter((l) => l.includes('devtools')).map((l) => l.trim().split(' ').pop()).join(','))
+            sh(`adb forward tcp:9222 localabstract:webview_devtools_remote_${pid}`)
+            const list = JSON.parse(await (await fetch('http://127.0.0.1:9222/json')).text())
+            const page = list.find((p) => p.type === 'page')
+            if (!page) throw new Error('aucune page WebView debuggable')
+            ws = new WebSocket(page.webSocketDebuggerUrl)
+            await new Promise((r, j) => { ws.onopen = r; ws.onerror = () => j(new Error('ws error')) })
+            ws.onmessage = (m) => { const d = JSON.parse(m.data); if (d.id && pend.has(d.id)) { const p = pend.get(d.id); pend.delete(d.id); d.error ? p.rej(new Error(JSON.stringify(d.error))) : p.res({ result: d.result }) } }
+            await cdp('Runtime.enable')
+          }
+          const SIG = `JSON.stringify({mini:(document.querySelector('.mini-play-toggle')||{getAttribute:()=>null}).getAttribute('aria-label'),studio:(document.querySelector('.transport .play')||{getAttribute:()=>null}).getAttribute('aria-label'),rows:[...document.querySelectorAll('.episode-play')].map(b=>(b.querySelector('svg')||{getAttribute:()=>'?'}).getAttribute('class')||'?').join('|')})`
+          try {
+            await connect()
+            const src = [{ id: 'repro-src', kind: 'podcast', title: 'Repro Flap', description: 'local', artworkUrl: '', feedUrl: 'http://10.0.2.2:8765/none.xml', episodes: [{ id: 'repro-ep-1', title: 'Episode repro local', description: 'local', publishedAt: '2026-10-23T20:00:00Z', duration: '1:10', audioUrl: 'http://10.0.2.2:8765/ep.mp3', artworkUrl: '' }] }]
+            await ev(`localStorage.setItem('podmix-catalog-v1', ${JSON.stringify(JSON.stringify(src))}); 1`)
+            await cdp('Page.reload')
+            await sleep(8000)
+            logd('boutons aria: ' + await ev(`JSON.stringify([...document.querySelectorAll('button[aria-label]')].map(b=>b.getAttribute('aria-label')).slice(0,40))`))
+            fs.writeFileSync('artifacts/' + TAG + '-shot0.png', Buffer.from((await cdp('Page.captureScreenshot')).result.data, 'base64'))
+            await ev(`(document.querySelector('button[aria-label="Lire Repro Flap"]')||{click(){}}).click(); 1`)
+            await sleep(4000)
+            let st = msNow()
+            logd('apres clic carte: ' + JSON.stringify(st) + ' sig ' + await ev(SIG))
+            if (st.state !== 3) {
+              await ev(`(document.querySelector('.episode-play')||{click(){}}).click(); 1`)
+              for (let i = 0; i < 15 && st.state !== 3; i++) { await sleep(1000); st = msNow() }
+              logd('apres clic episode-play: ' + JSON.stringify(st) + ' sig ' + await ev(SIG))
+            }
+            if (st.state !== 3) throw new Error('lecture non demarree (media_session ' + JSON.stringify(st) + ')')
+            await sleep(12000)
+            // coupure reseau
+            sh('adb shell svc wifi disable'); sh('adb shell svc data disable')
+            fs.writeFileSync('/tmp/kill-server', '1')
+            await sleep(1500)
+            logd('ping apres coupure: ' + sh('adb shell ping -c1 -W2 8.8.8.8').replace(/\n/g, ' ').slice(0, 160))
+            logd('online navigator: ' + await ev('navigator.onLine'))
+            const sigs = [], mss = []
+            let stop = false
+            const msLoop = (async () => { while (!stop) { mss.push({ t: Date.now(), ...msNow() }); await sleep(300) } })()
+            const t0 = Date.now()
+            while (Date.now() - t0 < OBS_MS) { try { sigs.push({ t: Date.now(), s: await ev(SIG) }) } catch (e) { sigs.push({ t: Date.now(), s: 'ERR' }) } await sleep(80) }
+            stop = true; await msLoop
+            fs.writeFileSync('artifacts/' + TAG + '-shot1.png', Buffer.from((await cdp('Page.captureScreenshot')).result.data, 'base64'))
+            let flips = 0; const flipAt = []
+            for (let i = 1; i < sigs.length; i++) if (sigs[i].s !== sigs[i - 1].s) { flips++; flipAt.push(+((sigs[i].t - t0) / 1000).toFixed(1)) }
+            let msTr = 0; for (let i = 1; i < mss.length; i++) if (mss[i].state !== mss[i - 1].state) msTr++
+            const poss = mss.filter((m) => m.pos >= 0).map((m) => m.pos)
+            const inPlay = mss.filter((m) => m.state === 3).length
+            out.result = { uiSamples: sigs.length, uiDistinctSignatures: [...new Set(sigs.map((x) => x.s))], uiTransitions: flips, uiTransitionTimes: flipAt.slice(0, 30), msSamples: mss.length, msStates: [...new Set(mss.map((m) => m.state))], msTransitions: msTr, pctPlaying: +(100 * inPlay / Math.max(1, mss.length)).toFixed(1), posFirst: poss[0], posLast: poss[poss.length - 1], posAdvancedMs: poss.length ? poss[poss.length - 1] - poss[0] : null, windowMs: OBS_MS }
+          } catch (e) { out.errors.push(String(e && e.message || e)); sh(`adb exec-out screencap -p > artifacts/${TAG}-echec.png`) }
+          fs.writeFileSync('artifacts/' + TAG + '.json', JSON.stringify(out, null, 2))
+          const lines = [`## Emulateur hors ligne, APK debug ${TAG}`, '', '```json', JSON.stringify(out, null, 1), '```', '']
+          if (process.env.GITHUB_STEP_SUMMARY) fs.appendFileSync(process.env.GITHUB_STEP_SUMMARY, lines.join('\n'))
+          console.log(lines.join('\n'))
+          
+          EOF_T
+          cat > /home/runner/t/emu.sh <<'EOF_S'
+          set -u
+          cd /home/runner/t
+          for TAG in candidate base225; do
+            rm -f /tmp/kill-server
+            (cd www && python3 -m http.server 8765 --bind 0.0.0.0 >/tmp/http.log 2>&1 & echo $! > /tmp/http.pid)
+            (while [ ! -f /tmp/kill-server ]; do sleep 0.5; done; kill $(cat /tmp/http.pid) 2>/dev/null) &
+            adb shell svc wifi enable || true
+            adb shell svc data enable || true
+            adb uninstall com.podmix.next.ng >/dev/null 2>&1 || true
+            adb install /home/runner/apks/app-$TAG.apk
+            adb shell pm grant com.podmix.next.ng android.permission.POST_NOTIFICATIONS || true
+            node t.mjs $TAG || true
+            kill $(cat /tmp/http.pid) 2>/dev/null || true
+            touch /tmp/kill-server
+            sleep 2
+          done
+          EOF_S
+      - name: Preparer KVM
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+          sudo chmod 666 /dev/kvm
+      - uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 33
+          arch: x86_64
+          profile: pixel_2
+          emulator-options: -no-snapshot -no-window -noaudio -no-boot-anim -gpu swiftshader_indirect -camera-back none
+          script: bash /home/runner/t/emu.sh
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: emulator-offline-results
+          path: /home/runner/t/artifacts/
+          retention-days: 7
