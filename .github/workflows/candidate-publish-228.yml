@@ -1,0 +1,64 @@
+name: candidate-publish-228
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [fix/localstorage-quota-20261026]
+    paths: ['.github/workflows/candidate-publish-228.yml']
+
+permissions:
+  contents: write
+  actions: read
+
+concurrency:
+  group: candidate-publish-228
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      GH_TOKEN: ${{ github.token }}
+      TAG: v1.0.228-ng-candidat-test
+      SRC_RUN: '40305646326'
+      SRC_SHA: c771b0bb93c53cccb2f88e31fe7c68321c1d3505
+      EXPECT_SHA256: 77fbf6230babfe1707eb305c0fb4746c2ce51d910d3bafdff9df14f2a682e262
+    steps:
+      - name: Telecharger l'APK deja teste (run 40305646326)
+        run: |
+          set -euo pipefail
+          mkdir -p out
+          gh run download "$SRC_RUN" -R "${{ github.repository }}" -n podmix-candidate-signed-apk -D out
+          ls -l out
+      - name: Verifier empreinte, identite et certificat
+        run: |
+          set -euo pipefail
+          GOT=$(sha256sum out/app-ng-candidate-signed.apk | cut -d' ' -f1)
+          echo "sha256: $GOT"
+          test "$GOT" = "$EXPECT_SHA256"
+          BT=$(find "$ANDROID_HOME/build-tools" -mindepth 1 -maxdepth 1 -type d | sort -V | tail -1)
+          BADGING=$("$BT/aapt2" dump badging out/app-ng-candidate-signed.apk | head -1)
+          echo "$BADGING"
+          grep -Fq "name='com.podmix.next.ng'" <<<"$BADGING"
+          grep -Fq "versionCode='10228'" <<<"$BADGING"
+          grep -Fq "versionName='1.0.228-ng'" <<<"$BADGING"
+          "$BT/apksigner" verify out/app-ng-candidate-signed.apk
+          CERT=$("$BT/apksigner" verify --print-certs out/app-ng-candidate-signed.apk | sed -n 's/.*certificate SHA-256 digest: //p' | head -1 | tr '[:upper:]' '[:lower:]')
+          echo "cert: $CERT"
+          test "$CERT" = "b27d46c092c63432e7e274d227c0e465cf91ab4656f67c1a0b511402505c8b8c"
+      - name: Publier la pre-release de test (nouveau tag, rien d'existant modifie)
+        run: |
+          set -euo pipefail
+          if gh release view "$TAG" -R "${{ github.repository }}" >/dev/null 2>&1; then
+            echo "release $TAG existe deja: arret, aucune ecriture"; exit 1
+          fi
+          cp out/app-ng-candidate-signed.apk out/app-ng-release.apk
+          gh release create "$TAG" out/app-ng-release.apk --prerelease -R "${{ github.repository }}" --target "$SRC_SHA" \
+            --title "Podmix 1.0.228-ng TEST (anti-plantage stockage plein, NON VALIDE)" \
+            --notes "VERSION DE TEST. Corrige le plantage QuotaExceededError quand le stockage interne de lAppli est plein : les ecritures refusees ne font plus planter lappli et un bandeau signale les donnees non enregistrees. Ne libere pas de place et naffecte pas le clignotement lecture/pause, non valide. Le catalogue complet nest plus remplace par une version reduite et ladresse serveur non enregistree nest plus presentee comme active. APK signe avec la cle Podmix, versionCode 10228, sha256 $EXPECT_SHA256. Construit depuis le commit $SRC_SHA de la branche fix/localstorage-quota-20261026."
+          {
+            echo "## Pre-release de test publiee: $TAG"
+            echo "- sha256 asset: $EXPECT_SHA256"
+            echo "- commit source: $SRC_SHA"
+          } >> "$GITHUB_STEP_SUMMARY"
