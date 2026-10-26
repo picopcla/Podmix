@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { fingerprint, initKvStore, kvFlush, kvGetItem, kvPending, kvRemoveItem, kvSetItem, type KvBackend } from '../../src/kvStore'
+import { fingerprint, initKvStore, kvFlush, kvGetItem, kvPending, kvRemoveItem, kvSetItem, kvSetItemConfirmed, type KvBackend } from '../../src/kvStore'
 import { safeSetItem } from '../../src/safeStorage'
 
 type Entry = Parameters<KvBackend['put']>[0]
@@ -385,5 +385,54 @@ describe('kvStore : autorite, retour de version, interruptions, durabilite', () 
     const relaunch = await initKvStore({ backend, force: true })
     expect(relaunch.adopted).toEqual([])
     expect(getApiUrl()).toBe('http://nouvelle.test:8099')
+  })
+
+  it('confirmation par ecriture : une ecriture concurrente B ne confirme pas A', async () => {
+    const { backend, data } = memoryBackend()
+    await initKvStore({ backend, force: true })
+    kvSetItem('podmix-autre', 'x') // une ecriture est deja en cours : A reste en file
+    const a = kvSetItemConfirmed('podmix-api-url', 'A')
+    kvSetItem('podmix-api-url', 'B') // remplace A avant qu'elle soit ecrite
+    expect(await a).toBe(false)
+    await kvFlush()
+    expect(data.get('podmix-api-url')?.value).toBe('B')
+    expect(kvGetItem('podmix-api-url')).toBe('B')
+  })
+
+  it('echec : retour a la derniere valeur DURABLE, pas a une valeur seulement acceptee', async () => {
+    let fail = false
+    const { backend, data } = memoryBackend([], { failPut: () => fail })
+    await initKvStore({ backend, force: true })
+    expect(await kvSetItemConfirmed('podmix-api-url', 'O')).toBe(true)
+    fail = true
+    expect(kvSetItem('podmix-api-url', 'A')).toBe(true) // acceptee, puis echec
+    expect(await kvSetItemConfirmed('podmix-api-url', 'B')).toBe(false)
+    await kvFlush()
+    expect(data.get('podmix-api-url')?.value).toBe('O')
+    expect(kvGetItem('podmix-api-url')).toBe('O')
+  })
+
+  it('adoption echouee puis ecriture C confirmee : C survit au lancement suivant', async () => {
+    const old = { key: 'podmix-api-url', value: 'A', verified: true, lsSeen: fingerprint('A'), at: 'x' }
+    localStorage.setItem('podmix-api-url', 'B')
+    let fail = true
+    const mem = memoryBackend([old], { failPut: () => fail })
+    const r1 = await initKvStore({ backend: mem.backend, force: true })
+    expect(r1.kept).toEqual(['podmix-api-url'])
+    expect(kvGetItem('podmix-api-url')).toBe('B')
+    fail = false
+    expect(await kvSetItemConfirmed('podmix-api-url', 'C')).toBe(true)
+    await initKvStore({ backend: mem.backend, force: true })
+    expect(kvGetItem('podmix-api-url')).toBe('C')
+  })
+
+  it('cle restee en mode legacy : une ecriture confirmee pendant l init est un succes (pas un faux echec)', async () => {
+    localStorage.setItem('podmix-api-url', 'L')
+    const mem = memoryBackend([], { failPut: (key) => key === 'podmix-api-url' })
+    const init = initKvStore({ backend: mem.backend, force: true })
+    const w = kvSetItemConfirmed('podmix-api-url', 'N')
+    await init
+    expect(await w).toBe(true)
+    expect(localStorage.getItem('podmix-api-url')).toBe('N')
   })
 })
