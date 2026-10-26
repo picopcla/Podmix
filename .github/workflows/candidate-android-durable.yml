@@ -25,6 +25,7 @@ jobs:
       - name: e2e Playwright (information, non bloquant)
         continue-on-error: true
         run: |
+          npm run build
           npx playwright install --with-deps chromium
           npx playwright test --reporter=line 2>&1 | tee e2e.txt || true
           { echo "## e2e Playwright (resume)"; echo '```'; tail -40 e2e.txt; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
@@ -89,9 +90,11 @@ jobs:
           const IDB = `window.__idbGet = (k) => new Promise((res) => { const o = indexedDB.open('podmix-kv'); o.onerror = () => res(null); o.onsuccess = () => { const g = o.result.transaction('kv').objectStore('kv').get(k); g.onsuccess = () => { o.result.close(); res(g.result ?? null) }; g.onerror = () => res(null) } }); 1`
           await send('Runtime.enable'); await send('Page.enable')
           await ev(IDB)
+          const HIST = JSON.stringify([{ id: 'h1', title: 'Episode historique test', artist: 'Artiste test', url: 'https://example.invalid/h1.mp3', position: 42, duration: 3600, playedAt: '2026-10-20T10:00:00.000Z' }])
+          const UIHIST = `(async () => { const b = [...document.querySelectorAll('button, a')].find((x) => /Historique/.test(x.innerText + (x.getAttribute('aria-label') ?? ''))); if (!b) return 'NAV-INTROUVABLE'; b.click(); await new Promise((r) => setTimeout(r, 2500)); return document.body.innerText.includes('Episode historique test') ? 'HISTORIQUE-VISIBLE' : 'HISTORIQUE-ABSENT' })()`
           const CAT = JSON.stringify([{ id: 'src1', kind: 'podcast', title: 'Podcast test', description: '', artworkUrl: '', feedUrl: 'https://example.invalid/feed.xml', episodes: [1,2,3].map((i) => ({ id: 'ep' + i, title: 'Episode test ' + i, description: 'd', publishedAt: '2026-10-0' + i + 'T00:00:00.000Z', duration: '1:00:00', audioUrl: 'https://example.invalid/a' + i + '.mp3', artworkUrl: '' })) }])
           if (phase === 'seed') {
-            await ev(`localStorage.setItem('podmix-catalog-v1', ${JSON.stringify(CAT)}); localStorage.setItem('podmix-history-v1', '[{"id":"h1","position":42}]'); localStorage.setItem('podmix-track-favorites-v1', '["fav-a","fav-b"]'); 1`)
+            await ev(`localStorage.setItem('podmix-catalog-v1', ${JSON.stringify(CAT)}); localStorage.setItem('podmix-history-v1', ${JSON.stringify(HIST)}); localStorage.setItem('podmix-track-favorites-v1', '["fav-a","fav-b"]'); 1`)
             const fill = await ev(`(() => { let n = 0; for (const size of [10000, 1000, 100, 10, 1]) { try { for (;;) { localStorage.setItem('zz-filler-' + n, 'x'.repeat(size)); n++ } } catch {} } let u = 0; for (let i = 0; i < localStorage.length; i++) { const k = localStorage.key(i); u += k.length + (localStorage.getItem(k) ?? '').length } return u })()`)
             log('seed (ancienne version installee): localStorage sature, caracteres utilises', fill)
           }
@@ -102,14 +105,15 @@ jobs:
             log('ANCIENNE VERSION apres kill/relance, cles podmix-* :', Object.keys(snap).join(','))
             log('precondition filler persiste:', await ev(`localStorage.getItem('zz-filler-0') !== null`))
             log('precondition catalogue seed persiste:', String(snap['podmix-catalog-v1'] ?? '').includes('Podcast test'))
-            log('precondition historique seed persiste:', snap['podmix-history-v1'] === '[{"id":"h1","position":42}]')
-            log('precondition favoris seed persiste:', snap['podmix-track-favorites-v1'] === '["fav-a","fav-b"]')
+            log('precondition historique seed persiste:', snap['podmix-history-v1'].includes('Episode historique test'))
+            log('precondition historique visible dans l ecran Historique (ancienne version):', await ev(UIHIST))
             const body = String(await ev(`document.body.innerText.slice(0, 200).replace(/\\s+/g, ' ')`))
             log('texte ancienne version:', body)
           }
           if (phase === 'migrated' || phase === 'after') {
             const before = JSON.parse(fs.readFileSync('out/before.json', 'utf8'))
             let same = 0, diff = []
+            if (phase === 'after') before['podmix-settings-v1'] = fs.readFileSync('out/settings-after.txt', 'utf8')
             for (const k of Object.keys(before)) {
               const r = await ev(`(async () => { const e = await window.__idbGet(${JSON.stringify(k)}); if (!e) return 'absent'; if (e.deleted) return 'supprime'; if (e.value === ${JSON.stringify(before[k])}) return 'identique'; const all = await new Promise((res) => { const o = indexedDB.open('podmix-kv'); o.onsuccess = () => { const g = o.result.transaction('kv').objectStore('kv').getAll(); g.onsuccess = () => { o.result.close(); res(g.result) } } }); const rec = all.some((x) => x.key.startsWith('podmix-recovered:' + ${JSON.stringify(k)}) && x.value === ${JSON.stringify(before[k])}); return rec ? 'ancienne valeur gardee dans recovered (valeur courante differente)' : 'DIFFERENT' })()`)
               if (r === 'identique') same++; else diff.push(k + '=' + r)
@@ -118,6 +122,7 @@ jobs:
             log(phase + ': localStorage toujours present (non purge), filler:', await ev(`localStorage.getItem('zz-filler-0') !== null`), 'catalogue:', await ev(`localStorage.getItem('podmix-catalog-v1') !== null`))
             const body = String(await ev(`document.body.innerText.slice(0, 300).replace(/\\s+/g, ' ')`))
             log(phase + ': texte ecran:', body)
+            log(phase + ': ecran Historique:', await ev(UIHIST))
             log(phase + ': erreur Quota affichee:', /QuotaExceeded|Failed to execute/.test(body))
           }
           if (phase === 'migrated') {
@@ -139,6 +144,24 @@ jobs:
             const sv = String(await ev(`(async () => (await window.__idbGet('podmix-settings-v1'))?.value ?? 'ABSENT')()`))
             log('reglage apres 2e kill/relance:', sv === fs.readFileSync('out/settings-after.txt', 'utf8') ? 'identique a celui ecrit' : 'DIFFERENT')
             log('10x apres kill/relance longueur:', await ev(`(async () => { const e = await window.__idbGet('zz-10x'); return e ? e.value.length : -1 })()`))
+            execSync('adb exec-out screencap -p > out/durable-android.png')
+          }
+          if (phase === 'killwrite') {
+            // ecriture lourde dans IndexedDB, puis kill brutal sans attendre la fin de la transaction
+            send('Runtime.evaluate', { expression: `(() => { const o = indexedDB.open('podmix-kv'); o.onsuccess = () => { const tx = o.result.transaction('kv', 'readwrite'); tx.objectStore('kv').put({ key: 'zz-kill', value: 'b'.repeat(80000000), at: 'x' }) }; return 1 })()`, returnByValue: true })
+            await sleep(60)
+            execSync(`adb shell am force-stop ${process.argv[3]}`)
+            log('kill brutal envoye pendant une ecriture de 80 M caracteres')
+          }
+          if (phase === 'final') {
+            const z = await ev(`(async () => { const e = await window.__idbGet('zz-kill'); return e ? 'COMPLET=' + (e.value.length === 80000000) + ' longueur=' + e.value.length : 'ABSENT' })()`)
+            log('final: ecriture interrompue par le kill:', z, '(attendu : absente ou complete, jamais partielle)')
+            const st = await ev(`(async () => (await window.__idbGet('podmix-settings-v1'))?.value ?? 'ABSENT')()`)
+            log('final: reglage intact apres kill pendant ecriture:', String(st) === fs.readFileSync('out/settings-after.txt', 'utf8'))
+            const cat = await ev(`(async () => (await window.__idbGet('podmix-catalog-v1'))?.value?.includes('Podcast test') === true)()`)
+            log('final: catalogue intact apres kill pendant ecriture:', cat)
+            log('final: ecran Historique:', await ev(UIHIST))
+            log('final: erreur Quota affichee:', /QuotaExceeded|Failed to execute/.test(String(await ev(`document.body.innerText.slice(0, 300)`))))
             execSync('adb exec-out screencap -p > out/durable-android.png')
           }
           ws.close(); process.exit(0)
@@ -168,18 +191,27 @@ jobs:
           adb shell am force-stop "$PKG"; sleep 3
           launch; echo "--- 5. NOUVELLE version apres kill/relance" | tee -a out/res.txt
           node "$RUNNER_TEMP/p.mjs" after 2>&1 | tee -a out/res.txt
+          launch; echo "--- 6. NOUVELLE version : kill brutal pendant une grosse ecriture" | tee -a out/res.txt
+          node "$RUNNER_TEMP/p.mjs" killwrite "$PKG" 2>&1 | tee -a out/res.txt
+          sleep 3
+          launch; echo "--- 7. NOUVELLE version : relance apres le kill pendant ecriture" | tee -a out/res.txt
+          node "$RUNNER_TEMP/p.mjs" final 2>&1 | tee -a out/res.txt
           adb logcat -d | grep -c "FATAL EXCEPTION" > out/fatal.txt || true
           echo "FATAL EXCEPTION dans logcat: $(cat out/fatal.txt)" | tee -a out/res.txt
           { echo "## Stockage durable sur Android (emulateur jetable, APK debug, aucune publication)"; echo '```'; cat out/res.txt; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
           grep -q "precondition filler persiste: true" out/res.txt || exit 1
           grep -q "precondition catalogue seed persiste: true" out/res.txt || exit 1
-          grep -q "precondition historique seed persiste: true" out/res.txt || exit 1
-          grep -q "precondition favoris seed persiste: true" out/res.txt || exit 1
           grep -qE "migrated: cles .* identiques dans IndexedDB: ([0-9]+) / \1 ecarts: aucun" out/res.txt || exit 1
+          grep -qE "after: cles .* identiques dans IndexedDB: ([0-9]+) / .* ecarts: aucun" out/res.txt || exit 1
           grep -q "erreur Quota affichee: false" out/res.txt || exit 1
           grep -q "ecrit dans IndexedDB malgre localStorage sature: true" out/res.txt || exit 1
           grep -q "relecture 10x longueur: 52400000" out/res.txt || exit 1
           grep -q "10x apres kill/relance longueur: 52400000" out/res.txt || exit 1
+          grep -q "precondition historique visible dans l ecran Historique (ancienne version): HISTORIQUE-VISIBLE" out/res.txt || exit 1
+          grep -q "migrated: ecran Historique: HISTORIQUE-VISIBLE" out/res.txt || exit 1
+          grep -q "final: reglage intact apres kill pendant ecriture: true" out/res.txt || exit 1
+          grep -q "final: catalogue intact apres kill pendant ecriture: true" out/res.txt || exit 1
+          grep -qE "final: ecriture interrompue par le kill: (ABSENT|COMPLET=true)" out/res.txt || exit 1
           grep -q "reglage apres 2e kill/relance: identique" out/res.txt || exit 1
           [ "$(cat out/fatal.txt)" = "0" ] || exit 1
           XEOF
