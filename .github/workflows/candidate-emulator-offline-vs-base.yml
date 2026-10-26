@@ -124,12 +124,23 @@ jobs:
             await sleep(1500)
             logd('ping apres coupure: ' + sh('adb shell ping -c1 -W2 8.8.8.8').replace(/\n/g, ' ').slice(0, 160))
             logd('online navigator: ' + await ev('navigator.onLine'))
+            // ouverture reelle du Studio (indicateur "Origine des reperes"), reseau deja coupe
+            const op = await ev(`(()=>{const b=document.querySelector('button[aria-label^="Origine des rep"]');if(!b)return 0;b.click();return 1})()`)
+            logd('ouverture Studio, clic indicateur: ' + op)
+            await sleep(4000)
+            logd('dump Studio: ' + await ev(DUMP))
+            logd('rect bouton studio: ' + await ev(`(()=>{const b=document.querySelector('.transport .play');if(!b)return null;const r=b.getBoundingClientRect();return JSON.stringify({x:r.x,y:r.y,w:r.width,h:r.height,dpr:devicePixelRatio,color:getComputedStyle(b).backgroundColor,aria:b.getAttribute('aria-label')})})()`))
+            sh('adb shell "screenrecord --time-limit 60 /sdcard/studio.mp4 > /dev/null 2>&1 &"')
+            let shotN = 0
+            const stop0 = { v: false }
+            const shotLoop = (async () => { while (!stop0.v) { try { fs.writeFileSync('artifacts/' + TAG + '-studio-' + String(shotN++).padStart(2, '0') + '.png', Buffer.from((await cdp('Page.captureScreenshot')).result.data, 'base64')) } catch (e) {} for (let q = 0; q < 50 && !stop0.v; q++) await sleep(100) } })()
             const sigs = [], mss = []
             let stop = false
             const msLoop = (async () => { while (!stop) { mss.push({ t: Date.now(), ...msNow() }); await sleep(300) } })()
             const t0 = Date.now()
             while (Date.now() - t0 < OBS_MS) { try { sigs.push({ t: Date.now(), s: await ev(SIG) }) } catch (e) { sigs.push({ t: Date.now(), s: 'ERR' }) } await sleep(80) }
-            stop = true; await msLoop
+            stop = true; await msLoop; stop0.v = true; await shotLoop
+            await sleep(12000); sh(`adb pull /sdcard/studio.mp4 artifacts/${TAG}-studio.mp4`)
             fs.writeFileSync('artifacts/' + TAG + '-shot1.png', Buffer.from((await cdp('Page.captureScreenshot')).result.data, 'base64'))
             let flips = 0; const flipAt = []
             for (let i = 1; i < sigs.length; i++) if (sigs[i].s !== sigs[i - 1].s) { flips++; flipAt.push(+((sigs[i].t - t0) / 1000).toFixed(1)) }
