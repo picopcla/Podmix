@@ -32,7 +32,9 @@ export function setApiUrl(value: string): string {
   const parsed = new URL(normalized)
   if (!['http:', 'https:'].includes(parsed.protocol)) throw new Error('Utilisez une adresse HTTP ou HTTPS')
   if (!parsed.hostname) throw new Error('Adresse serveur invalide')
-  safeSetItem('podmix-api-url', normalized)
+  if (!safeSetItem('podmix-api-url', normalized)) {
+    throw new Error('Stockage interne plein : l’adresse du serveur n’est pas enregistrée, l’ancienne adresse reste utilisée.')
+  }
   return normalized
 }
 

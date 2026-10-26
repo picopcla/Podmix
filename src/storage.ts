@@ -1,5 +1,5 @@
 import type { CatalogSource, OfflineEpisode, Track } from './domain'
-import { isQuotaError, reportStorageFailure, reportStorageSuccess, safeSetItem } from './safeStorage'
+import { reportStorageFailure, safeSetItem } from './safeStorage'
 
 const DATABASE = 'podmix-studio'
 const STORE = 'sessions'
@@ -69,7 +69,12 @@ export function loadCatalog(): CatalogSource[] {
   }
 }
 
-export function saveCatalog(sources: CatalogSource[]) {
+/**
+ * Enregistre le catalogue complet. Si le stockage refuse l'ecriture, l'ancienne
+ * version stockee est conservee telle quelle (aucun repli reduit qui ecraserait
+ * des donnees) et l'echec est signale a l'interface. Renvoie true si enregistre.
+ */
+export function saveCatalog(sources: CatalogSource[]): boolean {
   const compact = sources.map((source) => ({
     ...source,
     description: source.description.slice(0, 2_000),
@@ -86,22 +91,13 @@ export function saveCatalog(sources: CatalogSource[]) {
       } : undefined,
     })),
   }))
-  const minimal = compact.map((source) => ({
-    ...source,
-    description: '',
-    episodes: source.episodes.map((episode) => ({ ...episode, description: '' })),
-  }))
-
-  for (const candidate of [compact, minimal]) {
-    try {
-      localStorage.setItem(CATALOG_KEY, JSON.stringify(candidate))
-      reportStorageSuccess(CATALOG_KEY)
-      return
-    } catch (error) {
-      if (!isQuotaError(error)) return
-    }
+  try {
+    return safeSetItem(CATALOG_KEY, JSON.stringify(compact))
+  } catch {
+    // Erreur autre que le quota : la sauvegarde n'a pas eu lieu, on le signale aussi.
+    reportStorageFailure(CATALOG_KEY)
+    return false
   }
-  reportStorageFailure(CATALOG_KEY)
 }
 
 export function loadOfflineEpisodes(): OfflineEpisode[] {
