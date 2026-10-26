@@ -106,10 +106,12 @@ type State = {
   durable: Map<string, string | null>
   /** Cles dont l'adoption a echoue : empreinte du localStorage deja vu (a noter des qu'une ecriture plus recente la remplace). */
   adoptFailed: Map<string, string>
+  /** Numero de la derniere ecriture ACCEPTEE par cle (jamais retire a la sortie de file : une transaction en cours reste connue). */
+  latest: Map<string, number>
   seq: number
 }
 
-const state: State = { cache: new Map(), legacy: new Set(), queue: new Map(), flushing: false, ready: false, initializing: false, preInit: new Map(), lsBase: new Map(), outcome: new Map(), tokens: new Map(), waiters: new Map(), durable: new Map(), adoptFailed: new Map(), seq: 0 }
+const state: State = { cache: new Map(), legacy: new Set(), queue: new Map(), flushing: false, ready: false, initializing: false, preInit: new Map(), lsBase: new Map(), outcome: new Map(), tokens: new Map(), waiters: new Map(), durable: new Map(), adoptFailed: new Map(), latest: new Map(), seq: 0 }
 let initPromise: Promise<MigrationResult> | undefined
 
 export type MigrationResult = {
@@ -135,10 +137,21 @@ export function fingerprint(value: string | null): string {
   return `${value.length}:${a.toString(16)}:${b.toString(16)}`
 }
 
+function stamp(key: string) {
+  const n = ++state.seq
+  state.tokens.set(key, n)
+  state.latest.set(key, n)
+}
+
 function settle(key: string, token: number | undefined, ok: boolean) {
   if (token === undefined) return
   const resolve = state.waiters.get(key)?.get(token)
-  if (resolve) { state.waiters.get(key)?.delete(token); resolve(ok) }
+  if (resolve) {
+    const map = state.waiters.get(key)
+    map?.delete(token)
+    if (map && map.size === 0) state.waiters.delete(key)
+    resolve(ok)
+  }
 }
 
 /** Une ecriture plus recente remplace celle qui attendait encore : l'ancienne n'a jamais ete ecrite. */
@@ -329,20 +342,20 @@ async function flush() {
 
 /** 'local' : la cle n'est pas geree par IndexedDB (appelant : ecrire en localStorage). true : acceptee, enregistree a la fin de la transaction. */
 export function kvSetItem(key: string, value: string): boolean | 'local' {
-  if (state.initializing && !state.ready && key.startsWith(PREFIX)) { supersede(key); state.preInit.set(key, value); state.tokens.set(key, ++state.seq); return true }
+  if (state.initializing && !state.ready && key.startsWith(PREFIX)) { supersede(key); state.preInit.set(key, value); stamp(key); return true }
   if (!(state.ready && state.backend && key.startsWith(PREFIX)) || state.legacy.has(key)) return 'local'
   supersede(key)
   noteAdoptFailedSuperseded(key)
   state.cache.set(key, value)
   state.outcome.delete(key)
-  state.tokens.set(key, ++state.seq)
+  stamp(key)
   state.queue.set(key, value)
   void flush()
   return true
 }
 
 export function kvRemoveItem(key: string): void {
-  if (state.initializing && !state.ready && key.startsWith(PREFIX)) { supersede(key); state.preInit.set(key, null); state.tokens.set(key, ++state.seq); return }
+  if (state.initializing && !state.ready && key.startsWith(PREFIX)) { supersede(key); state.preInit.set(key, null); stamp(key); return }
   if (!(state.ready && state.backend && key.startsWith(PREFIX)) || state.legacy.has(key)) {
     localStorage.removeItem(key)
     return
@@ -350,7 +363,7 @@ export function kvRemoveItem(key: string): void {
   supersede(key)
   noteAdoptFailedSuperseded(key)
   state.cache.delete(key)
-  state.tokens.set(key, ++state.seq)
+  stamp(key)
   state.queue.set(key, null)
   void flush()
 }
@@ -380,12 +393,13 @@ export async function kvSetItemConfirmed(key: string, value: string): Promise<bo
   const accepted = kvSetItem(key, value)
   if (accepted === 'local') {
     waiters.delete(token)
+    if (waiters.size === 0) state.waiters.delete(key)
     try { localStorage.setItem(key, value); return true } catch { return false }
   }
   void kvFlush()
   const ok = await result
-  if (!ok && state.tokens.get(key) === undefined && state.cache.get(key) === value) {
-    // Echec et aucune ecriture plus recente : on revient a la derniere valeur reellement enregistree.
+  if (!ok && state.latest.get(key) === token && state.cache.get(key) === value) {
+    // Echec et aucune ecriture plus recente acceptee (meme une transaction deja en cours compte) : on revient a la derniere valeur reellement enregistree.
     const durable = state.durable.get(key)
     if (durable === undefined || durable === null) state.cache.delete(key); else state.cache.set(key, durable)
   }
