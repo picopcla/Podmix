@@ -112,9 +112,11 @@ jobs:
           await ev(IDB)
           const HIST = JSON.stringify([{ id: 'h1', title: 'Episode historique test', artist: 'Artiste test', url: 'https://example.invalid/h1.mp3', position: 42, duration: 3600, playedAt: '2026-10-20T10:00:00.000Z' }])
           const UIHIST = `(async () => { const b = document.querySelector('button[aria-label="Voir l’historique"]'); if (!b) return 'NAV-INTROUVABLE'; b.click(); await new Promise((r) => setTimeout(r, 2500)); const t = [...document.querySelectorAll('.history-item')].map((x) => x.innerText).join(' | '); const back = document.querySelector('button[aria-label="Voir l’historique"]'); if (back) back.click(); return t.includes('Episode historique test') ? 'HISTORIQUE-VISIBLE' : 'HISTORIQUE-ABSENT items=' + t.slice(0, 120) })()`
-          const CAT = JSON.stringify([{ id: 'src1', kind: 'podcast', title: 'Podcast test', description: '', artworkUrl: '', feedUrl: 'https://example.invalid/feed.xml', episodes: [1,2,3].map((i) => ({ id: 'ep' + i, title: 'Episode test ' + i, description: 'd', publishedAt: '2026-10-0' + i + 'T00:00:00.000Z', duration: '1:00:00', audioUrl: 'https://example.invalid/a' + i + '.mp3', artworkUrl: '' })) }])
+          const CAT = JSON.stringify([{ id: 'source-favoris', kind: 'podcast', title: 'Podcast des favoris', description: 'Source de test', artworkUrl: '', episodes: [{ id: 'episode-favori-a', title: 'Premier episode favori', description: '', publishedAt: '2026-07-28', duration: '00:02', audioUrl: 'https://example.invalid/fa.wav', sourceUrl: 'https://example.invalid/ea', artworkUrl: '', tracks: [{ id: 1, time: 0.25, artist: 'Artiste A', title: 'Favori du premier episode', artworkUrl: '', deezerUrl: 'https://www.deezer.com/track/123', youtubeUrl: 'https://www.youtube.com/watch?v=detected-a', confidence: 100, source: 'manual' }] }, { id: 'episode-favori-b', title: 'Second episode favori', description: '', publishedAt: '2026-07-28', duration: '00:02', audioUrl: 'https://example.invalid/fb.wav', sourceUrl: 'https://example.invalid/eb', artworkUrl: '', tracks: [{ id: 2, time: 0.25, artist: 'Artiste A', title: 'Favori du second episode', artworkUrl: '', spotifyUrl: 'https://open.spotify.com/track/abc', confidence: 100, source: 'manual' }] }] }])
+          const FAVS = '["episode-favori-a::track::1::0","episode-favori-b::track::2::0"]'
+          const UIFAV = `(async () => { const b = document.querySelector('button[aria-label="Voir les favoris"]'); if (!b) return 'NAV-FAVORIS-INTROUVABLE'; b.click(); await new Promise((r) => setTimeout(r, 2500)); const f = document.querySelector('.favorite-tracks'); const t = f ? f.innerText : ''; const yt = f ? [...f.querySelectorAll('a[aria-label="YouTube disponible : ouvrir le morceau"]')].map((a) => a.getAttribute('href')) : []; const ytKo = f ? f.querySelectorAll('button[aria-label="YouTube indisponible pour ce morceau"]').length : -1; const back = document.querySelector('button[aria-label="Voir les favoris"]'); if (back) back.click(); return (t.includes('Favori du premier episode') && t.includes('Favori du second episode') ? 'FAVORIS-VISIBLES' : 'FAVORIS-ABSENTS texte=' + t.slice(0, 80)) + ' youtube_liens=' + JSON.stringify(yt) + ' youtube_indisponibles=' + ytKo })()`
           if (phase === 'seed') {
-            await ev(`localStorage.setItem('podmix-catalog-v1', ${JSON.stringify(CAT)}); localStorage.setItem('podmix-history-v1', ${JSON.stringify(HIST)}); localStorage.setItem('podmix-track-favorites-v1', '["fav-a","fav-b"]'); 1`)
+            await ev(`localStorage.setItem('podmix-catalog-v1', ${JSON.stringify(CAT)}); localStorage.setItem('podmix-history-v1', ${JSON.stringify(HIST)}); localStorage.setItem('podmix-track-favorites-v1', ${JSON.stringify(FAVS)}); 1`)
             const fill = await ev(`(() => { let n = 0; for (const size of [10000, 1000, 100, 10, 1]) { try { for (;;) { localStorage.setItem('zz-filler-' + n, 'x'.repeat(size)); n++ } } catch {} } let u = 0; for (let i = 0; i < localStorage.length; i++) { const k = localStorage.key(i); u += k.length + (localStorage.getItem(k) ?? '').length } return u })()`)
             log('seed (ancienne version installee): localStorage sature, caracteres utilises', fill)
           }
@@ -124,9 +126,10 @@ jobs:
             fs.writeFileSync('out/before.json', JSON.stringify(snap))
             log('ANCIENNE VERSION apres kill/relance, cles podmix-* :', Object.keys(snap).join(','))
             log('precondition filler persiste:', await ev(`localStorage.getItem('zz-filler-0') !== null`))
-            log('precondition catalogue seed persiste:', String(snap['podmix-catalog-v1'] ?? '').includes('Podcast test'))
+            log('precondition catalogue seed persiste:', String(snap['podmix-catalog-v1'] ?? '').includes('Podcast des favoris'))
             log('precondition historique seed persiste:', snap['podmix-history-v1'].includes('Episode historique test'))
             log('precondition historique visible dans l ecran Historique (ancienne version):', await ev(UIHIST))
+            log('precondition favoris ancienne version:', await ev(UIFAV))
             const body = String(await ev(`document.body.innerText.slice(0, 200).replace(/\\s+/g, ' ')`))
             log('texte ancienne version:', body)
           }
@@ -143,6 +146,7 @@ jobs:
             const body = String(await ev(`document.body.innerText.slice(0, 300).replace(/\\s+/g, ' ')`))
             log(phase + ': texte ecran:', body)
             log(phase + ': ecran Historique:', await ev(UIHIST))
+            log(phase + ': ecran Favoris:', await ev(UIFAV))
             log(phase + ': erreur Quota affichee:', /QuotaExceeded|Failed to execute/.test(body))
           }
           if (phase === 'migrated') {
@@ -166,6 +170,27 @@ jobs:
             log('10x apres kill/relance longueur:', await ev(`(async () => { const e = await window.__idbGet('zz-10x'); return e ? e.value.length : -1 })()`))
             execSync('adb exec-out screencap -p > out/durable-android.png')
           }
+          if (phase === 'killapp') {
+            // ecriture declenchee par le code de l appli (bascule d un reglage), kill immediat sans attendre la fin
+            await ev(`[...document.querySelectorAll('button')].find((b) => b.getAttribute('aria-label') === 'Réglages')?.click()`)
+            await sleep(1500)
+            const s0 = await ev(`(async () => (await window.__idbGet('podmix-settings-v1'))?.value ?? 'ABSENT')()`)
+            fs.writeFileSync('out/ks-before.txt', String(s0))
+            const idx = Number(process.argv[4])
+            send('Runtime.evaluate', { expression: `document.querySelectorAll('input[type=checkbox]')[${idx}]?.click()`, returnByValue: true })
+            execSync(`adb shell am force-stop ${process.argv[3]}`)
+            log('killapp: reglage ' + idx + ' bascule par le code appli puis kill immediat')
+          }
+          if (phase === 'killcheck') {
+            const s1 = String(await ev(`(async () => (await window.__idbGet('podmix-settings-v1'))?.value ?? 'ABSENT')()`))
+            let valid = false
+            try { valid = typeof JSON.parse(s1) === 'object' } catch {}
+            const s0 = fs.readFileSync('out/ks-before.txt', 'utf8')
+            log('killcheck: JSON valide:', valid)
+            log('killcheck: issue de l ecriture acceptee puis tuee:', s1 === s0 ? 'ANCIENNE valeur (ecriture acceptee mais non confirmee, perdue)' : 'NOUVELLE valeur (ecriture confirmee avant le kill)')
+            log('killcheck: catalogue intact:', await ev(`(async () => (await window.__idbGet('podmix-catalog-v1'))?.value?.includes('Podcast des favoris') === true)()`))
+            log('killcheck: ecran Favoris:', await ev(UIFAV))
+          }
           if (phase === 'killwrite') {
             // ecriture lourde dans IndexedDB, puis kill brutal sans attendre la fin de la transaction
             send('Runtime.evaluate', { expression: `(() => { const o = indexedDB.open('podmix-kv'); o.onsuccess = () => { const tx = o.result.transaction('kv', 'readwrite'); tx.objectStore('kv').put({ key: 'zz-kill', value: 'b'.repeat(80000000), at: 'x' }) }; return 1 })()`, returnByValue: true })
@@ -178,9 +203,10 @@ jobs:
             log('final: ecriture interrompue par le kill:', z, '(attendu : absente ou complete, jamais partielle)')
             const st = await ev(`(async () => (await window.__idbGet('podmix-settings-v1'))?.value ?? 'ABSENT')()`)
             log('final: reglage intact apres kill pendant ecriture:', String(st) === fs.readFileSync('out/settings-after.txt', 'utf8'))
-            const cat = await ev(`(async () => (await window.__idbGet('podmix-catalog-v1'))?.value?.includes('Podcast test') === true)()`)
+            const cat = await ev(`(async () => (await window.__idbGet('podmix-catalog-v1'))?.value?.includes('Podcast des favoris') === true)()`)
             log('final: catalogue intact apres kill pendant ecriture:', cat)
             log('final: ecran Historique:', await ev(UIHIST))
+            log('final: ecran Favoris:', await ev(UIFAV))
             log('final: erreur Quota affichee:', /QuotaExceeded|Failed to execute/.test(String(await ev(`document.body.innerText.slice(0, 300)`))))
             execSync('adb exec-out screencap -p > out/durable-android.png')
           }
@@ -211,6 +237,14 @@ jobs:
           adb shell am force-stop "$PKG"; sleep 3
           launch; echo "--- 5. NOUVELLE version apres kill/relance" | tee -a out/res.txt
           node "$RUNNER_TEMP/p.mjs" after 2>&1 | tee -a out/res.txt
+          for I in 0 1 2; do
+            launch; echo "--- 6.$I NOUVELLE version : reglage bascule par le code appli puis kill immediat" | tee -a out/res.txt
+            node "$RUNNER_TEMP/p.mjs" killapp "$PKG" $I 2>&1 | tee -a out/res.txt
+            sleep 3
+            launch; echo "--- 6.$I relance : controle" | tee -a out/res.txt
+            node "$RUNNER_TEMP/p.mjs" killcheck 2>&1 | tee -a out/res.txt
+            adb shell am force-stop "$PKG"; sleep 3
+          done
           launch; echo "--- 6. NOUVELLE version : kill brutal pendant une grosse ecriture" | tee -a out/res.txt
           node "$RUNNER_TEMP/p.mjs" killwrite "$PKG" 2>&1 | tee -a out/res.txt
           sleep 3
@@ -232,6 +266,13 @@ jobs:
           grep -q "final: reglage intact apres kill pendant ecriture: true" out/res.txt || exit 1
           grep -q "final: catalogue intact apres kill pendant ecriture: true" out/res.txt || exit 1
           grep -qE "final: ecriture interrompue par le kill: (ABSENT|COMPLET=true)" out/res.txt || exit 1
+          grep -q "precondition favoris ancienne version: FAVORIS-VISIBLES" out/res.txt || exit 1
+          grep -q "migrated: ecran Favoris: FAVORIS-VISIBLES" out/res.txt || exit 1
+          grep -q "after: ecran Favoris: FAVORIS-VISIBLES" out/res.txt || exit 1
+          grep -q "final: ecran Favoris: FAVORIS-VISIBLES" out/res.txt || exit 1
+          grep -q "migrated: ecran Favoris: .*detected-a" out/res.txt || exit 1
+          [ "$(grep -c 'killcheck: JSON valide: true' out/res.txt)" = "3" ] || exit 1
+          [ "$(grep -c 'killcheck: catalogue intact: true' out/res.txt)" = "3" ] || exit 1
           grep -q "reglage apres 2e kill/relance: identique" out/res.txt || exit 1
           [ "$(cat out/fatal.txt)" = "0" ] || exit 1
           XEOF
