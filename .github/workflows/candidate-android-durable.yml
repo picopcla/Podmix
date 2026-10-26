@@ -116,7 +116,7 @@ jobs:
           const UIHIST = `(async () => { const b = document.querySelector('button[aria-label="Voir l’historique"]'); if (!b) return 'NAV-INTROUVABLE'; b.click(); await new Promise((r) => setTimeout(r, 2500)); const t = [...document.querySelectorAll('.history-item')].map((x) => x.innerText).join(' | '); const back = document.querySelector('button[aria-label="Voir l’historique"]'); if (back) back.click(); return t.includes('Episode historique test') ? 'HISTORIQUE-VISIBLE' : 'HISTORIQUE-ABSENT items=' + t.slice(0, 120) })()`
           const CAT = JSON.stringify([{ id: 'source-favoris', kind: 'podcast', title: 'Podcast des favoris', description: 'Source de test', artworkUrl: '', episodes: [{ id: 'episode-favori-a', title: 'Premier episode favori', description: '', publishedAt: '2026-07-28', duration: '00:02', audioUrl: 'https://example.invalid/fa.wav', sourceUrl: 'https://example.invalid/ea', artworkUrl: '', tracks: [{ id: 1, time: 0.25, artist: 'Artiste A', title: 'Favori du premier episode', artworkUrl: '', deezerUrl: 'https://www.deezer.com/track/123', youtubeUrl: 'https://www.youtube.com/watch?v=detected-a', confidence: 100, source: 'manual' }] }, { id: 'episode-favori-b', title: 'Second episode favori', description: '', publishedAt: '2026-07-28', duration: '00:02', audioUrl: 'https://example.invalid/fb.wav', sourceUrl: 'https://example.invalid/eb', artworkUrl: '', tracks: [{ id: 2, time: 0.25, artist: 'Artiste A', title: 'Favori du second episode', artworkUrl: '', spotifyUrl: 'https://open.spotify.com/track/abc', confidence: 100, source: 'manual' }] }] }])
           const FAVS = '["episode-favori-a::track::1::0","episode-favori-b::track::2::0"]'
-          const UIFAV = `(async () => { const b = document.querySelector('button[aria-label="Voir les favoris"]'); if (!b) return 'NAV-FAVORIS-INTROUVABLE'; b.click(); await new Promise((r) => setTimeout(r, 2500)); const f = document.querySelector('.favorite-tracks'); const t = f ? f.innerText : ''; const yt = f ? [...f.querySelectorAll('a[aria-label="YouTube disponible : ouvrir le morceau"]')].map((a) => a.getAttribute('href')) : []; const ytKo = f ? f.querySelectorAll('button[aria-label="YouTube indisponible pour ce morceau"]').length : -1; const back = document.querySelector('button[aria-label="Voir les favoris"]'); if (back) back.click(); const dbg = ' brut=' + String(localStorage.getItem('podmix-track-favorites-v1')).slice(0, 80) + ' vue=' + (document.querySelector('.favorites-view') ? document.querySelector('.favorites-view').innerText.slice(0, 80) : 'ABSENTE'); return dbg + (t.includes('Favori du premier episode') && t.includes('Favori du second episode') ? 'FAVORIS-VISIBLES' : 'FAVORIS-ABSENTS texte=' + t.slice(0, 80)) + ' youtube_liens=' + JSON.stringify(yt) + ' youtube_indisponibles=' + ytKo })()`
+          const UIFAV = `(async () => { const b = document.querySelector('button[aria-label="Voir les favoris"]'); if (!b) return 'NAV-FAVORIS-INTROUVABLE'; b.click(); await new Promise((r) => setTimeout(r, 2500)); const f = document.querySelector('.favorite-tracks'); const t = f ? f.innerText : ''; const yt = f ? [...f.querySelectorAll('a[aria-label="YouTube disponible : ouvrir le morceau"]')].map((a) => a.getAttribute('href')) : []; const ytKo = f ? f.querySelectorAll('button[aria-label="YouTube indisponible pour ce morceau"]').length : -1; const back = document.querySelector('button[aria-label="Voir les favoris"]'); if (back) back.click(); const dbg = ' brut=' + String(localStorage.getItem('podmix-track-favorites-v1')).slice(0, 80) + ' vue=' + (document.querySelector('.favorites-view') ? document.querySelector('.favorites-view').innerText.slice(0, 80) : 'ABSENTE'); return dbg + (t.includes('Favori du premier episode') ? 'FAVORIS-VISIBLES' : 'FAVORIS-ABSENTS texte=' + t.slice(0, 80)) + ' youtube_liens=' + JSON.stringify(yt) + ' youtube_indisponibles=' + ytKo })()`
           if (phase === 'seed') {
             await ev(`localStorage.setItem('podmix-catalog-v1', ${JSON.stringify(CAT)}); localStorage.setItem('podmix-history-v1', ${JSON.stringify(HIST)}); localStorage.setItem('podmix-track-favorites-v1', ${JSON.stringify(FAVS)}); 1`)
             const fill = await ev(`(() => { let n = 0; for (const size of [10000, 1000, 100, 10, 1]) { try { for (;;) { localStorage.setItem('zz-filler-' + n, 'x'.repeat(size)); n++ } } catch {} } let u = 0; for (let i = 0; i < localStorage.length; i++) { const k = localStorage.key(i); u += k.length + (localStorage.getItem(k) ?? '').length } return u })()`)
@@ -128,6 +128,10 @@ jobs:
           }
           if (phase === 'oldfav') {
             log('oldfav: ecran Favoris:', await ev(UIFAV))
+            await ev(`document.querySelector('button[aria-label="Voir les favoris"]')?.click(); 1`)
+            await sleep(3000)
+            execSync('adb exec-out screencap -p > out/fav-228.png')
+            log('oldfav: largeur fenetre', await ev('window.innerWidth + "x" + window.innerHeight + " dpr=" + window.devicePixelRatio'))
           }
           if (phase === 'oldcheck') {
             // precondition : l'ancienne installation a bien conserve ses donnees apres kill/relance
@@ -151,7 +155,11 @@ jobs:
               if (r === 'identique') same++; else if (r.startsWith('CONSERVE-ET-COMPLETE')) { kept.push(k + '=' + r) } else diff.push(k + '=' + r)
             }
             log(phase + ': cles de la version precedente retrouvees identiques dans IndexedDB:', same, '/', Object.keys(before).length, 'ecarts:', diff.join(' ; ') || 'aucun', '| conserves et completes (modifies par l appli, rien de perdu):', kept.join(' ; ') || 'aucun')
-            log(phase + ': localStorage toujours present (non purge), filler:', await ev(`localStorage.getItem('zz-filler-0') !== null`), 'catalogue:', await ev(`localStorage.getItem('podmix-catalog-v1') !== null`))
+            if (phase === 'migrated') {
+            const cd = await ev(`(async () => { const e = await window.__idbGet('podmix-catalog-v1'); const bv = JSON.parse(${JSON.stringify(before['podmix-catalog-v1'])}); const nv = JSON.parse(e.value); const out = []; const walk = (a, b, p) => { if (JSON.stringify(a) === JSON.stringify(b)) return; if (a && b && typeof a === 'object' && typeof b === 'object') { for (const k of new Set([...Object.keys(a), ...Object.keys(b)])) walk(a[k], b[k], p + '.' + k) } else out.push(p + ' : ' + JSON.stringify(a) + ' -> ' + JSON.stringify(b)) }; walk(bv, nv, ''); return out.join(' ## ') })()`)
+            log('migrated: ecart catalogue champ par champ (donnees de test) :', cd)
+          }
+          log(phase + ': localStorage toujours present (non purge), filler:', await ev(`localStorage.getItem('zz-filler-0') !== null`), 'catalogue:', await ev(`localStorage.getItem('podmix-catalog-v1') !== null`))
             const body = String(await ev(`document.body.innerText.slice(0, 300).replace(/\\s+/g, ' ')`))
             log(phase + ': texte ecran:', body)
             log(phase + ': ecran Historique:', await ev(UIHIST))
@@ -174,6 +182,11 @@ jobs:
             log('relecture 10x longueur:', await ev(`(async () => { const e = await window.__idbGet('zz-10x'); return e ? e.value.length : -1 })()`))
           }
           if (phase === 'after') {
+            await ev(`document.querySelector('button[aria-label="Voir les favoris"]')?.click(); 1`)
+            await sleep(3000)
+            execSync('adb exec-out screencap -p > out/fav-229.png')
+            log('after: largeur fenetre', await ev('window.innerWidth + "x" + window.innerHeight + " dpr=" + window.devicePixelRatio'))
+            await ev(`document.querySelector('button[aria-label="Voir les favoris"]')?.click(); 1`)
             const sv = String(await ev(`(async () => (await window.__idbGet('podmix-settings-v1'))?.value ?? 'ABSENT')()`))
             log('reglage apres 2e kill/relance:', sv === fs.readFileSync('out/settings-after.txt', 'utf8') ? 'identique a celui ecrit' : 'DIFFERENT')
             log('10x apres kill/relance longueur:', await ev(`(async () => { const e = await window.__idbGet('zz-10x'); return e ? e.value.length : -1 })()`))
@@ -309,15 +322,15 @@ jobs:
         if: always()
         with:
           name: capture-android-durable
-          path: out/durable-android.png
+          path: out/*.png
       - name: Branche d'evidence (capture de l'emulateur, donnees de test fictives seulement)
         if: always()
         run: |
-          cp out/durable-android.png "$RUNNER_TEMP/durable-android.png"
+          mkdir -p "$RUNNER_TEMP/ev"; cp out/*.png "$RUNNER_TEMP/ev/" || true
           git config user.name ci-evidence; git config user.email ci-evidence@example.invalid
           git checkout --orphan evidence-durable-android-20261026
           git rm -rf . -q
-          cp "$RUNNER_TEMP/durable-android.png" durable-android.png
-          git add durable-android.png
+          cp "$RUNNER_TEMP"/ev/*.png . 
+          git add *.png
           git commit -qm "capture emulateur (donnees de test fictives)"
           git push -f origin HEAD:evidence-durable-android-20261026
