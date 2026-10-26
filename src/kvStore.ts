@@ -98,9 +98,18 @@ type State = {
   lsBase: Map<string, string>
   /** Issue de la derniere ecriture IndexedDB de la cle (effacee a chaque nouvelle acceptation). */
   outcome: Map<string, 'ok' | 'failed'>
+  /** Numero de la derniere ecriture en attente, par cle (une ecriture plus recente remplace la precedente). */
+  tokens: Map<string, number>
+  /** Appelants qui attendent la fin de LEUR ecriture : cle -> numero -> resolution. */
+  waiters: Map<string, Map<number, (ok: boolean) => void>>
+  /** Derniere valeur connue comme ecrite durablement (null : absente). */
+  durable: Map<string, string | null>
+  /** Cles dont l'adoption a echoue : empreinte du localStorage deja vu (a noter des qu'une ecriture plus recente la remplace). */
+  adoptFailed: Map<string, string>
+  seq: number
 }
 
-const state: State = { cache: new Map(), legacy: new Set(), queue: new Map(), flushing: false, ready: false, initializing: false, preInit: new Map(), lsBase: new Map(), outcome: new Map() }
+const state: State = { cache: new Map(), legacy: new Set(), queue: new Map(), flushing: false, ready: false, initializing: false, preInit: new Map(), lsBase: new Map(), outcome: new Map(), tokens: new Map(), waiters: new Map(), durable: new Map(), adoptFailed: new Map(), seq: 0 }
 let initPromise: Promise<MigrationResult> | undefined
 
 export type MigrationResult = {
@@ -126,9 +135,23 @@ export function fingerprint(value: string | null): string {
   return `${value.length}:${a.toString(16)}:${b.toString(16)}`
 }
 
+function settle(key: string, token: number | undefined, ok: boolean) {
+  if (token === undefined) return
+  const resolve = state.waiters.get(key)?.get(token)
+  if (resolve) { state.waiters.get(key)?.delete(token); resolve(ok) }
+}
+
+/** Une ecriture plus recente remplace celle qui attendait encore : l'ancienne n'a jamais ete ecrite. */
+function supersede(key: string) {
+  const old = state.tokens.get(key)
+  settle(key, old, false)
+}
+
 function applyPreInitToLocal(storage: Storage) {
   for (const [key, value] of state.preInit) {
-    try { if (value === null) storage.removeItem(key); else storage.setItem(key, value) } catch { state.onFailure?.(key) }
+    const token = state.tokens.get(key)
+    state.tokens.delete(key)
+    try { if (value === null) storage.removeItem(key); else storage.setItem(key, value); settle(key, token, true) } catch { state.onFailure?.(key); settle(key, token, false) }
   }
   state.preInit = new Map()
 }
@@ -153,7 +176,7 @@ async function runInit(
   const storage = options.storage ?? localStorage
   state.onFailure = options.onFailure
   state.onSuccess = options.onSuccess
-  state.cache = new Map(); state.legacy = new Set(); state.queue = new Map(); state.backend = undefined; state.ready = false; state.preInit = new Map(); state.lsBase = new Map()
+  state.cache = new Map(); state.legacy = new Set(); state.queue = new Map(); state.backend = undefined; state.ready = false; state.lsBase = new Map(); state.durable = new Map(); state.adoptFailed = new Map(); state.outcome = new Map()
   const result: MigrationResult = { mode: 'localstorage', migrated: [], alreadyThere: [], adopted: [], kept: [] }
   let backend: KvBackend
   let existing: Entry[]
@@ -200,6 +223,7 @@ async function runInit(
         await writeVerified(entry.key, lsValue, {})
         state.lsBase.set(entry.key, fingerprint(lsValue))
         state.cache.set(entry.key, lsValue)
+        state.durable.set(entry.key, lsValue)
         result.adopted.push(entry.key)
       } catch {
         // Adoption non verifiee : la valeur la plus recente (localStorage) est servie ; la cle reste geree par IndexedDB
@@ -207,11 +231,14 @@ async function runInit(
         state.cache.set(entry.key, lsValue)
         result.kept.push(entry.key) // lsBase inchange : l'ecart sera de nouveau constate au lancement suivant
         state.lsBase.set(entry.key, entry.lsSeen ?? 'null')
+        state.adoptFailed.set(entry.key, fingerprint(lsValue))
+        state.durable.set(entry.key, entry.deleted ? null : entry.value)
       }
       continue
     }
     state.lsBase.set(entry.key, entry.lsSeen ?? fingerprint(lsValue))
     if (!entry.deleted) state.cache.set(entry.key, entry.value)
+    state.durable.set(entry.key, entry.deleted ? null : entry.value)
     result.alreadyThere.push(entry.key)
   }
 
@@ -224,6 +251,7 @@ async function runInit(
       await writeVerified(key, value, { migratedFrom: 'localStorage' })
       state.lsBase.set(key, fingerprint(value))
       state.cache.set(key, value)
+      state.durable.set(key, value)
       result.migrated.push(key)
     } catch {
       state.legacy.add(key)
@@ -237,13 +265,25 @@ async function runInit(
   // Ecritures acceptees pendant l'init : elles l'emportent (plus recentes que tout ce qui vient d'etre lu).
   for (const [key, value] of state.preInit) {
     if (state.legacy.has(key)) { // cle restee en mode localStorage : l'operation se fait dans le localStorage
-      try { if (value === null) storage.removeItem(key); else storage.setItem(key, value) } catch { state.onFailure?.(key) }
+      const token = state.tokens.get(key)
+      state.tokens.delete(key)
+      try { if (value === null) storage.removeItem(key); else storage.setItem(key, value); settle(key, token, true) } catch { state.onFailure?.(key); settle(key, token, false) }
       if (value === null) state.cache.delete(key); else state.cache.set(key, value)
-    } else if (value === null) { state.cache.delete(key); state.queue.set(key, null) } else { state.cache.set(key, value); state.queue.set(key, value) }
+    } else {
+      noteAdoptFailedSuperseded(key)
+      if (value === null) state.cache.delete(key); else state.cache.set(key, value)
+      state.queue.set(key, value)
+    }
   }
   state.preInit = new Map()
   void flush()
   return result
+}
+
+/** Ecrire par-dessus une valeur localStorage non adoptee : cette valeur est desormais depassee, on la note comme deja vue. */
+function noteAdoptFailedSuperseded(key: string) {
+  const seen = state.adoptFailed.get(key)
+  if (seen !== undefined) { state.lsBase.set(key, seen); state.adoptFailed.delete(key) }
 }
 
 export function kvGetItem(key: string): string | null {
@@ -264,17 +304,22 @@ async function flush() {
       const [key, value] = state.queue.entries().next().value as [string, string | null]
       state.queue.delete(key)
       const deleted = value === null
+      const token = state.tokens.get(key)
+      state.tokens.delete(key)
       try {
         await state.backend.put({
           key, value: value ?? '', deleted: deleted || undefined, verified: true,
           lsSeen: state.lsBase.get(key) ?? fingerprint(null), at: new Date().toISOString(),
         })
         state.outcome.set(key, 'ok')
+        state.durable.set(key, value)
+        settle(key, token, true)
         state.onSuccess?.(key) // transaction terminee : c'est ici que la sauvegarde est confirmee
       } catch {
         // Pas de repli localStorage (il masquerait ou serait masque au redemarrage) : echec signale, valeur gardee en memoire.
         state.outcome.set(key, 'failed')
         state.onFailure?.(key)
+        settle(key, token, false)
       }
     }
   } finally {
@@ -284,22 +329,28 @@ async function flush() {
 
 /** 'local' : la cle n'est pas geree par IndexedDB (appelant : ecrire en localStorage). true : acceptee, enregistree a la fin de la transaction. */
 export function kvSetItem(key: string, value: string): boolean | 'local' {
-  if (state.initializing && !state.ready && key.startsWith(PREFIX)) { state.preInit.set(key, value); return true }
+  if (state.initializing && !state.ready && key.startsWith(PREFIX)) { supersede(key); state.preInit.set(key, value); state.tokens.set(key, ++state.seq); return true }
   if (!(state.ready && state.backend && key.startsWith(PREFIX)) || state.legacy.has(key)) return 'local'
+  supersede(key)
+  noteAdoptFailedSuperseded(key)
   state.cache.set(key, value)
   state.outcome.delete(key)
+  state.tokens.set(key, ++state.seq)
   state.queue.set(key, value)
   void flush()
   return true
 }
 
 export function kvRemoveItem(key: string): void {
-  if (state.initializing && !state.ready && key.startsWith(PREFIX)) { state.preInit.set(key, null); return }
+  if (state.initializing && !state.ready && key.startsWith(PREFIX)) { supersede(key); state.preInit.set(key, null); state.tokens.set(key, ++state.seq); return }
   if (!(state.ready && state.backend && key.startsWith(PREFIX)) || state.legacy.has(key)) {
     localStorage.removeItem(key)
     return
   }
+  supersede(key)
+  noteAdoptFailedSuperseded(key)
   state.cache.delete(key)
+  state.tokens.set(key, ++state.seq)
   state.queue.set(key, null)
   void flush()
 }
@@ -319,13 +370,24 @@ export async function kvFlush(): Promise<void> {
  * En cas d'echec, la valeur precedente est remise dans le cache (rien n'est presente comme enregistre).
  */
 export async function kvSetItemConfirmed(key: string, value: string): Promise<boolean> {
-  const previous = kvGetItem(key)
+  // Le numero de l'ecriture est connu avant de l'accepter : le flush peut demarrer et finir pendant kvSetItem.
+  const token = state.seq + 1
+  let resolveWrite: (ok: boolean) => void = () => undefined
+  const result = new Promise<boolean>((resolve) => { resolveWrite = resolve })
+  let waiters = state.waiters.get(key)
+  if (!waiters) { waiters = new Map(); state.waiters.set(key, waiters) }
+  waiters.set(token, resolveWrite)
   const accepted = kvSetItem(key, value)
   if (accepted === 'local') {
+    waiters.delete(token)
     try { localStorage.setItem(key, value); return true } catch { return false }
   }
-  await kvFlush()
-  if (state.outcome.get(key) === 'ok') return true
-  if (previous === null) state.cache.delete(key); else state.cache.set(key, previous)
-  return false
+  void kvFlush()
+  const ok = await result
+  if (!ok && state.tokens.get(key) === undefined && state.cache.get(key) === value) {
+    // Echec et aucune ecriture plus recente : on revient a la derniere valeur reellement enregistree.
+    const durable = state.durable.get(key)
+    if (durable === undefined || durable === null) state.cache.delete(key); else state.cache.set(key, durable)
+  }
+  return ok
 }
