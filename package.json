@@ -21,7 +21,7 @@
     "test:e2e": "playwright test",
     "lint": "oxlint",
     "preview": "vite preview",
-    "test:unit": "vitest run tests/unit/credits.test.ts"
+    "test:unit": "vitest run tests/unit/credits.test.ts tests/unit/safeStorage.test.ts"
   },
   "dependencies": {
     "@capacitor/android": "^8.4.2",

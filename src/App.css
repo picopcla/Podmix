@@ -570,3 +570,5 @@ html,body,#root,.app-shell{background:#f4f6f0!important}
 
 /* Correctif theme clair : pilule de marque blanche (sous filtre d'inversion, #000 rend #fff). */
 .topbar .brand{background:#000!important}
+
+.storage-warning{margin:8px 12px;padding:9px 11px;border:1px solid rgba(255,105,64,.65);border-radius:8px;background:rgba(255,105,64,.1);color:var(--cream);font-size:11px;line-height:1.4}

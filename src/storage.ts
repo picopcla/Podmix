@@ -1,5 +1,5 @@
 import type { CatalogSource, OfflineEpisode, Track } from './domain'
-import { safeSetItem } from './safeStorage'
+import { isQuotaError, reportStorageFailure, reportStorageSuccess, safeSetItem } from './safeStorage'
 
 const DATABASE = 'podmix-studio'
 const STORE = 'sessions'
@@ -95,11 +95,13 @@ export function saveCatalog(sources: CatalogSource[]) {
   for (const candidate of [compact, minimal]) {
     try {
       localStorage.setItem(CATALOG_KEY, JSON.stringify(candidate))
+      reportStorageSuccess(CATALOG_KEY)
       return
     } catch (error) {
-      if (!(error instanceof DOMException) || error.name !== 'QuotaExceededError') return
+      if (!isQuotaError(error)) return
     }
   }
+  reportStorageFailure(CATALOG_KEY)
 }
 
 export function loadOfflineEpisodes(): OfflineEpisode[] {

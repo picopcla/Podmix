@@ -23,7 +23,7 @@ import { decodeCredit, decodeCredits } from './credits'
 import podmixInfinityLogo from './assets/podmix-logo-radio-c.png'
 import './App.css'
 import './identification.css'
-import { safeSetItem } from './safeStorage'
+import { safeSetItem, useStorageFailures } from './safeStorage'
 
 const initialTracks: Track[] = []
 
@@ -735,6 +735,7 @@ function App() {
   const [canSkipPrevious, setCanSkipPrevious] = useState(false)
   const [skipPendingDirection, setSkipPendingDirection] = useState<'next' | 'previous' | null>(null)
   const [downloadMessage, setDownloadMessage] = useState('')
+  const storageFailures = useStorageFailures()
   const [sourceMode, setSourceMode] = useState<'rss' | 'show' | 'radio' | 'dj'>('rss')
   const [radioQuery, setRadioQuery] = useState('')
   const [radioResults, setRadioResults] = useState<CatalogSource[]>([])
@@ -1594,7 +1595,7 @@ function App() {
     safeSetItem('podmix-active-timestamp-source-v1', source.id)
     void scheduleNextTimestamping([source, ...catalogRef.current.filter((item) => item.id !== source.id)])
   }, [selectedSourceId, settings.automaticAnalysis])
-  useEffect(() => safeSetItem('podmix-track-favorites-v1', JSON.stringify(favoriteTrackIds)), [favoriteTrackIds])
+  useEffect(() => { safeSetItem('podmix-track-favorites-v1', JSON.stringify(favoriteTrackIds)) }, [favoriteTrackIds])
   useEffect(() => {
     if (!podmixPlayer.isNative) return
     let active = true
@@ -1707,7 +1708,7 @@ function App() {
     }
   }
   useEffect(() => { nowPlayingRef.current = nowPlaying }, [nowPlaying])
-  useEffect(() => safeSetItem('podmix-bose-ip', boseIp), [boseIp])
+  useEffect(() => { safeSetItem('podmix-bose-ip', boseIp) }, [boseIp])
   useEffect(() => {
     if (podmixPlayer.isNative) void restoreOutputAfterLaunch()
     // Si la SoundTouch est réellement encore en lecture, sa session mémorisée
@@ -1715,7 +1716,7 @@ function App() {
     // Sinon la sortie locale reste le comportement de base.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
-  useEffect(() => safeSetItem('podmix-settings-v1', JSON.stringify(settings)), [settings])
+  useEffect(() => { safeSetItem('podmix-settings-v1', JSON.stringify(settings)) }, [settings])
   useEffect(() => {
     offlineEpisodesRef.current = offlineEpisodes
     saveOfflineEpisodes(offlineEpisodes)
@@ -4979,6 +4980,7 @@ function App() {
             <button aria-label="Réglages" className={activeView === 'settings' ? 'active' : ''} onClick={() => navigateTo(activeView === 'settings' ? 'home' : 'settings')}><Settings2 size={18} /></button>
           </div>
         </header>
+        {storageFailures.length > 0 && <div className="storage-warning" role="alert">Stockage interne plein : les modifications de {storageFailures.join(', ')} ne sont pas enregistrées. L’application n’a rien supprimé.</div>}
 
         {activeView !== 'studio' && <section className="workspace catalog-view">
           {!selectedSource && activeView !== 'home' && activeView !== 'resume' && activeView !== 'favorites' && activeView !== 'liveSets' && activeView !== 'djLibrary' && <div className="catalog-hero">
