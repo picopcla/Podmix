@@ -251,8 +251,8 @@ function episodeTimestampStatus(episode: Episode) {
   const hasRssTimestamps = tracks.length > 0 && tracks.every((track) => (
     track.timestampSource === 'rss' && track.timestampStatus === 'provided'
   ))
-  if (hasYoutubeTimestamps) return { label: 'YT · vérifié', shortLabel: 'YT', tone: 'youtube' }
-  if (has1001Timestamps) return { label: '1001TL · vérifié', shortLabel: '1001TL', tone: 'tl1001' }
+  if (hasYoutubeTimestamps) return { label: 'YT · vérifié', shortLabel: 'Y', tone: 'youtube' }
+  if (has1001Timestamps) return { label: '1001TL · vérifié', shortLabel: 'T', tone: 'tl1001' }
   if (hasAnalyzedAudioTimestamps) return { label: 'Audio · analysé', shortLabel: 'Audio', tone: 'audio' }
   if (hasRssTimestamps) return { label: 'RSS · original', shortLabel: 'RSS', tone: 'rss' }
   // Une analyse terminée sans source de temps explicite signifie que les

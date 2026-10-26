@@ -1,7 +1,7 @@
 {
   "name": "podmix-next",
   "private": true,
-  "version": "1.0.225",
+  "version": "1.0.229",
   "type": "module",
   "scripts": {
     "dev": "vite",
