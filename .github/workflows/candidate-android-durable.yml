@@ -132,6 +132,10 @@ jobs:
             // detection YouTube REELLE : serveur candidat local (10.0.2.2:8099), morceau sans lien ; on rafraichit les liens dans l'UI
             await ev(`document.querySelector('button[aria-label="Voir les favoris"]')?.click(); 1`)
             await sleep(2500)
+            log('realyt: adresse API integree dans le bundle:', await ev(`(async () => { const out = []; for (const sc of [...document.scripts].map((x) => x.src).filter(Boolean)) { try { const t = await (await fetch(sc)).text(); out.push(sc.split('/').pop() + ' local=' + t.includes('10.0.2.2:8099') + ' prod=' + t.includes('podmix.mb4.fr/podmix-api')) } catch (e) { out.push('lecture-impossible:' + String(e)) } } return out.join(' ; ') })()`))
+            log('realyt: favoris localStorage brut:', await ev(`localStorage.getItem('podmix-track-favorites-v1')`))
+            log('realyt: onLine:', await ev(`String(navigator.onLine)`))
+            await ev(`(() => { window.__lk = []; const of = window.fetch.bind(window); window.fetch = async (...a) => { const u = String(a[0] && a[0].url ? a[0].url : a[0]); const rec = { u, body: a[1] && a[1].body ? String(a[1].body).slice(0, 300) : '' }; if (u.includes('/catalog/links')) window.__lk.push(rec); try { const r = await of(...a); if (u.includes('/catalog/links')) { rec.status = r.status; try { rec.resp = (await r.clone().text()).slice(0, 500) } catch (e) { rec.resp = 'lecture:' + e } } return r } catch (e) { if (u.includes('/catalog/links')) rec.err = String(e); throw e } }; return 1 })()`)
             await ev(`document.querySelector('button[aria-label="Rafraîchir les liens musicaux"]')?.click(); 1`)
             let hrefs = '[]'
             for (let i = 0; i < 30; i += 1) {
@@ -139,6 +143,7 @@ jobs:
               hrefs = await ev(`JSON.stringify([...document.querySelectorAll('.favorite-tracks a[aria-label="YouTube disponible : ouvrir le morceau"]')].map((a) => a.getAttribute('href')))`)
               if (JSON.parse(hrefs).some((h) => !h.includes('detected-a') && /watch\?v=/.test(h))) break
             }
+            log('realyt: requetes /catalog/links vues par l appli:', await ev(`JSON.stringify(window.__lk)`))
             fs.writeFileSync('out/yt-href.txt', hrefs)
             log('realyt: liens YouTube dans la vue Favoris:', hrefs)
             log('realyt: texte vue Favoris:', String(await ev(`document.querySelector('.favorite-tracks')?.innerText ?? 'ABSENT'`)).replace(/\s+/g, ' ').slice(0, 300))
@@ -337,7 +342,7 @@ jobs:
         run: |
           mkdir -p out
           pip install --quiet -r server/requirements.txt
-          PODMIX_ALLOWED_ORIGINS="https://localhost,http://localhost,capacitor://localhost" nohup python3 server/dev_server.py > out/server.log 2>&1 &
+          PODMIX_ALLOWED_ORIGINS="https://localhost,http://localhost,capacitor://localhost" nohup python3 -u server/dev_server.py > out/server.log 2>&1 &
           for i in $(seq 1 20); do curl -fs http://127.0.0.1:8099/health && break; sleep 1; done
           echo
       - name: Preparer l'emulateur accelere
