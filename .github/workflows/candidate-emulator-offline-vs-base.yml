@@ -64,6 +64,8 @@ jobs:
           ffmpeg -y -f lavfi -i "sine=frequency=440:duration=70" -ac 1 -b:a 32k /home/runner/t/www/ep.mp3
           ls -l /home/runner/t/www apks
           cat apks/*.sha
+          cp -r "$GITHUB_WORKSPACE/apks" /home/runner/apks
+          ls -l /home/runner/apks
           cat > /home/runner/t/t.mjs <<'EOF_T'
           import { execSync, exec } from 'node:child_process'
           import fs from 'node:fs'
@@ -152,7 +154,7 @@ jobs:
             adb shell svc wifi enable || true
             adb shell svc data enable || true
             adb uninstall com.podmix.next.ng >/dev/null 2>&1 || true
-            adb install /home/runner/apks/app-$TAG.apk
+            adb install /home/runner/apks/app-$TAG.apk || echo INSTALL_FAILED
             adb shell pm grant com.podmix.next.ng android.permission.POST_NOTIFICATIONS || true
             node t.mjs $TAG || true
             kill $(cat /tmp/http.pid) 2>/dev/null || true
