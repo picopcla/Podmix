@@ -27,8 +27,28 @@ jobs:
         run: |
           npm run build
           npx playwright install --with-deps chromium
-          npx playwright test --reporter=line 2>&1 | tee e2e.txt || true
-          { echo "## e2e Playwright (resume)"; echo '```'; tail -40 e2e.txt; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
+          npx playwright test --reporter=list 2>&1 | tee e2e.txt || true
+          { echo "## e2e Playwright, NOUVEAU code (resume)"; echo '```'; grep -E "^\s+(✓|✘|-)|passed|failed" e2e.txt | cut -c1-170; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
+
+  e2e-baseline-228:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: 867f490
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - name: e2e Playwright sur l'ANCIEN code 228 (reference, non bloquant)
+        continue-on-error: true
+        run: |
+          npm run build
+          npx playwright install --with-deps chromium
+          npx playwright test --reporter=list 2>&1 | tee e2e.txt || true
+          { echo "## e2e Playwright, ANCIEN code 228 (reference)"; echo '```'; grep -E "^\s+(✓|✘|-)|passed|failed" e2e.txt | cut -c1-170; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
 
   android-durable:
     runs-on: ubuntu-latest
@@ -91,7 +111,7 @@ jobs:
           await send('Runtime.enable'); await send('Page.enable')
           await ev(IDB)
           const HIST = JSON.stringify([{ id: 'h1', title: 'Episode historique test', artist: 'Artiste test', url: 'https://example.invalid/h1.mp3', position: 42, duration: 3600, playedAt: '2026-10-20T10:00:00.000Z' }])
-          const UIHIST = `(async () => { const b = [...document.querySelectorAll('button, a')].find((x) => /Historique/.test(x.innerText + (x.getAttribute('aria-label') ?? ''))); if (!b) return 'NAV-INTROUVABLE'; b.click(); await new Promise((r) => setTimeout(r, 2500)); return document.body.innerText.includes('Episode historique test') ? 'HISTORIQUE-VISIBLE' : 'HISTORIQUE-ABSENT' })()`
+          const UIHIST = `(async () => { const b = document.querySelector('button[aria-label="Voir l’historique"]'); if (!b) return 'NAV-INTROUVABLE'; b.click(); await new Promise((r) => setTimeout(r, 2500)); const t = [...document.querySelectorAll('.history-item')].map((x) => x.innerText).join(' | '); const back = document.querySelector('button[aria-label="Voir l’historique"]'); if (back) back.click(); return t.includes('Episode historique test') ? 'HISTORIQUE-VISIBLE' : 'HISTORIQUE-ABSENT items=' + t.slice(0, 120) })()`
           const CAT = JSON.stringify([{ id: 'src1', kind: 'podcast', title: 'Podcast test', description: '', artworkUrl: '', feedUrl: 'https://example.invalid/feed.xml', episodes: [1,2,3].map((i) => ({ id: 'ep' + i, title: 'Episode test ' + i, description: 'd', publishedAt: '2026-10-0' + i + 'T00:00:00.000Z', duration: '1:00:00', audioUrl: 'https://example.invalid/a' + i + '.mp3', artworkUrl: '' })) }])
           if (phase === 'seed') {
             await ev(`localStorage.setItem('podmix-catalog-v1', ${JSON.stringify(CAT)}); localStorage.setItem('podmix-history-v1', ${JSON.stringify(HIST)}); localStorage.setItem('podmix-track-favorites-v1', '["fav-a","fav-b"]'); 1`)
@@ -112,13 +132,13 @@ jobs:
           }
           if (phase === 'migrated' || phase === 'after') {
             const before = JSON.parse(fs.readFileSync('out/before.json', 'utf8'))
-            let same = 0, diff = []
+            let same = 0, diff = [], kept = []
             if (phase === 'after') before['podmix-settings-v1'] = fs.readFileSync('out/settings-after.txt', 'utf8')
             for (const k of Object.keys(before)) {
-              const r = await ev(`(async () => { const e = await window.__idbGet(${JSON.stringify(k)}); if (!e) return 'absent'; if (e.deleted) return 'supprime'; if (e.value === ${JSON.stringify(before[k])}) return 'identique'; const all = await new Promise((res) => { const o = indexedDB.open('podmix-kv'); o.onsuccess = () => { const g = o.result.transaction('kv').objectStore('kv').getAll(); g.onsuccess = () => { o.result.close(); res(g.result) } } }); const rec = all.some((x) => x.key.startsWith('podmix-recovered:' + ${JSON.stringify(k)}) && x.value === ${JSON.stringify(before[k])}); return rec ? 'ancienne valeur gardee dans recovered (valeur courante differente)' : 'DIFFERENT' })()`)
-              if (r === 'identique') same++; else diff.push(k + '=' + r)
+              const r = await ev(`(async () => { const e = await window.__idbGet(${JSON.stringify(k)}); if (!e) return 'absent'; if (e.deleted) return 'supprime'; if (e.value === ${JSON.stringify(before[k])}) return 'identique'; const all = await new Promise((res) => { const o = indexedDB.open('podmix-kv'); o.onsuccess = () => { const g = o.result.transaction('kv').objectStore('kv').getAll(); g.onsuccess = () => { o.result.close(); res(g.result) } } }); const rec = all.some((x) => x.key.startsWith('podmix-recovered:' + ${JSON.stringify(k)}) && x.value === ${JSON.stringify(before[k])}); if (rec) return 'ancienne valeur gardee dans recovered (valeur courante differente)'; try { const bv = JSON.parse(${JSON.stringify(before[k])}); const nv = JSON.parse(e.value); if (Array.isArray(bv) && Array.isArray(nv)) { const ns = new Set(nv.map((x) => JSON.stringify(x))); if (bv.every((x) => ns.has(JSON.stringify(x)))) return 'CONSERVE-ET-COMPLETE avant=' + bv.length + ' maintenant=' + nv.length + ' ajoutes=' + nv.filter((x) => !bv.some((y) => JSON.stringify(y) === JSON.stringify(x))).map((x) => x.id ?? x.sessionId ?? '?').join(',') } } catch {} return 'DIFFERENT avant_longueur=' + ${JSON.stringify(before[k])}.length + ' maintenant_longueur=' + e.value.length + ' debut_avant=' + ${JSON.stringify(before[k])}.slice(0, 160) + ' debut_maintenant=' + e.value.slice(0, 160) })()`)
+              if (r === 'identique') same++; else if (r.startsWith('CONSERVE-ET-COMPLETE')) { kept.push(k + '=' + r) } else diff.push(k + '=' + r)
             }
-            log(phase + ': cles de la version precedente retrouvees identiques dans IndexedDB:', same, '/', Object.keys(before).length, 'ecarts:', diff.join(' ; ') || 'aucun')
+            log(phase + ': cles de la version precedente retrouvees identiques dans IndexedDB:', same, '/', Object.keys(before).length, 'ecarts:', diff.join(' ; ') || 'aucun', '| conserves et completes (modifies par l appli, rien de perdu):', kept.join(' ; ') || 'aucun')
             log(phase + ': localStorage toujours present (non purge), filler:', await ev(`localStorage.getItem('zz-filler-0') !== null`), 'catalogue:', await ev(`localStorage.getItem('podmix-catalog-v1') !== null`))
             const body = String(await ev(`document.body.innerText.slice(0, 300).replace(/\\s+/g, ' ')`))
             log(phase + ': texte ecran:', body)
