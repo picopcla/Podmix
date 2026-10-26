@@ -23,6 +23,7 @@ import { decodeCredit, decodeCredits } from './credits'
 import podmixInfinityLogo from './assets/podmix-logo-radio-c.png'
 import './App.css'
 import './identification.css'
+import { safeSetItem } from './safeStorage'
 
 const initialTracks: Track[] = []
 
@@ -600,14 +601,14 @@ function App() {
       order.splice(currentIndex, 1)
       order.splice(newIndex, 0, dragSection)
       setHomeSectionOrder(order)
-      localStorage.setItem('podmix-home-section-order-v1', JSON.stringify(order))
+      safeSetItem('podmix-home-section-order-v1', JSON.stringify(order))
       dragStartY.current = clientY
     } else if (deltaY < -threshold && currentIndex > 0) {
       const newIndex = currentIndex - 1
       order.splice(currentIndex, 1)
       order.splice(newIndex, 0, dragSection)
       setHomeSectionOrder(order)
-      localStorage.setItem('podmix-home-section-order-v1', JSON.stringify(order))
+      safeSetItem('podmix-home-section-order-v1', JSON.stringify(order))
       dragStartY.current = clientY
     }
   }
@@ -768,7 +769,7 @@ function App() {
   useEffect(() => { activeOutputRef.current = activeOutput }, [activeOutput])
 
   function persistAutomaticTimestampQueue() {
-    localStorage.setItem(
+    safeSetItem(
       AUTOMATIC_TIMESTAMP_QUEUE_KEY,
       JSON.stringify([...automaticTimestampEpisodeIds.current]),
     )
@@ -792,7 +793,7 @@ function App() {
   function establishRssBaseline(sourceId: string) {
     if (rssBaselineSourceIds.current.has(sourceId)) return
     rssBaselineSourceIds.current.add(sourceId)
-    localStorage.setItem(RSS_BASELINE_SOURCES_KEY, JSON.stringify([...rssBaselineSourceIds.current]))
+    safeSetItem(RSS_BASELINE_SOURCES_KEY, JSON.stringify([...rssBaselineSourceIds.current]))
   }
 
   async function resetRepeatForNewQueue() {
@@ -922,7 +923,7 @@ function App() {
   ) {
     const stored = loadBoseSession()
     if (!stored || !item) return
-    localStorage.setItem('podmix-bose-session-v1', JSON.stringify({
+    safeSetItem('podmix-bose-session-v1', JSON.stringify({
       ...stored,
       item,
       contentOffsetSeconds: boseContentOffsetRef.current,
@@ -1549,7 +1550,7 @@ function App() {
       }))
       if (!stopped) {
         if (attemptedFeeds === 0 || refreshedFeeds > 0) {
-          localStorage.setItem('podmix-last-feed-refresh', String(Date.now()))
+          safeSetItem('podmix-last-feed-refresh', String(Date.now()))
         }
         setCatalog(refreshed)
         enqueueNewEpisodesForTimestamping(enteredEpisodes.map(({ episode }) => episode))
@@ -1560,7 +1561,7 @@ function App() {
           // Ne coupe jamais une analyse en cours. Ce verrou choisit seulement
           // le podcast qui prendra le prochain créneau de la file unique.
           activeTimestampSourceId.current = nextEpisode.source.id
-          localStorage.setItem('podmix-active-timestamp-source-v1', nextEpisode.source.id)
+          safeSetItem('podmix-active-timestamp-source-v1', nextEpisode.source.id)
         }
         await scheduleNextTimestamping(refreshed)
       }
@@ -1590,10 +1591,10 @@ function App() {
     // Ouvrir un podcast donne la main à sa file. Le job déjà en cours n'est
     // jamais interrompu ; ce choix s'applique au prochain épisode à lancer.
     activeTimestampSourceId.current = source.id
-    localStorage.setItem('podmix-active-timestamp-source-v1', source.id)
+    safeSetItem('podmix-active-timestamp-source-v1', source.id)
     void scheduleNextTimestamping([source, ...catalogRef.current.filter((item) => item.id !== source.id)])
   }, [selectedSourceId, settings.automaticAnalysis])
-  useEffect(() => localStorage.setItem('podmix-track-favorites-v1', JSON.stringify(favoriteTrackIds)), [favoriteTrackIds])
+  useEffect(() => safeSetItem('podmix-track-favorites-v1', JSON.stringify(favoriteTrackIds)), [favoriteTrackIds])
   useEffect(() => {
     if (!podmixPlayer.isNative) return
     let active = true
@@ -1706,7 +1707,7 @@ function App() {
     }
   }
   useEffect(() => { nowPlayingRef.current = nowPlaying }, [nowPlaying])
-  useEffect(() => localStorage.setItem('podmix-bose-ip', boseIp), [boseIp])
+  useEffect(() => safeSetItem('podmix-bose-ip', boseIp), [boseIp])
   useEffect(() => {
     if (podmixPlayer.isNative) void restoreOutputAfterLaunch()
     // Si la SoundTouch est réellement encore en lecture, sa session mémorisée
@@ -1714,7 +1715,7 @@ function App() {
     // Sinon la sortie locale reste le comportement de base.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
-  useEffect(() => localStorage.setItem('podmix-settings-v1', JSON.stringify(settings)), [settings])
+  useEffect(() => safeSetItem('podmix-settings-v1', JSON.stringify(settings)), [settings])
   useEffect(() => {
     offlineEpisodesRef.current = offlineEpisodes
     saveOfflineEpisodes(offlineEpisodes)
@@ -2480,7 +2481,7 @@ function App() {
         source = sources.find((item) => queuedEpisodes(item).length > 0)
         sourceQueue = source ? queuedEpisodes(source) : []
         activeTimestampSourceId.current = source?.id ?? ''
-        if (source) localStorage.setItem('podmix-active-timestamp-source-v1', source.id)
+        if (source) safeSetItem('podmix-active-timestamp-source-v1', source.id)
         else localStorage.removeItem('podmix-active-timestamp-source-v1')
       }
       const next = sourceQueue[0]
@@ -2995,7 +2996,7 @@ function App() {
       if (source.kind !== 'show' && isNewPodcast && settings.automaticAnalysis) {
         enqueueNewEpisodesForTimestamping(source.episodes)
         activeTimestampSourceId.current = source.id
-        localStorage.setItem('podmix-active-timestamp-source-v1', source.id)
+        safeSetItem('podmix-active-timestamp-source-v1', source.id)
         void scheduleNextTimestamping([source, ...catalogRef.current.filter((item) => item.id !== source.id)])
       }
       establishRssBaseline(source.id)
@@ -4226,7 +4227,7 @@ function App() {
     setGlobalPlaying(true)
     const name = targetName || activeOutput.name || 'Bose SoundTouch'
     selectBoseOutput(ip, name)
-    localStorage.setItem('podmix-bose-session-v1', JSON.stringify({
+    safeSetItem('podmix-bose-session-v1', JSON.stringify({
       ip,
       name,
       item,
@@ -4505,7 +4506,7 @@ function App() {
       if (source.kind !== 'show' && isNewPodcast && settings.automaticAnalysis) {
         enqueueNewEpisodesForTimestamping(source.episodes)
         activeTimestampSourceId.current = source.id
-        localStorage.setItem('podmix-active-timestamp-source-v1', source.id)
+        safeSetItem('podmix-active-timestamp-source-v1', source.id)
         void scheduleNextTimestamping([source, ...catalogRef.current.filter((item) => item.id !== source.id)])
       }
       establishRssBaseline(source.id)
@@ -4557,7 +4558,7 @@ function App() {
       }
       manualTimestampQueueActive.current = true
       activeTimestampSourceId.current = resetSource!.id
-      localStorage.setItem('podmix-active-timestamp-source-v1', resetSource!.id)
+      safeSetItem('podmix-active-timestamp-source-v1', resetSource!.id)
       await scheduleNextTimestamping([resetSource!, ...catalogRef.current.filter((item) => item.id !== resetSource!.id)])
       const count = resetSource!.episodes.filter((episode) => episode.audioUrl).length
       setDownloadMessage(`${count} épisode${count > 1 ? 's' : ''} réinitialisé${count > 1 ? 's' : ''} et relancé${count > 1 ? 's' : ''}`)

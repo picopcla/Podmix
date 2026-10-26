@@ -1,4 +1,5 @@
 export const PLAYBACK_HISTORY_KEY = 'podmix-history-v1'
+import { safeSetItem } from './safeStorage'
 export const LISTENING_SESSIONS_KEY = 'podmix-listening-sessions-v1'
 export const COMPLETED_EPISODES_KEY = 'podmix-completed-episodes-v1'
 
@@ -58,7 +59,7 @@ export function loadPlaybackHistory(): PlaybackHistoryItem[] {
 }
 
 export function savePlaybackHistory(items: PlaybackHistoryItem[]) {
-  localStorage.setItem(PLAYBACK_HISTORY_KEY, JSON.stringify(items.slice(0, 1_000)))
+  safeSetItem(PLAYBACK_HISTORY_KEY, JSON.stringify(items.slice(0, 1_000)))
 }
 
 /** Les éléments terminés ne font pas partie de « Reprendre ». */
@@ -69,7 +70,7 @@ export function loadCompletedEpisodeIds(): string[] {
 }
 
 export function saveCompletedEpisodeIds(ids: string[]) {
-  localStorage.setItem(COMPLETED_EPISODES_KEY, JSON.stringify([...new Set(ids)].slice(0, 2_000)))
+  safeSetItem(COMPLETED_EPISODES_KEY, JSON.stringify([...new Set(ids)].slice(0, 2_000)))
 }
 
 export function loadListeningSessions(): ListeningSession[] {
@@ -102,7 +103,7 @@ export function updateListeningSessions(sessions: ListeningSession[], item: Play
 }
 
 export function saveListeningSessions(sessions: ListeningSession[]) {
-  localStorage.setItem(LISTENING_SESSIONS_KEY, JSON.stringify(sessions.slice(0, 2_000)))
+  safeSetItem(LISTENING_SESSIONS_KEY, JSON.stringify(sessions.slice(0, 2_000)))
 }
 
 export function searchListeningSessions(sessions: ListeningSession[], query: string) {

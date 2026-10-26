@@ -1,6 +1,7 @@
 import { Capacitor, registerPlugin } from '@capacitor/core'
 import type { PluginListenerHandle } from '@capacitor/core'
 import { decodeCredits } from './credits'
+import { safeSetItem } from './safeStorage'
 
 export type PlayerState = {
   playing: boolean
@@ -318,7 +319,7 @@ export const podmixPlayer = {
     const volume = Math.max(0, Math.min(1, options.volume))
     if (Capacitor.isNativePlatform()) return NativePlayer.setVolume({ volume })
     webAudio.volume = volume
-    localStorage.setItem('podmix-player-volume', String(volume))
+    safeSetItem('podmix-player-volume', String(volume))
     return { volume }
   },
   async getVolume() {

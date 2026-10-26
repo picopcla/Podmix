@@ -1,4 +1,5 @@
 import type { CatalogSource, OfflineEpisode, Track } from './domain'
+import { safeSetItem } from './safeStorage'
 
 const DATABASE = 'podmix-studio'
 const STORE = 'sessions'
@@ -111,5 +112,5 @@ export function loadOfflineEpisodes(): OfflineEpisode[] {
 }
 
 export function saveOfflineEpisodes(episodes: OfflineEpisode[]) {
-  localStorage.setItem(OFFLINE_KEY, JSON.stringify(episodes))
+  safeSetItem(OFFLINE_KEY, JSON.stringify(episodes))
 }

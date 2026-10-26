@@ -1,5 +1,6 @@
 import type { CatalogSource, DetectionJob, DjSearchResult, LiveSetDetails, LiveSetSearchResult, LiveSetTrack, PodcastSearchResult } from './domain'
 import { Capacitor } from '@capacitor/core'
+import { safeSetItem } from './safeStorage'
 
 const API_TIMEOUT_MS = 45_000
 
@@ -31,7 +32,7 @@ export function setApiUrl(value: string): string {
   const parsed = new URL(normalized)
   if (!['http:', 'https:'].includes(parsed.protocol)) throw new Error('Utilisez une adresse HTTP ou HTTPS')
   if (!parsed.hostname) throw new Error('Adresse serveur invalide')
-  localStorage.setItem('podmix-api-url', normalized)
+  safeSetItem('podmix-api-url', normalized)
   return normalized
 }
 
