@@ -1,0 +1,128 @@
+name: candidate-android-saturation
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [fix/localstorage-quota-20261026]
+    paths: ['.github/workflows/candidate-android-saturation.yml']
+
+permissions:
+  contents: read
+
+jobs:
+  android-saturation:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+      - run: npm ci --no-audit --no-fund
+      - name: Construire l'APK ng debug (meme code web, debogage WebView actif, aucune publication)
+        run: |
+          set -euo pipefail
+          node -e "const fs=require('fs');const p=JSON.parse(fs.readFileSync('package.json','utf8'));p.version='1.0.227';fs.writeFileSync('package.json',JSON.stringify(p,null,2)+'\n')"
+          npm run version:sync
+          npm run build
+          npx cap sync android
+          cd android && ./gradlew assembleNgDebug
+      - name: Ecrire le test
+        run: |
+          mkdir -p out
+          cp android/app/build/outputs/apk/ng/debug/*.apk out/app-debug.apk
+          BT=$(find "$ANDROID_HOME/build-tools" -mindepth 1 -maxdepth 1 -type d | sort -V | tail -1)
+          "$BT/aapt2" dump badging out/app-debug.apk | head -1 | tee out/badging.txt
+          PKG=$(sed -n "s/.*package: name='\([^']*\)'.*/\1/p" out/badging.txt)
+          echo "$PKG" > out/pkg.txt
+          cat > "$RUNNER_TEMP/sat.mjs" <<'SATEOF'
+          import { execSync } from 'node:child_process'
+          const sleep = (ms) => new Promise((r) => setTimeout(r, ms))
+          const targets = await (await fetch('http://127.0.0.1:9222/json')).json()
+          const page = targets.find((t) => t.type === 'page')
+          const ws = new WebSocket(page.webSocketDebuggerUrl)
+          await new Promise((r) => (ws.onopen = r))
+          let id = 0
+          const pending = new Map()
+          ws.onmessage = (m) => { const d = JSON.parse(m.data); if (d.id && pending.has(d.id)) { pending.get(d.id)(d); pending.delete(d.id) } }
+          const send = (method, params = {}) => new Promise((res) => { const i = ++id; pending.set(i, res); ws.send(JSON.stringify({ id: i, method, params })) })
+          const ev = async (expr) => { const r = await send('Runtime.evaluate', { expression: expr, returnByValue: true, awaitPromise: true }); return r.result?.result?.value ?? JSON.stringify(r.result?.exceptionDetails ?? r.error ?? null).slice(0, 200) }
+          const log = (...a) => console.log(...a)
+          const GROW = `(() => { const ks = Object.keys(localStorage).filter((k) => k.startsWith('zz-filler-')); let g = true; while (g) { g = false; for (const k of ks) { try { localStorage.setItem(k, localStorage.getItem(k) + 'x'); g = true } catch {} } } let u = 0; for (let i = 0; i < localStorage.length; i++) { const k = localStorage.key(i); u += k.length + (localStorage.getItem(k) ?? '').length } return u })()`
+          const SNAP = `JSON.stringify(Object.fromEntries(Object.keys(localStorage).filter((k) => !k.startsWith('zz-')).sort().map((k) => [k, localStorage.getItem(k)])))`
+          await send('Runtime.enable'); await send('Page.enable')
+          log('page', page.url)
+          await ev(`localStorage.setItem('podmix-catalog-v1', JSON.stringify([{ id: 'src1', kind: 'podcast', title: 'Podcast test', description: '', artworkUrl: '', feedUrl: 'https://example.invalid/feed.xml', episodes: [1,2,3].map((i) => ({ id: 'ep' + i, title: 'Episode test ' + i, description: 'd', publishedAt: new Date(Date.now() - i * 86400000).toISOString(), duration: '1:00:00', audioUrl: 'https://example.invalid/a' + i + '.mp3', artworkUrl: '' })) }]))`)
+          await send('Page.reload'); await sleep(6000)
+          const fill = await ev(`(() => { let n = 0; for (const size of [10000, 1000, 100, 10, 1]) { try { for (;;) { localStorage.setItem('zz-filler-' + n, 'x'.repeat(size)); n++ } } catch {} } return n })()`)
+          const used = await ev(GROW)
+          log('remplissage cles', fill, 'caracteres utilises', used)
+          const before = await ev(SNAP)
+          await send('Page.reload'); await sleep(8000)
+          const body1 = String(await ev(`document.body.innerText.slice(0, 160).replace(/\\s+/g, ' ')`))
+          log('apres relance sature, texte:', body1)
+          log('erreur Quota affichee:', /QuotaExceeded|Failed to execute/.test(body1))
+          await ev(`[...document.querySelectorAll('button')].find((b) => b.getAttribute('aria-label') === 'Réglages')?.click()`)
+          await sleep(1500)
+          await ev(GROW)
+          const settingsBefore = await ev(`localStorage.getItem('podmix-settings-v1')`)
+          await ev(`document.querySelectorAll('input[type=checkbox]')[0]?.click()`)
+          await sleep(1500)
+          const settingsAfter = await ev(`localStorage.getItem('podmix-settings-v1')`)
+          const banner = await ev(`document.querySelector('.storage-warning')?.innerText ?? 'AUCUN'`)
+          await ev(`window.scrollTo(0, 0)`)
+          log('reglage enregistre inchange (refus effectif):', settingsBefore === settingsAfter)
+          log('bandeau:', String(banner).replace(/\s+/g, ' '))
+          const after = await ev(SNAP)
+          const b = JSON.parse(before), a = JSON.parse(after)
+          log('donnees utilisateur preservees:', Object.keys(b).every((k) => a[k] === b[k]), 'cles', Object.keys(b).length, Object.keys(a).length)
+          const rect = await ev(`JSON.stringify(document.querySelector('.storage-warning')?.getBoundingClientRect() ?? null) + ' vw=' + innerWidth + ' sw=' + document.documentElement.scrollWidth`)
+          log('cadre bandeau:', rect)
+          execSync('adb exec-out screencap -p > out/sat-android.png')
+          ws.close(); process.exit(0)
+
+          SATEOF
+          cat > "$RUNNER_TEMP/sat.sh" <<'XEOF'
+          set -u
+          PKG=$(cat out/pkg.txt)
+          adb install -r out/app-debug.apk
+          adb logcat -c
+          adb shell am start -n "$PKG/com.podmix.next.MainActivity"
+          sleep 20
+          PID=$(adb shell pidof "$PKG" | tr -d '\r')
+          echo "pid=$PID"
+          adb forward tcp:9222 localabstract:webview_devtools_remote_$PID
+          node "$RUNNER_TEMP/sat.mjs" 2>&1 | tee out/sat.txt
+          RC=$?
+          adb logcat -d | grep -c "FATAL EXCEPTION" > out/fatal.txt || true
+          echo "FATAL EXCEPTION dans logcat: $(cat out/fatal.txt)" | tee -a out/sat.txt
+          { echo "## Saturation localStorage sur Android (emulateur jetable, APK debug du meme code, aucune publication)"; echo '```'; cat out/sat.txt; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
+          grep -q "preservees: true" out/sat.txt || exit 1
+          grep -q "bandeau: Stockage interne plein" out/sat.txt || exit 1
+          grep -q "erreur Quota affichee: false" out/sat.txt || exit 1
+          grep -q "inchange (refus effectif): true" out/sat.txt || exit 1
+          [ "$(cat out/fatal.txt)" = "0" ] || exit 1
+          XEOF
+      - name: Preparer l'emulateur accelere
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+          sudo chmod 666 /dev/kvm
+      - uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 33
+          arch: x86_64
+          profile: pixel_2
+          emulator-options: -no-snapshot -no-window -noaudio -no-boot-anim -gpu swiftshader_indirect -camera-back none
+          script: bash ${{ runner.temp }}/sat.sh
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: capture-android-saturation
+          path: out/sat-android.png
