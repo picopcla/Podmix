@@ -1,0 +1,81 @@
+name: candidate-launch-check
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [fix/studio-playbutton-intent-20261025]
+    paths: ['.github/workflows/candidate-launch-check.yml']
+
+permissions:
+  contents: read
+
+jobs:
+  launch:
+    timeout-minutes: 25
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - name: Telecharger les APK publies 225 et 226 (lecture seule)
+        run: |
+          set -euo pipefail
+          mkdir -p out artifacts
+          gh release download v1.0.225-ng-combined -R ${{ github.repository }} -p app-ng-release.apk -O out/app-225.apk --clobber
+          gh release download v1.0.226-ng-candidat-test -R ${{ github.repository }} -p app-ng-release.apk -O out/app-226.apk --clobber
+          sha256sum out/app-225.apk out/app-226.apk
+      - name: Ecrire le script de test
+        run: |
+          cat > "$RUNNER_TEMP/launch.sh" <<'XEOF'
+          set -u
+          S="$GITHUB_STEP_SUMMARY"
+          echo "## Lancement des APK PUBLIES (emulateur API 33, aucune publication)" >> "$S"
+          PKG=com.podmix.next.ng
+          ACT=$PKG/com.podmix.next.MainActivity
+          check() {
+            LABEL=$1
+            adb logcat -c
+            adb shell am start -n $ACT > /tmp/start.txt 2>&1
+            sleep 25
+            PID=$(adb shell pidof $PKG | tr -d '\r')
+            adb exec-out screencap -p > artifacts/$LABEL.png
+            adb logcat -d -b crash > artifacts/$LABEL-crash.txt 2>&1
+            adb logcat -d > artifacts/$LABEL-full.txt 2>&1
+            NCRASH=$(grep -c 'FATAL EXCEPTION' artifacts/$LABEL-full.txt || true)
+            echo "- $LABEL: start=[$(tr '\n' ' ' < /tmp/start.txt | cut -c1-120)] pid=[$PID] FATAL=$NCRASH" >> "$S"
+            grep -m5 -A6 'FATAL EXCEPTION' artifacts/$LABEL-full.txt | cut -c1-220 | sed 's/^/    /' >> "$S" || true
+          }
+          adb uninstall $PKG >/dev/null 2>&1 || true
+          adb install out/app-225.apk > /tmp/i225.txt 2>&1 || true
+          echo "- install 225: $(tr '\n' ' ' < /tmp/i225.txt)" >> "$S"
+          check A-225-clean
+          adb root >/dev/null 2>&1 || true
+          sleep 2
+          adb shell "echo marker > /data/data/$PKG/files/.update-check"
+          adb shell am force-stop $PKG
+          adb install -r out/app-226.apk > /tmp/i226.txt 2>&1 || true
+          echo "- install -r 226 sur 225: $(tr '\n' ' ' < /tmp/i226.txt)" >> "$S"
+          adb shell dumpsys package $PKG | grep -E 'versionCode|versionName' | head -2 | tr '\n' ' ' >> "$S"; echo >> "$S"
+          check B-226-after-upgrade
+          adb shell am force-stop $PKG
+          check C-226-second-start
+          echo "- marqueur apres: $(adb shell cat /data/data/$PKG/files/.update-check | tr -d '\r')" >> "$S"
+          XEOF
+      - name: Preparer l'emulateur accelere
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+          sudo chmod 666 /dev/kvm
+      - uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 33
+          arch: x86_64
+          profile: pixel_2
+          emulator-options: -no-snapshot -no-window -noaudio -no-boot-anim -gpu swiftshader_indirect -camera-back none
+          script: bash ${{ runner.temp }}/launch.sh
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: launch-check
+          path: artifacts/
+          retention-days: 7
