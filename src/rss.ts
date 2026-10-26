@@ -1,5 +1,6 @@
 import type { Episode } from './domain'
 import type { CatalogSource } from './domain'
+import { normalizeCatalogSourceText } from './text'
 
 export type RssImportResult = {
   title: string
@@ -110,7 +111,7 @@ export async function importRssLocally(feedUrl: string, limit = 100): Promise<Ca
     }
   })
 
-  return {
+  return normalizeCatalogSourceText({
     id: `rss:${feedUrl}`,
     kind: 'podcast' as const,
     title,
@@ -118,5 +119,5 @@ export async function importRssLocally(feedUrl: string, limit = 100): Promise<Ca
     artworkUrl,
     feedUrl,
     episodes,
-  }
+  })
 }

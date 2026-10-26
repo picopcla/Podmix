@@ -11,7 +11,6 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
-import android.text.Html;
 
 import androidx.annotation.Nullable;
 import androidx.annotation.OptIn;
@@ -60,8 +59,11 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import org.json.JSONArray;
 import org.json.JSONObject;
+import org.jsoup.parser.Parser;
 
 @OptIn(markerClass = UnstableApi.class)
 public class PodmixPlaybackService extends MediaLibraryService {
@@ -85,6 +87,10 @@ public class PodmixPlaybackService extends MediaLibraryService {
     public static final String ARG_ABSOLUTE_POSITION_MS = "podmixAbsolutePositionMs";
     private static final String EXTRA_LIVE = "podmixLive";
     private static final String EXTRA_SOURCE_KIND = "podmixSourceKind";
+    private static final int MAX_ENTITY_DECODE_PASSES = 4;
+    private static final Pattern COMPLETE_HTML_ENTITY = Pattern.compile(
+        "&(?:#[xX][0-9A-Fa-f]{1,8}|#[0-9]{1,10}|[A-Za-z][A-Za-z0-9]{1,31});"
+    );
     private static WeakReference<PodmixPlaybackService> activeService = new WeakReference<>(null);
     private ExoPlayer player;
     private TrackAwarePlayer trackAwarePlayer;
@@ -219,6 +225,7 @@ public class PodmixPlaybackService extends MediaLibraryService {
                 // car never receives the "Lu" state for that episode.
                 if (playbackState == Player.STATE_ENDED) {
                     markCurrentEpisodeCompleted();
+                    clearNativeResume(player.getCurrentMediaItem());
                 }
             }
 
@@ -228,6 +235,9 @@ public class PodmixPlaybackService extends MediaLibraryService {
                     + " reason=" + reason
                     + " state=" + player.getPlaybackState()
                     + " suppression=" + player.getPlaybackSuppressionReason());
+                if (!playWhenReady) {
+                    saveNativeResume();
+                }
                 if (!playWhenReady) {
                     cancelPendingRecovery();
                     playbackGeneration++;
@@ -251,7 +261,121 @@ public class PodmixPlaybackService extends MediaLibraryService {
         });
         trackHandler.post(trackPresentationUpdater);
         trackHandler.post(playbackHealthMonitor);
+        trackHandler.postDelayed(nativeResumeSaver, NATIVE_RESUME_SAVE_MS);
         registerNetworkRecovery();
+    }
+
+    // ---- Native resume store -------------------------------------------
+    // The WebView used to be the only writer of resume positions. When an
+    // episode is started from Android Auto, a Bluetooth/Bose button or with
+    // the screen off, the WebView may not run, so no position was saved and
+    // Android Auto only offered "start from the beginning". The service now
+    // records the position itself, under the plain episode id.
+    private static final String NATIVE_RESUME_PREFS = "podmix-native-resume";
+    private static final long NATIVE_RESUME_SAVE_MS = 10_000;
+    private static final String LAST_PLAYED_KEY = "lastEpisodeId";
+
+    private final Runnable nativeResumeSaver = new Runnable() {
+        @Override public void run() {
+            if (player != null && player.isPlaying()) saveNativeResume();
+            trackHandler.postDelayed(this, NATIVE_RESUME_SAVE_MS);
+        }
+    };
+
+    static String plainEpisodeId(@Nullable String mediaId) {
+        String result = mediaId == null ? "" : mediaId;
+        for (int guard = 0; guard < 4; guard++) {
+            String stripped = result;
+            for (String prefix : new String[] {
+                RESUME_PREFIX, EPISODE_RESUME_PREFIX, EPISODE_START_PREFIX, "episode::"
+            }) {
+                if (stripped.startsWith(prefix)) {
+                    stripped = stripped.substring(prefix.length());
+                    break;
+                }
+            }
+            if (stripped.equals(result)) break;
+            result = stripped;
+        }
+        return result;
+    }
+
+    private void saveNativeResume() {
+        if (player == null) return;
+        MediaItem item = player.getCurrentMediaItem();
+        if (item == null || item.localConfiguration == null || isLiveRadioItem(item)) return;
+        String episodeId = plainEpisodeId(item.mediaId);
+        if (episodeId.isEmpty()) return;
+        long positionMs = Math.max(0, player.getCurrentPosition());
+        long durationMs = player.getDuration();
+        if (positionMs < 5_000) return; // never overwrite a real position with a fresh start
+        if (durationMs != C.TIME_UNSET && durationMs > 0
+            && positionMs >= (long) (durationMs * 0.98)) {
+            clearNativeResume(item);
+            return;
+        }
+        try {
+            SharedPreferences prefs = getSharedPreferences(NATIVE_RESUME_PREFS, MODE_PRIVATE);
+            JSONObject all = new JSONObject(prefs.getString("items", "{}"));
+            JSONObject entry = new JSONObject();
+            entry.put("episodeId", episodeId);
+            entry.put("id", RESUME_PREFIX + episodeId);
+            entry.put("positionMs", positionMs);
+            entry.put("durationMs", durationMs == C.TIME_UNSET ? 0 : durationMs);
+            entry.put("at", System.currentTimeMillis());
+            entry.put("title", String.valueOf(item.mediaMetadata.title == null ? "" : item.mediaMetadata.title));
+            entry.put("artist", String.valueOf(item.mediaMetadata.artist == null ? "" : item.mediaMetadata.artist));
+            entry.put("url", item.localConfiguration.uri.toString());
+            entry.put("artworkUrl", item.mediaMetadata.artworkUri == null
+                ? "" : item.mediaMetadata.artworkUri.toString());
+            all.put(episodeId, entry);
+            // Keep the 20 most recent entries.
+            while (all.length() > 20) {
+                String oldest = null; long oldestAt = Long.MAX_VALUE;
+                java.util.Iterator<String> keys = all.keys();
+                while (keys.hasNext()) {
+                    String key = keys.next();
+                    long at = all.getJSONObject(key).optLong("at", 0);
+                    if (at < oldestAt) { oldestAt = at; oldest = key; }
+                }
+                if (oldest == null) break;
+                all.remove(oldest);
+            }
+            prefs.edit()
+                .putString("items", all.toString())
+                .putString(LAST_PLAYED_KEY, episodeId)
+                .apply();
+            cachedResumeItems = null;
+        } catch (Exception error) {
+            Log.w("PodmixService", "Unable to save native resume position", error);
+        }
+    }
+
+    private void clearNativeResume(@Nullable MediaItem item) {
+        if (item == null) return;
+        String episodeId = plainEpisodeId(item.mediaId);
+        if (episodeId.isEmpty()) return;
+        try {
+            SharedPreferences prefs = getSharedPreferences(NATIVE_RESUME_PREFS, MODE_PRIVATE);
+            JSONObject all = new JSONObject(prefs.getString("items", "{}"));
+            if (all.has(episodeId)) {
+                all.remove(episodeId);
+                prefs.edit().putString("items", all.toString()).apply();
+                cachedResumeItems = null;
+            }
+        } catch (Exception ignored) {
+        }
+    }
+
+    @Nullable
+    private JSONObject nativeResumeEntry(String episodeId) {
+        try {
+            JSONObject all = new JSONObject(
+                getSharedPreferences(NATIVE_RESUME_PREFS, MODE_PRIVATE).getString("items", "{}"));
+            return all.optJSONObject(plainEpisodeId(episodeId));
+        } catch (Exception error) {
+            return null;
+        }
     }
 
     @Nullable
@@ -395,6 +519,41 @@ public class PodmixPlaybackService extends MediaLibraryService {
     }
 
     private final class LibraryCallback implements MediaLibrarySession.Callback {
+        // A bare "play" from a Bluetooth/Bose button, the car or the system
+        // media notification arrives with an empty queue after the service
+        // was killed. Reload the last episode at its saved position.
+        @Override
+        public ListenableFuture<MediaItemsWithStartPosition> onPlaybackResumption(
+            MediaSession session,
+            MediaSession.ControllerInfo controller
+        ) {
+            try {
+                String lastId = getSharedPreferences(NATIVE_RESUME_PREFS, MODE_PRIVATE)
+                    .getString(LAST_PLAYED_KEY, "");
+                JSONObject entry = lastId.isEmpty() ? null : nativeResumeEntry(lastId);
+                if (entry != null && !entry.optString("url", "").isEmpty()) {
+                    String artworkUrl = entry.optString("artworkUrl", "");
+                    MediaItem item = new MediaItem.Builder()
+                        .setMediaId(entry.optString("id", RESUME_PREFIX + lastId))
+                        .setUri(entry.optString("url"))
+                        .setMediaMetadata(new MediaMetadata.Builder()
+                            .setTitle(decodeHtmlEntities(entry.optString("title", "")))
+                            .setArtist(decodeHtmlEntities(entry.optString("artist", "")))
+                            .setArtworkUri(artworkUrl.isEmpty() ? null : Uri.parse(artworkUrl))
+                            .setIsBrowsable(false)
+                            .setIsPlayable(true)
+                            .build())
+                        .build();
+                    completionCandidateEpisodeId = lastId;
+                    return Futures.immediateFuture(new MediaItemsWithStartPosition(
+                        List.of(item), 0, Math.max(0, entry.optLong("positionMs", 0))));
+                }
+            } catch (Exception error) {
+                Log.w("PodmixService", "Playback resumption failed", error);
+            }
+            return Futures.immediateFailedFuture(new UnsupportedOperationException("Nothing to resume"));
+        }
+
         @Override
         public MediaSession.ConnectionResult onConnect(
             MediaSession session,
@@ -928,14 +1087,8 @@ public class PodmixPlaybackService extends MediaLibraryService {
     ) {
         String episodeId = episode.item.mediaId.substring("episode::".length());
         List<MediaItem> choices = new ArrayList<>();
-        choices.add(episodePlaybackChoiceItem(
-            EPISODE_START_PREFIX + episodeId,
-            "Lire depuis le début",
-            "Épisode complet · 00:00",
-            episode
-        ));
         long resumeMs = getResumePosition(episodeId);
-        if (resumeMs > 1_000) {
+        if (resumeMs != C.TIME_UNSET && resumeMs > 1_000) {
             choices.add(episodePlaybackChoiceItem(
                 EPISODE_RESUME_PREFIX + episodeId,
                 "Reprendre la lecture",
@@ -943,6 +1096,12 @@ public class PodmixPlaybackService extends MediaLibraryService {
                 episode
             ));
         }
+        choices.add(episodePlaybackChoiceItem(
+            EPISODE_START_PREFIX + episodeId,
+            "Lire depuis le début",
+            "Épisode complet · 00:00",
+            episode
+        ));
         for (LibraryEntry entry : library) {
             if (entry.playable && episode.item.mediaId.equals(entry.parentId)) {
                 choices.add(entry.item);
@@ -1749,6 +1908,7 @@ public class PodmixPlaybackService extends MediaLibraryService {
             mediaSession = null;
         }
         if (player != null) {
+            saveNativeResume();
             player.release();
             player = null;
         }
@@ -1791,6 +1951,36 @@ public class PodmixPlaybackService extends MediaLibraryService {
         } catch (Exception ignored) {
         }
         
+        // Episodes only the service knows about (started from the car or a
+        // Bluetooth button while the WebView was not running).
+        try {
+            JSONObject all = new JSONObject(
+                getSharedPreferences(NATIVE_RESUME_PREFS, MODE_PRIVATE).getString("items", "{}"));
+            java.util.Iterator<String> keys = all.keys();
+            while (keys.hasNext()) {
+                JSONObject entry = all.getJSONObject(keys.next());
+                String id = entry.optString("id", "");
+                String url = entry.optString("url", "");
+                if (id.isEmpty() || url.isEmpty()) continue;
+                boolean known = false;
+                for (MediaItem existing : items) if (id.equals(existing.mediaId)) known = true;
+                if (known) continue;
+                String artworkUrl = entry.optString("artworkUrl", "");
+                items.add(new MediaItem.Builder()
+                    .setMediaId(id)
+                    .setUri(url)
+                    .setMediaMetadata(new MediaMetadata.Builder()
+                        .setTitle(decodeHtmlEntities(entry.optString("title", "")))
+                        .setArtist(decodeHtmlEntities(entry.optString("artist", "")))
+                        .setArtworkUri(artworkUrl.isEmpty() ? null : Uri.parse(artworkUrl))
+                        .setIsBrowsable(false)
+                        .setIsPlayable(true)
+                        .build())
+                    .build());
+            }
+        } catch (Exception ignored) {
+        }
+
         cachedResumeItems = items;
         cachedResumeVersion = currentVersion;
         return items;
@@ -1803,9 +1993,26 @@ public class PodmixPlaybackService extends MediaLibraryService {
         return false;
     }
 
-    private static String decodeHtmlEntities(String value) {
+    static String decodeHtmlEntities(String value) {
         if (value == null || value.indexOf('&') < 0) return value == null ? "" : value;
-        return Html.fromHtml(value, Html.FROM_HTML_MODE_LEGACY).toString().trim();
+        String result = value;
+        for (int pass = 0; pass < MAX_ENTITY_DECODE_PASSES; pass++) {
+            Matcher matcher = COMPLETE_HTML_ENTITY.matcher(result);
+            StringBuffer decoded = new StringBuffer(result.length());
+            boolean changed = false;
+            while (matcher.find()) {
+                String entity = matcher.group();
+                // Parse only the complete entity token. Surrounding text is
+                // never interpreted as markup, so literal tags stay literal.
+                String replacement = Parser.unescapeEntities(entity, false);
+                if (!replacement.equals(entity)) changed = true;
+                matcher.appendReplacement(decoded, Matcher.quoteReplacement(replacement));
+            }
+            matcher.appendTail(decoded);
+            result = decoded.toString();
+            if (!changed || result.indexOf('&') < 0) break;
+        }
+        return result;
     }
 
     private static Bundle contentStyles(int browsableStyle, int playableStyle) {
@@ -1866,6 +2073,11 @@ public class PodmixPlaybackService extends MediaLibraryService {
     }
 
     private long getResumePosition(String episodeId) {
+        JSONObject nativeEntry = nativeResumeEntry(episodeId);
+        if (nativeEntry != null && nativeEntry.optLong("positionMs", 0) > 0) {
+            return nativeEntry.optLong("positionMs");
+        }
+        episodeId = plainEpisodeId(episodeId);
         String raw = getSharedPreferences("podmix-resume", MODE_PRIVATE).getString("items", "[]");
         try {
             JSONArray array = new JSONArray(raw);

@@ -529,3 +529,219 @@ test('les favoris gardent leur épisode et s’enchaînent', async ({ page }) =>
   await expect(page.locator('.mini-player-global')).toContainText('Favori du second épisode')
   await expect(page.locator('.mini-player-global')).not.toContainText('Titre étranger à la file')
 })
+
+test('les entités HTML sont corrigées dans les données existantes, la tracklist et les deux lecteurs', async ({ page }) => {
+  await page.addInitScript(() => {
+    localStorage.setItem('podmix-settings-v1', JSON.stringify({ automaticAnalysis: false }))
+    localStorage.setItem('podmix-catalog-v1', JSON.stringify([{
+      id: 'source-entities&amp;stable',
+      kind: 'podcast',
+      title: 'Above &amp;amp; Beyond',
+      description: 'Source &amp; description',
+      artworkUrl: '',
+      feedUrl: 'https://example.test/feed?a=1&amp;b=2',
+      episodes: [{
+        id: 'episode-entities&amp;stable',
+        title: 'Find Your Harmony &amp;amp; Friends',
+        description: 'Une balise &lt;b&gt;reste du texte&lt;/b&gt;.',
+        publishedAt: '2026-10-13',
+        duration: '00:30',
+        audioUrl: 'https://example.test/entities.wav?a=1&amp;b=2',
+        artworkUrl: '',
+        tracks: [{
+          id: 1, time: 0, artist: 'Mark Sherry, BiXX &amp; Sue McLaren',
+          title: 'Believe &#38; Receive', confidence: 100, source: 'manual',
+        }, {
+          id: 2, time: 20, artist: 'David Forbes &amp;amp; Lostly',
+          title: 'Incomplete &amp stays', confidence: 100, source: 'manual',
+        }],
+      }],
+    }]))
+  })
+  await page.route('**/entities.wav?*', (route) => route.fulfill({ body: silentWav(30), contentType: 'audio/wav' }))
+
+  await page.goto('/')
+  await page.getByLabel('Above & Beyond', { exact: true }).click()
+  await expect(page.locator('.episode-info')).toContainText('Find Your Harmony & Friends')
+  await page.locator('.episode-info').click()
+
+  const track = page.locator('.episode-track').first()
+  await expect(track).toContainText('Believe & Receive')
+  await expect(track).toContainText('Mark Sherry, BiXX & Sue McLaren')
+  await expect(page.locator('.episode-track').nth(1)).toContainText('David Forbes & Lostly')
+  await expect(page.locator('.episode-track').nth(1)).toContainText('Incomplete &amp stays')
+
+  await track.click()
+  const mini = page.locator('.mini-player-global')
+  await expect(mini).toContainText('Believe & Receive')
+  await expect(mini).toContainText('Mark Sherry, BiXX & Sue McLaren')
+  await mini.locator('.mini-meta').click()
+  const full = page.getByRole('dialog', { name: 'Lecteur en cours' })
+  await expect(full).toContainText('Believe & Receive')
+  await expect(full).toContainText('Mark Sherry, BiXX & Sue McLaren')
+
+  await expect.poll(() => page.evaluate(() => {
+    const [source] = JSON.parse(localStorage.getItem('podmix-catalog-v1') ?? '[]')
+    return {
+      sourceId: source?.id,
+      feedUrl: source?.feedUrl,
+      episodeId: source?.episodes?.[0]?.id,
+      audioUrl: source?.episodes?.[0]?.audioUrl,
+      sourceTitle: source?.title,
+      episodeTitle: source?.episodes?.[0]?.title,
+      artist: source?.episodes?.[0]?.tracks?.[0]?.artist,
+    }
+  })).toEqual({
+    sourceId: 'source-entities&amp;stable',
+    feedUrl: 'https://example.test/feed?a=1&amp;b=2',
+    episodeId: 'episode-entities&amp;stable',
+    audioUrl: 'https://example.test/entities.wav?a=1&amp;b=2',
+    sourceTitle: 'Above & Beyond',
+    episodeTitle: 'Find Your Harmony & Friends',
+    artist: 'Mark Sherry, BiXX & Sue McLaren',
+  })
+})
+
+test('le téléchargement confirme immédiatement la demande et suit son état natif', async ({ page }) => {
+  await page.addInitScript(() => {
+    const nativeState = {
+      calls: 0,
+      download: { id: 'episode-download', status: 'queued', bytesDownloaded: 0, totalBytes: 100 },
+      pending: true,
+      failNext: false,
+      resolveDownload: undefined as undefined | ((value: unknown) => void),
+      rejectDownload: undefined as undefined | ((error: Error) => void),
+    }
+    Object.assign(window, { __podmixDownloadTest: nativeState, androidBridge: {} })
+
+    const promiseMethods = [
+      'getAppInfo', 'getPendingPlaybackTarget', 'getFavorites', 'getCompletedEpisodeIds',
+      'getStorage', 'getState', 'getVolume', 'setRepeatMode', 'syncLibrary',
+      'beginLibrarySync', 'appendLibraryChunk', 'commitLibrarySync', 'syncFavorites',
+      'syncResume', 'syncSubscriptions', 'listDownloads', 'getDownload', 'download',
+      'removeDownload', 'cacheArtwork', 'startWebTimestampWorker',
+    ].map((name) => ({ name, rtype: 'promise' }))
+
+    Object.assign(window, {
+      Capacitor: {
+        PluginHeaders: [
+          { name: 'PodmixPlayer', methods: promiseMethods },
+          { name: 'App', methods: [{ name: 'addListener', rtype: 'callback' }, { name: 'removeListener', rtype: 'promise' }] },
+        ],
+        nativeCallback: () => 'listener-test',
+        nativePromise: (plugin: string, method: string, options?: { id?: string }) => {
+          if (plugin === 'App') return Promise.resolve({})
+          if (method === 'download') {
+            nativeState.calls += 1
+            if (nativeState.failNext) {
+              nativeState.failNext = false
+              return Promise.reject(new Error('Échec natif simulé'))
+            }
+            if (nativeState.pending) {
+              return new Promise((resolve, reject) => {
+                nativeState.resolveDownload = resolve
+                nativeState.rejectDownload = reject
+              })
+            }
+            return Promise.resolve({ ...nativeState.download, id: options?.id ?? nativeState.download.id })
+          }
+          if (method === 'getDownload') return Promise.resolve({ ...nativeState.download, id: options?.id ?? nativeState.download.id })
+          if (method === 'listDownloads') return Promise.resolve({ downloads: [] })
+          if (method === 'getAppInfo') return Promise.resolve({ versionName: 'test', versionCode: 1, lastUpdateTime: 0 })
+          if (method === 'getPendingPlaybackTarget') return Promise.resolve({ sourceId: '', episodeId: '' })
+          if (method === 'getFavorites') return Promise.resolve({ ids: [], initialized: false })
+          if (method === 'getCompletedEpisodeIds') return Promise.resolve({ ids: [] })
+          if (method === 'getStorage') return Promise.resolve({ downloadedBytes: 0, availableBytes: 1_000, totalBytes: 1_000 })
+          if (method === 'getVolume') return Promise.resolve({ volume: 1 })
+          if (method === 'getState' || method === 'setRepeatMode') return Promise.resolve({
+            playing: false, positionSeconds: 0, durationSeconds: 0, playbackState: 0,
+            title: '', artist: '', queueIndex: 0, queueSize: 0, hasNext: false,
+            hasPrevious: false, mediaId: '',
+          })
+          if (method === 'commitLibrarySync') return Promise.resolve({ count: 0 })
+          if (method.startsWith('sync') || method.endsWith('LibrarySync')) return Promise.resolve({ count: 0, ok: true })
+          return Promise.resolve({})
+        },
+      },
+    })
+
+    localStorage.setItem('podmix-catalog-v1', JSON.stringify([{
+      id: 'source-download', kind: 'show', title: 'Émission factice', description: '', artworkUrl: '',
+      episodes: [{
+        id: 'episode-download', title: 'Épisode factice', description: '', publishedAt: '2026-10-13',
+        duration: '10:00', audioUrl: 'https://example.test/audio.mp3', artworkUrl: '',
+      }, {
+        id: 'episode-retry', title: 'Épisode à réessayer', description: '', publishedAt: '2026-10-12',
+        duration: '08:00', audioUrl: 'https://example.test/retry.mp3', artworkUrl: '',
+      }],
+    }]))
+  })
+
+  await page.goto('/')
+  await page.getByLabel('Émission factice', { exact: true }).click()
+  await page.locator('.episode-info').filter({ hasText: 'Épisode factice' }).click()
+
+  const detail = page.locator('.episode-detail')
+  const download = detail.getByRole('button', { name: /Télécharger pour écouter hors connexion/ })
+  await download.evaluate((button: HTMLButtonElement) => { button.click(); button.click() })
+  await expect(detail.getByText('Préparation…', { exact: false })).toBeVisible()
+  await expect.poll(() => page.evaluate(() => (window as typeof window & { __podmixDownloadTest: { calls: number } }).__podmixDownloadTest.calls)).toBe(1)
+
+  await page.evaluate(() => {
+    const state = (window as typeof window & { __podmixDownloadTest: {
+      pending: boolean
+      download: { id: string; status: string; bytesDownloaded: number; totalBytes: number; localUri?: string }
+      resolveDownload?: (value: unknown) => void
+    } }).__podmixDownloadTest
+    state.pending = false
+    state.download = { id: 'episode-download', status: 'queued', bytesDownloaded: 0, totalBytes: 100 }
+    state.resolveDownload?.(state.download)
+  })
+  await expect(detail.getByRole('button', { name: /file d’attente/i })).toContainText('File d’attente')
+  await expect(detail.getByText(/Demande reçue.*file d’attente/)).toBeVisible()
+
+  await page.evaluate(() => {
+    const state = (window as typeof window & { __podmixDownloadTest: { download: object } }).__podmixDownloadTest
+    state.download = { id: 'episode-download', status: 'downloading', bytesDownloaded: 45, totalBytes: 100 }
+  })
+  await expect(detail.getByText('Téléchargement démarré · 45 %', { exact: true })).toBeVisible({ timeout: 5_000 })
+
+  await page.evaluate(() => {
+    const state = (window as typeof window & { __podmixDownloadTest: { download: object } }).__podmixDownloadTest
+    state.download = { id: 'episode-download', status: 'completed', bytesDownloaded: 100, totalBytes: 100, localUri: 'file:///data/factice.mp3' }
+  })
+  const completedDetail = detail.getByRole('button', { name: 'Téléchargé · disponible hors connexion' })
+  await expect(completedDetail).toContainText('Téléchargé', { timeout: 5_000 })
+  await expect(completedDetail.locator('svg.lucide-check')).toBeVisible()
+  await expect(completedDetail).toBeDisabled()
+  await expect(detail.getByRole('button', { name: 'Supprimer le téléchargement' })).toBeVisible()
+  await expect(detail.getByText(/Téléchargement terminé.*disponible hors connexion/)).toBeVisible()
+
+  await page.getByRole('button', { name: /Retour à/ }).click()
+  const completedRow = page.locator('.episode-item').filter({ hasText: 'Épisode factice' })
+  const completedRowStatus = completedRow.getByRole('button', { name: 'Téléchargé · disponible hors connexion' })
+  await expect(completedRowStatus.locator('svg.lucide-check')).toBeVisible()
+  await expect(completedRowStatus).toBeDisabled()
+  await expect(completedRow.getByRole('button', { name: 'Supprimer le téléchargement' })).toBeVisible()
+  await page.locator('.episode-info').filter({ hasText: 'Épisode factice' }).click()
+  await expect(page.locator('.episode-detail').getByRole('button', { name: 'Téléchargé · disponible hors connexion' })).toBeVisible()
+
+  await page.getByRole('button', { name: /Retour à/ }).click()
+  await page.locator('.episode-info').filter({ hasText: 'Épisode à réessayer' }).click()
+  await page.evaluate(() => {
+    const state = (window as typeof window & { __podmixDownloadTest: { pending: boolean; failNext: boolean } }).__podmixDownloadTest
+    state.pending = false
+    state.failNext = true
+  })
+  await page.locator('.episode-detail').getByRole('button', { name: /Télécharger pour écouter/ }).click()
+  await expect(page.locator('.episode-detail').getByRole('button', { name: /Téléchargement échoué/ })).toContainText('Réessayer')
+  await expect(page.locator('.episode-detail').getByText(/téléchargement a échoué/i)).toBeVisible()
+
+  await page.evaluate(() => {
+    const state = (window as typeof window & { __podmixDownloadTest: { download: object } }).__podmixDownloadTest
+    state.download = { id: 'episode-retry', status: 'queued', bytesDownloaded: 0, totalBytes: 200 }
+  })
+  await page.locator('.episode-detail').getByRole('button', { name: /Téléchargement échoué/ }).click()
+  await expect(page.locator('.episode-detail').getByRole('button', { name: /file d’attente/i })).toContainText('File d’attente')
+  await expect.poll(() => page.evaluate(() => (window as typeof window & { __podmixDownloadTest: { calls: number } }).__podmixDownloadTest.calls)).toBe(3)
+})

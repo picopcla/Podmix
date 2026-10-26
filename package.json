@@ -21,13 +21,14 @@
     "test:e2e": "playwright test",
     "lint": "oxlint",
     "preview": "vite preview",
-    "test:unit": "vitest run tests/unit/credits.test.ts tests/unit/safeStorage.test.ts"
+    "test:unit": "node --experimental-strip-types tests/unit/player-state-order.test.mjs && node --experimental-strip-types tests/unit/text-entities.test.mjs && vitest run tests/unit/credits.test.ts tests/unit/safeStorage.test.ts"
   },
   "dependencies": {
     "@capacitor/android": "^8.4.2",
     "@capacitor/app": "^8.1.1",
     "@capacitor/core": "^8.4.2",
     "@capacitor/share": "^8.0.1",
+    "html-entities": "2.6.0",
     "lucide-react": "^1.26.0",
     "react": "^19.2.7",
     "react-dom": "^19.2.7",
