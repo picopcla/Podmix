@@ -6,6 +6,7 @@ import { Capacitor } from '@capacitor/core'
 import { Share } from '@capacitor/share'
 import { AudioLines, Cast, Check, ChevronDown, ChevronRight, Clock3, CloudUpload, Command, Disc3, Download, ExternalLink, Gauge, Heart, Library, ListMusic, LoaderCircle, Mic2, MoreHorizontal, Pause, Play, Plus, Radio, Repeat, RotateCcw, Search, Settings2, Share2, SkipBack, SkipForward, Sparkles, Speaker, SquarePlay, Trash2, WandSparkles, Wifi } from 'lucide-react'
 import WaveSurfer from 'wavesurfer.js'
+import { isFavoriteTrack } from './favoriteMatch'
 import { alignTracklist, cancelDetectionJob, claimWebTimestampJob, completeWebTimestampJob, createBoseCastSession, createEpisodeAnalysisJob, createSharePage, discover1001Tracklist, discoverTracklist, failWebTimestampJob, findDetectionJob, findTrackArtwork, findTrackLinks, getApiUrl, getDetectionJob, importRssFeed, liveSetStreamUrl, observeDetectionJob, resolveLiveSet, resolveLiveSetTracklist, searchDjSets, searchLiveSets, searchPodcasts, searchRadios, searchTracklistCandidates, setApiUrl, testApi, validateCatalogTrack } from './api'
 import type { CatalogSource, DetectionJob, Episode, LiveSetDetails, LiveSetSearchResult, OfflineEpisode, PodcastSearchResult, Track } from './domain'
 import { loadCatalog, loadOfflineEpisodes, loadSession, saveCatalog, saveOfflineEpisodes, saveSession } from './storage'
@@ -1475,7 +1476,7 @@ function App() {
     const candidates = catalog.flatMap((source) => source.episodes.flatMap((episode) =>
       (episode.tracks ?? []).flatMap((track, trackIndex) => {
         const key = favoriteTrackKey(episode.id, track, trackIndex)
-        return favoriteTrackIds.includes(key)
+        return isFavoriteTrack(favoriteTrackIds, key, track.id)
           && (!track.deezerUrl || !track.spotifyUrl || !track.youtubeUrl)
           && track.artist.trim()
           && track.title.trim()
@@ -4812,7 +4813,7 @@ function App() {
   const favoriteTrackEntries: FavoriteTrackEntry[] = catalog.flatMap((source) => source.episodes.flatMap((episode) =>
     (episode.tracks ?? []).flatMap((track, trackIndex) => {
       const key = favoriteTrackKey(episode.id, track, trackIndex)
-      return favoriteTrackIds.includes(key) || favoriteTrackIds.includes(String(track.id))
+      return isFavoriteTrack(favoriteTrackIds, key, track.id)
         ? [{ key, source, episode, track, trackIndex }]
         : []
     }),
