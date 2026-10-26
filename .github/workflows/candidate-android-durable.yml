@@ -69,6 +69,8 @@ jobs:
           java-version: 21
       - run: npm ci --no-audit --no-fund
       - name: Construire les deux APK debug (ancien code 228 = 867f490, et nouveau code), meme signature debug, aucune publication
+        env:
+          VITE_API_URL: http://10.0.2.2:8099
         run: |
           set -euo pipefail
           mkdir -p out
