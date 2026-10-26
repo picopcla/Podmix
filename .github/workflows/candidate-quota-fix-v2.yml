@@ -1,0 +1,54 @@
+name: candidate-quota-fix-v2
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [fix/studio-playbutton-intent-20261025]
+    paths: ['.github/workflows/candidate-quota-fix-v2.yml']
+
+permissions:
+  contents: write
+
+jobs:
+  v2:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: fix/localstorage-quota-20261026
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Appliquer le correctif v2 (signal d'echec visible, aucune suppression)
+        run: |
+          set -eu
+          echo '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' | base64 -d | gunzip > /tmp/v2.patch
+          git apply --index /tmp/v2.patch
+          git diff --cached --stat
+      - run: npx tsc -b && npx oxlint && npm run test:unit
+      - run: npm run build
+      - name: Saturation (contexte jetable)
+        run: |
+          set -o pipefail
+          node qt/repro.mjs "$PWD/dist" corrige 2>&1 | tee /tmp/out.txt
+          { echo "## v2 saturation"; echo '```'; cat /tmp/out.txt; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
+          grep -q "preservees: true" /tmp/out.txt
+          grep -q "bandeau: Stockage interne plein" /tmp/out.txt
+          ! grep -q "QuotaExceededError" /tmp/out.txt
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: capture-saturation
+          path: qt/*.png
+      - name: Pousser sur la branche du correctif (jamais main, aucune publication)
+        run: |
+          set -eu
+          git config user.name "picopcla"
+          git config user.email "picopcla@users.noreply.github.com"
+          git commit -m "Signaler visiblement une sauvegarde refusee (stockage plein) au lieu de l'avaler en silence; aucune suppression"
+          git push origin fix/localstorage-quota-20261026
+          echo "branche fix/localstorage-quota-20261026: $(git rev-parse HEAD)" >> "$GITHUB_STEP_SUMMARY"
