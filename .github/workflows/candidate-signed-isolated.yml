@@ -1,0 +1,134 @@
+name: candidate-signed-isolated
+
+on:
+  workflow_dispatch:
+
+concurrency:
+  group: candidate-signed-isolated
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    outputs:
+      cert_match: ${{ steps.certcheck.outputs.cert_match }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+      - name: Preparer la signature
+        env:
+          KS_B64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          KS_PASS: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          KEY_PASS: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: |
+          set -euo pipefail
+          for value in KS_B64 KS_PASS KEY_ALIAS KEY_PASS; do
+            test -n "${!value}"
+          done
+          umask 077
+          printf '%s' "$KS_B64" | base64 -d > android/podmix-release.keystore
+          printf 'storeFile=podmix-release.keystore\nstorePassword=%s\nkeyAlias=%s\nkeyPassword=%s\n' "$KS_PASS" "$KEY_ALIAS" "$KEY_PASS" > android/release-signing.properties
+      - run: npm ci
+      - name: Construire l'APK ng release
+        run: npm run android:build:ng
+      - name: Verifier et collecter l'APK
+        id: certcheck
+        run: |
+          set -euo pipefail
+          mkdir -p out
+          cp android/app/build/outputs/apk/ng/release/app-ng-release.apk out/app-ng-candidate-signed.apk
+          BT=$(find "$ANDROID_HOME/build-tools" -mindepth 1 -maxdepth 1 -type d | sort -V | tail -1)
+          BADGING=$("$BT/aapt2" dump badging out/app-ng-candidate-signed.apk | head -1)
+          printf '%s\n' "$BADGING"
+          grep -Fq "name='com.podmix.next.ng'" <<<"$BADGING"
+          "$BT/apksigner" verify out/app-ng-candidate-signed.apk
+          CERT=$("$BT/apksigner" verify --print-certs out/app-ng-candidate-signed.apk | sed -n 's/.*certificate SHA-256 digest: //p' | head -1 | tr '[:upper:]' '[:lower:]')
+          printf 'cert sha256: %s\n' "$CERT"
+          if [ "$CERT" = "b27d46c092c63432e7e274d227c0e465cf91ab4656f67c1a0b511402505c8b8c" ]; then
+            echo "cert_match=yes" >> "$GITHUB_OUTPUT"
+          else
+            echo "cert_match=no" >> "$GITHUB_OUTPUT"
+          fi
+          sha256sum out/app-ng-candidate-signed.apk > out/app-ng-candidate-signed.apk.sha256
+          {
+            echo "## Candidat signe isole (aucune publication)"
+            echo "- commit: ${GITHUB_SHA}"
+            echo "- badging: $BADGING"
+            echo "- cert sha256: $CERT"
+            echo "- cert_match (attendu b27d46c0...8b8c): $(grep -o 'cert_match=.*' "$GITHUB_OUTPUT" | tail -1)"
+          } >> "$GITHUB_STEP_SUMMARY"
+      - name: Retirer le materiel de signature
+        if: always()
+        run: rm -f android/podmix-release.keystore android/release-signing.properties
+      - uses: actions/upload-artifact@v4
+        with:
+          name: podmix-candidate-signed-apk
+          path: |
+            out/app-ng-candidate-signed.apk
+            out/app-ng-candidate-signed.apk.sha256
+          retention-days: 7
+
+  upgrade-check:
+    needs: build
+    timeout-minutes: 25
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: podmix-candidate-signed-apk
+          path: out
+      - name: Recuperer l'APK publie 1.0.224 (reference de mise a jour)
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release download v1.0.224-ng-theme-clair -R ${{ github.repository }} -p app-ng-release.apk -O out/app-ng-224.apk --clobber
+      - name: Ecrire le script de test
+        run: |
+          cat > "$RUNNER_TEMP/up.sh" <<'XEOF'
+          set -eu
+          adb install out/app-ng-224.apk
+          adb shell am start -n com.podmix.next.ng/com.podmix.next.MainActivity
+          sleep 12
+          adb root || true
+          sleep 2
+          adb shell "echo podmix-data-marker > /data/data/com.podmix.next.ng/files/.update-check"
+          adb shell am force-stop com.podmix.next.ng
+          adb shell dumpsys package com.podmix.next.ng | grep -E 'versionCode|versionName' | head -2 > /tmp/before.txt
+          adb install -r out/app-ng-candidate-signed.apk > /tmp/install.txt 2>&1 || true
+          cat /tmp/install.txt
+          adb shell dumpsys package com.podmix.next.ng | grep -E 'versionCode|versionName' | head -2 > /tmp/after.txt
+          adb shell "cat /data/data/com.podmix.next.ng/files/.update-check" > /tmp/marker.txt 2>&1 || true
+          {
+            echo "## Test de mise a jour 224 publie vers candidat signe (emulateur, aucune publication)"
+            echo "- avant: $(tr '\n' ' ' < /tmp/before.txt)"
+            echo "- install -r: $(tr '\n' ' ' < /tmp/install.txt)"
+            echo "- apres: $(tr '\n' ' ' < /tmp/after.txt)"
+            echo "- marqueur de donnees conserve: $(grep -c podmix-data-marker /tmp/marker.txt || true)"
+          } >> "$GITHUB_STEP_SUMMARY"
+          grep -q Success /tmp/install.txt
+          grep -q podmix-data-marker /tmp/marker.txt
+          XEOF
+      - name: Preparer l'emulateur accelere
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+          sudo chmod 666 /dev/kvm
+      - uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 33
+          arch: x86_64
+          profile: pixel_2
+          emulator-options: -no-snapshot -no-window -noaudio -no-boot-anim -gpu swiftshader_indirect -camera-back none
+          script: bash ${{ runner.temp }}/up.sh
