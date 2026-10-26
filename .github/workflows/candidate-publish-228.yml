@@ -22,7 +22,7 @@ jobs:
       GH_TOKEN: ${{ github.token }}
       TAG: v1.0.228-ng-candidat-test
       SRC_RUN: '40305646326'
-      SRC_SHA: c771b0bb93c53cccb2f88e31fe7c68321c1d3505
+      SRC_SHA: 867f490ad2267fc723a7dad29662b75efb14f87e
       EXPECT_SHA256: 77fbf6230babfe1707eb305c0fb4746c2ce51d910d3bafdff9df14f2a682e262
     steps:
       - name: Telecharger l'APK deja teste (run 40305646326)
@@ -56,7 +56,7 @@ jobs:
           cp out/app-ng-candidate-signed.apk out/app-ng-release.apk
           gh release create "$TAG" out/app-ng-release.apk --prerelease -R "${{ github.repository }}" --target "$SRC_SHA" \
             --title "Podmix 1.0.228-ng TEST (anti-plantage stockage plein, NON VALIDE)" \
-            --notes "VERSION DE TEST. Corrige le plantage QuotaExceededError quand le stockage interne de lAppli est plein : les ecritures refusees ne font plus planter lappli et un bandeau signale les donnees non enregistrees. Ne libere pas de place et naffecte pas le clignotement lecture/pause, non valide. Le catalogue complet nest plus remplace par une version reduite et ladresse serveur non enregistree nest plus presentee comme active. APK signe avec la cle Podmix, versionCode 10228, sha256 $EXPECT_SHA256. Construit depuis le commit $SRC_SHA de la branche fix/localstorage-quota-20261026."
+            --notes "VERSION DE TEST. Corrige le plantage QuotaExceededError quand le stockage interne de lAppli est plein : les ecritures refusees ne font plus planter lappli et un bandeau signale les donnees non enregistrees. Ne libere pas de place et naffecte pas le clignotement lecture/pause, non valide. Le catalogue complet nest plus remplace par une version reduite et ladresse serveur non enregistree nest plus presentee comme active. APK signe avec la cle Podmix, versionCode 10228, sha256 $EXPECT_SHA256. APK construit au commit c771b0b, dont le code est celui du commit $SRC_SHA (c771b0b ajoute seulement un fichier de workflow), branche fix/localstorage-quota-20261026."
           {
             echo "## Pre-release de test publiee: $TAG"
             echo "- sha256 asset: $EXPECT_SHA256"
