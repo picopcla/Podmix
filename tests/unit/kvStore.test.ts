@@ -435,4 +435,17 @@ describe('kvStore : autorite, retour de version, interruptions, durabilite', () 
     expect(await w).toBe(true)
     expect(localStorage.getItem('podmix-api-url')).toBe('N')
   })
+
+  it('echec de V puis meme valeur V deja acceptee derriere : pas de restauration qui annule la plus recente', async () => {
+    let puts = 0
+    const { backend, data } = memoryBackend([], { failPut: () => { puts += 1; return puts === 1 } })
+    await initKvStore({ backend, force: true })
+    const first = kvSetItemConfirmed('podmix-api-url', 'V') // transaction 1 en cours (echec)
+    const second = kvSetItemConfirmed('podmix-api-url', 'V') // attend derriere
+    expect(await first).toBe(false)
+    expect(await second).toBe(true)
+    await kvFlush()
+    expect(data.get('podmix-api-url')?.value).toBe('V')
+    expect(kvGetItem('podmix-api-url')).toBe('V')
+  })
 })
