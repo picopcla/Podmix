@@ -2,6 +2,9 @@ name: candidate-signed-isolated
 
 on:
   workflow_dispatch:
+  push:
+    branches: [fix/studio-playbutton-intent-20261025]
+    paths: ['.github/workflows/candidate-signed-isolated.yml']
 
 concurrency:
   group: candidate-signed-isolated
