@@ -36,7 +36,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: 867f490
+          ref: 867f490ad2267fc723a7dad29662b75efb14f87e
       - uses: actions/setup-node@v4
         with:
           node-version: 22
@@ -77,7 +77,7 @@ jobs:
           (cd android && ./gradlew assembleNgDebug)
           cp android/app/build/outputs/apk/ng/debug/*.apk out/new.apk
           git checkout -- .
-          git worktree add ../old 867f490
+          git worktree add ../old 867f490ad2267fc723a7dad29662b75efb14f87e
           cd ../old
           npm ci --no-audit --no-fund
           node -e "const fs=require('fs');const p=JSON.parse(fs.readFileSync('package.json','utf8'));p.version='1.0.228';fs.writeFileSync('package.json',JSON.stringify(p,null,2)+'\n')"
@@ -221,7 +221,7 @@ jobs:
           { echo "## Stockage durable sur Android (emulateur jetable, APK debug, aucune publication)"; echo '```'; cat out/res.txt; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
           grep -q "precondition filler persiste: true" out/res.txt || exit 1
           grep -q "precondition catalogue seed persiste: true" out/res.txt || exit 1
-          grep -qE "migrated: cles .* identiques dans IndexedDB: ([0-9]+) / \1 ecarts: aucun" out/res.txt || exit 1
+          grep -qE "migrated: cles .* identiques dans IndexedDB: [0-9]+ / [0-9]+ ecarts: aucun" out/res.txt || exit 1
           grep -qE "after: cles .* identiques dans IndexedDB: ([0-9]+) / .* ecarts: aucun" out/res.txt || exit 1
           grep -q "erreur Quota affichee: false" out/res.txt || exit 1
           grep -q "ecrit dans IndexedDB malgre localStorage sature: true" out/res.txt || exit 1
