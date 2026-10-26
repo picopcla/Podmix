@@ -80,9 +80,12 @@ jobs:
           function cdp(method, params = {}) { return new Promise((res, rej) => { const id = ++nid; pend.set(id, { res, rej }); ws.send(JSON.stringify({ id, method, params })); setTimeout(() => { if (pend.has(id)) { pend.delete(id); rej(new Error('cdp timeout ' + method)) } }, 8000) }) }
           async function ev(expr) { const r = await cdp('Runtime.evaluate', { expression: expr, returnByValue: true }); return r.result && r.result.result ? r.result.result.value : undefined }
           async function connect() {
-            sh(`adb shell am start -n ${PKG}/com.podmix.next.MainActivity`)
-            await sleep(10000)
-            const pid = sh(`adb shell pidof ${PKG}`).trim().split(/\s+/)[0]
+            const r1 = sh(`adb shell am start -W -n ${PKG}/com.podmix.next.MainActivity 2>&1`)
+            logd('am start: ' + r1.replace(/\n/g, ' ; ').slice(0, 300))
+            let pid = ''
+            for (let k = 0; k < 40 && !pid; k++) { await sleep(2000); pid = sh(`adb shell pidof ${PKG}`).trim().split(/\s+/)[0] }
+            if (!pid) { sh(`adb logcat -d -t 300 > artifacts/${TAG}-logcat.txt`); logd('packages: ' + sh('adb shell pm list packages podmix').replace(/\n/g, ' ')) }
+            await sleep(12000)
             logd('pid ' + pid + ' sockets: ' + sh('adb shell cat /proc/net/unix').split('\n').filter((l) => l.includes('devtools')).map((l) => l.trim().split(' ').pop()).join(','))
             sh(`adb forward tcp:9222 localabstract:webview_devtools_remote_${pid}`)
             const list = JSON.parse(await (await fetch('http://127.0.0.1:9222/json')).text())
