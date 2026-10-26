@@ -1,0 +1,54 @@
+name: candidate-quota-fix-v3
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [fix/studio-playbutton-intent-20261025]
+    paths: ['.github/workflows/candidate-quota-fix-v3.yml']
+
+permissions:
+  contents: write
+
+jobs:
+  v2:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: fix/localstorage-quota-20261026
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Appliquer le correctif v3 (catalogue complet conserve, adresse serveur coherente)
+        run: |
+          set -eu
+          echo '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' | base64 -d | gunzip > /tmp/v2.patch
+          git apply --index /tmp/v2.patch
+          git diff --cached --stat
+      - run: npx tsc -b && npx oxlint && npm run test:unit
+      - run: npm run build
+      - name: Saturation (contexte jetable)
+        run: |
+          set -o pipefail
+          node qt/repro.mjs "$PWD/dist" corrige 2>&1 | tee /tmp/out.txt
+          { echo "## v2 saturation"; echo '```'; cat /tmp/out.txt; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
+          grep -q "preservees: true" /tmp/out.txt
+          grep -q "bandeau: Stockage interne plein" /tmp/out.txt
+          ! grep -q "QuotaExceededError" /tmp/out.txt
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: capture-saturation
+          path: qt/*.png
+      - name: Pousser sur la branche du correctif (jamais main, aucune publication)
+        run: |
+          set -eu
+          git config user.name "picopcla"
+          git config user.email "picopcla@users.noreply.github.com"
+          git commit -m "Ne plus ecraser le catalogue complet par un repli reduit et ne pas annoncer une adresse serveur non enregistree"
+          git push origin fix/localstorage-quota-20261026
+          echo "branche fix/localstorage-quota-20261026: $(git rev-parse HEAD)" >> "$GITHUB_STEP_SUMMARY"
