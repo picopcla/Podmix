@@ -1,0 +1,204 @@
+name: candidate-android-durable
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [fix/durable-storage-20261026]
+    paths: ['.github/workflows/candidate-android-durable.yml']
+
+permissions:
+  contents: read
+
+jobs:
+  unit-and-e2e:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - run: npx tsc --noEmit
+      - run: npm run test:unit
+      - name: e2e Playwright (information, non bloquant)
+        continue-on-error: true
+        run: |
+          npx playwright install --with-deps chromium
+          npx playwright test --reporter=line 2>&1 | tee e2e.txt || true
+          { echo "## e2e Playwright (resume)"; echo '```'; tail -40 e2e.txt; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
+
+  android-durable:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+      - run: npm ci --no-audit --no-fund
+      - name: Construire les deux APK debug (ancien code 228 = 867f490, et nouveau code), meme signature debug, aucune publication
+        run: |
+          set -euo pipefail
+          mkdir -p out
+          node -e "const fs=require('fs');const p=JSON.parse(fs.readFileSync('package.json','utf8'));p.version='1.0.229';fs.writeFileSync('package.json',JSON.stringify(p,null,2)+'\n')"
+          npm run version:sync
+          npm run build
+          npx cap sync android
+          (cd android && ./gradlew assembleNgDebug)
+          cp android/app/build/outputs/apk/ng/debug/*.apk out/new.apk
+          git checkout -- .
+          git worktree add ../old 867f490
+          cd ../old
+          npm ci --no-audit --no-fund
+          node -e "const fs=require('fs');const p=JSON.parse(fs.readFileSync('package.json','utf8'));p.version='1.0.228';fs.writeFileSync('package.json',JSON.stringify(p,null,2)+'\n')"
+          npm run version:sync
+          npm run build
+          npx cap sync android
+          (cd android && ./gradlew assembleNgDebug)
+          cp android/app/build/outputs/apk/ng/debug/*.apk "$GITHUB_WORKSPACE/out/old.apk"
+      - name: Ecrire le test
+        run: |
+          mkdir -p out
+          BT=$(find "$ANDROID_HOME/build-tools" -mindepth 1 -maxdepth 1 -type d | sort -V | tail -1)
+          "$BT/aapt2" dump badging out/new.apk | head -1 | tee out/badging.txt
+          sed -n "s/.*package: name='\([^']*\)'.*/\1/p" out/badging.txt > out/pkg.txt
+          cat > "$RUNNER_TEMP/p.mjs" <<'PEOF'
+          import { execSync } from 'node:child_process'
+          const phase = process.argv[2]
+          const fs = await import('node:fs')
+          const sleep = (ms) => new Promise((r) => setTimeout(r, ms))
+          const targets = await (await fetch('http://127.0.0.1:9222/json')).json()
+          const page = targets.find((t) => t.type === 'page')
+          const ws = new WebSocket(page.webSocketDebuggerUrl)
+          await new Promise((r) => (ws.onopen = r))
+          let id = 0
+          const pending = new Map()
+          ws.onmessage = (m) => { const d = JSON.parse(m.data); if (d.id && pending.has(d.id)) { pending.get(d.id)(d); pending.delete(d.id) } }
+          const send = (method, params = {}) => new Promise((res) => { const i = ++id; pending.set(i, res); ws.send(JSON.stringify({ id: i, method, params })) })
+          const ev = async (expr) => { const r = await send('Runtime.evaluate', { expression: expr, returnByValue: true, awaitPromise: true }); return r.result?.result?.value ?? JSON.stringify(r.result?.exceptionDetails ?? r.error ?? null).slice(0, 300) }
+          const log = (...a) => console.log(...a)
+          const IDB = `window.__idbGet = (k) => new Promise((res) => { const o = indexedDB.open('podmix-kv'); o.onerror = () => res(null); o.onsuccess = () => { const g = o.result.transaction('kv').objectStore('kv').get(k); g.onsuccess = () => { o.result.close(); res(g.result ?? null) }; g.onerror = () => res(null) } }); 1`
+          await send('Runtime.enable'); await send('Page.enable')
+          await ev(IDB)
+          const CAT = JSON.stringify([{ id: 'src1', kind: 'podcast', title: 'Podcast test', description: '', artworkUrl: '', feedUrl: 'https://example.invalid/feed.xml', episodes: [1,2,3].map((i) => ({ id: 'ep' + i, title: 'Episode test ' + i, description: 'd', publishedAt: '2026-10-0' + i + 'T00:00:00.000Z', duration: '1:00:00', audioUrl: 'https://example.invalid/a' + i + '.mp3', artworkUrl: '' })) }])
+          if (phase === 'seed') {
+            await ev(`localStorage.setItem('podmix-catalog-v1', ${JSON.stringify(CAT)}); localStorage.setItem('podmix-history-v1', '[{"id":"h1","position":42}]'); localStorage.setItem('podmix-track-favorites-v1', '["fav-a","fav-b"]'); 1`)
+            const fill = await ev(`(() => { let n = 0; for (const size of [10000, 1000, 100, 10, 1]) { try { for (;;) { localStorage.setItem('zz-filler-' + n, 'x'.repeat(size)); n++ } } catch {} } let u = 0; for (let i = 0; i < localStorage.length; i++) { const k = localStorage.key(i); u += k.length + (localStorage.getItem(k) ?? '').length } return u })()`)
+            log('seed (ancienne version installee): localStorage sature, caracteres utilises', fill)
+          }
+          if (phase === 'oldcheck') {
+            // precondition : l'ancienne installation a bien conserve ses donnees apres kill/relance
+            const snap = JSON.parse(await ev(`JSON.stringify(Object.fromEntries(Object.keys(localStorage).filter((k) => k.startsWith('podmix-')).sort().map((k) => [k, localStorage.getItem(k)])))`))
+            fs.writeFileSync('out/before.json', JSON.stringify(snap))
+            log('ANCIENNE VERSION apres kill/relance, cles podmix-* :', Object.keys(snap).join(','))
+            log('precondition filler persiste:', await ev(`localStorage.getItem('zz-filler-0') !== null`))
+            log('precondition catalogue seed persiste:', String(snap['podmix-catalog-v1'] ?? '').includes('Podcast test'))
+            log('precondition historique seed persiste:', snap['podmix-history-v1'] === '[{"id":"h1","position":42}]')
+            log('precondition favoris seed persiste:', snap['podmix-track-favorites-v1'] === '["fav-a","fav-b"]')
+            const body = String(await ev(`document.body.innerText.slice(0, 200).replace(/\\s+/g, ' ')`))
+            log('texte ancienne version:', body)
+          }
+          if (phase === 'migrated' || phase === 'after') {
+            const before = JSON.parse(fs.readFileSync('out/before.json', 'utf8'))
+            let same = 0, diff = []
+            for (const k of Object.keys(before)) {
+              const r = await ev(`(async () => { const e = await window.__idbGet(${JSON.stringify(k)}); if (!e) return 'absent'; if (e.deleted) return 'supprime'; if (e.value === ${JSON.stringify(before[k])}) return 'identique'; const all = await new Promise((res) => { const o = indexedDB.open('podmix-kv'); o.onsuccess = () => { const g = o.result.transaction('kv').objectStore('kv').getAll(); g.onsuccess = () => { o.result.close(); res(g.result) } } }); const rec = all.some((x) => x.key.startsWith('podmix-recovered:' + ${JSON.stringify(k)}) && x.value === ${JSON.stringify(before[k])}); return rec ? 'ancienne valeur gardee dans recovered (valeur courante differente)' : 'DIFFERENT' })()`)
+              if (r === 'identique') same++; else diff.push(k + '=' + r)
+            }
+            log(phase + ': cles de la version precedente retrouvees identiques dans IndexedDB:', same, '/', Object.keys(before).length, 'ecarts:', diff.join(' ; ') || 'aucun')
+            log(phase + ': localStorage toujours present (non purge), filler:', await ev(`localStorage.getItem('zz-filler-0') !== null`), 'catalogue:', await ev(`localStorage.getItem('podmix-catalog-v1') !== null`))
+            const body = String(await ev(`document.body.innerText.slice(0, 300).replace(/\\s+/g, ' ')`))
+            log(phase + ': texte ecran:', body)
+            log(phase + ': erreur Quota affichee:', /QuotaExceeded|Failed to execute/.test(body))
+          }
+          if (phase === 'migrated') {
+            await ev(`[...document.querySelectorAll('button')].find((b) => b.getAttribute('aria-label') === 'Réglages')?.click()`)
+            await sleep(1500)
+            const b4 = await ev(`(async () => (await window.__idbGet('podmix-settings-v1'))?.value ?? 'ABSENT')()`)
+            await ev(`document.querySelectorAll('input[type=checkbox]')[0]?.click()`)
+            await sleep(3000)
+            const af = await ev(`(async () => (await window.__idbGet('podmix-settings-v1'))?.value ?? 'ABSENT')()`)
+            log('reglage ecrit dans IndexedDB malgre localStorage sature:', b4 !== af && af !== 'ABSENT')
+            fs.writeFileSync('out/settings-after.txt', String(af))
+            log('bandeau:', String(await ev(`document.querySelector('.storage-warning')?.innerText ?? 'AUCUN'`)).replace(/\s+/g, ' '))
+            log('estimation quota WebView:', await ev(`navigator.storage.estimate().then((e) => JSON.stringify(e))`))
+            const big = await ev(`(async () => { const v = 'a'.repeat(52400000); const t0 = Date.now(); const ok = await new Promise((res) => { const o = indexedDB.open('podmix-kv'); o.onsuccess = () => { const tx = o.result.transaction('kv', 'readwrite'); tx.objectStore('kv').put({ key: 'zz-10x', value: v, at: new Date().toISOString() }); tx.oncomplete = () => res('ok'); tx.onerror = () => res('erreur ' + tx.error?.name); tx.onabort = () => res('abandon ' + tx.error?.name) } }); return ok + ' ms=' + (Date.now() - t0) })()`)
+            log('ecriture 52,4 M caracteres (10x):', big)
+            log('relecture 10x longueur:', await ev(`(async () => { const e = await window.__idbGet('zz-10x'); return e ? e.value.length : -1 })()`))
+          }
+          if (phase === 'after') {
+            const sv = String(await ev(`(async () => (await window.__idbGet('podmix-settings-v1'))?.value ?? 'ABSENT')()`))
+            log('reglage apres 2e kill/relance:', sv === fs.readFileSync('out/settings-after.txt', 'utf8') ? 'identique a celui ecrit' : 'DIFFERENT')
+            log('10x apres kill/relance longueur:', await ev(`(async () => { const e = await window.__idbGet('zz-10x'); return e ? e.value.length : -1 })()`))
+            execSync('adb exec-out screencap -p > out/durable-android.png')
+          }
+          ws.close(); process.exit(0)
+          PEOF
+          cat > "$RUNNER_TEMP/run.sh" <<'XEOF'
+          set -u
+          PKG=$(cat out/pkg.txt)
+          launch() {
+            adb shell am start -n "$PKG/com.podmix.next.MainActivity" >/dev/null
+            sleep 20
+            PID=$(adb shell pidof "$PKG" | tr -d '\r')
+            adb forward --remove-all || true
+            adb forward tcp:9222 localabstract:webview_devtools_remote_$PID
+          }
+          : > out/res.txt
+          adb install -r out/old.apk; adb logcat -c
+          launch; echo "--- 1. ANCIENNE version (228) : donnees seed + localStorage sature" | tee -a out/res.txt
+          node "$RUNNER_TEMP/p.mjs" seed 2>&1 | tee -a out/res.txt
+          sleep 20; adb shell sync; adb shell am force-stop "$PKG"; sleep 3
+          launch; echo "--- 2. ANCIENNE version : kill/relance, preuve de persistance AVANT mise a jour" | tee -a out/res.txt
+          node "$RUNNER_TEMP/p.mjs" oldcheck 2>&1 | tee -a out/res.txt
+          adb shell am force-stop "$PKG"; sleep 3
+          echo "--- 3. mise a jour par-dessus (adb install -r, meme signature, donnees conservees)" | tee -a out/res.txt
+          adb install -r out/new.apk 2>&1 | tee -a out/res.txt
+          launch; echo "--- 4. NOUVELLE version, premier lancement apres mise a jour (migration)" | tee -a out/res.txt
+          node "$RUNNER_TEMP/p.mjs" migrated 2>&1 | tee -a out/res.txt
+          adb shell am force-stop "$PKG"; sleep 3
+          launch; echo "--- 5. NOUVELLE version apres kill/relance" | tee -a out/res.txt
+          node "$RUNNER_TEMP/p.mjs" after 2>&1 | tee -a out/res.txt
+          adb logcat -d | grep -c "FATAL EXCEPTION" > out/fatal.txt || true
+          echo "FATAL EXCEPTION dans logcat: $(cat out/fatal.txt)" | tee -a out/res.txt
+          { echo "## Stockage durable sur Android (emulateur jetable, APK debug, aucune publication)"; echo '```'; cat out/res.txt; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
+          grep -q "precondition filler persiste: true" out/res.txt || exit 1
+          grep -q "precondition catalogue seed persiste: true" out/res.txt || exit 1
+          grep -q "precondition historique seed persiste: true" out/res.txt || exit 1
+          grep -q "precondition favoris seed persiste: true" out/res.txt || exit 1
+          grep -qE "migrated: cles .* identiques dans IndexedDB: ([0-9]+) / \1 ecarts: aucun" out/res.txt || exit 1
+          grep -q "erreur Quota affichee: false" out/res.txt || exit 1
+          grep -q "ecrit dans IndexedDB malgre localStorage sature: true" out/res.txt || exit 1
+          grep -q "relecture 10x longueur: 52400000" out/res.txt || exit 1
+          grep -q "10x apres kill/relance longueur: 52400000" out/res.txt || exit 1
+          grep -q "reglage apres 2e kill/relance: identique" out/res.txt || exit 1
+          [ "$(cat out/fatal.txt)" = "0" ] || exit 1
+          XEOF
+      - name: Preparer l'emulateur accelere
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+          sudo chmod 666 /dev/kvm
+      - uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 33
+          arch: x86_64
+          profile: pixel_2
+          disk-size: 4096M
+          emulator-options: -no-snapshot -no-window -noaudio -no-boot-anim -gpu swiftshader_indirect -camera-back none
+          script: bash ${{ runner.temp }}/run.sh
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: capture-android-durable
+          path: out/durable-android.png
