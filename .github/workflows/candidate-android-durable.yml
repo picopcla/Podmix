@@ -114,7 +114,7 @@ jobs:
           await ev(IDB)
           const HIST = JSON.stringify([{ id: 'h1', title: 'Episode historique test', artist: 'Artiste test', url: 'https://example.invalid/h1.mp3', position: 42, duration: 3600, playedAt: '2026-10-20T10:00:00.000Z' }])
           const UIHIST = `(async () => { const b = document.querySelector('button[aria-label="Voir l’historique"]'); if (!b) return 'NAV-INTROUVABLE'; b.click(); await new Promise((r) => setTimeout(r, 2500)); const t = [...document.querySelectorAll('.history-item')].map((x) => x.innerText).join(' | '); const back = document.querySelector('button[aria-label="Voir l’historique"]'); if (back) back.click(); return t.includes('Episode historique test') ? 'HISTORIQUE-VISIBLE' : 'HISTORIQUE-ABSENT items=' + t.slice(0, 120) })()`
-          const CAT = JSON.stringify([{ id: 'source-favoris', kind: 'podcast', title: 'Podcast des favoris', description: 'Source de test', artworkUrl: '', episodes: [{ id: 'episode-favori-a', title: 'Premier episode favori', description: '', publishedAt: '2026-07-28', duration: '00:02', audioUrl: 'https://example.invalid/fa.wav', sourceUrl: 'https://example.invalid/ea', artworkUrl: '', tracks: [{ id: 1, time: 0.25, artist: 'Artiste A', title: 'Favori du premier episode', artworkUrl: '', deezerUrl: 'https://www.deezer.com/track/123', youtubeUrl: 'https://www.youtube.com/watch?v=detected-a', confidence: 100, source: 'manual' }] }, { id: 'episode-favori-b', title: 'Second episode favori', description: '', publishedAt: '2026-07-28', duration: '00:02', audioUrl: 'https://example.invalid/fb.wav', sourceUrl: 'https://example.invalid/eb', artworkUrl: '', tracks: [{ id: 2, time: 0.25, artist: 'Artiste A', title: 'Favori du second episode', artworkUrl: '', spotifyUrl: 'https://open.spotify.com/track/abc', confidence: 100, source: 'manual' }] }] }])
+          const CAT = JSON.stringify([{ id: 'source-favoris', kind: 'podcast', title: 'Podcast des favoris', description: 'Source de test', artworkUrl: '', episodes: [{ id: 'episode-favori-a', title: 'Premier episode favori', description: '', publishedAt: '2026-07-28', duration: '00:02', audioUrl: 'https://example.invalid/fa.wav', sourceUrl: 'https://example.invalid/ea', artworkUrl: '', tracks: [{ id: 1, time: 0.25, artist: 'Artiste A', title: 'Favori du premier episode', artworkUrl: '', deezerUrl: 'https://www.deezer.com/track/123', youtubeUrl: 'https://www.youtube.com/watch?v=detected-a', confidence: 100, source: 'manual' }, { id: 7, time: 0.5, artist: 'Daft Punk', title: 'One More Time', artworkUrl: '', confidence: 100, source: 'manual' }] }, { id: 'episode-favori-b', title: 'Second episode favori', description: '', publishedAt: '2026-07-28', duration: '00:02', audioUrl: 'https://example.invalid/fb.wav', sourceUrl: 'https://example.invalid/eb', artworkUrl: '', tracks: [{ id: 2, time: 0.25, artist: 'Artiste A', title: 'Favori du second episode', artworkUrl: '', spotifyUrl: 'https://open.spotify.com/track/abc', confidence: 100, source: 'manual' }] }] }])
           const FAVS = '["episode-favori-a::track::1::0","episode-favori-b::track::2::0"]'
           const UIFAV = `(async () => { const b = document.querySelector('button[aria-label="Voir les favoris"]'); if (!b) return 'NAV-FAVORIS-INTROUVABLE'; b.click(); await new Promise((r) => setTimeout(r, 2500)); const f = document.querySelector('.favorite-tracks'); const t = f ? f.innerText : ''; const yt = f ? [...f.querySelectorAll('a[aria-label="YouTube disponible : ouvrir le morceau"]')].map((a) => a.getAttribute('href')) : []; const ytKo = f ? f.querySelectorAll('button[aria-label="YouTube indisponible pour ce morceau"]').length : -1; const back = document.querySelector('button[aria-label="Voir les favoris"]'); if (back) back.click(); const dbg = ' brut=' + String(localStorage.getItem('podmix-track-favorites-v1')).slice(0, 80) + ' vue=' + (document.querySelector('.favorites-view') ? document.querySelector('.favorites-view').innerText.slice(0, 80) : 'ABSENTE'); return dbg + (t.includes('Favori du premier episode') ? 'FAVORIS-VISIBLES' : 'FAVORIS-ABSENTS texte=' + t.slice(0, 80)) + ' youtube_liens=' + JSON.stringify(yt) + ' youtube_indisponibles=' + ytKo })()`
           if (phase === 'seed') {
@@ -124,7 +124,23 @@ jobs:
           }
           if (phase === 'favadd') {
             // parcours reel dans l'UI de l'ANCIENNE version : ouvrir l'episode et ajouter le morceau aux favoris
-            log('favadd:', await ev(`(async () => { const sleep = (ms) => new Promise((r) => setTimeout(r, ms)); const pick = (sel, txt) => [...document.querySelectorAll(sel)].filter((x) => x.innerText && x.innerText.includes(txt)).sort((p, q) => p.innerText.length - q.innerText.length)[0]; const s1 = pick('button, article, a', 'Podcast des favoris'); if (!s1) return 'SOURCE-INTROUVABLE texte=' + document.body.innerText.slice(0, 120).replace(/\\s+/g, ' '); s1.click(); await sleep(2000); const e1 = pick('button, article, a', 'Premier episode favori'); if (!e1) return 'EPISODE-INTROUVABLE texte=' + document.body.innerText.slice(0, 160).replace(/\\s+/g, ' '); e1.click(); await sleep(2500); const h = document.querySelector('button[aria-label="Ajouter Favori du premier episode aux favoris"]'); if (!h) return 'COEUR-INTROUVABLE texte=' + document.body.innerText.slice(0, 200).replace(/\\s+/g, ' '); h.click(); await sleep(2000); return 'FAVORI-AJOUTE' })()`))
+            log('favadd:', await ev(`(async () => { const sleep = (ms) => new Promise((r) => setTimeout(r, ms)); const pick = (sel, txt) => [...document.querySelectorAll(sel)].filter((x) => x.innerText && x.innerText.includes(txt)).sort((p, q) => p.innerText.length - q.innerText.length)[0]; const s1 = pick('button, article, a', 'Podcast des favoris'); if (!s1) return 'SOURCE-INTROUVABLE texte=' + document.body.innerText.slice(0, 120).replace(/\\s+/g, ' '); s1.click(); await sleep(2000); const e1 = pick('button, article, a', 'Premier episode favori'); if (!e1) return 'EPISODE-INTROUVABLE texte=' + document.body.innerText.slice(0, 160).replace(/\\s+/g, ' '); e1.click(); await sleep(2500); const h = document.querySelector('button[aria-label="Ajouter Favori du premier episode aux favoris"]'); if (!h) return 'COEUR-INTROUVABLE texte=' + document.body.innerText.slice(0, 200).replace(/\\s+/g, ' '); h.click(); await sleep(1500); const h2 = document.querySelector('button[aria-label="Ajouter One More Time aux favoris"]'); if (!h2) return 'COEUR2-INTROUVABLE'; h2.click(); await sleep(2000); return 'FAVORI-AJOUTE' })()`))
+          }
+          if (phase === 'realyt') {
+            // detection YouTube REELLE : serveur candidat local (10.0.2.2:8099), morceau sans lien ; on rafraichit les liens dans l'UI
+            await ev(`document.querySelector('button[aria-label="Voir les favoris"]')?.click(); 1`)
+            await sleep(2500)
+            await ev(`document.querySelector('button[aria-label="Rafraîchir les liens musicaux"]')?.click(); 1`)
+            let hrefs = '[]'
+            for (let i = 0; i < 30; i += 1) {
+              await sleep(3000)
+              hrefs = await ev(`JSON.stringify([...document.querySelectorAll('.favorite-tracks a[aria-label="YouTube disponible : ouvrir le morceau"]')].map((a) => a.getAttribute('href')))`)
+              if (JSON.parse(hrefs).some((h) => !h.includes('detected-a') && /watch\?v=/.test(h))) break
+            }
+            fs.writeFileSync('out/yt-href.txt', hrefs)
+            log('realyt: liens YouTube dans la vue Favoris:', hrefs)
+            log('realyt: texte vue Favoris:', String(await ev(`document.querySelector('.favorite-tracks')?.innerText ?? 'ABSENT'`)).replace(/\s+/g, ' ').slice(0, 300))
+            execSync('adb exec-out screencap -p > out/fav-229-yt.png')
           }
           if (phase === 'oldfav') {
             log('oldfav: ecran Favoris:', await ev(UIFAV))
@@ -264,6 +280,11 @@ jobs:
           adb shell am force-stop "$PKG"; sleep 3
           launch; echo "--- 5. NOUVELLE version apres kill/relance" | tee -a out/res.txt
           node "$RUNNER_TEMP/p.mjs" after 2>&1 | tee -a out/res.txt
+          echo "--- 5b. NOUVELLE version : detection YouTube reelle via serveur candidat local" | tee -a out/res.txt
+          node "$RUNNER_TEMP/p.mjs" realyt 2>&1 | tee -a out/res.txt
+          YT=$(node -e "const a=JSON.parse(require('fs').readFileSync('out/yt-href.txt','utf8')).filter(h=>!h.includes('detected-a'));console.log(a[0]||'')")
+          if [ -n "$YT" ]; then echo "realyt: oEmbed HTTP $(curl -s -o out/oembed.json -w '%{http_code}' "https://www.youtube.com/oembed?url=${YT}&format=json") pour $YT" | tee -a out/res.txt; echo "realyt: titre oEmbed: $(head -c 200 out/oembed.json)" | tee -a out/res.txt; fi
+          echo "serveur candidat, fin du journal:" | tee -a out/res.txt; tail -n 8 out/server.log | cut -c1-300 | tee -a out/res.txt
           for I in 0 1 2; do
             launch; echo "--- 6.$I NOUVELLE version : reglage bascule par le code appli puis kill immediat" | tee -a out/res.txt
             node "$RUNNER_TEMP/p.mjs" killapp "$PKG" $I 2>&1 | tee -a out/res.txt
@@ -282,8 +303,14 @@ jobs:
           { echo "## Stockage durable sur Android (emulateur jetable, APK debug, aucune publication)"; echo '```'; cat out/res.txt; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
           grep -q "precondition filler persiste: true" out/res.txt || exit 1
           grep -q "precondition catalogue seed persiste: true" out/res.txt || exit 1
-          grep -qE "migrated: cles .* identiques dans IndexedDB: [0-9]+ / [0-9]+ ecarts: aucun" out/res.txt || exit 1
-          grep -qE "after: cles .* identiques dans IndexedDB: ([0-9]+) / .* ecarts: aucun" out/res.txt || exit 1
+          grep -q "^migrated: ecart catalogue champ par champ" out/res.txt || exit 1
+          # seuls ajouts admis : champ vide unseenEpisodeIds, et liens musicaux ajoutes par l'appli au 3e morceau (test) ; rien d'autre
+          BAD=$(grep "^migrated: ecart catalogue champ par champ" out/res.txt | sed 's/^[^:]*: [^:]*) : //; s/ ## /\n/g' | grep -vE '^\.0\.unseenEpisodeIds : undefined -> \[\]$|^\.0\.episodes\.0\.tracks\.1\.[A-Za-z]+ : undefined -> ' || true)
+          [ -z "$BAD" ] || { echo "ecart catalogue non admis: $BAD"; exit 1; }
+          grep -E "^migrated: cles .* ecarts: podmix-catalog-v1=DIFFERENT" out/res.txt | grep -qv " ; podmix-" || exit 1
+          grep -E "^after: cles .* ecarts: podmix-catalog-v1=DIFFERENT" out/res.txt | grep -qv " ; podmix-" || exit 1
+          grep -qE "realyt: liens YouTube dans la vue Favoris: .*https://www\.youtube\.com/watch\?v=[A-Za-z0-9_-]{11}" out/res.txt || exit 1
+          grep -q "realyt: oEmbed HTTP 200" out/res.txt || exit 1
           grep -q "erreur Quota affichee: false" out/res.txt || exit 1
           grep -q "ecrit dans IndexedDB malgre localStorage sature: true" out/res.txt || exit 1
           grep -q "relecture 10x longueur: 52400000" out/res.txt || exit 1
@@ -304,6 +331,13 @@ jobs:
           grep -q "reglage apres 2e kill/relance: identique" out/res.txt || exit 1
           [ "$(cat out/fatal.txt)" = "0" ] || exit 1
           XEOF
+      - name: Serveur candidat local (code du depot, port 8099, aucune infrastructure de l'utilisateur)
+        run: |
+          mkdir -p out
+          pip install --quiet -r server/requirements.txt
+          PODMIX_ALLOWED_ORIGINS="https://localhost,http://localhost,capacitor://localhost" nohup python3 server/dev_server.py > out/server.log 2>&1 &
+          for i in $(seq 1 20); do curl -fs http://127.0.0.1:8099/health && break; sleep 1; done
+          echo
       - name: Preparer l'emulateur accelere
         run: |
           echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
