@@ -1,0 +1,396 @@
+name: candidate-quota-fix
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [fix/studio-playbutton-intent-20261025]
+    paths: ['.github/workflows/candidate-quota-fix.yml']
+
+permissions:
+  contents: write
+
+jobs:
+  quota-fix:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: fix/studio-playbutton-intent-20261025
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Ecrire le script de reproduction (contexte de test jetable)
+        run: |
+          mkdir -p qt
+          cat > qt/repro.mjs <<'REPROEOF'
+          import { chromium } from '@playwright/test'
+          import http from 'node:http'
+          import fs from 'node:fs'
+          import path from 'node:path'
+          const dist = process.argv[2]
+          const label = process.argv[3]
+          const types = { '.html':'text/html', '.js':'text/javascript', '.css':'text/css', '.svg':'image/svg+xml', '.png':'image/png', '.json':'application/json', '.webmanifest':'application/json' }
+          const server = http.createServer((req, res) => {
+            let p = decodeURIComponent(req.url.split('?')[0]); if (p === '/') p = '/index.html'
+            const f = path.join(dist, p)
+            if (!f.startsWith(dist) || !fs.existsSync(f) || fs.statSync(f).isDirectory()) { res.writeHead(404); res.end(); return }
+            res.writeHead(200, { 'content-type': types[path.extname(f)] ?? 'application/octet-stream' }); fs.createReadStream(f).pipe(res)
+          }).listen(4180)
+          const browser = await chromium.launch({ channel: 'chrome', headless: true })
+          const ctx = await browser.newContext({ viewport: { width: 368, height: 700 } })
+          const page = await ctx.newPage()
+          const errors = []
+          page.on('pageerror', (e) => errors.push(String(e).slice(0, 200)))
+          await page.goto('http://127.0.0.1:4180/')
+          await page.waitForTimeout(2000)
+          await page.evaluate(() => {
+            const ep = (i) => ({ id: 'ep' + i, title: 'Episode test ' + i, description: 'd', publishedAt: new Date(Date.now() - i * 86400000).toISOString(), duration: '1:00:00', audioUrl: 'https://example.invalid/a' + i + '.mp3', artworkUrl: '' })
+            localStorage.setItem('podmix-catalog-v1', JSON.stringify([{ id: 'src1', kind: 'podcast', title: 'Podcast test', description: '', artworkUrl: '', feedUrl: 'https://example.invalid/feed.xml', episodes: [ep(1), ep(2), ep(3)] }]))
+          })
+          await page.reload()
+          await page.waitForTimeout(2500)
+          // Remplit le stockage local de test jusqu'a saturation (contexte jetable, aucune donnee utilisateur)
+          const info = await page.evaluate(() => {
+            let n = 0
+            for (const size of [10_000, 1_000, 100, 10, 1]) { try { for (;;) { localStorage.setItem('zz-filler-' + n, 'x'.repeat(size)); n++ } } catch {} }
+            let used = 0; for (let i = 0; i < localStorage.length; i++) { const k = localStorage.key(i); used += k.length + (localStorage.getItem(k) ?? '').length }
+            // libere un tout petit espace pour que le 1er setItem de l'appli passe puis sature ensuite
+            return { fillerKeys: n, charsUsed: used }
+          })
+          const snap = () => page.evaluate(() => { const o = {}; for (let i = 0; i < localStorage.length; i++) { const k = localStorage.key(i); if (!k.startsWith('zz-filler-')) o[k] = localStorage.getItem(k) } return JSON.stringify(o) })
+          const before = await snap()
+          console.log(label, 'filler', JSON.stringify(info))
+          await page.reload()
+          await page.waitForTimeout(6000)
+          const card = page.getByText('Podcast test').first()
+          if (await card.count()) { await card.click().catch(() => {}); await page.waitForTimeout(3000) }
+          const body = (await page.evaluate(() => document.body.innerText)).slice(0, 300).replace(/\s+/g, ' ')
+          console.log(label, 'body:', body)
+          const after = await snap()
+          const bk = Object.keys(JSON.parse(before)); const ak = JSON.parse(after)
+          console.log(label, 'donnees utilisateur preservees:', bk.every((k) => ak[k] === JSON.parse(before)[k]), 'cles avant', bk.length, 'apres', Object.keys(ak).length)
+          console.log(label, 'pageerrors:', errors.length, errors.slice(0, 2).join(' | '))
+          await page.screenshot({ path: `/tmp/pm/qt/${label}.png` })
+          await browser.close(); server.close()
+
+          REPROEOF
+      - name: Construire la base (sans correctif) et reproduire la saturation du stockage
+        run: |
+          set -u
+          npm run build > /tmp/build-base.txt 2>&1 || { tail -20 /tmp/build-base.txt; exit 1; }
+          rm -rf /tmp/dist-base && cp -r dist /tmp/dist-base
+          node qt/repro.mjs /tmp/dist-base base > /tmp/repro-base.txt 2>&1 || true
+          cat /tmp/repro-base.txt
+      - name: Appliquer le correctif (patch ecrit a la main, aucune suppression de donnees)
+        run: |
+          cat > /tmp/quota.patch <<'PATCHEOF'
+          diff --git a/src/App.tsx b/src/App.tsx
+          index 23234bf..00ade3d 100644
+          --- a/src/App.tsx
+          +++ b/src/App.tsx
+          @@ -23,6 +23,7 @@ import { decodeCredit, decodeCredits } from './credits'
+           import podmixInfinityLogo from './assets/podmix-logo-radio-c.png'
+           import './App.css'
+           import './identification.css'
+          +import { safeSetItem } from './safeStorage'
+
+           const initialTracks: Track[] = []
+
+          @@ -600,14 +601,14 @@ function App() {
+                 order.splice(currentIndex, 1)
+                 order.splice(newIndex, 0, dragSection)
+                 setHomeSectionOrder(order)
+          -      localStorage.setItem('podmix-home-section-order-v1', JSON.stringify(order))
+          +      safeSetItem('podmix-home-section-order-v1', JSON.stringify(order))
+                 dragStartY.current = clientY
+               } else if (deltaY < -threshold && currentIndex > 0) {
+                 const newIndex = currentIndex - 1
+                 order.splice(currentIndex, 1)
+                 order.splice(newIndex, 0, dragSection)
+                 setHomeSectionOrder(order)
+          -      localStorage.setItem('podmix-home-section-order-v1', JSON.stringify(order))
+          +      safeSetItem('podmix-home-section-order-v1', JSON.stringify(order))
+                 dragStartY.current = clientY
+               }
+             }
+          @@ -768,7 +769,7 @@ function App() {
+             useEffect(() => { activeOutputRef.current = activeOutput }, [activeOutput])
+
+             function persistAutomaticTimestampQueue() {
+          -    localStorage.setItem(
+          +    safeSetItem(
+                 AUTOMATIC_TIMESTAMP_QUEUE_KEY,
+                 JSON.stringify([...automaticTimestampEpisodeIds.current]),
+               )
+          @@ -792,7 +793,7 @@ function App() {
+             function establishRssBaseline(sourceId: string) {
+               if (rssBaselineSourceIds.current.has(sourceId)) return
+               rssBaselineSourceIds.current.add(sourceId)
+          -    localStorage.setItem(RSS_BASELINE_SOURCES_KEY, JSON.stringify([...rssBaselineSourceIds.current]))
+          +    safeSetItem(RSS_BASELINE_SOURCES_KEY, JSON.stringify([...rssBaselineSourceIds.current]))
+             }
+
+             async function resetRepeatForNewQueue() {
+          @@ -922,7 +923,7 @@ function App() {
+             ) {
+               const stored = loadBoseSession()
+               if (!stored || !item) return
+          -    localStorage.setItem('podmix-bose-session-v1', JSON.stringify({
+          +    safeSetItem('podmix-bose-session-v1', JSON.stringify({
+                 ...stored,
+                 item,
+                 contentOffsetSeconds: boseContentOffsetRef.current,
+          @@ -1549,7 +1550,7 @@ function App() {
+                 }))
+                 if (!stopped) {
+                   if (attemptedFeeds === 0 || refreshedFeeds > 0) {
+          -          localStorage.setItem('podmix-last-feed-refresh', String(Date.now()))
+          +          safeSetItem('podmix-last-feed-refresh', String(Date.now()))
+                   }
+                   setCatalog(refreshed)
+                   enqueueNewEpisodesForTimestamping(enteredEpisodes.map(({ episode }) => episode))
+          @@ -1560,7 +1561,7 @@ function App() {
+                     // Ne coupe jamais une analyse en cours. Ce verrou choisit seulement
+                     // le podcast qui prendra le prochain créneau de la file unique.
+                     activeTimestampSourceId.current = nextEpisode.source.id
+          -          localStorage.setItem('podmix-active-timestamp-source-v1', nextEpisode.source.id)
+          +          safeSetItem('podmix-active-timestamp-source-v1', nextEpisode.source.id)
+                   }
+                   await scheduleNextTimestamping(refreshed)
+                 }
+          @@ -1590,10 +1591,10 @@ function App() {
+               // Ouvrir un podcast donne la main à sa file. Le job déjà en cours n'est
+               // jamais interrompu ; ce choix s'applique au prochain épisode à lancer.
+               activeTimestampSourceId.current = source.id
+          -    localStorage.setItem('podmix-active-timestamp-source-v1', source.id)
+          +    safeSetItem('podmix-active-timestamp-source-v1', source.id)
+               void scheduleNextTimestamping([source, ...catalogRef.current.filter((item) => item.id !== source.id)])
+             }, [selectedSourceId, settings.automaticAnalysis])
+          -  useEffect(() => localStorage.setItem('podmix-track-favorites-v1', JSON.stringify(favoriteTrackIds)), [favoriteTrackIds])
+          +  useEffect(() => safeSetItem('podmix-track-favorites-v1', JSON.stringify(favoriteTrackIds)), [favoriteTrackIds])
+             useEffect(() => {
+               if (!podmixPlayer.isNative) return
+               let active = true
+          @@ -1706,7 +1707,7 @@ function App() {
+               }
+             }
+             useEffect(() => { nowPlayingRef.current = nowPlaying }, [nowPlaying])
+          -  useEffect(() => localStorage.setItem('podmix-bose-ip', boseIp), [boseIp])
+          +  useEffect(() => safeSetItem('podmix-bose-ip', boseIp), [boseIp])
+             useEffect(() => {
+               if (podmixPlayer.isNative) void restoreOutputAfterLaunch()
+               // Si la SoundTouch est réellement encore en lecture, sa session mémorisée
+          @@ -1714,7 +1715,7 @@ function App() {
+               // Sinon la sortie locale reste le comportement de base.
+               // eslint-disable-next-line react-hooks/exhaustive-deps
+             }, [])
+          -  useEffect(() => localStorage.setItem('podmix-settings-v1', JSON.stringify(settings)), [settings])
+          +  useEffect(() => safeSetItem('podmix-settings-v1', JSON.stringify(settings)), [settings])
+             useEffect(() => {
+               offlineEpisodesRef.current = offlineEpisodes
+               saveOfflineEpisodes(offlineEpisodes)
+          @@ -2480,7 +2481,7 @@ function App() {
+                   source = sources.find((item) => queuedEpisodes(item).length > 0)
+                   sourceQueue = source ? queuedEpisodes(source) : []
+                   activeTimestampSourceId.current = source?.id ?? ''
+          -        if (source) localStorage.setItem('podmix-active-timestamp-source-v1', source.id)
+          +        if (source) safeSetItem('podmix-active-timestamp-source-v1', source.id)
+                   else localStorage.removeItem('podmix-active-timestamp-source-v1')
+                 }
+                 const next = sourceQueue[0]
+          @@ -2995,7 +2996,7 @@ function App() {
+                 if (source.kind !== 'show' && isNewPodcast && settings.automaticAnalysis) {
+                   enqueueNewEpisodesForTimestamping(source.episodes)
+                   activeTimestampSourceId.current = source.id
+          -        localStorage.setItem('podmix-active-timestamp-source-v1', source.id)
+          +        safeSetItem('podmix-active-timestamp-source-v1', source.id)
+                   void scheduleNextTimestamping([source, ...catalogRef.current.filter((item) => item.id !== source.id)])
+                 }
+                 establishRssBaseline(source.id)
+          @@ -4226,7 +4227,7 @@ function App() {
+               setGlobalPlaying(true)
+               const name = targetName || activeOutput.name || 'Bose SoundTouch'
+               selectBoseOutput(ip, name)
+          -    localStorage.setItem('podmix-bose-session-v1', JSON.stringify({
+          +    safeSetItem('podmix-bose-session-v1', JSON.stringify({
+                 ip,
+                 name,
+                 item,
+          @@ -4505,7 +4506,7 @@ function App() {
+                 if (source.kind !== 'show' && isNewPodcast && settings.automaticAnalysis) {
+                   enqueueNewEpisodesForTimestamping(source.episodes)
+                   activeTimestampSourceId.current = source.id
+          -        localStorage.setItem('podmix-active-timestamp-source-v1', source.id)
+          +        safeSetItem('podmix-active-timestamp-source-v1', source.id)
+                   void scheduleNextTimestamping([source, ...catalogRef.current.filter((item) => item.id !== source.id)])
+                 }
+                 establishRssBaseline(source.id)
+          @@ -4557,7 +4558,7 @@ function App() {
+                 }
+                 manualTimestampQueueActive.current = true
+                 activeTimestampSourceId.current = resetSource!.id
+          -      localStorage.setItem('podmix-active-timestamp-source-v1', resetSource!.id)
+          +      safeSetItem('podmix-active-timestamp-source-v1', resetSource!.id)
+                 await scheduleNextTimestamping([resetSource!, ...catalogRef.current.filter((item) => item.id !== resetSource!.id)])
+                 const count = resetSource!.episodes.filter((episode) => episode.audioUrl).length
+                 setDownloadMessage(`${count} épisode${count > 1 ? 's' : ''} réinitialisé${count > 1 ? 's' : ''} et relancé${count > 1 ? 's' : ''}`)
+          diff --git a/src/api.ts b/src/api.ts
+          index 4cc5b4d..23697a4 100644
+          --- a/src/api.ts
+          +++ b/src/api.ts
+          @@ -1,5 +1,6 @@
+           import type { CatalogSource, DetectionJob, DjSearchResult, LiveSetDetails, LiveSetSearchResult, LiveSetTrack, PodcastSearchResult } from './domain'
+           import { Capacitor } from '@capacitor/core'
+          +import { safeSetItem } from './safeStorage'
+
+           const API_TIMEOUT_MS = 45_000
+
+          @@ -31,7 +32,7 @@ export function setApiUrl(value: string): string {
+             const parsed = new URL(normalized)
+             if (!['http:', 'https:'].includes(parsed.protocol)) throw new Error('Utilisez une adresse HTTP ou HTTPS')
+             if (!parsed.hostname) throw new Error('Adresse serveur invalide')
+          -  localStorage.setItem('podmix-api-url', normalized)
+          +  safeSetItem('podmix-api-url', normalized)
+             return normalized
+           }
+
+          diff --git a/src/history.ts b/src/history.ts
+          index e329335..a9d3777 100644
+          --- a/src/history.ts
+          +++ b/src/history.ts
+          @@ -1,4 +1,5 @@
+           export const PLAYBACK_HISTORY_KEY = 'podmix-history-v1'
+          +import { safeSetItem } from './safeStorage'
+           export const LISTENING_SESSIONS_KEY = 'podmix-listening-sessions-v1'
+           export const COMPLETED_EPISODES_KEY = 'podmix-completed-episodes-v1'
+
+          @@ -58,7 +59,7 @@ export function loadPlaybackHistory(): PlaybackHistoryItem[] {
+           }
+
+           export function savePlaybackHistory(items: PlaybackHistoryItem[]) {
+          -  localStorage.setItem(PLAYBACK_HISTORY_KEY, JSON.stringify(items.slice(0, 1_000)))
+          +  safeSetItem(PLAYBACK_HISTORY_KEY, JSON.stringify(items.slice(0, 1_000)))
+           }
+
+           /** Les éléments terminés ne font pas partie de « Reprendre ». */
+          @@ -69,7 +70,7 @@ export function loadCompletedEpisodeIds(): string[] {
+           }
+
+           export function saveCompletedEpisodeIds(ids: string[]) {
+          -  localStorage.setItem(COMPLETED_EPISODES_KEY, JSON.stringify([...new Set(ids)].slice(0, 2_000)))
+          +  safeSetItem(COMPLETED_EPISODES_KEY, JSON.stringify([...new Set(ids)].slice(0, 2_000)))
+           }
+
+           export function loadListeningSessions(): ListeningSession[] {
+          @@ -102,7 +103,7 @@ export function updateListeningSessions(sessions: ListeningSession[], item: Play
+           }
+
+           export function saveListeningSessions(sessions: ListeningSession[]) {
+          -  localStorage.setItem(LISTENING_SESSIONS_KEY, JSON.stringify(sessions.slice(0, 2_000)))
+          +  safeSetItem(LISTENING_SESSIONS_KEY, JSON.stringify(sessions.slice(0, 2_000)))
+           }
+
+           export function searchListeningSessions(sessions: ListeningSession[], query: string) {
+          diff --git a/src/nativePlayer.ts b/src/nativePlayer.ts
+          index 2a8bff1..1a43cd1 100644
+          --- a/src/nativePlayer.ts
+          +++ b/src/nativePlayer.ts
+          @@ -1,6 +1,7 @@
+           import { Capacitor, registerPlugin } from '@capacitor/core'
+           import type { PluginListenerHandle } from '@capacitor/core'
+           import { decodeCredits } from './credits'
+          +import { safeSetItem } from './safeStorage'
+
+           export type PlayerState = {
+             playing: boolean
+          @@ -318,7 +319,7 @@ export const podmixPlayer = {
+               const volume = Math.max(0, Math.min(1, options.volume))
+               if (Capacitor.isNativePlatform()) return NativePlayer.setVolume({ volume })
+               webAudio.volume = volume
+          -    localStorage.setItem('podmix-player-volume', String(volume))
+          +    safeSetItem('podmix-player-volume', String(volume))
+               return { volume }
+             },
+             async getVolume() {
+          diff --git a/src/safeStorage.ts b/src/safeStorage.ts
+          new file mode 100644
+          index 0000000..87c9e40
+          --- /dev/null
+          +++ b/src/safeStorage.ts
+          @@ -0,0 +1,20 @@
+          +/**
+          + * Ecriture localStorage qui ne casse pas l'interface quand le quota est atteint.
+          + * Aucune donnee existante n'est supprimee : si l'espace manque, l'ecriture
+          + * demandee est simplement ignoree (l'etat reste en memoire dans l'application).
+          + */
+          +let quotaWarned = false
+          +
+          +export function safeSetItem(key: string, value: string): void {
+          +  try {
+          +    localStorage.setItem(key, value)
+          +  } catch (error) {
+          +    const quota = error instanceof DOMException
+          +      && (error.name === 'QuotaExceededError' || error.name === 'NS_ERROR_DOM_QUOTA_REACHED' || error.code === 22)
+          +    if (!quota) throw error
+          +    if (!quotaWarned) {
+          +      quotaWarned = true
+          +      console.warn(`Stockage local plein : ecriture ignoree (${key}), aucune donnee supprimee.`)
+          +    }
+          +  }
+          +}
+          diff --git a/src/storage.ts b/src/storage.ts
+          index 3779e8a..7e247eb 100644
+          --- a/src/storage.ts
+          +++ b/src/storage.ts
+          @@ -1,4 +1,5 @@
+           import type { CatalogSource, OfflineEpisode, Track } from './domain'
+          +import { safeSetItem } from './safeStorage'
+
+           const DATABASE = 'podmix-studio'
+           const STORE = 'sessions'
+          @@ -111,5 +112,5 @@ export function loadOfflineEpisodes(): OfflineEpisode[] {
+           }
+
+           export function saveOfflineEpisodes(episodes: OfflineEpisode[]) {
+          -  localStorage.setItem(OFFLINE_KEY, JSON.stringify(episodes))
+          +  safeSetItem(OFFLINE_KEY, JSON.stringify(episodes))
+           }
+
+          PATCHEOF
+          git apply --index /tmp/quota.patch
+          git diff --cached --stat
+      - name: Verifier typage, lint, tests unitaires et build
+        run: |
+          set -eu
+          npx tsc -b
+          npx oxlint
+          npm run build > /tmp/build-fix.txt 2>&1 || { tail -20 /tmp/build-fix.txt; exit 1; }
+          rm -rf /tmp/dist-fix && cp -r dist /tmp/dist-fix
+          if grep -q '"test:unit"' package.json; then npm run test:unit 2>&1 | tail -15; fi
+      - name: Meme scenario de saturation avec le correctif
+        run: |
+          node qt/repro.mjs /tmp/dist-fix fixed > /tmp/repro-fixed.txt 2>&1 || true
+          cat /tmp/repro-fixed.txt
+          {
+            echo "## Saturation du stockage local (contexte de test jetable, aucune donnee utilisateur)"
+            echo '### Base'
+            echo '```'; cut -c1-400 /tmp/repro-base.txt; echo '```'
+            echo '### Avec correctif'
+            echo '```'; cut -c1-400 /tmp/repro-fixed.txt; echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+          grep -q 'QuotaExceededError' /tmp/repro-base.txt
+          ! grep -q 'QuotaExceededError' /tmp/repro-fixed.txt
+          grep -q 'donnees utilisateur preservees: true' /tmp/repro-fixed.txt
+      - name: Pousser le correctif sur une nouvelle branche (jamais main, aucune publication)
+        run: |
+          set -eu
+          git config user.name "picopcla"
+          git config user.email "picopcla@users.noreply.github.com"
+          git checkout -b fix/localstorage-quota-20261026
+          git commit -m "Ne plus casser l'interface quand le stockage local est plein (ecriture ignoree, aucune suppression)"
+          git push origin fix/localstorage-quota-20261026
+          echo "branche fix/localstorage-quota-20261026 poussee: $(git rev-parse HEAD)" >> "$GITHUB_STEP_SUMMARY"
