@@ -43,6 +43,10 @@ jobs:
           umask 077
           printf '%s' "$KS_B64" | base64 -d > android/podmix-release.keystore
           printf 'storeFile=podmix-release.keystore\nstorePassword=%s\nkeyAlias=%s\nkeyPassword=%s\n' "$KS_PASS" "$KEY_ALIAS" "$KEY_PASS" > android/release-signing.properties
+      - name: Numero de build candidat 1.0.226 (build seulement, non commite)
+        run: |
+          set -euo pipefail
+          node -e "const fs=require('fs');const p=JSON.parse(fs.readFileSync('package.json','utf8'));p.version='1.0.226';fs.writeFileSync('package.json',JSON.stringify(p,null,2)+'\n')"
       - run: npm ci
       - name: Construire l'APK ng release
         run: npm run android:build:ng
@@ -56,6 +60,8 @@ jobs:
           BADGING=$("$BT/aapt2" dump badging out/app-ng-candidate-signed.apk | head -1)
           printf '%s\n' "$BADGING"
           grep -Fq "name='com.podmix.next.ng'" <<<"$BADGING"
+          grep -Fq "versionCode='10226'" <<<"$BADGING"
+          grep -Fq "versionName='1.0.226-ng'" <<<"$BADGING"
           "$BT/apksigner" verify out/app-ng-candidate-signed.apk
           CERT=$("$BT/apksigner" verify --print-certs out/app-ng-candidate-signed.apk | sed -n 's/.*certificate SHA-256 digest: //p' | head -1 | tr '[:upper:]' '[:lower:]')
           printf 'cert sha256: %s\n' "$CERT"
@@ -66,7 +72,7 @@ jobs:
           fi
           sha256sum out/app-ng-candidate-signed.apk > out/app-ng-candidate-signed.apk.sha256
           {
-            echo "## Candidat signe isole (aucune publication)"
+            echo "## CANDIDAT NON VALIDE 1.0.226-ng signe isole (aucune publication)"
             echo "- commit: ${GITHUB_SHA}"
             echo "- badging: $BADGING"
             echo "- cert sha256: $CERT"
@@ -92,35 +98,37 @@ jobs:
         with:
           name: podmix-candidate-signed-apk
           path: out
-      - name: Recuperer l'APK publie 1.0.224 (reference de mise a jour)
+      - name: Recuperer les APK publies 1.0.225 et 1.0.224 (bases de mise a jour)
         env:
           GH_TOKEN: ${{ github.token }}
-        run: gh release download v1.0.224-ng-theme-clair -R ${{ github.repository }} -p app-ng-release.apk -O out/app-ng-224.apk --clobber
+        run: |
+          gh release download v1.0.225-ng-combined -R ${{ github.repository }} -p app-ng-release.apk -O out/app-ng-225.apk --clobber
+          gh release download v1.0.224-ng-theme-clair -R ${{ github.repository }} -p app-ng-release.apk -O out/app-ng-224.apk --clobber
+          sha256sum out/app-ng-225.apk out/app-ng-224.apk
       - name: Ecrire le script de test
         run: |
           cat > "$RUNNER_TEMP/up.sh" <<'XEOF'
-          set -eu
-          adb install out/app-ng-224.apk
-          adb shell am start -n com.podmix.next.ng/com.podmix.next.MainActivity
-          sleep 12
-          adb root || true
-          sleep 2
-          adb shell "echo podmix-data-marker > /data/data/com.podmix.next.ng/files/.update-check"
-          adb shell am force-stop com.podmix.next.ng
-          adb shell dumpsys package com.podmix.next.ng | grep -E 'versionCode|versionName' | head -2 > /tmp/before.txt
-          adb install -r out/app-ng-candidate-signed.apk > /tmp/install.txt 2>&1 || true
-          cat /tmp/install.txt
-          adb shell dumpsys package com.podmix.next.ng | grep -E 'versionCode|versionName' | head -2 > /tmp/after.txt
-          adb shell "cat /data/data/com.podmix.next.ng/files/.update-check" > /tmp/marker.txt 2>&1 || true
-          {
-            echo "## Test de mise a jour 224 publie vers candidat signe (emulateur, aucune publication)"
-            echo "- avant: $(tr '\n' ' ' < /tmp/before.txt)"
-            echo "- install -r: $(tr '\n' ' ' < /tmp/install.txt)"
-            echo "- apres: $(tr '\n' ' ' < /tmp/after.txt)"
-            echo "- marqueur de donnees conserve: $(grep -c podmix-data-marker /tmp/marker.txt || true)"
-          } >> "$GITHUB_STEP_SUMMARY"
-          grep -q Success /tmp/install.txt
-          grep -q podmix-data-marker /tmp/marker.txt
+          set -u
+          FAIL=0
+          echo "## CANDIDAT NON VALIDE 1.0.226-ng: test de mise a jour sur emulateur (aucune publication)" >> "$GITHUB_STEP_SUMMARY"
+          for BASE in 225 224; do
+            adb uninstall com.podmix.next.ng >/dev/null 2>&1 || true
+            adb install out/app-ng-$BASE.apk > /tmp/base.txt 2>&1 || true
+            adb shell am start -n com.podmix.next.ng/com.podmix.next.MainActivity >/dev/null 2>&1
+            sleep 12
+            adb root >/dev/null 2>&1 || true
+            sleep 2
+            adb shell "echo podmix-data-marker-$BASE > /data/data/com.podmix.next.ng/files/.update-check"
+            adb shell am force-stop com.podmix.next.ng
+            BEFORE=$(adb shell dumpsys package com.podmix.next.ng | grep -E 'versionCode|versionName' | head -2 | tr '\n' ' ')
+            adb install -r out/app-ng-candidate-signed.apk > /tmp/install.txt 2>&1 || true
+            AFTER=$(adb shell dumpsys package com.podmix.next.ng | grep -E 'versionCode|versionName' | head -2 | tr '\n' ' ')
+            MARK=$(adb shell "cat /data/data/com.podmix.next.ng/files/.update-check" 2>&1 | tr -d '\r')
+            echo "- base $BASE: avant [$BEFORE] install -r [$(tr '\n' ' ' < /tmp/install.txt)] apres [$AFTER] marqueur [$MARK]" >> "$GITHUB_STEP_SUMMARY"
+            grep -q Success /tmp/install.txt || FAIL=1
+            [ "$MARK" = "podmix-data-marker-$BASE" ] || FAIL=1
+          done
+          exit $FAIL
           XEOF
       - name: Preparer l'emulateur accelere
         run: |
