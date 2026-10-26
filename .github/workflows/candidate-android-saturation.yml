@@ -126,3 +126,4 @@ jobs:
         with:
           name: capture-android-saturation
           path: out/sat-android.png
+# rerun sur 1.0.228 (catalogue conserve, adresse serveur)
