@@ -1,0 +1,50 @@
+{
+  "name": "podmix-next",
+  "private": true,
+  "version": "1.0.225",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "setup:api": "python3 -m venv .venv && .venv/bin/pip install -r server/requirements.txt",
+    "api": ".venv/bin/python server/dev_server.py",
+    "build": "tsc -b && vite build",
+    "version:sync": "node scripts/sync-version.mjs sync",
+    "version:bump": "node scripts/sync-version.mjs bump patch",
+    "version:bump:minor": "node scripts/sync-version.mjs bump minor",
+    "version:bump:major": "node scripts/sync-version.mjs bump major",
+    "version:release": "npm run version:bump && npm run version:sync",
+    "android:sync": "npm run version:sync && npm run build && cap sync android",
+    "android:build:debug": "npm run android:sync && cd android && ./gradlew assembleDebug",
+    "android:build:release": "npm run version:release && npm run android:sync && cd android && ./gradlew assembleRelease",
+    "android:build:ng": "npm run version:sync && npm run build && npx cap sync android && cd android && ./gradlew assembleNgRelease",
+    "test:server": ".venv/bin/python -m unittest discover -s server/tests -v",
+    "test:e2e": "playwright test",
+    "lint": "oxlint",
+    "preview": "vite preview",
+    "test:unit": "vitest run tests/unit/credits.test.ts tests/unit/safeStorage.test.ts tests/unit/kvStore.test.ts"
+  },
+  "dependencies": {
+    "@capacitor/android": "^8.4.2",
+    "@capacitor/app": "^8.1.1",
+    "@capacitor/core": "^8.4.2",
+    "@capacitor/share": "^8.0.1",
+    "lucide-react": "^1.26.0",
+    "react": "^19.2.7",
+    "react-dom": "^19.2.7",
+    "wavesurfer.js": "^7.12.11"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "^8.4.2",
+    "@playwright/test": "^1.62.0",
+    "@types/node": "^24.13.2",
+    "@types/react": "^19.2.17",
+    "@types/react-dom": "^19.2.3",
+    "@vitejs/plugin-react": "^6.0.3",
+    "jsdom": "^27.0.1",
+    "oxlint": "^1.71.0",
+    "typescript": "~6.0.2",
+    "vite": "^8.1.1",
+    "vite-plugin-pwa": "^1.3.0",
+    "vitest": "^5.0.5"
+  }
+}
