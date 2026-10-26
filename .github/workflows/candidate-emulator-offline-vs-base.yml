@@ -98,7 +98,7 @@ jobs:
             ws.onmessage = (m) => { const d = JSON.parse(m.data); if (d.id && pend.has(d.id)) { const p = pend.get(d.id); pend.delete(d.id); d.error ? p.rej(new Error(JSON.stringify(d.error))) : p.res({ result: d.result }) } }
             await cdp('Runtime.enable')
           }
-          const SIG = `JSON.stringify({mini:(document.querySelector('.mini-play-toggle')||{getAttribute:()=>null}).getAttribute('aria-label'),studio:(document.querySelector('.transport .play')||{getAttribute:()=>null}).getAttribute('aria-label'),rows:[...document.querySelectorAll('.episode-play')].map(b=>(b.querySelector('svg')||{getAttribute:()=>'?'}).getAttribute('class')||'?').join('|')})`
+          const SIG = `JSON.stringify({mini:(document.querySelector('.mini-play-toggle')||{getAttribute:()=>null}).getAttribute('aria-label'),studio:(document.querySelector('.transport .play')||{getAttribute:()=>null}).getAttribute('aria-label'),rows:[...document.querySelectorAll('.episode-play,.episode-play-inline')].map(b=>(b.querySelector('svg')||{getAttribute:()=>'?'}).getAttribute('class')||'?').join('|')})`
           try {
             await connect()
             const src = [{ id: 'repro-src', kind: 'podcast', title: 'Repro Flap', description: 'local', artworkUrl: '', feedUrl: 'http://10.0.2.2:8765/none.xml', episodes: [{ id: 'repro-ep-1', title: 'Episode repro local', description: 'local', publishedAt: '2026-10-23T20:00:00Z', duration: '1:10', audioUrl: 'http://10.0.2.2:8765/ep.mp3', artworkUrl: '' }] }]
@@ -113,7 +113,7 @@ jobs:
             await sleep(4000)
             logd('dump apres clic source: ' + await ev(DUMP))
             let st = msNow()
-            await ev(`(()=>{const b=document.querySelector('.episode-play')||document.querySelector('button[aria-label^="Lire"]');if(b){b.click();return 1}return 0})()`)
+            await ev(`(()=>{const b=document.querySelector('.episode-play-inline')||document.querySelector('.episode-play');if(b){b.click();return 1}return 0})()`)
             for (let i = 0; i < 20 && st.state !== 3; i++) { await sleep(1000); st = msNow() }
             logd('apres clic lecture: ' + JSON.stringify(st) + ' sig ' + await ev(SIG))
             if (st.state !== 3) throw new Error('lecture non demarree (media_session ' + JSON.stringify(st) + ')')
