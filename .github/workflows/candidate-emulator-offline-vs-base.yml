@@ -107,15 +107,15 @@ jobs:
             await sleep(8000)
             logd('boutons aria: ' + await ev(`JSON.stringify([...document.querySelectorAll('button[aria-label]')].map(b=>b.getAttribute('aria-label')).slice(0,40))`))
             fs.writeFileSync('artifacts/' + TAG + '-shot0.png', Buffer.from((await cdp('Page.captureScreenshot')).result.data, 'base64'))
-            await ev(`(document.querySelector('button[aria-label="Lire Repro Flap"]')||{click(){}}).click(); 1`)
+            const DUMP = `JSON.stringify({ls:(localStorage.getItem('podmix-catalog-v1')||'').length,text:document.body.innerText.replace(/\\s+/g,' ').slice(0,500),btns:[...document.querySelectorAll('button,a,[role=button]')].slice(0,70).map(b=>(b.getAttribute('aria-label')||'')+'|'+(b.className||'').toString().slice(0,30)+'|'+(b.innerText||'').slice(0,20))})`
+            logd('dump apres reload: ' + await ev(DUMP))
+            await ev(`(()=>{const el=[...document.querySelectorAll('*')].find(e=>e.children.length===0&&e.textContent.trim()==='Repro Flap');if(!el)return 0;let n=el;while(n&&n!==document.body){if(n.tagName==='BUTTON'||n.getAttribute('role')==='button'||n.onclick||n.tagName==='A'){n.click();return 1}n=n.parentElement}el.click();return 2})()`)
             await sleep(4000)
+            logd('dump apres clic source: ' + await ev(DUMP))
             let st = msNow()
-            logd('apres clic carte: ' + JSON.stringify(st) + ' sig ' + await ev(SIG))
-            if (st.state !== 3) {
-              await ev(`(document.querySelector('.episode-play')||{click(){}}).click(); 1`)
-              for (let i = 0; i < 15 && st.state !== 3; i++) { await sleep(1000); st = msNow() }
-              logd('apres clic episode-play: ' + JSON.stringify(st) + ' sig ' + await ev(SIG))
-            }
+            await ev(`(()=>{const b=document.querySelector('.episode-play')||document.querySelector('button[aria-label^="Lire"]');if(b){b.click();return 1}return 0})()`)
+            for (let i = 0; i < 20 && st.state !== 3; i++) { await sleep(1000); st = msNow() }
+            logd('apres clic lecture: ' + JSON.stringify(st) + ' sig ' + await ev(SIG))
             if (st.state !== 3) throw new Error('lecture non demarree (media_session ' + JSON.stringify(st) + ')')
             await sleep(12000)
             // coupure reseau
