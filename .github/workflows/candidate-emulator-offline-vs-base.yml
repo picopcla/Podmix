@@ -142,6 +142,7 @@ jobs:
           const lines = [`## Emulateur hors ligne, APK debug ${TAG}`, '', '```json', JSON.stringify(out, null, 1), '```', '']
           if (process.env.GITHUB_STEP_SUMMARY) fs.appendFileSync(process.env.GITHUB_STEP_SUMMARY, lines.join('\n'))
           console.log(lines.join('\n'))
+          process.exit(0)
           
           EOF_T
           cat > /home/runner/t/emu.sh <<'EOF_S'
@@ -156,7 +157,7 @@ jobs:
             adb uninstall com.podmix.next.ng >/dev/null 2>&1 || true
             adb install /home/runner/apks/app-$TAG.apk || echo INSTALL_FAILED
             adb shell pm grant com.podmix.next.ng android.permission.POST_NOTIFICATIONS || true
-            node t.mjs $TAG || true
+            timeout 420 node t.mjs $TAG || true
             kill $(cat /tmp/http.pid) 2>/dev/null || true
             touch /tmp/kill-server
             sleep 2
