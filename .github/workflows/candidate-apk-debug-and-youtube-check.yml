@@ -1,0 +1,86 @@
+name: candidate-apk-debug-and-youtube-check
+on:
+  push:
+    branches:
+      - fix/studio-playbutton-intent-20261025
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  youtube-real:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install server deps
+        run: |
+          python -m venv .venv
+          .venv/bin/pip install -r server/requirements.txt
+          .venv/bin/pip install scipy
+      - name: Server unit tests (real exit code)
+        run: .venv/bin/python -m unittest discover -s server/tests -v
+      - name: Real YouTube metadata search on real titles (no media download)
+        run: |
+          cat > yt_check.py <<'PY'
+          import json, os, sys, time
+          sys.path.insert(0, 'server')
+          import catalog
+          cases = [
+            ("Daft Punk", "One More Time"),
+            ("Eric Prydz", "Opus"),
+            ("Max Richter", "On the Nature of Daylight"),
+            ("Max Richter", "On the Nature of Daylight (Kx5 Remix)"),
+            ("Adam Beyer", "Your Mind"),
+            ("Charlotte de Witte", "Overdrive"),
+          ]
+          rows = []
+          for artist, title in cases:
+              t0 = time.time()
+              try:
+                  r = catalog.search_youtube(artist, title)
+                  rows.append({"artist": artist, "title": title, "outcome": "match" if r else "no_match", "found": (r or {}).get("title"), "score": (r or {}).get("score"), "url": (r or {}).get("url"), "s": round(time.time() - t0, 1)})
+              except Exception as e:
+                  rows.append({"artist": artist, "title": title, "outcome": "error", "error": (type(e).__name__ + ": " + str(e))[:300], "s": round(time.time() - t0, 1)})
+          print(json.dumps(rows, ensure_ascii=False, indent=1))
+          with open(os.environ["GITHUB_STEP_SUMMARY"], "a") as f:
+              f.write("## YouTube real search (GitHub runner IP, not the mini-PC)\n\n")
+              for r in rows:
+                  f.write("- " + json.dumps(r, ensure_ascii=False) + "\n")
+          errs = sum(1 for r in rows if r["outcome"] == "error")
+          print("errors:", errs, "of", len(rows))
+          PY
+          .venv/bin/python yt_check.py
+  apk-debug:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+      - run: npm ci --no-audit --no-fund
+      - name: Build ng debug APK (not signed with the release key, no publication)
+        run: |
+          npm run version:sync
+          npm run build
+          npx cap sync android
+          cd android && ./gradlew assembleNgDebug
+      - name: Collect and describe the APK
+        run: |
+          mkdir -p out
+          find android/app/build/outputs/apk -name '*.apk' -print
+          cp android/app/build/outputs/apk/ng/debug/*.apk out/
+          BT=$(find "$ANDROID_HOME/build-tools" -mindepth 1 -maxdepth 1 -type d | sort -V | tail -1)
+          "$BT/aapt2" dump badging out/*.apk | head -1
+          sha256sum out/*.apk
+      - uses: actions/upload-artifact@v4
+        with:
+          name: podmix-candidate-ng-debug-apk
+          path: out/
+          retention-days: 7
