@@ -1,0 +1,64 @@
+name: candidate-publish-prerelease
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [fix/studio-playbutton-intent-20261025]
+    paths: ['.github/workflows/candidate-publish-prerelease.yml']
+
+permissions:
+  contents: write
+  actions: read
+
+concurrency:
+  group: candidate-publish-prerelease
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      GH_TOKEN: ${{ github.token }}
+      TAG: v1.0.226-ng-candidat-test
+      SRC_RUN: '40293178298'
+      SRC_SHA: b4aec6bf56abb2a2a41c15efd1f823f520815258
+      EXPECT_SHA256: 52d439b0fc7774a2780b0d18e0f3e43e88c8e593b23271a26f7458fb97ae1e61
+    steps:
+      - name: Telecharger l'APK deja teste (run 40293178298)
+        run: |
+          set -euo pipefail
+          mkdir -p out
+          gh run download "$SRC_RUN" -R "${{ github.repository }}" -n podmix-candidate-signed-apk -D out
+          ls -l out
+      - name: Verifier empreinte, identite et certificat
+        run: |
+          set -euo pipefail
+          GOT=$(sha256sum out/app-ng-candidate-signed.apk | cut -d' ' -f1)
+          echo "sha256: $GOT"
+          test "$GOT" = "$EXPECT_SHA256"
+          BT=$(find "$ANDROID_HOME/build-tools" -mindepth 1 -maxdepth 1 -type d | sort -V | tail -1)
+          BADGING=$("$BT/aapt2" dump badging out/app-ng-candidate-signed.apk | head -1)
+          echo "$BADGING"
+          grep -Fq "name='com.podmix.next.ng'" <<<"$BADGING"
+          grep -Fq "versionCode='10226'" <<<"$BADGING"
+          grep -Fq "versionName='1.0.226-ng'" <<<"$BADGING"
+          "$BT/apksigner" verify out/app-ng-candidate-signed.apk
+          CERT=$("$BT/apksigner" verify --print-certs out/app-ng-candidate-signed.apk | sed -n 's/.*certificate SHA-256 digest: //p' | head -1 | tr '[:upper:]' '[:lower:]')
+          echo "cert: $CERT"
+          test "$CERT" = "b27d46c092c63432e7e274d227c0e465cf91ab4656f67c1a0b511402505c8b8c"
+      - name: Publier la pre-release de test (nouveau tag, rien d'existant modifie)
+        run: |
+          set -euo pipefail
+          if gh release view "$TAG" -R "${{ github.repository }}" >/dev/null 2>&1; then
+            echo "release $TAG existe deja: arret, aucune ecriture"; exit 1
+          fi
+          cp out/app-ng-candidate-signed.apk out/app-ng-release.apk
+          gh release create "$TAG" out/app-ng-release.apk --prerelease -R "${{ github.repository }}" --target "$SRC_SHA" \
+            --title "Podmix 1.0.226-ng TEST (correctif lecture/pause NON VALIDE)" \
+            --notes "VERSION DE TEST, correctif du clignotement lecture/pause non valide (bug non reproduit en emulateur). APK signe avec la cle Podmix, versionCode 10226, sha256 $EXPECT_SHA256. Construit depuis le commit $SRC_SHA de la branche fix/studio-playbutton-intent-20261025."
+          {
+            echo "## Pre-release de test publiee: $TAG"
+            echo "- sha256 asset: $EXPECT_SHA256"
+            echo "- commit source: $SRC_SHA"
+          } >> "$GITHUB_STEP_SUMMARY"
