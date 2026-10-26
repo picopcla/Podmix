@@ -1,0 +1,167 @@
+name: candidate-signed-fix228
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [fix/localstorage-quota-20261026]
+    paths: ['.github/workflows/candidate-signed-fix228.yml']
+
+concurrency:
+  group: candidate-signed-fix228
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    outputs:
+      cert_match: ${{ steps.certcheck.outputs.cert_match }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+      - name: Preparer la signature
+        env:
+          KS_B64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          KS_PASS: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          KEY_PASS: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: |
+          set -euo pipefail
+          for value in KS_B64 KS_PASS KEY_ALIAS KEY_PASS; do
+            test -n "${!value}"
+          done
+          umask 077
+          printf '%s' "$KS_B64" | base64 -d > android/podmix-release.keystore
+          printf 'storeFile=podmix-release.keystore\nstorePassword=%s\nkeyAlias=%s\nkeyPassword=%s\n' "$KS_PASS" "$KEY_ALIAS" "$KEY_PASS" > android/release-signing.properties
+      - name: Numero de build candidat 1.0.228 (build seulement, non commite)
+        run: |
+          set -euo pipefail
+          node -e "const fs=require('fs');const p=JSON.parse(fs.readFileSync('package.json','utf8'));p.version='1.0.228';fs.writeFileSync('package.json',JSON.stringify(p,null,2)+'\n')"
+      - run: npm ci
+      - name: Construire l'APK ng release
+        run: npm run android:build:ng
+      - name: Verifier et collecter l'APK
+        id: certcheck
+        run: |
+          set -euo pipefail
+          mkdir -p out
+          cp android/app/build/outputs/apk/ng/release/app-ng-release.apk out/app-ng-candidate-signed.apk
+          BT=$(find "$ANDROID_HOME/build-tools" -mindepth 1 -maxdepth 1 -type d | sort -V | tail -1)
+          BADGING=$("$BT/aapt2" dump badging out/app-ng-candidate-signed.apk | head -1)
+          printf '%s\n' "$BADGING"
+          grep -Fq "name='com.podmix.next.ng'" <<<"$BADGING"
+          grep -Fq "versionCode='10228'" <<<"$BADGING"
+          grep -Fq "versionName='1.0.228-ng'" <<<"$BADGING"
+          "$BT/apksigner" verify out/app-ng-candidate-signed.apk
+          CERT=$("$BT/apksigner" verify --print-certs out/app-ng-candidate-signed.apk | sed -n 's/.*certificate SHA-256 digest: //p' | head -1 | tr '[:upper:]' '[:lower:]')
+          printf 'cert sha256: %s\n' "$CERT"
+          if [ "$CERT" = "b27d46c092c63432e7e274d227c0e465cf91ab4656f67c1a0b511402505c8b8c" ]; then
+            echo "cert_match=yes" >> "$GITHUB_OUTPUT"
+          else
+            echo "cert_match=no" >> "$GITHUB_OUTPUT"
+          fi
+          sha256sum out/app-ng-candidate-signed.apk > out/app-ng-candidate-signed.apk.sha256
+          {
+            echo "## CANDIDAT NON VALIDE 1.0.228-ng signe isole (aucune publication)"
+            echo "- commit: ${GITHUB_SHA}"
+            echo "- badging: $BADGING"
+            echo "- cert sha256: $CERT"
+            echo "- cert_match (attendu b27d46c0...8b8c): $(grep -o 'cert_match=.*' "$GITHUB_OUTPUT" | tail -1)"
+          } >> "$GITHUB_STEP_SUMMARY"
+      - name: Retirer le materiel de signature
+        if: always()
+        run: rm -f android/podmix-release.keystore android/release-signing.properties
+      - uses: actions/upload-artifact@v4
+        with:
+          name: podmix-candidate-signed-apk
+          path: |
+            out/app-ng-candidate-signed.apk
+            out/app-ng-candidate-signed.apk.sha256
+          retention-days: 7
+
+  upgrade-check:
+    needs: build
+    timeout-minutes: 25
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: podmix-candidate-signed-apk
+          path: out
+      - name: Recuperer les APK publies 1.0.225 et 1.0.224 (bases de mise a jour)
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release download v1.0.226-ng-candidat-test -R ${{ github.repository }} -p app-ng-release.apk -O out/app-ng-226.apk --clobber
+          gh release download v1.0.225-ng-combined -R ${{ github.repository }} -p app-ng-release.apk -O out/app-ng-225.apk --clobber
+          gh release download v1.0.224-ng-theme-clair -R ${{ github.repository }} -p app-ng-release.apk -O out/app-ng-224.apk --clobber
+          sha256sum out/app-ng-226.apk out/app-ng-225.apk out/app-ng-224.apk
+      - name: Ecrire le script de test
+        run: |
+          cat > "$RUNNER_TEMP/up.sh" <<'XEOF'
+          set -u
+          FAIL=0
+          echo "## CANDIDAT NON VALIDE 1.0.228-ng: test de mise a jour sur emulateur (aucune publication)" >> "$GITHUB_STEP_SUMMARY"
+          for BASE in 226 225 224; do
+            adb uninstall com.podmix.next.ng >/dev/null 2>&1 || true
+            adb install out/app-ng-$BASE.apk > /tmp/base.txt 2>&1 || true
+            adb shell am start -n com.podmix.next.ng/com.podmix.next.MainActivity >/dev/null 2>&1
+            sleep 12
+            adb root >/dev/null 2>&1 || true
+            sleep 2
+            adb shell "echo podmix-data-marker-$BASE > /data/data/com.podmix.next.ng/files/.update-check"
+            adb shell am force-stop com.podmix.next.ng
+            BEFORE=$(adb shell dumpsys package com.podmix.next.ng | grep -E 'versionCode|versionName' | head -2 | tr '\n' ' ')
+            adb install -r out/app-ng-candidate-signed.apk > /tmp/install.txt 2>&1 || true
+            AFTER=$(adb shell dumpsys package com.podmix.next.ng | grep -E 'versionCode|versionName' | head -2 | tr '\n' ' ')
+            MARK=$(adb shell "cat /data/data/com.podmix.next.ng/files/.update-check" 2>&1 | tr -d '\r')
+            echo "- base $BASE: avant [$BEFORE] install -r [$(tr '\n' ' ' < /tmp/install.txt)] apres [$AFTER] marqueur [$MARK]" >> "$GITHUB_STEP_SUMMARY"
+            grep -q Success /tmp/install.txt || FAIL=1
+            [ "$MARK" = "podmix-data-marker-$BASE" ] || FAIL=1
+          done
+          exit $FAIL
+          XEOF
+      - name: Preparer l'emulateur accelere
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+          sudo chmod 666 /dev/kvm
+      - uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 33
+          arch: x86_64
+          profile: pixel_2
+          emulator-options: -no-snapshot -no-window -noaudio -no-boot-anim -gpu swiftshader_indirect -camera-back none
+          script: bash ${{ runner.temp }}/up.sh
+
+  saturation-check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npx tsc -b && npx oxlint && npm run test:unit
+      - run: npm run build
+      - name: Saturation du stockage (contexte de test jetable)
+        run: |
+          set -o pipefail
+          node qt/repro.mjs "$PWD/dist" corrige 2>&1 | tee qt/out.txt
+          { echo "## Saturation localStorage, correctif 1.0.228 (aucune publication)"; echo '```'; cat qt/out.txt; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
+          grep -q "preservees: true" qt/out.txt
+          grep -q "bandeau: Stockage interne plein" qt/out.txt
+          ! grep -q "QuotaExceededError" qt/out.txt
