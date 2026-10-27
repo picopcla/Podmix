@@ -1,13 +1,13 @@
 {
-  "versionCode": 10204,
-  "versionName": "1.0.204-ng",
+  "versionCode": 10229,
+  "versionName": "1.0.229-ng",
   "minimumVersionCode": 10000,
-  "apkUrl": "https://podmix.mb4.fr/podmix/podmix-1.0.204-ng.apk",
-  "publishedAt": "2026-09-20T17:28:24Z",
-  "sha256": "267cc6d9abc344dcfc02e888d359d502d31af15f36f4f1e90c20a65424f9ffc8",
+  "apkUrl": "https://podmix.mb4.fr/podmix/podmix-1.0.229-ng.apk",
+  "publishedAt": "2026-10-27T00:00:00Z",
+  "sha256": "cc6542c8e37ef9a4a7c17b2ea6b9821c0e9aa6e018d729393cbee599629768f2",
   "notes": [
-    "Les boutons précédent et suivant changent correctement de morceau, y compris dans Android Auto",
-    "Le lecteur inférieur est agrandi et retrouve les commandes Favori et Lecture en boucle",
-    "La mise à jour s’installe sur la version existante sans supprimer la bibliothèque ni les contenus enregistrés"
+    "Le lecteur suit une session Google Cast active quand vous changez d’episode",
+    "Les téléchargements affichent immédiatement leur état, leur progression et leur fin",
+    "Le timestamping utilise 1001Tracklists puis YouTube, description et commentaires"
   ]
 }
