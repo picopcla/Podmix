@@ -99,6 +99,59 @@ public class PlaybackInstrumentedTest {
     }
 
     @Test
+    public void androidAutoRootExposesFavoritesWhenFavoritesExist() throws Exception {
+        Context context = ApplicationProvider.getApplicationContext();
+        SharedPreferences libraryPreferences =
+            context.getSharedPreferences("podmix-library", Context.MODE_PRIVATE);
+        SharedPreferences favoritePreferences =
+            context.getSharedPreferences("podmix-favorites", Context.MODE_PRIVATE);
+        String previousLibrary = libraryPreferences.getString("items", "[]");
+        String previousFavorites = favoritePreferences.getString("trackIds", "[]");
+        boolean previousFavoritesInitialized =
+            favoritePreferences.getBoolean("initialized", false);
+        libraryPreferences.edit().putString(
+            "items",
+            "[{\"id\":\"source::podcast\",\"parentId\":\"podmix-root\",\"title\":\"Podcast\","
+                + "\"browsable\":true,\"playable\":false},"
+                + "{\"id\":\"mix::track::1\",\"parentId\":\"source::podcast\","
+                + "\"favoriteId\":\"mix::track::1\",\"url\":\"https://example.com/mix.mp3\","
+                + "\"title\":\"Morceau\",\"browsable\":false,\"playable\":true}]"
+        ).commit();
+        favoritePreferences.edit()
+            .putString("trackIds", "[\"mix::track::1\"]")
+            .putBoolean("initialized", true)
+            .commit();
+
+        SessionToken token = new SessionToken(context, new ComponentName(context, PodmixPlaybackService.class));
+        ListenableFuture<MediaBrowser> future = new MediaBrowser.Builder(context, token).buildAsync();
+        MediaBrowser browser = future.get(15, TimeUnit.SECONDS);
+        try {
+            AtomicReference<ListenableFuture<LibraryResult<com.google.common.collect.ImmutableList<MediaItem>>>>
+                childrenFuture = new AtomicReference<>();
+            InstrumentationRegistry.getInstrumentation().runOnMainSync(
+                () -> childrenFuture.set(browser.getChildren("podmix-root", 0, 20, null))
+            );
+            LibraryResult<com.google.common.collect.ImmutableList<MediaItem>> children =
+                childrenFuture.get().get(15, TimeUnit.SECONDS);
+            assertTrue(
+                children.value != null
+                    && children.value.stream().anyMatch(
+                        item -> "podmix-favorites".equals(item.mediaId)
+                    )
+            );
+        } finally {
+            libraryPreferences.edit().putString("items", previousLibrary).commit();
+            favoritePreferences.edit()
+                .putString("trackIds", previousFavorites)
+                .putBoolean("initialized", previousFavoritesInitialized)
+                .commit();
+            InstrumentationRegistry.getInstrumentation().runOnMainSync(
+                () -> MediaController.releaseFuture(future)
+            );
+        }
+    }
+
+    @Test
     public void androidAutoCanBrowsePodmixLibrary() throws Exception {
         Context context = ApplicationProvider.getApplicationContext();
         SharedPreferences preferences =
@@ -154,7 +207,12 @@ public class PlaybackInstrumentedTest {
             );
             LibraryResult<com.google.common.collect.ImmutableList<MediaItem>> children =
                 childrenFuture.get().get(15, TimeUnit.SECONDS);
-            assertTrue(children.value != null && children.value.size() == 3);
+            assertTrue(
+                children.value != null
+                    && children.value.stream().anyMatch(
+                        item -> "podmix-favorites".equals(item.mediaId)
+                    )
+            );
 
             AtomicReference<ListenableFuture<LibraryResult<com.google.common.collect.ImmutableList<MediaItem>>>>
                 favoritesFuture = new AtomicReference<>();

@@ -689,6 +689,14 @@ public class PodmixPlaybackService extends MediaLibraryService {
                 // musical programmes for which Podmix exposes timestamps and
                 // tracklists; shows are regular spoken-audio programmes.
                 // Android Auto exposes four root categories comfortably.
+                if (shouldExposeFavoritesAtRoot(!favoriteIds().isEmpty())) {
+                    rootItems.add(collectionItem(
+                        FAVORITES_ID,
+                        "Favoris",
+                        "Morceaux favoris",
+                        MediaConstants.EXTRAS_VALUE_CONTENT_STYLE_GRID_ITEM
+                    ));
+                }
                 if (hasSourceKind(allEntries, "podcast")) {
                     rootItems.add(collectionItem(
                         PODCASTS_ID,
@@ -1381,6 +1389,10 @@ public class PodmixPlaybackService extends MediaLibraryService {
         cachedFavoriteIds = result;
         cachedFavoritesVersion = currentVersion;
         return result;
+    }
+
+    static boolean shouldExposeFavoritesAtRoot(boolean hasFavorites) {
+        return hasFavorites;
     }
 
     private void saveFavoriteIds(Set<String> ids) {

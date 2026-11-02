@@ -82,4 +82,10 @@ public class PodmixPlaybackServiceTest {
         );
     }
 
+    @Test
+    public void exposesFavoritesAtTheAndroidAutoRootOnlyWhenFavoritesExist() {
+        assertTrue(PodmixPlaybackService.shouldExposeFavoritesAtRoot(true));
+        assertFalse(PodmixPlaybackService.shouldExposeFavoritesAtRoot(false));
+    }
+
 }
