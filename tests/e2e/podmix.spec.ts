@@ -166,6 +166,74 @@ test('un catalogue proche de la limite de stockage reste utilisable', async ({ p
   await expect(page.locator('.episode-track')).toContainText('Morceau conservé')
 })
 
+test('le catalogue legacy migre vers IndexedDB sans réécrire ni supprimer la copie localStorage', async ({ page }) => {
+  const catalog = [{
+    id: 'catalogue-migre', kind: 'podcast', title: 'Catalogue migré', description: 'S'.repeat(8_000), artworkUrl: '',
+    episodes: [{
+      id: 'episode-migre', title: 'Épisode migré', description: 'E'.repeat(12_000), publishedAt: '',
+      duration: '10:00', audioUrl: '/episode.wav', artworkUrl: '',
+      tracks: [{ id: 1, time: 0, artist: 'Artiste', title: 'Morceau migré', confidence: 90, source: 'manual' }],
+    }],
+  }]
+  const legacy = JSON.stringify(catalog)
+  await page.addInitScript(({ legacy }) => {
+    localStorage.setItem('podmix-catalog-v1', legacy)
+    const nativeSetItem = Storage.prototype.setItem
+    Storage.prototype.setItem = function (key, value) {
+      if (key === 'podmix-catalog-v1' && value.length > 3_000) {
+        throw new DOMException('Quota simulé', 'QuotaExceededError')
+      }
+      return nativeSetItem.call(this, key, value)
+    }
+  }, { legacy })
+
+  await page.goto('/')
+  await expect(page.getByText('Catalogue migré', { exact: true })).toBeVisible()
+  await expect(page.locator('.storage-warning')).toHaveCount(0)
+  await expect.poll(() => page.evaluate(async () => {
+    const db = await new Promise<IDBDatabase>((resolve, reject) => {
+      const request = indexedDB.open('podmix-studio', 2)
+      request.onsuccess = () => resolve(request.result)
+      request.onerror = () => reject(request.error)
+    })
+    const record = await new Promise<{ sources?: unknown } | undefined>((resolve, reject) => {
+      const transaction = db.transaction('catalogs', 'readonly')
+      const request = transaction.objectStore('catalogs').get('current')
+      request.onsuccess = () => resolve(request.result)
+      request.onerror = () => reject(request.error)
+    })
+    db.close()
+    return record?.sources
+  })).toEqual(catalog)
+  await expect.poll(() => page.evaluate(() => localStorage.getItem('podmix-catalog-v1'))).toBe(legacy)
+
+  await page.reload()
+  await expect(page.getByText('Catalogue migré', { exact: true })).toBeVisible()
+  await expect(page.locator('.storage-warning')).toHaveCount(0)
+})
+
+test('le bandeau bibliothèque reste jusqu’à la réécriture automatique réussie', async ({ page }) => {
+  await page.addInitScript(() => {
+    localStorage.setItem('podmix-catalog-v1', JSON.stringify([{
+      id: 'catalogue-retry', kind: 'podcast', title: 'Catalogue avec réessai', description: '', artworkUrl: '', episodes: [],
+    }]))
+    let failedWrites = 2
+    const nativePut = IDBObjectStore.prototype.put
+    IDBObjectStore.prototype.put = function (...args) {
+      if (failedWrites > 0) {
+        failedWrites -= 1
+        throw new DOMException('Quota simulé', 'QuotaExceededError')
+      }
+      return nativePut.apply(this, args)
+    }
+  })
+
+  await page.goto('/')
+  await expect(page.locator('.storage-warning')).toContainText('bibliothèque')
+  await expect(page.locator('.storage-warning')).toHaveCount(0, { timeout: 8_000 })
+  await expect(page.getByText('Catalogue avec réessai', { exact: true })).toBeVisible()
+})
+
 test('les catégories héritées sont corrigées sans contaminer les prochains ajouts', async ({ page }) => {
   await page.addInitScript(() => {
     localStorage.setItem('podmix-catalog-v1', JSON.stringify([

@@ -681,11 +681,24 @@ function App() {
     }
   }, [dragSection])
 
-  const [catalog, setCatalog] = useState<CatalogSource[]>(loadCatalog)
+  const [catalog, setCatalog] = useState<CatalogSource[]>([])
+  const [catalogReady, setCatalogReady] = useState(false)
+  const [catalogRetry, setCatalogRetry] = useState(0)
   const [cachedHomeArtwork, setCachedHomeArtwork] = useState<Record<string, string>>({})
   const [linkLookupRefresh, setLinkLookupRefresh] = useState(0)
   const catalogRef = useRef(catalog)
   const nativeLibrarySignatureRef = useRef('')
+
+  useEffect(() => {
+    let active = true
+    void loadCatalog().then((stored) => {
+      if (!active) return
+      catalogRef.current = stored
+      setCatalog(stored)
+      setCatalogReady(true)
+    })
+    return () => { active = false }
+  }, [])
 
   function restoreTrackQueueForMediaId(mediaId: string, positionSeconds = 0) {
     // Favorite items deliberately reuse the track ids from their episodes,
@@ -1416,8 +1429,20 @@ function App() {
   }, [audioName, tracks])
   useEffect(() => {
     catalogRef.current = catalog
-    saveCatalog(catalog)
-  }, [catalog])
+    if (!catalogReady) return
+    let stopped = false
+    let retryTimer: number | undefined
+    void saveCatalog(catalog).then((saved) => {
+      if (saved || stopped) return
+      retryTimer = window.setTimeout(() => {
+        if (!stopped) setCatalogRetry((attempt) => attempt + 1)
+      }, 5_000)
+    })
+    return () => {
+      stopped = true
+      if (retryTimer !== undefined) window.clearTimeout(retryTimer)
+    }
+  }, [catalog, catalogReady, catalogRetry])
   useEffect(() => {
     if (!podmixPlayer.isNative) return
     let active = true
