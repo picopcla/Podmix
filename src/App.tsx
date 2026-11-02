@@ -24,6 +24,7 @@ import podmixInfinityLogo from './assets/podmix-logo-radio-c.png'
 import './App.css'
 import './identification.css'
 import { safeSetItem, useStorageFailures } from './safeStorage'
+import { nativeEpisodeId, resolveTrackIndexForPlaybackState } from './playbackIdentity'
 
 const initialTracks: Track[] = []
 
@@ -556,12 +557,13 @@ function App() {
     return entries.find((entry) => entry.key === state.mediaId)
   }
 
-  function resolveActiveMediaId(state: { mediaId: string; queueIndex: number }) {
+  function resolveActiveMediaId(state: { mediaId: string; queueIndex: number; positionSeconds: number }) {
     const favoriteItem = favoriteQueueEntryForState(state)
     if (favoriteItem) return favoriteItem.key
     const trackQueue = trackQueueRef.current
-    if (trackQueue && state.queueIndex >= 0 && state.queueIndex < trackQueue.mediaIds.length) {
-      return trackQueue.mediaIds[state.queueIndex]
+    const trackIndex = resolveTrackIndexForPlaybackState(trackQueue, state)
+    if (trackQueue && trackIndex >= 0) {
+      return trackQueue.mediaIds[trackIndex]
     }
     return state.mediaId
   }
@@ -685,7 +687,7 @@ function App() {
   const catalogRef = useRef(catalog)
   const nativeLibrarySignatureRef = useRef('')
 
-  function restoreTrackQueueForMediaId(mediaId: string) {
+  function restoreTrackQueueForMediaId(mediaId: string, positionSeconds = 0) {
     // Favorite items deliberately reuse the track ids from their episodes,
     // but their queue order is the favorites order. Rebuilding an episode
     // queue here makes index N point to an entirely different title.
@@ -694,15 +696,15 @@ function App() {
       return undefined
     }
     const currentQueue = trackQueueRef.current
-    const currentIndex = currentQueue?.mediaIds.indexOf(mediaId) ?? -1
+    const currentIndex = resolveTrackIndexForPlaybackState(currentQueue, { mediaId, queueIndex: -1, positionSeconds })
     if (currentQueue && currentIndex >= 0) {
       return { queue: currentQueue, trackIndex: currentIndex }
     }
     for (const source of catalogRef.current) {
       for (const episode of source.episodes) {
         const tracks = episode.tracks ?? []
-        const trackIndex = tracks.findIndex((track, index) => favoriteTrackKey(episode.id, track, index) === mediaId)
-        if (trackIndex < 0) continue
+        const requestedTrackIndex = tracks.findIndex((track, index) => favoriteTrackKey(episode.id, track, index) === mediaId)
+        if (requestedTrackIndex < 0 && nativeEpisodeId(mediaId) !== episode.id) continue
         const queue = {
           episodeId: episode.id,
           episodeTitle: episode.title,
@@ -712,6 +714,7 @@ function App() {
           mediaIds: tracks.map((track, index) => favoriteTrackKey(episode.id, track, index)),
           artworkUrls: tracks.map((track) => trackArtwork(track, episode, source)),
         }
+        const trackIndex = resolveTrackIndexForPlaybackState(queue, { mediaId, queueIndex: -1, positionSeconds })
         trackQueueRef.current = queue
         return { queue, trackIndex }
       }
@@ -1998,10 +2001,10 @@ function App() {
       // d'épisode : cela écrasait, après quelques secondes, le titre favori
       // du mini-lecteur par un titre de l'épisode.
       if (favoriteQueueRef.current?.some((entry) => entry.key === state.mediaId)) return
-      const restored = restoreTrackQueueForMediaId(state.mediaId)
+      const restored = restoreTrackQueueForMediaId(state.mediaId, state.positionSeconds)
       if (!restored) return
       const activeTrack = restored.queue.tracks[restored.trackIndex]
-      setActiveMediaId(state.mediaId)
+      setActiveMediaId(resolveActiveMediaId(state))
       setGlobalPosition(Math.max(0, state.positionSeconds))
       setGlobalDuration(Math.max(0, state.durationSeconds))
       setGlobalPlaying(playbackIntentActive(state))
@@ -2095,11 +2098,12 @@ function App() {
         setGlobalDuration(Math.max(0, state.durationSeconds))
         setCanSkipNext(state.hasNext)
         setCanSkipPrevious(state.hasPrevious)
-        restoreTrackQueueForMediaId(state.mediaId)
+        restoreTrackQueueForMediaId(state.mediaId, state.positionSeconds)
         setActiveMediaId(resolveActiveMediaId(state))
         const trackQueue = trackQueueRef.current
         const favoriteItem = favoriteQueueEntryForState(state)
-        const activeTrack = trackQueue && state.queueIndex >= 0 && state.queueIndex < trackQueue.mediaIds.length ? trackQueue.tracks[state.queueIndex] : undefined
+        const activeTrackIndex = resolveTrackIndexForPlaybackState(trackQueue, state)
+        const activeTrack = trackQueue && activeTrackIndex >= 0 ? trackQueue.tracks[activeTrackIndex] : undefined
         if (favoriteItem) {
           const nextPlaying: NowPlayingItem = {
             id: favoriteItem.episode.id,
@@ -2118,7 +2122,7 @@ function App() {
             artist: activeTrack.artist || trackQueue.sourceTitle,
             url: trackQueue.audioUrl,
             scope: episodePlaybackRef.current === trackQueue.episodeId ? 'episode' : 'track',
-            artworkUrl: trackQueue.artworkUrls[state.queueIndex],
+            artworkUrl: activeTrackIndex >= 0 ? trackQueue.artworkUrls[activeTrackIndex] : undefined,
           }
           setNowPlaying((current) => sameNowPlaying(current, nextPlaying) ? current : nextPlaying)
         }
@@ -3746,7 +3750,7 @@ function App() {
     setSkipPendingDirection(direction)
     try {
       const state = direction === 'next' ? await podmixPlayer.next() : await podmixPlayer.previous()
-      restoreTrackQueueForMediaId(state.mediaId)
+      restoreTrackQueueForMediaId(state.mediaId, state.positionSeconds)
       setActiveMediaId(resolveActiveMediaId(state))
       setGlobalPlaying(playbackIntentActive(state))
       setGlobalPosition(Math.max(0, state.positionSeconds))
@@ -3756,7 +3760,8 @@ function App() {
       if (state.title) {
         const favoriteItem = favoriteQueueEntryForState(state)
         const trackQueue = trackQueueRef.current
-        const activeTrack = trackQueue && state.queueIndex >= 0 && state.queueIndex < trackQueue.mediaIds.length ? trackQueue.tracks[state.queueIndex] : undefined
+        const activeTrackIndex = resolveTrackIndexForPlaybackState(trackQueue, state)
+        const activeTrack = trackQueue && activeTrackIndex >= 0 ? trackQueue.tracks[activeTrackIndex] : undefined
         const queued = catalog.flatMap((source) => source.episodes.map((episode) => ({ ...episode, artist: source.title }))).find((episode) => episode.id === state.mediaId)
         const nextPlaying = {
           id: favoriteItem?.episode.id ?? (activeTrack ? trackQueue!.episodeId : state.mediaId) ?? queued?.id ?? `${state.artist}:${state.title}`,
@@ -3769,7 +3774,7 @@ function App() {
           artworkUrl: favoriteItem
             ? trackArtwork(favoriteItem.track, favoriteItem.episode, favoriteItem.source)
             : activeTrack
-              ? trackQueue?.artworkUrls[state.queueIndex]
+              ? trackQueue?.artworkUrls[activeTrackIndex]
               : queued?.artworkUrl,
         }
         setNowPlaying(nextPlaying)
