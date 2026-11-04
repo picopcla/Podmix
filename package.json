@@ -21,7 +21,7 @@
     "test:e2e": "playwright test",
     "lint": "oxlint",
     "preview": "vite preview",
-    "test:unit": "node --experimental-strip-types tests/unit/player-state-order.test.mjs && node --experimental-strip-types tests/unit/text-entities.test.mjs && vitest run tests/unit/credits.test.ts tests/unit/safeStorage.test.ts tests/unit/catalog-storage.test.ts"
+    "test:unit": "node --experimental-strip-types tests/unit/player-state-order.test.mjs && node --experimental-strip-types tests/unit/text-entities.test.mjs && vitest run tests/unit/credits.test.ts tests/unit/safeStorage.test.ts tests/unit/catalog-storage.test.ts tests/unit/history-storage.test.ts"
   },
   "dependencies": {
     "@capacitor/android": "^8.4.2",

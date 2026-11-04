@@ -1,9 +1,11 @@
 import { decodeTextEntities } from './text'
 
 export const PLAYBACK_HISTORY_KEY = 'podmix-history-v1'
-import { safeSetItem } from './safeStorage'
+import { reportStorageFailure, reportStorageSuccess, safeSetItem } from './safeStorage'
 export const LISTENING_SESSIONS_KEY = 'podmix-listening-sessions-v1'
 export const COMPLETED_EPISODES_KEY = 'podmix-completed-episodes-v1'
+const HISTORY_DATABASE = 'podmix-history'
+const HISTORY_STORE = 'history'
 
 export type PlaybackHistoryItem = {
   id: string
@@ -51,8 +53,12 @@ function readArray(key: string): unknown[] {
 }
 
 export function loadPlaybackHistory(): PlaybackHistoryItem[] {
+  return normalizePlaybackHistory(readArray(PLAYBACK_HISTORY_KEY))
+}
+
+function normalizePlaybackHistory(items: unknown[]): PlaybackHistoryItem[] {
   const seen = new Set<string>()
-  return readArray(PLAYBACK_HISTORY_KEY)
+  return items
     .map(normalizeHistoryItem)
     .filter((item): item is PlaybackHistoryItem => Boolean(item))
     .sort((left, right) => Date.parse(right.playedAt) - Date.parse(left.playedAt))
@@ -76,9 +82,12 @@ export function saveCompletedEpisodeIds(ids: string[]) {
 }
 
 export function loadListeningSessions(): ListeningSession[] {
-  const stored = readArray(LISTENING_SESSIONS_KEY)
+  return normalizeListeningSessions(readArray(LISTENING_SESSIONS_KEY), loadPlaybackHistory())
+}
+
+function normalizeListeningSessions(stored: unknown[], fallbackHistory: PlaybackHistoryItem[]): ListeningSession[] {
   if (!stored.length) {
-    return loadPlaybackHistory().map((item, index) => ({
+    return fallbackHistory.map((item, index) => ({
       ...item,
       sessionId: `legacy-${Date.parse(item.playedAt)}-${index}`,
       startedAt: item.playedAt,
@@ -106,6 +115,108 @@ export function updateListeningSessions(sessions: ListeningSession[], item: Play
 
 export function saveListeningSessions(sessions: ListeningSession[]) {
   safeSetItem(LISTENING_SESSIONS_KEY, JSON.stringify(sessions.slice(0, 2_000)))
+}
+
+export type HistoryStore = {
+  read(key: string): Promise<unknown[] | undefined>
+  write(key: string, value: unknown[]): Promise<void>
+}
+
+function indexedDbHistoryStore(): HistoryStore {
+  const openDatabase = () => new Promise<IDBDatabase>((resolve, reject) => {
+    const request = indexedDB.open(HISTORY_DATABASE, 1)
+    request.onupgradeneeded = () => {
+      if (!request.result.objectStoreNames.contains(HISTORY_STORE)) request.result.createObjectStore(HISTORY_STORE)
+    }
+    request.onsuccess = () => resolve(request.result)
+    request.onerror = () => reject(request.error)
+  })
+
+  return {
+    async read(key) {
+      const db = await openDatabase()
+      return new Promise((resolve, reject) => {
+        const transaction = db.transaction(HISTORY_STORE, 'readonly')
+        const request = transaction.objectStore(HISTORY_STORE).get(key)
+        request.onsuccess = () => resolve(request.result as unknown[] | undefined)
+        request.onerror = () => reject(request.error)
+        transaction.oncomplete = () => db.close()
+        transaction.onerror = () => db.close()
+      })
+    },
+    async write(key, value) {
+      const db = await openDatabase()
+      return new Promise<void>((resolve, reject) => {
+        const transaction = db.transaction(HISTORY_STORE, 'readwrite')
+        transaction.objectStore(HISTORY_STORE).put(value, key)
+        transaction.oncomplete = () => { db.close(); resolve() }
+        transaction.onerror = () => { db.close(); reject(transaction.error) }
+      })
+    },
+  }
+}
+
+async function loadOrMigrate(store: HistoryStore, key: string): Promise<unknown[]> {
+  try {
+    const stored = await store.read(key)
+    if (stored !== undefined) return stored
+  } catch {
+    // The untouched localStorage copy remains the recovery path.
+  }
+
+  const legacy = readArray(key)
+  try {
+    await store.write(key, legacy)
+    reportStorageSuccess(key)
+  } catch {
+    reportStorageFailure(key)
+  }
+  return legacy
+}
+
+export function createHistoryRepository(store: HistoryStore) {
+  return {
+    async load(): Promise<{ history: PlaybackHistoryItem[]; sessions: ListeningSession[] }> {
+      const legacyHistory = await loadOrMigrate(store, PLAYBACK_HISTORY_KEY)
+      const legacySessions = await loadOrMigrate(store, LISTENING_SESSIONS_KEY)
+      const history = normalizePlaybackHistory(legacyHistory)
+      return { history, sessions: normalizeListeningSessions(legacySessions, history) }
+    },
+    async saveHistory(items: PlaybackHistoryItem[]): Promise<boolean> {
+      try {
+        await store.write(PLAYBACK_HISTORY_KEY, items.slice(0, 1_000))
+        reportStorageSuccess(PLAYBACK_HISTORY_KEY)
+        return true
+      } catch {
+        reportStorageFailure(PLAYBACK_HISTORY_KEY)
+        return false
+      }
+    },
+    async saveSessions(sessions: ListeningSession[]): Promise<boolean> {
+      try {
+        await store.write(LISTENING_SESSIONS_KEY, sessions.slice(0, 2_000))
+        reportStorageSuccess(LISTENING_SESSIONS_KEY)
+        return true
+      } catch {
+        reportStorageFailure(LISTENING_SESSIONS_KEY)
+        return false
+      }
+    },
+  }
+}
+
+const historyRepository = createHistoryRepository(indexedDbHistoryStore())
+
+export function loadHistoryPersistence() {
+  return historyRepository.load()
+}
+
+export function saveHistoryPersistence(items: PlaybackHistoryItem[]) {
+  return historyRepository.saveHistory(items)
+}
+
+export function saveListeningSessionsPersistence(sessions: ListeningSession[]) {
+  return historyRepository.saveSessions(sessions)
 }
 
 export function searchListeningSessions(sessions: ListeningSession[], query: string) {

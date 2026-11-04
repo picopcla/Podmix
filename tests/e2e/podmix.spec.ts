@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test'
+import type { Page } from '@playwright/test'
 
 function silentWav(durationSeconds: number) {
   const sampleRate = 8_000
@@ -17,6 +18,20 @@ function silentWav(durationSeconds: number) {
   wav.write('data', 36)
   wav.writeUInt32LE(dataSize, 40)
   return wav
+}
+
+async function historyRecord(page: Page, key: string) {
+  return page.evaluate(async (key) => new Promise((resolve, reject) => {
+    const request = indexedDB.open('podmix-history')
+    request.onerror = () => reject(request.error)
+    request.onsuccess = () => {
+      const db = request.result
+      const transaction = db.transaction('history', 'readonly')
+      const get = transaction.objectStore('history').get(key)
+      transaction.oncomplete = () => { db.close(); resolve(get.result) }
+      transaction.onerror = () => reject(transaction.error)
+    }
+  }), key)
 }
 
 test('catalogue, podcast, lecture, persistance et réglages', async ({ page }) => {
@@ -134,6 +149,47 @@ test('l’historique Hermes migre, recherche et supprime les anciennes écoutes'
   await expect(page.locator('.history-item')).toHaveCount(1)
   await page.getByRole('button', { name: 'Supprimer Session Hermes de l’historique' }).click()
   await expect(page.locator('.history-item')).toHaveCount(0)
+})
+
+test('les deux historiques legacy migrent vers IndexedDB sans modifier leurs copies localStorage', async ({ page }) => {
+  const history = [{
+    id: 'episode-history-idb', title: 'Reprise conservée', artist: 'Podcast mémoire', url: '/history-idb.wav',
+    position: 42, duration: 600, playedAt: '2026-11-04T20:00:00.000Z',
+  }]
+  const sessions = [{
+    ...history[0], sessionId: 'session-history-idb', startedAt: '2026-11-04T19:00:00.000Z', updatedAt: '2026-11-04T20:00:00.000Z',
+  }]
+  const legacyHistory = JSON.stringify(history)
+  const legacySessions = JSON.stringify(sessions)
+  await page.addInitScript(({ legacyHistory, legacySessions }) => {
+    localStorage.setItem('podmix-history-v1', legacyHistory)
+    localStorage.setItem('podmix-listening-sessions-v1', legacySessions)
+  }, { legacyHistory, legacySessions })
+
+  await page.goto('/')
+  await page.getByRole('button', { name: 'Voir l’historique' }).click()
+  await expect(page.locator('.history-item')).toContainText('Reprise conservée')
+  await expect.poll(() => page.evaluate(async () => new Promise((resolve, reject) => {
+    const request = indexedDB.open('podmix-history')
+    request.onerror = () => reject(request.error)
+    request.onsuccess = () => {
+      const db = request.result
+      const transaction = db.transaction('history', 'readonly')
+      const store = transaction.objectStore('history')
+      const historyRequest = store.get('podmix-history-v1')
+      const sessionsRequest = store.get('podmix-listening-sessions-v1')
+      transaction.oncomplete = () => { db.close(); resolve({ history: historyRequest.result, sessions: sessionsRequest.result }) }
+      transaction.onerror = () => reject(transaction.error)
+    }
+  }))).toEqual({ history, sessions })
+  await expect.poll(() => page.evaluate(() => ({
+    history: localStorage.getItem('podmix-history-v1'),
+    sessions: localStorage.getItem('podmix-listening-sessions-v1'),
+  }))).toEqual({ history: legacyHistory, sessions: legacySessions })
+
+  await page.reload()
+  await page.getByRole('button', { name: 'Voir l’historique' }).click()
+  await expect(page.locator('.history-item')).toContainText('Reprise conservée')
 })
 
 test('un catalogue proche de la limite de stockage reste utilisable', async ({ page }) => {
@@ -353,10 +409,10 @@ test('le raccourci d’accueil reprend à la dernière position', async ({ page 
   const positionSlider = page.getByRole('slider', { name: 'Position de lecture' })
   await expect(positionSlider).toBeVisible()
   await expect.poll(async () => Number(await positionSlider.getAttribute('max'))).toBeGreaterThanOrEqual(9)
-  await expect.poll(() => page.evaluate(() => {
-    const history = JSON.parse(localStorage.getItem('podmix-history-v1') ?? '[]')
-    return history[0]?.position ?? 0
-  })).toBeGreaterThanOrEqual(3)
+  await expect.poll(async () => {
+    const history = await historyRecord(page, 'podmix-history-v1') as Array<{ position?: number }> | undefined
+    return history?.[0]?.position ?? 0
+  }).toBeGreaterThanOrEqual(3)
   await expect(resumeEpisode).toHaveClass(/playing/)
   await resumeEpisode.locator('.episode-play').click()
   await expect(resumeEpisode).toHaveClass(/playing/)
@@ -474,10 +530,10 @@ test('un titre démarre au repère du morceau', async ({ page }) => {
 
   await expect(page.locator('.mini-player-global')).toContainText('Morceau ciblé')
   await expect(page.locator('.episode-track.playing')).toContainText('Morceau ciblé')
-  await expect.poll(() => page.evaluate(() => {
-    const history = JSON.parse(localStorage.getItem('podmix-history-v1') ?? '[]')
-    return history[0]?.position ?? 0
-  })).toBe(0.25)
+  await expect.poll(async () => {
+    const history = await historyRecord(page, 'podmix-history-v1') as Array<{ position?: number }> | undefined
+    return history?.[0]?.position ?? 0
+  }).toBe(0.25)
   await expect(page.locator('.mini-player-global')).toContainText('Morceau suivant')
 
   await page.locator('.episode-detail .source-actions').getByRole('button', { name: 'Lire' }).click()

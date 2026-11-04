@@ -17,7 +17,7 @@ import type { BoseDevice, CastDevice, LibraryItem } from './nativePlayer'
 import { checkForUpdate, currentVersion, downloadAndUpdate } from './updates'
 import type { UpdateManifest, UpdateProgress } from './updates'
 import { mergeCatalogSource, mergeEpisode, newEpisodesFromFeed } from './catalogMerge'
-import { loadCompletedEpisodeIds, loadListeningSessions, loadPlaybackHistory, saveCompletedEpisodeIds, saveListeningSessions, savePlaybackHistory, searchListeningSessions, updateListeningSessions } from './history'
+import { loadCompletedEpisodeIds, loadHistoryPersistence, saveCompletedEpisodeIds, saveHistoryPersistence, saveListeningSessionsPersistence, searchListeningSessions, updateListeningSessions } from './history'
 import type { ListeningSession, PlaybackHistoryItem } from './history'
 import { decodeCredit, decodeCredits } from './credits'
 import podmixInfinityLogo from './assets/podmix-logo-radio-c.png'
@@ -801,11 +801,12 @@ function App() {
   const [favoriteTrackIds, setFavoriteTrackIds] = useState<string[]>(loadFavoriteTrackIds)
   const [sharingFavoriteKey, setSharingFavoriteKey] = useState('')
   const [nativeFavoritesReady, setNativeFavoritesReady] = useState(!podmixPlayer.isNative)
-  const [history, setHistory] = useState<HistoryItem[]>(loadPlaybackHistory)
+  const [history, setHistory] = useState<HistoryItem[]>([])
   const historyRef = useRef(history)
+  const [historyReady, setHistoryReady] = useState(false)
   const [completedEpisodeIds, setCompletedEpisodeIds] = useState<string[]>(loadCompletedEpisodeIds)
   const completedEpisodeIdsRef = useRef(completedEpisodeIds)
-  const [listeningSessions, setListeningSessions] = useState<ListeningSession[]>(loadListeningSessions)
+  const [listeningSessions, setListeningSessions] = useState<ListeningSession[]>([])
   const [historyQuery, setHistoryQuery] = useState('')
   const [offlineEpisodes, setOfflineEpisodes] = useState<OfflineEpisode[]>(loadOfflineEpisodes)
   const offlineEpisodesRef = useRef(offlineEpisodes)
@@ -992,6 +993,17 @@ function App() {
     } satisfies StoredBoseSession))
   }
 
+  useEffect(() => {
+    let active = true
+    void loadHistoryPersistence().then(({ history, sessions }) => {
+      if (!active) return
+      historyRef.current = history
+      setHistory(history)
+      setListeningSessions(sessions)
+      setHistoryReady(true)
+    })
+    return () => { active = false }
+  }, [])
   useEffect(() => {
     if (!podmixPlayer.isNative) return
     const listener = CapacitorApp.addListener('backButton', () => {
@@ -1498,10 +1510,10 @@ function App() {
       const changed = remapped.length !== items.length || remapped.some((item, index) => item.id !== items[index]?.id)
       if (!changed) return items
       historyRef.current = remapped
-      savePlaybackHistory(remapped)
+      if (historyReady) void saveHistoryPersistence(remapped)
       return remapped
     })
-  }, [catalog])
+  }, [catalog, historyReady])
   useEffect(() => {
     if (!navigator.onLine || artworkLookupAttempted.current.size >= 60) return
     const candidates = catalog.flatMap((source) => source.episodes.flatMap((episode) =>
@@ -1708,13 +1720,15 @@ function App() {
   }, [catalog])
   useEffect(() => {
     historyRef.current = history
-    savePlaybackHistory(history)
-  }, [history])
+    if (historyReady) void saveHistoryPersistence(history)
+  }, [history, historyReady])
   useEffect(() => {
     completedEpisodeIdsRef.current = completedEpisodeIds
     saveCompletedEpisodeIds(completedEpisodeIds)
   }, [completedEpisodeIds])
-  useEffect(() => saveListeningSessions(listeningSessions), [listeningSessions])
+  useEffect(() => {
+    if (historyReady) void saveListeningSessionsPersistence(listeningSessions)
+  }, [historyReady, listeningSessions])
 
   // Older completed plays may predate the dedicated completed-episodes list.
   // Recover them from a session only when it truly reached the end; never use
@@ -1750,7 +1764,7 @@ function App() {
     setHistory(next)
     setListeningSessions((sessions) => {
       const updated = updateListeningSessions(sessions, item)
-      saveListeningSessions(updated)
+      if (historyReady) void saveListeningSessionsPersistence(updated)
       return updated
     })
   }
@@ -3144,12 +3158,12 @@ function App() {
       markEpisodeCompleted(historyItem.id)
       const next = historyRef.current.filter((item) => item.id !== historyItem.id)
       historyRef.current = next
-      savePlaybackHistory(next)
+      if (historyReady) void saveHistoryPersistence(next)
       setHistory(next)
       const completedItem = { ...historyItem, position: historyDuration, duration: historyDuration, playedAt: new Date().toISOString() }
       setListeningSessions((sessions) => {
         const updated = updateListeningSessions(sessions, completedItem)
-        saveListeningSessions(updated)
+        if (historyReady) void saveListeningSessionsPersistence(updated)
         return updated
       })
       return
@@ -3159,11 +3173,11 @@ function App() {
       ...historyRef.current.filter((item) => item.id !== historyItem.id),
     ].slice(0, 1_000)
     historyRef.current = next
-    savePlaybackHistory(next)
+    if (historyReady) void saveHistoryPersistence(next)
     setHistory(next)
     setListeningSessions((sessions) => {
       const updated = updateListeningSessions(sessions, next[0])
-      saveListeningSessions(updated)
+      if (historyReady) void saveListeningSessionsPersistence(updated)
       return updated
     })
   }
@@ -4970,14 +4984,14 @@ function App() {
   function deleteListeningSession(sessionId: string) {
     setListeningSessions((sessions) => {
       const next = sessions.filter((session) => session.sessionId !== sessionId)
-      saveListeningSessions(next)
+      if (historyReady) void saveListeningSessionsPersistence(next)
       return next
     })
   }
 
   function clearListeningHistory() {
     setListeningSessions([])
-    saveListeningSessions([])
+    if (historyReady) void saveListeningSessionsPersistence([])
     historyRef.current = []
     setHistory([])
   }
