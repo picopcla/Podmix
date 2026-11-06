@@ -6,6 +6,9 @@ export const LISTENING_SESSIONS_KEY = 'podmix-listening-sessions-v1'
 export const COMPLETED_EPISODES_KEY = 'podmix-completed-episodes-v1'
 const HISTORY_DATABASE = 'podmix-history'
 const HISTORY_STORE = 'history'
+const COMPLETED_EPISODES_DATABASE = 'podmix-completed-episodes'
+const COMPLETED_EPISODES_STORE = 'completed-episodes'
+const COMPLETED_EPISODES_RECORD = 'ids'
 
 export type PlaybackHistoryItem = {
   id: string
@@ -72,13 +75,25 @@ export function savePlaybackHistory(items: PlaybackHistoryItem[]) {
 
 /** Les éléments terminés ne font pas partie de « Reprendre ». */
 export function loadCompletedEpisodeIds(): string[] {
-  return [...new Set(readArray(COMPLETED_EPISODES_KEY)
-    .filter((value): value is string => typeof value === 'string' && value.length > 0)
-  )].slice(0, 2_000)
+  return normalizeCompletedEpisodeIds(readArray(COMPLETED_EPISODES_KEY))
 }
 
 export function saveCompletedEpisodeIds(ids: string[]) {
-  safeSetItem(COMPLETED_EPISODES_KEY, JSON.stringify([...new Set(ids)].slice(0, 2_000)))
+  safeSetItem(COMPLETED_EPISODES_KEY, JSON.stringify(normalizeCompletedEpisodeIds(ids)))
+}
+
+function normalizeCompletedEpisodeIds(values: unknown[]): string[] {
+  return [...new Set(values.filter((value): value is string => typeof value === 'string' && value.length > 0))].slice(0, 2_000)
+}
+
+function sameCompletedEpisodeIds(left: string[], right: string[]): boolean {
+  return left.length === right.length && left.every((id, index) => id === right[index])
+}
+
+function isValidCompletedEpisodeIds(value: unknown): value is string[] {
+  return Array.isArray(value)
+    && value.every((id) => typeof id === 'string' && id.length > 0)
+    && sameCompletedEpisodeIds(value, normalizeCompletedEpisodeIds(value))
 }
 
 export function loadListeningSessions(): ListeningSession[] {
@@ -122,6 +137,11 @@ export type HistoryStore = {
   write(key: string, value: unknown[]): Promise<void>
 }
 
+export type CompletedEpisodesStore = {
+  read(): Promise<unknown[] | undefined>
+  write(value: string[]): Promise<void>
+}
+
 function indexedDbHistoryStore(): HistoryStore {
   const openDatabase = () => new Promise<IDBDatabase>((resolve, reject) => {
     const request = indexedDB.open(HISTORY_DATABASE, 1)
@@ -149,6 +169,40 @@ function indexedDbHistoryStore(): HistoryStore {
       return new Promise<void>((resolve, reject) => {
         const transaction = db.transaction(HISTORY_STORE, 'readwrite')
         transaction.objectStore(HISTORY_STORE).put(value, key)
+        transaction.oncomplete = () => { db.close(); resolve() }
+        transaction.onerror = () => { db.close(); reject(transaction.error) }
+      })
+    },
+  }
+}
+
+function indexedDbCompletedEpisodesStore(): CompletedEpisodesStore {
+  const openDatabase = () => new Promise<IDBDatabase>((resolve, reject) => {
+    const request = indexedDB.open(COMPLETED_EPISODES_DATABASE, 1)
+    request.onupgradeneeded = () => {
+      if (!request.result.objectStoreNames.contains(COMPLETED_EPISODES_STORE)) request.result.createObjectStore(COMPLETED_EPISODES_STORE)
+    }
+    request.onsuccess = () => resolve(request.result)
+    request.onerror = () => reject(request.error)
+  })
+
+  return {
+    async read() {
+      const db = await openDatabase()
+      return new Promise((resolve, reject) => {
+        const transaction = db.transaction(COMPLETED_EPISODES_STORE, 'readonly')
+        const request = transaction.objectStore(COMPLETED_EPISODES_STORE).get(COMPLETED_EPISODES_RECORD)
+        request.onsuccess = () => resolve(request.result as unknown[] | undefined)
+        request.onerror = () => reject(request.error)
+        transaction.oncomplete = () => db.close()
+        transaction.onerror = () => db.close()
+      })
+    },
+    async write(value) {
+      const db = await openDatabase()
+      return new Promise<void>((resolve, reject) => {
+        const transaction = db.transaction(COMPLETED_EPISODES_STORE, 'readwrite')
+        transaction.objectStore(COMPLETED_EPISODES_STORE).put(value, COMPLETED_EPISODES_RECORD)
         transaction.oncomplete = () => { db.close(); resolve() }
         transaction.onerror = () => { db.close(); reject(transaction.error) }
       })
@@ -205,7 +259,52 @@ export function createHistoryRepository(store: HistoryStore) {
   }
 }
 
+export function createCompletedEpisodesRepository(store: CompletedEpisodesStore) {
+  const legacyIds = () => loadCompletedEpisodeIds()
+
+  return {
+    async load(): Promise<string[]> {
+      try {
+        const stored = await store.read()
+        if (isValidCompletedEpisodeIds(stored)) return stored
+
+        const legacy = legacyIds()
+        await store.write(legacy)
+        const verified = await store.read()
+        if (!isValidCompletedEpisodeIds(verified) || !sameCompletedEpisodeIds(verified, legacy)) throw new Error('Copie IndexedDB des episodes termines invalide')
+        reportStorageSuccess(COMPLETED_EPISODES_KEY)
+        return legacy
+      } catch {
+        reportStorageFailure(COMPLETED_EPISODES_KEY)
+        return legacyIds()
+      }
+    },
+    async save(ids: string[]): Promise<boolean> {
+      const normalized = normalizeCompletedEpisodeIds(ids)
+      try {
+        await store.write(normalized)
+        const verified = await store.read()
+        if (!isValidCompletedEpisodeIds(verified) || !sameCompletedEpisodeIds(verified, normalized)) throw new Error('Ecriture IndexedDB des episodes termines non verifiee')
+        reportStorageSuccess(COMPLETED_EPISODES_KEY)
+
+        // Double-ecriture de compatibilite : une version anterieure voit les nouveaux etats.
+        // Un quota localStorage ne remet pas en cause la copie IndexedDB deja verifiee.
+        try {
+          localStorage.setItem(COMPLETED_EPISODES_KEY, JSON.stringify(normalized))
+        } catch {
+          // La valeur legacy precedente reste le filet de retour arriere quand le quota bloque sa mise a jour.
+        }
+        return true
+      } catch {
+        reportStorageFailure(COMPLETED_EPISODES_KEY)
+        return false
+      }
+    },
+  }
+}
+
 const historyRepository = createHistoryRepository(indexedDbHistoryStore())
+const completedEpisodesRepository = createCompletedEpisodesRepository(indexedDbCompletedEpisodesStore())
 
 export function loadHistoryPersistence() {
   return historyRepository.load()
@@ -217,6 +316,14 @@ export function saveHistoryPersistence(items: PlaybackHistoryItem[]) {
 
 export function saveListeningSessionsPersistence(sessions: ListeningSession[]) {
   return historyRepository.saveSessions(sessions)
+}
+
+export function loadCompletedEpisodesPersistence() {
+  return completedEpisodesRepository.load()
+}
+
+export function saveCompletedEpisodesPersistence(ids: string[]) {
+  return completedEpisodesRepository.save(ids)
 }
 
 export function searchListeningSessions(sessions: ListeningSession[], query: string) {

@@ -17,7 +17,7 @@ import type { BoseDevice, CastDevice, LibraryItem } from './nativePlayer'
 import { checkForUpdate, currentVersion, downloadAndUpdate } from './updates'
 import type { UpdateManifest, UpdateProgress } from './updates'
 import { mergeCatalogSource, mergeEpisode, newEpisodesFromFeed } from './catalogMerge'
-import { loadCompletedEpisodeIds, loadHistoryPersistence, saveCompletedEpisodeIds, saveHistoryPersistence, saveListeningSessionsPersistence, searchListeningSessions, updateListeningSessions } from './history'
+import { loadCompletedEpisodeIds, loadCompletedEpisodesPersistence, loadHistoryPersistence, saveCompletedEpisodesPersistence, saveHistoryPersistence, saveListeningSessionsPersistence, searchListeningSessions, updateListeningSessions } from './history'
 import type { ListeningSession, PlaybackHistoryItem } from './history'
 import { decodeCredit, decodeCredits } from './credits'
 import podmixInfinityLogo from './assets/podmix-logo-radio-c.png'
@@ -806,6 +806,9 @@ function App() {
   const [historyReady, setHistoryReady] = useState(false)
   const [completedEpisodeIds, setCompletedEpisodeIds] = useState<string[]>(loadCompletedEpisodeIds)
   const completedEpisodeIdsRef = useRef(completedEpisodeIds)
+  const [completedEpisodesReady, setCompletedEpisodesReady] = useState(false)
+  const completedEpisodesInitialEffect = useRef(false)
+  const completedEpisodesChangedBeforeReady = useRef(false)
   const [listeningSessions, setListeningSessions] = useState<ListeningSession[]>([])
   const [historyQuery, setHistoryQuery] = useState('')
   const [offlineEpisodes, setOfflineEpisodes] = useState<OfflineEpisode[]>(loadOfflineEpisodes)
@@ -1001,6 +1004,18 @@ function App() {
       setHistory(history)
       setListeningSessions(sessions)
       setHistoryReady(true)
+    })
+    return () => { active = false }
+  }, [])
+  useEffect(() => {
+    let active = true
+    void loadCompletedEpisodesPersistence().then((ids) => {
+      if (!active) return
+      if (!completedEpisodesChangedBeforeReady.current) {
+        completedEpisodeIdsRef.current = ids
+        setCompletedEpisodeIds(ids)
+      }
+      setCompletedEpisodesReady(true)
     })
     return () => { active = false }
   }, [])
@@ -1724,8 +1739,13 @@ function App() {
   }, [history, historyReady])
   useEffect(() => {
     completedEpisodeIdsRef.current = completedEpisodeIds
-    saveCompletedEpisodeIds(completedEpisodeIds)
-  }, [completedEpisodeIds])
+    if (!completedEpisodesReady) {
+      if (completedEpisodesInitialEffect.current) completedEpisodesChangedBeforeReady.current = true
+      completedEpisodesInitialEffect.current = true
+      return
+    }
+    void saveCompletedEpisodesPersistence(completedEpisodeIds)
+  }, [completedEpisodeIds, completedEpisodesReady])
   useEffect(() => {
     if (historyReady) void saveListeningSessionsPersistence(listeningSessions)
   }, [historyReady, listeningSessions])
@@ -1754,7 +1774,6 @@ function App() {
     if (completedEpisodeIdsRef.current.includes(id)) return
     const next = [id, ...completedEpisodeIdsRef.current].slice(0, 2_000)
     completedEpisodeIdsRef.current = next
-    saveCompletedEpisodeIds(next)
     setCompletedEpisodeIds(next)
   }
 
