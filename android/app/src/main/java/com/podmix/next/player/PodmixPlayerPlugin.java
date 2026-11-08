@@ -942,6 +942,9 @@ public class PodmixPlayerPlugin extends Plugin implements Player.Listener {
             .putBoolean("initialized", true)
             .putLong("version", System.currentTimeMillis())
             .apply();
+        // Refresh the Android Auto root after the WebView has synchronized
+        // favorites, including when the service was already browsed.
+        PodmixPlaybackService.invalidateCache();
         JSObject result = new JSObject();
         result.put("count", ids.length());
         call.resolve(result);

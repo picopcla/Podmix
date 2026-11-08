@@ -27,7 +27,7 @@ android {
         ng {
             dimension "edition"
             applicationId "com.podmix.next.ng"
-            versionNameSuffix "-ng"
+            versionNameSuffix "-ng-20261107"
         }
     }
     signingConfigs {
