@@ -5068,7 +5068,7 @@ function App() {
         <button className="dj-home-library-link" type="button" onClick={() => navigateTo('djLibrary')} aria-label={`Ouvrir les ${sources.length} DJ sets`}>
           <Disc3 size={16} /><span><strong>Tous les DJ sets</strong><small>{sources.length} disponible{sources.length > 1 ? 's' : ''}</small></span><ChevronRight size={17} />
         </button>
-      </> : <div className="catalog-grid home-catalog-grid">{sources.slice(0, 4).map((source) => {
+      </> : <div className="catalog-grid home-catalog-grid">{sources.map((source) => {
         const SourceIcon = source.kind === 'radio' ? Radio : source.kind === 'dj' ? Disc3 : source.kind === 'show' ? AudioLines : Mic2
         const color = source.kind === 'radio' ? '#9bb8dc' : source.kind === 'show' ? '#a8d7bd' : source.kind === 'dj' ? '#edcf92' : '#e99a72'
         const firstEpisode = source.episodes.find((episode) => episode.audioUrl)
