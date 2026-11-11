@@ -122,10 +122,15 @@ jobs:
             adb install -r out/app-ng-candidate-signed.apk > /tmp/install.txt 2>&1 || true
             AFTER=$(adb shell dumpsys package com.podmix.next.ng | grep -E 'versionCode|versionName' | head -2 | tr '\n' ' ')
             MARK=$(adb shell "cat /data/data/com.podmix.next.ng/files/.update-check" 2>&1 | tr -d '\r')
-            echo "- base $BASE: avant [$BEFORE] install -r [$(tr '\n' ' ' < /tmp/install.txt)] apres [$AFTER] marqueur [$MARK]" >> "$GITHUB_STEP_SUMMARY"
+            adb shell am start -n com.podmix.next.ng/com.podmix.next.MainActivity >/dev/null 2>&1
+            sleep 10
+            PID=$(adb shell pidof com.podmix.next.ng | tr -d '\r')
+            adb exec-out screencap -p > out/launch-230-$BASE.png 2>/dev/null || true
+            echo "- base $BASE: avant [$BEFORE] install -r [$(tr '\n' ' ' < /tmp/install.txt)] apres [$AFTER] marqueur [$MARK] lancement pid [$PID] capture [$(ls -l out/launch-230-$BASE.png 2>/dev/null | awk '{print $5}') octets]" >> "$GITHUB_STEP_SUMMARY"
             grep -q Success /tmp/install.txt || FAIL=1
             [ "$MARK" = "podmix-data-marker-$BASE" ] || FAIL=1
             echo "$AFTER" | grep -q 10230 || FAIL=1
+            [ -n "$PID" ] || FAIL=1
           done
           exit $FAIL
           XEOF
@@ -142,6 +147,13 @@ jobs:
           profile: pixel_2
           emulator-options: -no-snapshot -no-window -noaudio -no-boot-anim -gpu swiftshader_indirect -camera-back none
           script: bash ${{ runner.temp }}/up.sh
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: podmix-230-launch-screenshot
+          path: out/launch-230-229.png
+          if-no-files-found: warn
+          retention-days: 7
 
   checks:
     runs-on: ubuntu-latest
