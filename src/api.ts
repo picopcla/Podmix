@@ -1,3 +1,4 @@
+import { isPrivateLanUrl } from './lanRelay'
 import type { CatalogSource, DetectionJob, DjSearchResult, LiveSetDetails, LiveSetSearchResult, LiveSetTrack, PodcastSearchResult } from './domain'
 import { Capacitor } from '@capacitor/core'
 import { safeSetItem } from './safeStorage'
@@ -69,7 +70,9 @@ export async function createBoseCastSession(
   return {
     id: payload.id,
     relayUrl: payload.relayUrl,
-    lanRelayUrl: payload.lanRelayUrl,
+    // N'accepter le relais « LAN » que s'il pointe réellement un LAN privé
+    // (une adresse Tailscale 100.64.0.0/10 est injoignable par l'enceinte).
+    lanRelayUrl: isPrivateLanUrl(payload.lanRelayUrl) ? payload.lanRelayUrl : undefined,
     expiresAt: payload.expiresAt,
     startSeconds: payload.startSeconds ?? 0,
   }
