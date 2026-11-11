@@ -1,0 +1,42 @@
+name: read-230-artifacts
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [fix/bose-lan-relay-guard]
+    paths: ['.github/workflows/read-230-artifacts.yml']
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  inspect:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      GH_TOKEN: ${{ github.token }}
+      SRC_RUN: '43046157553'
+    steps:
+      - name: Telecharger et verifier l APK teste (run 43046157553)
+        run: |
+          set -euo pipefail
+          mkdir -p out shot
+          gh run download "$SRC_RUN" -R "${{ github.repository }}" -n podmix-candidate-signed-apk -D out
+          ls -l out
+          EXPECT=$(cut -d' ' -f1 out/app-ng-candidate-signed.apk.sha256)
+          GOT=$(sha256sum out/app-ng-candidate-signed.apk | cut -d' ' -f1)
+          echo "APK_SHA256=$GOT"
+          echo "APK_SHA256_FICHIER=$EXPECT"
+          test "$GOT" = "$EXPECT" && echo "INTEGRITE_APK=OK"
+          BT=$(find "$ANDROID_HOME/build-tools" -mindepth 1 -maxdepth 1 -type d | sort -V | tail -1)
+          "$BT/aapt2" dump badging out/app-ng-candidate-signed.apk | head -1
+          "$BT/apksigner" verify --print-certs out/app-ng-candidate-signed.apk | sed -n 's/.*certificate SHA-256 digest: //p' | head -1
+      - name: Extraire la capture emulateur en base64
+        run: |
+          set -euo pipefail
+          gh run download "$SRC_RUN" -R "${{ github.repository }}" -n podmix-230-launch-screenshot -D shot
+          ls -l shot
+          echo "B64PNG_BEGIN"
+          base64 shot/launch-230-229.png
+          echo "B64PNG_END"
