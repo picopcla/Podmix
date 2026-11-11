@@ -315,6 +315,23 @@ jobs:
           log("SNAP accueil: " + json.dumps(ev(SNAP), ensure_ascii=False)[:1500])
           shot("s1-accueil")
 
+          # S1b - pointer l'app vers le mock via le reglage serveur de l'app (localhost = origine fiable, pas de mixed content)
+          probed = ev("(async()=>{try{const r=await fetch('http://localhost:8099/health');return 'sonde-ok '+(await r.text()).slice(0,60)}catch(e){return 'sonde-fail '+e}})()")
+          log("fetch http://localhost:8099/health: " + str(probed))
+          if not (isinstance(probed, str) and probed.startswith('sonde-ok')):
+              log('[FATAL] mock localhost:8099 inaccessible depuis la WebView - harnais invalide')
+              sys.exit(3)
+          ev("localStorage.setItem('podmix-api-url','http://localhost:8099'); location.reload(); 'ok'")
+          time.sleep(8)
+          ok = False
+          for _ in range(40):
+              s = ev(SNAP)
+              if isinstance(s, dict) and s.get("buttons"):
+                  ok = True; break
+              time.sleep(2)
+          stage(ok, "accueil rendu apres rechargement"); fails += 0 if ok else 1
+          log("SNAP accueil2: " + json.dumps(ev(SNAP), ensure_ascii=False)[:1500])
+
           # S2 - ajouter RMC via la modale Ajouter une source
           if not clicktext("button", "Ajouter une source", "ouvrir ajout source"):
               fails += 1
@@ -351,6 +368,9 @@ jobs:
               log("PLAYER STATE apres bouton Lire: " + json.dumps(st, ensure_ascii=False)[:600])
               fails += 0 if (isinstance(st, dict) and (st.get("url") or st.get("mediaId"))) else 1
           shot("s3-lecture")
+          if not (isinstance(st, dict) and (st.get("url") or st.get("mediaId"))):
+              log('[FATAL] RMC non en lecture - scenario non atteint')
+              sys.exit(3)
 
           # S4 - ouvrir le picker de sortie
           if not clicktext("button[aria-label^='Sortie audio']", "sortie audio", "ouvrir picker sortie"):
@@ -368,6 +388,7 @@ jobs:
           # S5 - renseigner l'IP manuelle si aucune ligne Bose, puis TAP BOSE
           s = ev(SNAP)
           bose_row = isinstance(s, dict) and any((d.get("name") or "").lower().find("bose") >= 0 for d in s.get("devices", []))
+          tapped = False
           if not bose_row:
               log("aucune ligne Bose: saisie IP manuelle 10.0.2.2")
               ev(f"""(() => {{
@@ -377,12 +398,15 @@ jobs:
                 return true;
               }})()""")
               time.sleep(0.5)
-              clicktext(".output-manual-bose button", "Tester et connecter", "Tester et connecter")
+              tapped = bool(clicktext(".output-manual-bose button", "Tester et connecter", "Tester et connecter"))
           t0 = time.time()
           events.clear()
           if bose_row:
-              clicktext(".output-device", "Bose", "TAP ligne Bose")
-          log(f"[TAP] t0={t0:.3f}")
+              tapped = bool(clicktext(".output-device", "Bose", "TAP ligne Bose"))
+          log(f"[TAP] t0={t0:.3f} executed={tapped}")
+          if not tapped:
+              log('[FATAL] tap Bose non execute - repro non aboutie')
+              sys.exit(3)
 
           # S6 - fenetre d'observation 20 s, sondage ~120 ms
           timeline = []
@@ -427,8 +451,8 @@ jobs:
           log("PLAYER STATE final: " + json.dumps(st, ensure_ascii=False)[:600])
           log("SNAP final: " + json.dumps(ev(SNAP), ensure_ascii=False)[:1500])
           shot("s7-final")
-          log(f"[RESULT] etapes_en_echec={fails}")
-          sys.exit(0)
+          log(f"[RESULT] etapes_en_echec={fails} timeline_points={len(timeline)}")
+          sys.exit(0 if (tapped and len(timeline) > 5) else 4)
           DRVPY
           python3 -c "import ast; ast.parse(open('/tmp/drive_webview.py').read()); print('pilote syntaxe OK')"
       - name: Ecrire le script de sequencement
@@ -446,6 +470,8 @@ jobs:
           echo "== installation APK debug =="
           ls -l android/app/build/outputs/apk/ng/debug/ || true
           adb install -r android/app/build/outputs/apk/ng/debug/app-ng-debug.apk
+          adb reverse tcp:8099 tcp:8099
+          adb reverse --list
           adb logcat -c
           adb shell am start -n com.podmix.next.ng/com.podmix.next.MainActivity
           sleep 10
