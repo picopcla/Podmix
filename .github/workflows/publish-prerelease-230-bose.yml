@@ -1,0 +1,64 @@
+name: publish-prerelease-230-bose
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [fix/bose-lan-relay-guard]
+    paths: ['.github/workflows/publish-prerelease-230-bose.yml']
+
+permissions:
+  contents: write
+  actions: read
+
+concurrency:
+  group: publish-prerelease-230-bose
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      GH_TOKEN: ${{ github.token }}
+      TAG: v1.0.230-ng-bose-lan
+      SRC_RUN: '43046157553'
+      SRC_SHA: e3e34df86bf46cf99b3c33a0c3e9d47ffe8e3eb1
+      EXPECT_SHA256: 336e3c90def64b276479f0b6683a0f152f52da917048aeeaf56f43db8882a9ed
+    steps:
+      - name: Telecharger l'APK deja teste (run 43046157553)
+        run: |
+          set -euo pipefail
+          mkdir -p out
+          gh run download "$SRC_RUN" -R "${{ github.repository }}" -n podmix-candidate-signed-apk -D out
+          ls -l out
+      - name: Verifier empreinte, identite et certificat
+        run: |
+          set -euo pipefail
+          GOT=$(sha256sum out/app-ng-candidate-signed.apk | cut -d' ' -f1)
+          echo "sha256: $GOT"
+          test "$GOT" = "$EXPECT_SHA256"
+          BT=$(find "$ANDROID_HOME/build-tools" -mindepth 1 -maxdepth 1 -type d | sort -V | tail -1)
+          BADGING=$("$BT/aapt2" dump badging out/app-ng-candidate-signed.apk | head -1)
+          echo "$BADGING"
+          grep -Fq "name='com.podmix.next.ng'" <<<"$BADGING"
+          grep -Fq "versionCode='10230'" <<<"$BADGING"
+          grep -Fq "versionName='1.0.230-ng'" <<<"$BADGING"
+          "$BT/apksigner" verify out/app-ng-candidate-signed.apk
+          CERT=$("$BT/apksigner" verify --print-certs out/app-ng-candidate-signed.apk | sed -n 's/.*certificate SHA-256 digest: //p' | head -1 | tr '[:upper:]' '[:lower:]')
+          echo "cert: $CERT"
+          test "$CERT" = "b27d46c092c63432e7e274d227c0e465cf91ab4656f67c1a0b511402505c8b8c"
+      - name: Publier la pre-release (nouveau tag, rien d'existant modifie)
+        run: |
+          set -euo pipefail
+          if gh release view "$TAG" -R "${{ github.repository }}" >/dev/null 2>&1; then
+            echo "release $TAG existe deja: arret, aucune ecriture"; exit 1
+          fi
+          cp out/app-ng-candidate-signed.apk out/app-ng-release.apk
+          gh release create "$TAG" out/app-ng-release.apk --prerelease -R "${{ github.repository }}" --target "$SRC_SHA" \
+            --title "Podmix 1.0.230-ng (correctif relais Bose LAN)" \
+            --notes "Correctif : pour le cast Bose, l'application n'utilise l'adresse relais locale fournie par le serveur que si c'est une adresse de reseau local prive (RFC 1918) ; sinon elle revient au relais public. Cas vise : le serveur renvoyait une adresse Tailscale 100.x que l'enceinte ne peut pas joindre. Teste : compilation, 22 tests unitaires, mise a jour 1.0.229 -> 1.0.230 sur emulateur Android avec donnees preservees et lancement verifie (capture). NON VALIDE sur enceinte Bose reelle. APK signe avec la cle Podmix, versionCode 10230, sha256 $EXPECT_SHA256. Construit depuis le commit $SRC_SHA de la branche fix/bose-lan-relay-guard."
+          {
+            echo "## Pre-release publiee: $TAG"
+            echo "- sha256 asset: $EXPECT_SHA256"
+            echo "- commit source: $SRC_SHA"
+          } >> "$GITHUB_STEP_SUMMARY"
