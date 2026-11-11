@@ -2,6 +2,9 @@ name: candidate-signed-230-bose
 
 on:
   workflow_dispatch:
+  push:
+    branches: [fix/bose-lan-relay-guard]
+    paths: ['.github/workflows/candidate-signed-230-bose.yml']
 
 concurrency:
   group: candidate-signed-230-bose
