@@ -1,4 +1,4 @@
-import { readDurableItem, saveDurableItem, isDurableStorageActive, type DurableKey } from './durableStorage'
+import { readDurableItem, saveDurableItem, isDurableStorageActive, isNewDurableRecord, type DurableKey } from './durableStorage'
 import { decodeTextEntities } from './text'
 
 export const PLAYBACK_HISTORY_KEY = 'podmix-history-v1'
@@ -80,7 +80,9 @@ export function saveCompletedEpisodeIds(ids: string[]) {
 
 export function loadListeningSessions(): ListeningSession[] {
   const stored = readArray(LISTENING_SESSIONS_KEY)
-  if (!stored.length) {
+  // An explicitly saved [] means the user cleared the list, not that migration is needed.
+  if (readDurableItem(LISTENING_SESSIONS_KEY) === null
+    || (isDurableStorageActive() && isNewDurableRecord(LISTENING_SESSIONS_KEY))) {
     return loadPlaybackHistory().map((item, index) => ({
       ...item,
       sessionId: `legacy-${Date.parse(item.playedAt)}-${index}`,
