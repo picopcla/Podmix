@@ -193,6 +193,23 @@ jobs:
                   if "#Stop" in action: STATE["playing"] = False
                   if "#Play" in action: STATE["playing"] = bool(STATE["url"])
                   if "SetAVTransportURI" in body:
+                      import xml.etree.ElementTree as ET
+                      try:
+                          envelope = ET.fromstring(body)
+                          command = envelope.find("{http://schemas.xmlsoap.org/soap/envelope/}Body")[0]
+                          arguments = [child.tag for child in command]
+                          expected = ["InstanceID", "CurrentURI", "CurrentURIMetaData"]
+                          if arguments != expected:
+                              raise ValueError("402 Invalid Args: " + repr(arguments))
+                          if command.findtext("InstanceID") != "0":
+                              raise ValueError("718 Invalid InstanceID")
+                          if not command.findtext("CurrentURI", "").startswith("http://"):
+                              raise ValueError("402 URI must start with http://")
+                          log("8091 STRICT_ARGS_PASS order=InstanceID,CurrentURI,CurrentURIMetaData HTTP-only")
+                      except Exception as error:
+                          log("8091 STRICT_ARGS_REJECT " + str(error))
+                          send(self, 500, '<s:Envelope xmlns:s="http://schemas.xmlsoap.org/soap/envelope/"><s:Body><s:Fault><faultcode>s:Client</faultcode><faultstring>Invalid Args</faultstring></s:Fault></s:Body></s:Envelope>', 'text/xml; charset="utf-8"')
+                          return
                       m = re.search(r"<CurrentURI>([^<]+)</CurrentURI>", body)
                       t = re.search(r"<dc:title>([^<]+)</dc:title>", body)
                       if m: STATE["url"] = m.group(1).replace("&amp;", "&")
