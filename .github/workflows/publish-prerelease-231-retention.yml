@@ -1,0 +1,64 @@
+name: publish-prerelease-231-retention
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [fix/231-update-nag-and-home-grid]
+    paths: ['.github/workflows/publish-prerelease-231-retention.yml']
+
+permissions:
+  contents: write
+  actions: read
+
+concurrency:
+  group: publish-prerelease-231-retention
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      GH_TOKEN: ${{ github.token }}
+      TAG: v1.0.231-ng-preservation
+      SRC_RUN: '43394530006'
+      SRC_SHA: 467fc300b583d4e01e8986934928aecb55a2aa3c
+      EXPECT_SHA256: 88bdc0f018d6294f5d02f413bf3d2939cfd09a61ccdee470b8ea11c43a68007e
+    steps:
+      - name: Telecharger l'APK deja teste (run 43394530006)
+        run: |
+          set -euo pipefail
+          mkdir -p out
+          gh run download "$SRC_RUN" -R "${{ github.repository }}" -n podmix231-candidate-signed-apk -D out
+          ls -l out
+      - name: Verifier empreinte, identite et certificat
+        run: |
+          set -euo pipefail
+          GOT=$(sha256sum out/app-ng-candidate-signed.apk | cut -d' ' -f1)
+          echo "sha256: $GOT"
+          test "$GOT" = "$EXPECT_SHA256"
+          BT=$(find "$ANDROID_HOME/build-tools" -mindepth 1 -maxdepth 1 -type d | sort -V | tail -1)
+          BADGING=$("$BT/aapt2" dump badging out/app-ng-candidate-signed.apk | sed -n '1p')
+          echo "$BADGING"
+          grep -Fq "name='com.podmix.next.ng'" <<<"$BADGING"
+          grep -Fq "versionCode='10231'" <<<"$BADGING"
+          grep -Fq "versionName='1.0.231-ng'" <<<"$BADGING"
+          "$BT/apksigner" verify out/app-ng-candidate-signed.apk
+          CERT=$("$BT/apksigner" verify --print-certs out/app-ng-candidate-signed.apk | sed -n 's/.*certificate SHA-256 digest: //p' | head -1 | tr '[:upper:]' '[:lower:]')
+          echo "cert: $CERT"
+          test "$CERT" = "b27d46c092c63432e7e274d227c0e465cf91ab4656f67c1a0b511402505c8b8c"
+      - name: Publier la pre-release (nouveau tag, rien d'existant modifie)
+        run: |
+          set -euo pipefail
+          if gh release view "$TAG" -R "${{ github.repository }}" >/dev/null 2>&1; then
+            echo "release $TAG existe deja: arret, aucune ecriture"; exit 1
+          fi
+          cp out/app-ng-candidate-signed.apk out/app-ng-release.apk
+          gh release create "$TAG" out/app-ng-release.apk --prerelease -R "${{ github.repository }}" --target "$SRC_SHA" \
+            --title "Podmix 1.0.231-ng (liste et conservation des donnees)" \
+            --notes "Version de test pour Obtainium. Corrige la liste limitee a quatre vignettes et la proposition de mise a jour vers une version plus ancienne. Protege les episodes references (favoris, historique, telechargements, annotations) contre la limite du catalogue et les flux RSS qui ne les contiennent plus. Les lectures d'etat Cast ont un delai limite et une erreur explicite, sans reinitialisation deduite. Tests : 42 tests unitaires ; mise a jour 230 vers231 sur emulateur, 104 episodes et references conserves apres actualisation RSS ; APK release exact signe avec la cle existante, mise a jour depuis l'APK230publie sans desinstallation, donnees et fichier telecharge conserves. Cast sur enceinte reelle NON VERIFIE ; cause de l'alerte memoire du telephone NON ETABLIE. Ne pas desinstaller ni effacer les donnees. Certificat identique, versionCode10231. SHA256 $EXPECT_SHA256. Source $SRC_SHA. Aucun changement de main."
+          {
+            echo "## Pre-release publiee: $TAG"
+            echo "- sha256 asset: $EXPECT_SHA256"
+            echo "- commit source: $SRC_SHA"
+          } >> "$GITHUB_STEP_SUMMARY"
