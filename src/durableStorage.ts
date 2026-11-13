@@ -55,6 +55,8 @@ export function createDurableRepository(store: DurableStore) {
   const tails = new Map<DurableKey, Promise<unknown>>()
   const errors = new Map<DurableKey, string>()
   const unsafe = new Set<DurableKey>()
+  // Distinguish a first-launch empty seed from an explicitly saved empty list.
+  const newRecords = new Set<DurableKey>()
   const legacyRead = (key: DurableKey) => { try { return localStorage.getItem(key) } catch { return null } }
   let initializing: Promise<void> | undefined
   const queue = <T>(key: DurableKey, work: () => Promise<T>) => {
@@ -86,6 +88,7 @@ export function createDurableRepository(store: DurableStore) {
           if (stored !== undefined) cache.set(key, stored)
           else {
             if (legacyError) throw legacyError // An unreadable legacy copy is not an absent copy.
+            if (legacy === null) newRecords.add(key)
             const value = legacy ?? '[]'
             if (!valid(key, value)) throw new Error('Invalid legacy record')
             await commit(key, value)
@@ -99,9 +102,11 @@ export function createDurableRepository(store: DurableStore) {
     read(key: DurableKey): string | null {
       return cache.get(key) ?? legacyRead(key)
     },
+    isNewRecord(key: DurableKey): boolean { return newRecords.has(key) },
     save(key: DurableKey, value: string): Promise<boolean> {
       // Snapshot the value now, before asynchronous work. Keep failed updates in memory.
       cache.set(key, value)
+      newRecords.delete(key)
       return queue(key, async () => {
         try {
           if (unsafe.has(key)) throw new Error('Startup storage check failed; preserved copies are read-only until restart')
@@ -132,3 +137,5 @@ export function initializeDurableStorage() { active = true; return repository.in
 export const readDurableItem = repository.read
 export const saveDurableItem = repository.save
 export const durableStorageDiagnostics = repository.diagnostics
+
+export const isNewDurableRecord = repository.isNewRecord
