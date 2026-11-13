@@ -4,7 +4,7 @@ import path from 'node:path'
 const root = process.cwd()
 const packagePath = path.join(root, 'package.json')
 const androidGradlePath = path.join(root, 'android', 'app', 'build.gradle')
-const envPath = path.join(root, 'empty')
+const envPath = path.join(root, '.env.production')
 
 function readJSON(file) {
   return JSON.parse(fs.readFileSync(file, 'utf8'))
@@ -62,7 +62,7 @@ const updatedGradle = gradle
 write(androidGradlePath, updatedGradle)
 
 const envLines = fs.readFileSync(envPath, 'utf8').split(/\r?\n/)
-const nextEnv = envLines.map((line) => line.startsWith('VITE_APP_VERSION ') ? `VITE_APP_VERSION ${version}` : line).join('\n')
+const nextEnv = envLines.map((line) => line.startsWith('VITE_APP_VERSION=') ? `VITE_APP_VERSION=${version}` : line).join('\n')
 write(envPath, `${nextEnv.endsWith('\n') ? nextEnv : `${nextEnv}\n`}`)
 
 console.log(JSON.stringify({ command, version, versionCode }, null, 2))
