@@ -1,3 +1,4 @@
+import { readDurableItem, saveDurableItem, isDurableStorageActive, type DurableKey } from './durableStorage'
 import { decodeTextEntities } from './text'
 
 export const PLAYBACK_HISTORY_KEY = 'podmix-history-v1'
@@ -43,7 +44,7 @@ export function normalizeHistoryItem(value: unknown): PlaybackHistoryItem | unde
 
 function readArray(key: string): unknown[] {
   try {
-    const parsed: unknown = JSON.parse(localStorage.getItem(key) ?? '[]')
+    const parsed: unknown = JSON.parse((key === PLAYBACK_HISTORY_KEY || key === LISTENING_SESSIONS_KEY ? readDurableItem(key as DurableKey) : localStorage.getItem(key)) ?? '[]')
     return Array.isArray(parsed) ? parsed : []
   } catch {
     return []
@@ -61,7 +62,9 @@ export function loadPlaybackHistory(): PlaybackHistoryItem[] {
 }
 
 export function savePlaybackHistory(items: PlaybackHistoryItem[]) {
-  safeSetItem(PLAYBACK_HISTORY_KEY, JSON.stringify(items.slice(0, 1_000)))
+  const value = JSON.stringify(items.slice(0, 1_000))
+  if (isDurableStorageActive()) void saveDurableItem(PLAYBACK_HISTORY_KEY, value)
+  else safeSetItem(PLAYBACK_HISTORY_KEY, value)
 }
 
 /** Les éléments terminés ne font pas partie de « Reprendre ». */
@@ -105,7 +108,9 @@ export function updateListeningSessions(sessions: ListeningSession[], item: Play
 }
 
 export function saveListeningSessions(sessions: ListeningSession[]) {
-  safeSetItem(LISTENING_SESSIONS_KEY, JSON.stringify(sessions.slice(0, 2_000)))
+  const value = JSON.stringify(sessions.slice(0, 2_000))
+  if (isDurableStorageActive()) void saveDurableItem(LISTENING_SESSIONS_KEY, value)
+  else safeSetItem(LISTENING_SESSIONS_KEY, value)
 }
 
 export function searchListeningSessions(sessions: ListeningSession[], query: string) {

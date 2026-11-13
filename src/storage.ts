@@ -1,5 +1,6 @@
 import type { CatalogSource, OfflineEpisode, Track } from './domain'
 import { reportStorageFailure, safeSetItem } from './safeStorage'
+import { readDurableItem, saveDurableItem, isDurableStorageActive } from './durableStorage'
 
 const DATABASE = 'podmix-studio'
 const STORE = 'sessions'
@@ -48,7 +49,7 @@ export async function saveSession(audioName: string, tracks: Track[]) {
 
 export function loadCatalog(): CatalogSource[] {
   try {
-    const sources = JSON.parse(localStorage.getItem(CATALOG_KEY) ?? '[]') as CatalogSource[]
+    const sources = JSON.parse(readDurableItem(CATALOG_KEY) ?? '[]') as CatalogSource[]
     // 1.0.11 could keep the default "podcast" type when Add was opened from
     // the Emissions filter. Preserve the imported episodes while correcting
     // the source reported by the affected installation.
@@ -74,7 +75,12 @@ export function loadCatalog(): CatalogSource[] {
  * version stockee est conservee telle quelle (aucun repli reduit qui ecraserait
  * des donnees) et l'echec est signale a l'interface. Renvoie true si enregistre.
  */
-export function saveCatalog(sources: CatalogSource[]): boolean {
+export function saveCatalog(sources: CatalogSource[]): boolean | Promise<boolean> {
+  // IDB has no localStorage-sized fallback. Preserve full descriptions and annotations.
+  if (isDurableStorageActive()) {
+    try { return saveDurableItem(CATALOG_KEY, JSON.stringify(sources)) }
+    catch { reportStorageFailure(CATALOG_KEY); return false }
+  }
   const compact = sources.map((source) => ({
     ...source,
     description: source.description.slice(0, 2_000),
@@ -102,7 +108,7 @@ export function saveCatalog(sources: CatalogSource[]): boolean {
 
 export function loadOfflineEpisodes(): OfflineEpisode[] {
   try {
-    const episodes: unknown = JSON.parse(localStorage.getItem(OFFLINE_KEY) ?? '[]')
+    const episodes: unknown = JSON.parse(readDurableItem(OFFLINE_KEY) ?? '[]')
     return Array.isArray(episodes) ? episodes as OfflineEpisode[] : []
   } catch {
     return []
@@ -110,5 +116,7 @@ export function loadOfflineEpisodes(): OfflineEpisode[] {
 }
 
 export function saveOfflineEpisodes(episodes: OfflineEpisode[]) {
-  safeSetItem(OFFLINE_KEY, JSON.stringify(episodes))
+  const value = JSON.stringify(episodes)
+  if (isDurableStorageActive()) void saveDurableItem(OFFLINE_KEY, value)
+  else safeSetItem(OFFLINE_KEY, value)
 }

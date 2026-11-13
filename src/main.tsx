@@ -4,6 +4,7 @@ import { createRoot } from 'react-dom/client'
 import { Capacitor } from '@capacitor/core'
 import './index.css'
 import App from './App.tsx'
+import { initializeDurableStorage } from './durableStorage'
 
 class StartupErrorBoundary extends Component<{ children: ReactNode }, { error?: Error }> {
   state: { error?: Error } = {}
@@ -51,6 +52,7 @@ async function start() {
       void navigator.serviceWorker.register('/sw.js')
     })
   }
+  await initializeDurableStorage()
   renderApp()
 }
 

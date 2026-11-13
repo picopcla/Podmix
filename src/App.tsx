@@ -26,6 +26,7 @@ import podmixInfinityLogo from './assets/podmix-logo-radio-c.png'
 import './App.css'
 import './identification.css'
 import { safeSetItem, useStorageFailures } from './safeStorage'
+import { durableStorageDiagnostics } from './durableStorage'
 
 const initialTracks: Track[] = []
 
@@ -1024,7 +1025,7 @@ function App() {
   const [studioEpisode, setStudioEpisode] = useState<{ sourceId: string; episodeId: string }>()
   const studioEpisodeRef = useRef<{ sourceId: string; episodeId: string } | undefined>(undefined)
   const [publishMessage, setPublishMessage] = useState('')
-  const [, setStorage] = useState({ downloadedBytes: 0, availableBytes: 0, totalBytes: 0 })
+  const [storageMetrics, setStorage] = useState({ downloadedBytes: 0, availableBytes: 0, totalBytes: 0 })
   const [availableUpdate, setAvailableUpdate] = useState<UpdateManifest | null>(null)
   const [appInfo, setAppInfo] = useState<{ versionName: string; versionCode: number; lastUpdateTime: number }>({
     versionName: currentVersion,
@@ -4565,9 +4566,11 @@ function App() {
       favoriteTrackIds,
       history,
       listeningSessions,
+      completedEpisodeIds,
       offlineEpisodes,
       settings,
       studio: { audioName, tracks },
+      storageDiagnostics: { records: durableStorageDiagnostics(), deviceAvailableBytes: storageMetrics.totalBytes > 0 ? storageMetrics.availableBytes : null, deviceTotalBytes: storageMetrics.totalBytes > 0 ? storageMetrics.totalBytes : null },
     }
     const url = URL.createObjectURL(new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' }))
     const anchor = document.createElement('a')
@@ -4584,7 +4587,7 @@ function App() {
     try {
       const payload = JSON.parse(await file.text()) as {
         format?: string; catalog?: CatalogSource[]; favoriteSourceIds?: string[]; favoriteTrackIds?: Array<string | number>
-        history?: HistoryItem[]; listeningSessions?: ListeningSession[]; offlineEpisodes?: OfflineEpisode[]; settings?: AppSettings
+        history?: HistoryItem[]; listeningSessions?: ListeningSession[]; completedEpisodeIds?: string[]; offlineEpisodes?: OfflineEpisode[]; settings?: AppSettings
         studio?: { audioName?: string; tracks?: Track[] }
       }
       if (payload.format !== 'podmix-next-backup' || !Array.isArray(payload.catalog)) throw new Error('Format de sauvegarde invalide')
@@ -4592,6 +4595,7 @@ function App() {
       setFavoriteTrackIds((payload.favoriteTrackIds ?? []).map(String))
       setHistory(payload.history ?? [])
       setListeningSessions(payload.listeningSessions ?? [])
+      if (Array.isArray(payload.completedEpisodeIds)) setCompletedEpisodeIds(ids => [...new Set([...ids, ...payload.completedEpisodeIds!.filter(id => typeof id === 'string' && id.length > 0)])].slice(0, 2_000))
       setOfflineEpisodes(payload.offlineEpisodes ?? [])
       if (payload.settings) setSettings(payload.settings)
       if (payload.studio?.tracks?.length) {
@@ -5089,7 +5093,7 @@ function App() {
             <button aria-label="Réglages" className={activeView === 'settings' ? 'active' : ''} onClick={() => navigateTo(activeView === 'settings' ? 'home' : 'settings')}><Settings2 size={18} /></button>
           </div>
         </header>
-        {storageFailures.length > 0 && <div className="storage-warning" role="alert">Stockage interne plein : les modifications de {storageFailures.join(', ')} ne sont pas enregistrées. L’application n’a rien supprimé.</div>}
+        {storageFailures.length > 0 && <div className="storage-warning" role="alert">Sauvegarde impossible : les modifications de {storageFailures.join(', ')} ne sont pas enregistrées. Les données déjà enregistrées n’ont pas été effacées.</div>}
 
         {activeView !== 'studio' && <section className="workspace catalog-view">
           {!selectedSource && activeView !== 'home' && activeView !== 'resume' && activeView !== 'favorites' && activeView !== 'liveSets' && activeView !== 'djLibrary' && <div className="catalog-hero">
