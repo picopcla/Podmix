@@ -2530,12 +2530,7 @@ public class PodmixPlayerPlugin extends Plugin implements Player.Listener {
                     // Some SoundTouch firmware accepts the URI replacement
                     // without a Stop. Continue with the normal load.
                 }
-                String setUri = soapEnvelope(
-                    "SetAVTransportURI",
-                    "<InstanceID>0</InstanceID><CurrentURIMetaData>" +
-                    xmlEscape(boseDidl(url, title)) + "</CurrentURIMetaData>" +
-                    "<CurrentURI>" + xmlEscape(url) + "</CurrentURI>"
-                );
+                String setUri = BoseAvTransport.setUriEnvelope(url, boseDidl(url, title));
                 boseRequest(ip, 8091, "POST", "/AVTransport/Control", setUri,
                     "urn:schemas-upnp-org:service:AVTransport:1#SetAVTransportURI");
                 Thread.sleep(450);
@@ -3005,4 +3000,4 @@ public class PodmixPlayerPlugin extends Plugin implements Player.Listener {
         controllerFuture = null;
         super.handleOnDestroy();
     }
-}
+            }
