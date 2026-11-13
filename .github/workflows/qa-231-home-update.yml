@@ -285,6 +285,13 @@ jobs:
           stage(ok, "reglages: Application a jour malgre manifeste 10229 + constante web 1.0.225"); fails += 0 if ok else 1
           ok = isinstance(maj, dict) and maj.get('proposition') is None
           stage(ok, "reglages: aucun bouton Installer une version"); fails += 0 if ok else 1
+          # Amener le bloc mise a jour a l'ecran pour preuve PIXEL (pas seulement DOM)
+          ev("""(() => {
+            const t = [...document.querySelectorAll('p.settings-copy')].find(e => (e.textContent || '').includes('Version installée'));
+            if (t) t.scrollIntoView({block: 'center'});
+            return !!t;
+          })()""")
+          time.sleep(1)
           shot("g3-reglages-maj")
 
           log(f"RESULTAT QA: {'SUCCES' if fails == 0 else str(fails) + ' ECHEC(S)'}")
