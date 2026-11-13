@@ -1,0 +1,45 @@
+name: one-shot-retention-integration
+on:
+  push:
+    branches: [fix/231-update-nag-and-home-grid]
+    paths: [.github/workflows/one-shot-retention-integration.yml]
+permissions:
+  contents: read
+jobs:
+  integrate:
+    if: github.repository == 'picopcla/Podmix' && github.ref == 'refs/heads/fix/231-update-nag-and-home-grid'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+      - name: Apply only approved exact three-file patch
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$GITHUB_REPOSITORY" = picopcla/Podmix
+          test "$GITHUB_REF" = refs/heads/fix/231-update-nag-and-home-grid
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          test "$(git rev-parse HEAD^)" = ab6f4bc924132f6b75d09bb02c301804e87b5c0a
+          test "$(git rev-parse HEAD:src/App.tsx)" = 88c544efbb291fed758fa9d1a344fac6aabbc8db
+          echo '3a3bebcf4a34b3155c62c0edd288afcc9219b2d5c79f0c2cc389381e4a556ea6  qa/qa/retention.patch' | sha256sum -c -
+          git apply --check qa/qa/retention.patch
+          git apply qa/qa/retention.patch
+          sha256sum -c <<'HASHES'
+          81cb8893186cb3d3e86c66ab5a022207446eb022ee630fe1274cc14b384e5a3b  src/App.tsx
+          43abf7b194403971643bc971af1af606b86d08632d108aac98960d4cf4d9de80  src/catalogRetention.ts
+          973aaa99da778cb4fc4e99c70bdfceb3c54ec248e3f7f136e6a3ef094cd95550  tests/unit/catalogRetention.test.ts
+          HASHES
+          git add -- src/App.tsx src/catalogRetention.ts tests/unit/catalogRetention.test.ts
+          printf '%s\n' src/App.tsx src/catalogRetention.ts tests/unit/catalogRetention.test.ts | sort > /tmp/expected-files
+          git diff --cached --name-only | sort > /tmp/actual-files
+          diff /tmp/expected-files /tmp/actual-files
+          test -z "$(git diff --name-only)"
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -m 'Protect referenced episodes across catalogue limits and feed refresh'
+          git push origin HEAD:refs/heads/fix/231-update-nag-and-home-grid
+          git rev-parse HEAD
