@@ -10,6 +10,8 @@ describe('decodeCredit', () => {
     ['valeur déjà correcte', 'Kayosa & Tolland', 'Kayosa & Tolland'],
     ['esperluette littérale seule', '&', '&'],
     ['chaîne vide', '', ''],
+    ['référence incomplète conservée', 'Incomplete &amp stays', 'Incomplete &amp stays'],
+    ['texte HTML conservé', '<b>Original</b> &amp; &lt;i&gt;literal&lt;/i&gt;', '<b>Original</b> & <i>literal</i>'],
   ])('%s', (_label, input, expected) => {
     expect(decodeCredit(input)).toBe(expected)
   })
