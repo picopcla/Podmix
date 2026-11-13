@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 
 import { describe, expect, it } from 'vitest'
-import { checkCastState } from '../../src/castState'
+import { awaitCastState, CastStateTimeout, checkCastState } from '../../src/castState'
 
 describe('checkCastState', () => {
   it('renvoie connected quand la session est active', async () => {
@@ -26,5 +26,23 @@ describe('checkCastState', () => {
       },
     }
     await expect(checkCastState(player, 200)).rejects.toThrow('Play services indisponible')
+  })
+})
+
+describe('awaitCastState', () => {
+  it('preserve le meme objet et les metadonnees de session', async () => {
+    const session = { connected: true, deviceName: 'QA enceinte', sessionId: 'qa-id' }
+    expect(await awaitCastState(async () => session, 100)).toBe(session)
+  })
+  it('rejette une attente infinie sans inventer une deconnexion', async () => {
+    await expect(awaitCastState(() => new Promise(() => undefined), 10)).rejects.toBeInstanceOf(CastStateTimeout)
+  })
+  it('preserve un rejet natif tel quel', async () => {
+    const error = new Error('Erreur native QA')
+    await expect(awaitCastState(async () => { throw error }, 100)).rejects.toBe(error)
+  })
+  it('accepte un etat valide arrive avant echeance', async () => {
+    const state = { connected: true, deviceName: 'QA' }
+    expect(await awaitCastState(() => new Promise(resolve => setTimeout(() => resolve(state), 5)), 100)).toBe(state)
   })
 })
