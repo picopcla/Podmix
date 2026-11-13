@@ -1,0 +1,128 @@
+name: qa-231-upgrade-retention-patch
+on:
+  workflow_dispatch:
+  push:
+    branches: [fix/231-update-nag-and-home-grid]
+    paths: [qa/qa/retention.patch, qa/qa/qa-upgrade-retention.py, .github/workflows/qa-upgrade-retention.yml]
+permissions:
+  contents: read
+concurrency:
+  group: qa-231-upgrade-retention-patch
+  cancel-in-progress: true
+jobs:
+  qa:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+        with:
+          ref: 50ba39cadab1d7f2ea4947924abc4316ef75f3cc
+          path: baseline
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+      - name: Baseline230 and candidate231 with explicit patch fingerprint
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/qa-out
+          git rev-parse HEAD | tee /tmp/qa-out/source-head.txt
+          sha256sum qa/qa/retention.patch | tee /tmp/qa-out/patch-sha256.txt
+          echo "3a3bebcf4a34b3155c62c0edd288afcc9219b2d5c79f0c2cc389381e4a556ea6  qa/qa/retention.patch" | sha256sum -c -
+          git rev-parse HEAD:src/App.tsx | tee /tmp/qa-out/app-source-blob.txt
+          # Ephemeral patch application only. No writes to GitHub and no release.
+          git apply --check qa/qa/retention.patch
+          git apply qa/qa/retention.patch
+          npm ci
+          npx vitest run tests/unit/catalogRetention.test.ts tests/unit/castState.test.ts tests/unit/safeStorage.test.ts tests/unit/updates.test.ts
+          for dir in baseline .; do
+            cd "$GITHUB_WORKSPACE/$dir"
+            if [ "$dir" = baseline ]; then version=1.0.230; npm ci; else version=1.0.231; fi
+            sed -i "s|\"version\": \"[^\"]*\"|\"version\": \"$version\"|" package.json
+            npm run version:sync
+            # Historical baseline's sync script is broken: pin native version explicitly for this QA build.
+            if [ "$dir" = baseline ]; then
+              sed -i 's/versionCode [0-9]*/versionCode 10230/;s/versionName "[^"]*"/versionName "1.0.230"/' android/app/build.gradle
+            fi
+            printf 'VITE_API_URL=http://localhost:8099\nVITE_UPDATE_MANIFEST_URL=http://localhost:8099/podmix/update.json\nVITE_APP_VERSION=1.0.225\n' > .env.production
+            npm run build
+            npx cap sync android
+            cd android && ./gradlew assembleNgDebug
+          done
+          cd "$GITHUB_WORKSPACE"
+          sha256sum baseline/android/app/build/outputs/apk/ng/debug/app-ng-debug.apk android/app/build/outputs/apk/ng/debug/app-ng-debug.apk | tee /tmp/qa-out/apks-sha256.txt
+          # CI debug signing must be equal for an in-place update. Stop otherwise.
+          APKSIGNER=$(find "$ANDROID_HOME/build-tools" -name apksigner | sort -V | tail -1)
+          "$APKSIGNER" verify --print-certs baseline/android/app/build/outputs/apk/ng/debug/app-ng-debug.apk > /tmp/qa-out/baseline-cert.txt
+          "$APKSIGNER" verify --print-certs android/app/build/outputs/apk/ng/debug/app-ng-debug.apk > /tmp/qa-out/candidate-cert.txt
+          diff <(grep 'certificate SHA-256 digest' /tmp/qa-out/baseline-cert.txt) <(grep 'certificate SHA-256 digest' /tmp/qa-out/candidate-cert.txt)
+      - name: Write isolated mock and emulator sequencer
+        run: |
+          cat > /tmp/mock_upgrade.py <<'PY'
+          import io,json,os,time,wave
+          from http.server import BaseHTTPRequestHandler,HTTPServer
+          class H(BaseHTTPRequestHandler):
+            def log_message(self,*args):pass
+            def send(self,data,ctype='application/json',code=200):
+              self.send_response(code);self.send_header('Content-Type',ctype);self.send_header('Access-Control-Allow-Origin','*');self.send_header('Content-Length',str(len(data)));self.end_headers();self.wfile.write(data)
+            def do_GET(self):
+              if self.path.endswith('.wav'):
+                out=io.BytesIO()
+                with wave.open(out,'wb') as w:w.setnchannels(1);w.setsampwidth(2);w.setframerate(8000);w.writeframes(b'\0\0'*8000)
+                self.send(out.getvalue(),'audio/wav');return
+              if self.path.startswith('/podmix/update.json'):
+                self.send(json.dumps(dict(versionCode=10229,versionName='1.0.229-ng',minimumVersionCode=1,apkUrl='http://localhost:8099/never.apk',publishedAt='2026-11-10T00:00:00Z',notes=[])).encode());return
+              self.send(b'{}')
+            def do_POST(self):
+              if self.path=='/v1/catalog/rss' and os.path.exists('/tmp/qa-out/fresh-feed.json'):
+                with open('/tmp/qa-out/refresh.log','a') as f:f.write('RSS_REFRESH\n')
+                self.send(open('/tmp/qa-out/fresh-feed.json','rb').read());return
+              self.send(b'{"message":"QA unknown route"}',code=404)
+          HTTPServer(('127.0.0.1',8099),H).serve_forever()
+          PY
+          cat > /tmp/run_upgrade.sh <<'SH'
+          set -euo pipefail
+          python3 /tmp/mock_upgrade.py > /tmp/qa-out/mock.log 2>&1 &
+          mock=$!
+          trap 'kill $mock || true' EXIT
+          pip3 install --user websocket-client
+          adb reverse tcp:8099 tcp:8099
+          adb install -r baseline/android/app/build/outputs/apk/ng/debug/app-ng-debug.apk
+          adb shell am start -n com.podmix.next.ng/com.podmix.next.MainActivity
+          sleep 8
+          python3 qa/qa/qa-upgrade-retention.py seed
+          adb shell sha256sum /sdcard/Android/data/com.podmix.next.ng/files/Podcasts/podmix/qa-download.offline | tee /tmp/qa-out/download-before.sha256
+          # No uninstall, no clear, no backup restore. Real same-package install -r.
+          adb install -r android/app/build/outputs/apk/ng/debug/app-ng-debug.apk
+          adb shell am start -n com.podmix.next.ng/com.podmix.next.MainActivity
+          sleep 8
+          python3 qa/qa/qa-upgrade-retention.py verify
+          adb shell sha256sum /sdcard/Android/data/com.podmix.next.ng/files/Podcasts/podmix/qa-download.offline | tee /tmp/qa-out/download-after.sha256
+          diff /tmp/qa-out/download-before.sha256 /tmp/qa-out/download-after.sha256
+          test -s /tmp/qa-out/refresh.log
+          echo 'UPGRADE_QA PASS physical downloaded file SHA256 unchanged'
+          SH
+          python3 -m py_compile /tmp/mock_upgrade.py qa/qa/qa-upgrade-retention.py
+      - name: KVM
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+          sudo chmod 666 /dev/kvm
+      - uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 33
+          arch: x86_64
+          profile: pixel_2
+          emulator-options: -no-snapshot -no-window -noaudio -no-boot-anim -gpu swiftshader_indirect -camera-back none
+          script: bash /tmp/run_upgrade.sh
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: qa-230-to231-retention-patch-evidence
+          path: /tmp/qa-out
+          retention-days: 14
