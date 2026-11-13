@@ -17,6 +17,7 @@ import type { BoseDevice, CastDevice, LibraryItem } from './nativePlayer'
 import { checkForUpdate, currentVersion, downloadAndUpdate } from './updates'
 import type { UpdateManifest, UpdateProgress } from './updates'
 import { mergeCatalogSource, mergeEpisode, newEpisodesFromFeed } from './catalogMerge'
+import { protectedEpisodeIds, retainSourceEpisodes, retainReferencedFeedEpisodes } from './catalogRetention'
 import { loadCompletedEpisodeIds, loadListeningSessions, loadPlaybackHistory, saveCompletedEpisodeIds, saveListeningSessions, savePlaybackHistory, searchListeningSessions, updateListeningSessions } from './history'
 import type { ListeningSession, PlaybackHistoryItem } from './history'
 import { decodeCredit, decodeCredits } from './credits'
@@ -111,16 +112,6 @@ function episodeLimitFor(source: CatalogSource, settings: AppSettings) {
   return Number.POSITIVE_INFINITY
 }
 
-function trimSourceToEpisodeLimit(source: CatalogSource, settings: AppSettings) {
-  const limit = episodeLimitFor(source, settings)
-  if (source.episodes.length <= limit) return source
-  const episodes = source.episodes
-    .map((episode, index) => ({ episode, index }))
-    .sort((left, right) => publishedTimestamp(right.episode.publishedAt) - publishedTimestamp(left.episode.publishedAt) || left.index - right.index)
-    .slice(0, limit)
-    .map(({ episode }) => episode)
-  return { ...source, episodes }
-}
 
 function stripShowTimestamping(source: CatalogSource): CatalogSource {
   if (source.kind !== 'show') return source
@@ -793,6 +784,16 @@ function App() {
   const [historyQuery, setHistoryQuery] = useState('')
   const [offlineEpisodes, setOfflineEpisodes] = useState<OfflineEpisode[]>(loadOfflineEpisodes)
   const offlineEpisodesRef = useRef(offlineEpisodes)
+  const [nativeDownloadsRestored, setNativeDownloadsRestored] = useState(!podmixPlayer.isNative)
+  const [nativeFavoritesRestored, setNativeFavoritesRestored] = useState(!podmixPlayer.isNative)
+  const retentionContext = {
+    favoriteTrackIds, history, listeningSessions, offlineEpisodes, completedEpisodeIds,
+    activeEpisodeIds: nowPlaying ? [nowPlaying.id] : [],
+    nativeReferencesReady: nativeDownloadsRestored && nativeFavoritesRestored,
+  }
+  const retentionContextRef = useRef(retentionContext)
+  retentionContextRef.current = retentionContext
+
   const pendingDownloadIdsRef = useRef(new Set<string>())
   const [showSearch, setShowSearch] = useState(false)
   const [globalQuery, setGlobalQuery] = useState('')
@@ -1443,20 +1444,15 @@ function App() {
     return () => { active = false }
   }, [catalog])
   useEffect(() => {
-    const limitedCatalog = catalog.map((source) => trimSourceToEpisodeLimit(source, settings))
-    const removedEpisodeIds = new Set(catalog.flatMap((source, index) => {
-      const kept = new Set(limitedCatalog[index].episodes.map((episode) => episode.id))
-      return source.episodes.filter((episode) => !kept.has(episode.id)).map((episode) => episode.id)
-    }))
-    if (!removedEpisodeIds.size) return
-
+    const protectedIds = protectedEpisodeIds(catalog, retentionContextRef.current)
+    if (selectedEpisodeId) protectedIds.add(selectedEpisodeId)
+    const limitedCatalog = catalog.map(source => retainSourceEpisodes(source, episodeLimitFor(source, settings), protectedIds))
+    if (limitedCatalog.every((source,index) => source === catalog[index])) return
     setCatalog(limitedCatalog)
-    setOfflineEpisodes((items) => items.filter((episode) => !removedEpisodeIds.has(episode.id)))
-    if (selectedEpisodeId && removedEpisodeIds.has(selectedEpisodeId)) setSelectedEpisodeId('')
-    if (podmixPlayer.isNative) {
-      void Promise.all([...removedEpisodeIds].map((id) => podmixPlayer.removeDownload(id).catch(() => undefined)))
-    }
-  }, [catalog, selectedEpisodeId, settings])
+    // A catalogue limit is never permission to delete a downloaded file.
+  }, [catalog, selectedEpisodeId, settings, favoriteTrackIds, history, listeningSessions, offlineEpisodes,
+    completedEpisodeIds, nowPlaying, nativeDownloadsRestored, nativeFavoritesRestored])
+
   useEffect(() => {
     // Older RSS imports could assign one ID to a whole podcast. Keep only a
     // history record that identifies its episode by audio URL/title; the
@@ -1581,7 +1577,8 @@ function App() {
             }
           }
           establishRssBaseline(source.id)
-          const merged = mergeCatalogSource(source, next)
+          const latestSource = catalogRef.current.find(item => item.id === source.id) ?? source
+          const merged = retainReferencedFeedEpisodes(latestSource, mergeCatalogSource(latestSource, next), protectedEpisodeIds(catalogRef.current, retentionContextRef.current))
           if (!newlyArrived.length) return merged
           const newIds = newlyArrived.map((episode) => episode.id)
           const visibleEpisodeIds = new Set(merged.episodes.map((episode) => episode.id))
@@ -1648,6 +1645,7 @@ function App() {
       try {
         const native = await podmixPlayer.getFavorites()
         if (active && native.initialized) setFavoriteTrackIds(native.ids)
+        if (active) setNativeFavoritesRestored(true)
       } finally {
         if (active) setNativeFavoritesReady(true)
       }
@@ -2239,6 +2237,7 @@ function App() {
         }
         return [...byId.values()]
       })
+      setNativeDownloadsRestored(true)
     }).catch(() => undefined)
     return () => { cancelled = true }
   }, [catalog])
@@ -4631,7 +4630,8 @@ function App() {
       try {
         const refreshed = await importRssFeed(selectedSource.feedUrl, selectedSource.kind === 'show' ? 'show' : 'podcast', selectedSource.kind === 'show' ? settings.maxShowEpisodes : settings.maxPodcastEpisodes)
         const newlyArrived = newEpisodesFromFeed(selectedSource, refreshed)
-        const merged = mergeCatalogSource(selectedSource, refreshed)
+        const latestSource = catalogRef.current.find(item => item.id === selectedSource.id) ?? selectedSource
+        const merged = retainReferencedFeedEpisodes(latestSource, mergeCatalogSource(latestSource, refreshed), protectedEpisodeIds(catalogRef.current, retentionContextRef.current))
         const visibleEpisodeIds = new Set(merged.episodes.map((episode) => episode.id))
         refreshedSource = newlyArrived.length
           ? { ...merged, newEpisodeIds: [...new Set([...(merged.newEpisodeIds ?? []), ...newlyArrived.map((episode) => episode.id)])].filter((id) => visibleEpisodeIds.has(id)) }
