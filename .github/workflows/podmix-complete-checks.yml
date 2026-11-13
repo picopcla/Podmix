@@ -555,3 +555,5 @@ jobs:
           path: /tmp/repro-out/
           if-no-files-found: warn
           retention-days: 14
+
+# One bounded verification after Maven rate-limit rest, 2026-11-13 21:48 Paris.
