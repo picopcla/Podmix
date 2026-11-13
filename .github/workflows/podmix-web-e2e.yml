@@ -1,0 +1,44 @@
+name: podmix-web-e2e
+# Suite Playwright web (desktop-chromium + mobile-chromium) sur la branche de
+# tests E2E. Vérification en lecture seule : aucun APK, aucune publication,
+# aucune mutation de production, aucune donnée réelle.
+on:
+  workflow_dispatch:
+  push:
+    branches: [test/e2e-modernization-20261113]
+    paths:
+      - 'tests/e2e/**'
+      - 'playwright.config.ts'
+      - '.github/workflows/podmix-web-e2e.yml'
+
+concurrency:
+  group: podmix-web-e2e
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  web-e2e:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - name: Install dependencies
+        run: npm ci
+      - name: Install Playwright chromium
+        run: npx playwright install --with-deps chromium
+      - name: Build (servi par vite preview)
+        run: npm run build
+      - name: Suite E2E web (28 cas)
+        run: npx playwright test
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: playwright-traces
+          path: test-results/
+          retention-days: 7
