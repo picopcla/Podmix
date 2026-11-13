@@ -1,0 +1,177 @@
+name: candidate-signed-231-retention
+on:
+  workflow_dispatch:
+  push:
+    branches: [fix/231-update-nag-and-home-grid]
+    paths: [.github/workflows/candidate-signed-231-retention.yml, qa-read-release-storage.py]
+permissions:
+  contents: read
+concurrency:
+  group: candidate-signed-231-retention
+  cancel-in-progress: true
+jobs:
+  signed-qa:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+        with:
+          ref: e3e34df86bf46cf99b3c33a0c3e9d47ffe8e3eb1
+          path: baseline
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+      - name: Build production web231 and isolated baseline230
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p out /tmp/qa-out
+          git rev-parse HEAD | tee /tmp/qa-out/source-head.txt
+          sha256sum -c <<'HASHES'
+          81cb8893186cb3d3e86c66ab5a022207446eb022ee630fe1274cc14b384e5a3b  src/App.tsx
+          43abf7b194403971643bc971af1af606b86d08632d108aac98960d4cf4d9de80  src/catalogRetention.ts
+          973aaa99da778cb4fc4e99c70bdfceb3c54ec248e3f7f136e6a3ef094cd95550  tests/unit/catalogRetention.test.ts
+          HASHES
+          npm ci
+          npx vitest run tests/unit/catalogRetention.test.ts tests/unit/castState.test.ts tests/unit/safeStorage.test.ts tests/unit/updates.test.ts
+          node -e "const fs=require('fs');let p=JSON.parse(fs.readFileSync('package.json'));p.version='1.0.231';fs.writeFileSync('package.json',JSON.stringify(p,null,2))"
+          npm run version:sync
+          grep -Fx 'VITE_API_URL=https://podmix.mb4.fr/podmix-api' .env.production
+          grep -Fx 'VITE_APP_VERSION=1.0.231' .env.production
+          npm run build
+          npx cap sync android
+          cd baseline
+          npm ci
+          sed -i 's/versionCode [0-9]*/versionCode 10230/;s/versionName "[^"]*"/versionName "1.0.230"/' android/app/build.gradle
+          printf 'VITE_API_URL=http://localhost:8099\nVITE_APP_VERSION=1.0.230\n' > .env.production
+          npm run build
+          npx cap sync android
+      - name: Build using existing approved distribution key
+        env:
+          KS_B64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          KS_PASS: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          KEY_PASS: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          trap 'rm -f android/podmix-release.keystore android/release-signing.properties baseline/android/podmix-release.keystore baseline/android/release-signing.properties' EXIT
+          for value in KS_B64 KS_PASS KEY_ALIAS KEY_PASS; do test -n "${!value}"; done
+          for dir in android baseline/android; do
+            printf '%s' "$KS_B64" | base64 -d > "$dir/podmix-release.keystore"
+            printf 'storeFile=podmix-release.keystore\nstorePassword=%s\nkeyAlias=%s\nkeyPassword=%s\n' "$KS_PASS" "$KEY_ALIAS" "$KEY_PASS" > "$dir/release-signing.properties"
+          done
+          (cd android && ./gradlew assembleNgRelease)
+          (cd baseline/android && ./gradlew assembleNgDebug)
+          cp android/app/build/outputs/apk/ng/release/app-ng-release.apk out/app-ng-candidate-signed.apk
+          sha256sum out/app-ng-candidate-signed.apk | tee out/app-ng-candidate-signed.apk.sha256
+      - name: Verify candidate and published230 identity and certificate
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          gh release download v1.0.230-ng-bose-lan -R "$GITHUB_REPOSITORY" -p app-ng-release.apk -O out/published230.apk
+          echo '336e3c90def64b276479f0b6683a0f152f52da917048aeeaf56f43db8882a9ed  out/published230.apk' | sha256sum -c -
+          BT=$(find "$ANDROID_HOME/build-tools" -mindepth 1 -maxdepth 1 -type d | sort -V | tail -1)
+          for file in out/app-ng-candidate-signed.apk out/published230.apk baseline/android/app/build/outputs/apk/ng/debug/app-ng-debug.apk; do
+            "$BT/apksigner" verify --print-certs "$file" | tee -a /tmp/qa-out/certificates.txt
+            cert=$("$BT/apksigner" verify --print-certs "$file" | sed -n 's/.*certificate SHA-256 digest: //p' | head -1)
+            test "$cert" = b27d46c092c63432e7e274d227c0e465cf91ab4656f67c1a0b511402505c8b8c
+            "$BT/aapt2" dump badging "$file" | sed -n '1p' | tee -a /tmp/qa-out/package-identities.txt
+          done
+          "$BT/aapt2" dump badging out/app-ng-candidate-signed.apk > /tmp/qa-out/candidate-badging.txt
+          grep -Fq "name='com.podmix.next.ng' versionCode='10231' versionName='1.0.231-ng'" /tmp/qa-out/candidate-badging.txt
+          if grep -q application-debuggable /tmp/qa-out/candidate-badging.txt; then echo 'Candidate must not be debuggable'; exit 1; fi
+      - name: Prepare isolated offline release upgrade test
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq libleveldb-dev
+          pip3 install --user plyvel websocket-client
+          python3 -m py_compile qa-read-release-storage.py qa/qa/qa-upgrade-retention.py
+          cat > /tmp/mock_upgrade.py <<'PY'
+          import io,wave
+          from http.server import BaseHTTPRequestHandler,HTTPServer
+          class H(BaseHTTPRequestHandler):
+            def log_message(self,*args):pass
+            def do_GET(self):
+              out=io.BytesIO()
+              with wave.open(out,'wb') as w:w.setnchannels(1);w.setsampwidth(2);w.setframerate(8000);w.writeframes(b'\0\0'*8000)
+              data=out.getvalue();self.send_response(200);self.send_header('Content-Type','audio/wav');self.send_header('Content-Length',str(len(data)));self.end_headers();self.wfile.write(data)
+          HTTPServer(('127.0.0.1',8099),H).serve_forever()
+          PY
+          cat > /tmp/release-upgrade.sh <<'SH'
+          set -euo pipefail
+          python3 /tmp/mock_upgrade.py > /tmp/qa-out/mock.log 2>&1 &
+          mock=$!
+          trap 'kill $mock || true' EXIT
+          adb root
+          adb wait-for-device
+          adb reverse tcp:8099 tcp:8099
+          adb install -r baseline/android/app/build/outputs/apk/ng/debug/app-ng-debug.apk
+          adb shell am start -n com.podmix.next.ng/com.podmix.next.MainActivity
+          sleep 10
+          python3 qa/qa/qa-upgrade-retention.py seed
+          adb shell svc wifi disable
+          adb shell svc data disable
+          adb install -r out/published230.apk
+          adb shell dumpsys package com.podmix.next.ng | grep -E 'versionCode=|versionName=' | tee /tmp/qa-out/baseline-package.txt
+          grep -q versionCode=10230 /tmp/qa-out/baseline-package.txt
+          adb pull /data/data/com.podmix.next.ng /tmp/release-before
+          python3 qa-read-release-storage.py /tmp/release-before /tmp/qa-out/release230-local.json
+          adb shell sha256sum /sdcard/Android/data/com.podmix.next.ng/files/Podcasts/podmix/qa-download.offline > /tmp/qa-out/release-download-before.sha256
+          adb install -r out/app-ng-candidate-signed.apk
+          adb shell am start -n com.podmix.next.ng/com.podmix.next.MainActivity
+          sleep 15
+          adb shell dumpsys package com.podmix.next.ng | grep -E 'versionCode=|versionName=' | tee /tmp/qa-out/release231-package.txt
+          grep -q versionCode=10231 /tmp/qa-out/release231-package.txt
+          adb shell pidof com.podmix.next.ng
+          adb shell uiautomator dump /sdcard/qa-ui.xml
+          adb pull /sdcard/qa-ui.xml /tmp/qa-out/release231-ui.xml
+          adb exec-out screencap -p > /tmp/qa-out/release231-launch.png
+          python3 - <<'SCREEN'
+          import base64
+          s=base64.b64encode(open('/tmp/qa-out/release231-launch.png','rb').read()).decode()
+          for i in range(0,len(s),1900):print('RELEASEPNG '+s[i:i+1900],flush=True)
+          SCREEN
+          adb shell am force-stop com.podmix.next.ng
+          adb pull /data/data/com.podmix.next.ng /tmp/release-after
+          python3 qa-read-release-storage.py /tmp/release-after /tmp/qa-out/release231-local.json /tmp/qa-out/release230-local.json
+          adb shell sha256sum /sdcard/Android/data/com.podmix.next.ng/files/Podcasts/podmix/qa-download.offline > /tmp/qa-out/release-download-after.sha256
+          diff /tmp/qa-out/release-download-before.sha256 /tmp/qa-out/release-download-after.sha256
+          echo 'RELEASE_QA PASS signed published230 to exact non-debuggable candidate231, no wipe/uninstall, physical download unchanged'
+          SH
+      - name: KVM
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+          sudo chmod 666 /dev/kvm
+      - uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 33
+          arch: x86_64
+          profile: pixel_2
+          emulator-options: -no-snapshot -no-window -noaudio -no-boot-anim -gpu swiftshader_indirect -camera-back none
+          script: bash /tmp/release-upgrade.sh
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: signed231-release-qa-evidence
+          path: /tmp/qa-out
+          retention-days: 14
+      - uses: actions/upload-artifact@v4
+        with:
+          name: podmix231-candidate-signed-apk
+          path: |
+            out/app-ng-candidate-signed.apk
+            out/app-ng-candidate-signed.apk.sha256
+          retention-days: 14
