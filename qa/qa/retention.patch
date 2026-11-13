@@ -1,0 +1,266 @@
+diff --git a/src/App.tsx b/src/App.tsx
+index 88c544e..7dfae19 100644
+--- a/src/App.tsx
++++ b/src/App.tsx
+@@ -17,6 +17,7 @@ import type { BoseDevice, CastDevice, LibraryItem } from './nativePlayer'
+ import { checkForUpdate, currentVersion, downloadAndUpdate } from './updates'
+ import type { UpdateManifest, UpdateProgress } from './updates'
+ import { mergeCatalogSource, mergeEpisode, newEpisodesFromFeed } from './catalogMerge'
++import { protectedEpisodeIds, retainSourceEpisodes, retainReferencedFeedEpisodes } from './catalogRetention'
+ import { loadCompletedEpisodeIds, loadListeningSessions, loadPlaybackHistory, saveCompletedEpisodeIds, saveListeningSessions, savePlaybackHistory, searchListeningSessions, updateListeningSessions } from './history'
+ import type { ListeningSession, PlaybackHistoryItem } from './history'
+ import { decodeCredit, decodeCredits } from './credits'
+@@ -111,16 +112,6 @@ function episodeLimitFor(source: CatalogSource, settings: AppSettings) {
+   return Number.POSITIVE_INFINITY
+ }
+ 
+-function trimSourceToEpisodeLimit(source: CatalogSource, settings: AppSettings) {
+-  const limit = episodeLimitFor(source, settings)
+-  if (source.episodes.length <= limit) return source
+-  const episodes = source.episodes
+-    .map((episode, index) => ({ episode, index }))
+-    .sort((left, right) => publishedTimestamp(right.episode.publishedAt) - publishedTimestamp(left.episode.publishedAt) || left.index - right.index)
+-    .slice(0, limit)
+-    .map(({ episode }) => episode)
+-  return { ...source, episodes }
+-}
+ 
+ function stripShowTimestamping(source: CatalogSource): CatalogSource {
+   if (source.kind !== 'show') return source
+@@ -793,6 +784,16 @@ function App() {
+   const [historyQuery, setHistoryQuery] = useState('')
+   const [offlineEpisodes, setOfflineEpisodes] = useState<OfflineEpisode[]>(loadOfflineEpisodes)
+   const offlineEpisodesRef = useRef(offlineEpisodes)
++  const [nativeDownloadsRestored, setNativeDownloadsRestored] = useState(!podmixPlayer.isNative)
++  const [nativeFavoritesRestored, setNativeFavoritesRestored] = useState(!podmixPlayer.isNative)
++  const retentionContext = {
++    favoriteTrackIds, history, listeningSessions, offlineEpisodes, completedEpisodeIds,
++    activeEpisodeIds: nowPlaying ? [nowPlaying.id] : [],
++    nativeReferencesReady: nativeDownloadsRestored && nativeFavoritesRestored,
++  }
++  const retentionContextRef = useRef(retentionContext)
++  retentionContextRef.current = retentionContext
++
+   const pendingDownloadIdsRef = useRef(new Set<string>())
+   const [showSearch, setShowSearch] = useState(false)
+   const [globalQuery, setGlobalQuery] = useState('')
+@@ -1443,20 +1444,15 @@ function App() {
+     return () => { active = false }
+   }, [catalog])
+   useEffect(() => {
+-    const limitedCatalog = catalog.map((source) => trimSourceToEpisodeLimit(source, settings))
+-    const removedEpisodeIds = new Set(catalog.flatMap((source, index) => {
+-      const kept = new Set(limitedCatalog[index].episodes.map((episode) => episode.id))
+-      return source.episodes.filter((episode) => !kept.has(episode.id)).map((episode) => episode.id)
+-    }))
+-    if (!removedEpisodeIds.size) return
+-
++    const protectedIds = protectedEpisodeIds(catalog, retentionContextRef.current)
++    if (selectedEpisodeId) protectedIds.add(selectedEpisodeId)
++    const limitedCatalog = catalog.map(source => retainSourceEpisodes(source, episodeLimitFor(source, settings), protectedIds))
++    if (limitedCatalog.every((source,index) => source === catalog[index])) return
+     setCatalog(limitedCatalog)
+-    setOfflineEpisodes((items) => items.filter((episode) => !removedEpisodeIds.has(episode.id)))
+-    if (selectedEpisodeId && removedEpisodeIds.has(selectedEpisodeId)) setSelectedEpisodeId('')
+-    if (podmixPlayer.isNative) {
+-      void Promise.all([...removedEpisodeIds].map((id) => podmixPlayer.removeDownload(id).catch(() => undefined)))
+-    }
+-  }, [catalog, selectedEpisodeId, settings])
++    // A catalogue limit is never permission to delete a downloaded file.
++  }, [catalog, selectedEpisodeId, settings, favoriteTrackIds, history, listeningSessions, offlineEpisodes,
++    completedEpisodeIds, nowPlaying, nativeDownloadsRestored, nativeFavoritesRestored])
++
+   useEffect(() => {
+     // Older RSS imports could assign one ID to a whole podcast. Keep only a
+     // history record that identifies its episode by audio URL/title; the
+@@ -1581,7 +1577,8 @@ function App() {
+             }
+           }
+           establishRssBaseline(source.id)
+-          const merged = mergeCatalogSource(source, next)
++          const latestSource = catalogRef.current.find(item => item.id === source.id) ?? source
++          const merged = retainReferencedFeedEpisodes(latestSource, mergeCatalogSource(latestSource, next), protectedEpisodeIds(catalogRef.current, retentionContextRef.current))
+           if (!newlyArrived.length) return merged
+           const newIds = newlyArrived.map((episode) => episode.id)
+           const visibleEpisodeIds = new Set(merged.episodes.map((episode) => episode.id))
+@@ -1648,6 +1645,7 @@ function App() {
+       try {
+         const native = await podmixPlayer.getFavorites()
+         if (active && native.initialized) setFavoriteTrackIds(native.ids)
++        if (active) setNativeFavoritesRestored(true)
+       } finally {
+         if (active) setNativeFavoritesReady(true)
+       }
+@@ -2239,6 +2237,7 @@ function App() {
+         }
+         return [...byId.values()]
+       })
++      setNativeDownloadsRestored(true)
+     }).catch(() => undefined)
+     return () => { cancelled = true }
+   }, [catalog])
+@@ -4631,7 +4630,8 @@ function App() {
+       try {
+         const refreshed = await importRssFeed(selectedSource.feedUrl, selectedSource.kind === 'show' ? 'show' : 'podcast', selectedSource.kind === 'show' ? settings.maxShowEpisodes : settings.maxPodcastEpisodes)
+         const newlyArrived = newEpisodesFromFeed(selectedSource, refreshed)
+-        const merged = mergeCatalogSource(selectedSource, refreshed)
++        const latestSource = catalogRef.current.find(item => item.id === selectedSource.id) ?? selectedSource
++        const merged = retainReferencedFeedEpisodes(latestSource, mergeCatalogSource(latestSource, refreshed), protectedEpisodeIds(catalogRef.current, retentionContextRef.current))
+         const visibleEpisodeIds = new Set(merged.episodes.map((episode) => episode.id))
+         refreshedSource = newlyArrived.length
+           ? { ...merged, newEpisodeIds: [...new Set([...(merged.newEpisodeIds ?? []), ...newlyArrived.map((episode) => episode.id)])].filter((id) => visibleEpisodeIds.has(id)) }
+diff --git a/src/catalogRetention.ts b/src/catalogRetention.ts
+new file mode 100644
+index 0000000..ec85533
+--- /dev/null
++++ b/src/catalogRetention.ts
+@@ -0,0 +1,78 @@
++import type { CatalogSource, Episode } from './domain'
++
++type Reference = { id: string; url?: string }
++export type RetentionContext = {
++  favoriteTrackIds: string[]
++  history: Reference[]
++  listeningSessions: Reference[]
++  offlineEpisodes: Array<{ id: string; remoteUrl?: string }>
++  completedEpisodeIds: string[]
++  activeEpisodeIds?: string[]
++  nativeReferencesReady: boolean
++}
++
++// The limit is for replaceable feed entries, never a deletion request.
++// Until native references have loaded successfully, preserve all old episodes.
++export function protectedEpisodeIds(catalog: CatalogSource[], context: RetentionContext): Set<string> {
++  const episodes = catalog.flatMap(source => source.episodes)
++  if (!context.nativeReferencesReady) return new Set(episodes.map(episode => episode.id))
++  const references = [...context.history, ...context.listeningSessions]
++  const ids = new Set([
++    ...references.map(item => item.id), ...context.completedEpisodeIds,
++    ...context.offlineEpisodes.map(item => item.id), ...(context.activeEpisodeIds ?? []),
++  ])
++  const urls = new Set([
++    ...references.flatMap(item => item.url ? [item.url] : []),
++    ...context.offlineEpisodes.flatMap(item => item.remoteUrl ? [item.remoteUrl] : []),
++  ])
++  const favorites = new Set(context.favoriteTrackIds)
++  for (const episode of episodes) {
++    const favorite = context.favoriteTrackIds.some(id => id.startsWith(`${episode.id}::track::`)) || (episode.tracks ?? []).some((track, index) =>
++      favorites.has(`${episode.id}::track::${track.id}::${index}`) || favorites.has(String(track.id)))
++    // Analysis, tracklists, manual timestamps and evidence are not disposable cache.
++    if (favorite || urls.has(episode.audioUrl) || episode.tracks?.length || episode.analysis
++      || episode.webTracklistUrl || episode.liveSetTracklistUrl) ids.add(episode.id)
++  }
++  return ids
++}
++
++export function retainSourceEpisodes(source: CatalogSource, limit: number, protectedIds: Set<string>): CatalogSource {
++  if (!Number.isFinite(limit) || source.episodes.length <= limit) return source
++  const recent = new Set(source.episodes.map((episode, index) => ({episode, index}))
++    .sort((a,b) => (Date.parse(b.episode.publishedAt) || 0) - (Date.parse(a.episode.publishedAt) || 0) || a.index-b.index)
++    .slice(0, Math.max(0, limit)).map(item => item.episode))
++  const episodes = source.episodes.filter(episode => recent.has(episode) || protectedIds.has(episode.id))
++  return episodes.length === source.episodes.length ? source : {...source, episodes}
++}
++
++export function retainReferencedFeedEpisodes(previous: CatalogSource, merged: CatalogSource,
++  protectedIds: Set<string>): CatalogSource {
++  // Ambiguous legacy IDs cannot be safely rebound to a different episode.
++  const counts = new Map<string, number>()
++  for (const item of previous.episodes) counts.set(item.id, (counts.get(item.id) ?? 0) + 1)
++  if ([...counts].some(([id, count]) => count > 1 && protectedIds.has(id))) {
++    const oldIds = new Set(previous.episodes.map(item => item.id))
++    return {...merged, episodes:[...previous.episodes, ...merged.episodes.filter(item => !oldIds.has(item.id))]}
++  }
++  const retained = new Set<Episode>()
++  const episodes = merged.episodes.map(episode => {
++    const idMatches = previous.episodes.filter(item => item.id === episode.id)
++    const urlMatches = previous.episodes.filter(item => Boolean(item.audioUrl) && item.audioUrl === episode.audioUrl)
++    const old = idMatches.length === 1 ? idMatches[0] : urlMatches.length === 1 ? urlMatches[0] : undefined
++    if (!old || !protectedIds.has(old.id)) return episode
++    retained.add(old)
++    // Favorites include the old ID and track index: do not invalidate them on refresh.
++    return {...episode, id:old.id, tracks:old.tracks?.length ? old.tracks : episode.tracks,
++      analysis:old.analysis ?? episode.analysis,
++      webTracklistUrl:old.webTracklistUrl || episode.webTracklistUrl,
++      liveSetTracklistUrl:old.liveSetTracklistUrl || episode.liveSetTracklistUrl,
++      liveSetTracklistOrigin:old.liveSetTracklistOrigin || episode.liveSetTracklistOrigin}
++  })
++  const ids = new Set(episodes.map(item => item.id))
++  for (const old of previous.episodes) {
++    if (protectedIds.has(old.id) && !retained.has(old) && !ids.has(old.id)) {
++      episodes.push(old); ids.add(old.id)
++    }
++  }
++  return {...merged, episodes}
++}
+diff --git a/tests/unit/catalogRetention.test.ts b/tests/unit/catalogRetention.test.ts
+new file mode 100644
+index 0000000..c09e18e
+--- /dev/null
++++ b/tests/unit/catalogRetention.test.ts
+@@ -0,0 +1,65 @@
++// @vitest-environment jsdom
++import { describe, it, expect } from 'vitest'
++import { protectedEpisodeIds, retainSourceEpisodes, retainReferencedFeedEpisodes } from '../../src/catalogRetention'
++import { mergeCatalogSource } from '../../src/catalogMerge'
++import type { CatalogSource, Episode } from '../../src/domain'
++const episode=(id:string,date='2026-11-12'):Episode=>({id,title:id,description:'QA',publishedAt:date,duration:'45:00',audioUrl:'https://qa.invalid/'+id,artworkUrl:''})
++const source=(episodes:Episode[]):CatalogSource=>({id:'s',kind:'podcast',title:'QA',description:'QA',artworkUrl:'',episodes})
++const context=()=>({favoriteTrackIds:[] as string[],history:[] as {id:string;url?:string}[],listeningSessions:[] as {id:string}[],offlineEpisodes:[] as {id:string;remoteUrl?:string}[],completedEpisodeIds:[] as string[],nativeReferencesReady:true})
++const old=()=>episode('old','2020-01-01')
++const crowded=(e=old())=>source([e,...Array.from({length:100},(_,i)=>episode('recent'+i))])
++describe('catalogue retention',()=>{
++ for(const kind of ['favorite','history','session','download','completed','manual'] as const) {
++  it(`keeps referenced episode beyond limit: ${kind}`,()=>{
++   const e=old(),ctx=context()
++   if(kind==='favorite')ctx.favoriteTrackIds=[e.id+'::track::1::0']
++   if(kind==='history')ctx.history=[{id:e.id}]
++   if(kind==='session')ctx.listeningSessions=[{id:e.id}]
++   if(kind==='download')ctx.offlineEpisodes=[{id:e.id}]
++   if(kind==='completed')ctx.completedEpisodeIds=[e.id]
++   if(kind==='manual')e.tracks=[{id:1,time:12,artist:'QA',title:'Keep manual annotation',confidence:1,source:'manual',evidence:['Keep evidence']}]
++   const s=crowded(e),before=JSON.stringify(s),ids=protectedEpisodeIds([s],ctx)
++   const result=retainSourceEpisodes(s,100,ids)
++   expect(result.episodes).toContain(e)
++   expect(result.episodes).toHaveLength(101)
++   expect(JSON.stringify(s)).toBe(before)
++  })
++ }
++ it('retains all old episodes while native references are unknown',()=>{
++  const s=crowded(),ctx={...context(),nativeReferencesReady:false}
++  expect(retainSourceEpisodes(s,100,protectedEpisodeIds([s],ctx))).toBe(s)
++ })
++ it('limits plain unreferenced feed entries and preserves source order',()=>{
++  const s=crowded(),result=retainSourceEpisodes(s,100,protectedEpisodeIds([s],context()))
++  expect(result.episodes).toEqual(s.episodes.slice(1))
++ })
++ for(const kind of ['favorite','history','download'] as const) {
++  it(`retains absent feed episode with ${kind}`,()=>{
++   const e=old(),previous=source([e]),fresh=source([episode('new')]),ctx=context()
++   if(kind==='favorite')ctx.favoriteTrackIds=[e.id+'::track::1::0']
++   if(kind==='history')ctx.history=[{id:e.id}]
++   if(kind==='download')ctx.offlineEpisodes=[{id:e.id}]
++   const merged=retainReferencedFeedEpisodes(previous,mergeCatalogSource(previous,fresh),protectedEpisodeIds([previous],ctx))
++   expect(merged.episodes).toContain(e)
++  })
++ }
++ it('preserves stable ID and manual track order when feed ID changes',()=>{
++  const e={...old(),tracks:[{id:1,time:22,artist:'QA',title:'Favorite',confidence:1,source:'manual' as const,evidence:['QA note']}]}
++  const previous=source([e]),fresh=source([{...episode('new-id'),audioUrl:e.audioUrl,tracks:[]}])
++  const ctx={...context(),favoriteTrackIds:['old::track::1::0']}
++  const merged=retainReferencedFeedEpisodes(previous,mergeCatalogSource(previous,fresh),protectedEpisodeIds([previous],ctx))
++  expect(merged.episodes).toHaveLength(1)
++  expect(merged.episodes[0].id).toBe('old')
++  expect(merged.episodes[0].tracks).toBe(e.tracks)
++ })
++ it('protects URL-based legacy history references',()=>{
++  const s=crowded(),ctx={...context(),history:[{id:'legacy',url:s.episodes[0].audioUrl}]}
++  expect(retainSourceEpisodes(s,100,protectedEpisodeIds([s],ctx)).episodes).toHaveLength(101)
++ })
++ it('does not collapse protected ambiguous legacy episodes',()=>{
++  const a=old(),b={...old(),title:'Other episode',audioUrl:'https://qa.invalid/other'},previous=source([a,b])
++  const fresh=source([episode('new')]),ctx={...context(),history:[{id:'old'}]}
++  const merged=retainReferencedFeedEpisodes(previous,mergeCatalogSource(previous,fresh),protectedEpisodeIds([previous],ctx))
++  expect(merged.episodes).toContain(a);expect(merged.episodes).toContain(b)
++ })
++})
