@@ -7,6 +7,16 @@ on:
   push:
     branches: [test/e2e-modernization-20261113]
     paths:
+      # Code app et assets servis : toute modif qui peut changer le comportement teste
+      - 'src/**'
+      - 'public/**'
+      - 'index.html'
+      # Dependances et config de build/test
+      - 'package.json'
+      - 'package-lock.json'
+      - 'vite.config.ts'
+      - 'tsconfig*.json'
+      # Suite E2E elle-meme
       - 'tests/e2e/**'
       - 'playwright.config.ts'
       - '.github/workflows/podmix-web-e2e.yml'
