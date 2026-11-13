@@ -83,7 +83,13 @@ if MODE=='seed':
     # The write is one synchronous turn; React state is not changed or reloaded on baseline.
     native('syncFavorites',{'ids':['qa-favorite::track::1::0']})
     ev('(()=>{const seeds='+json.dumps(seeds)+';for(const [k,v] of Object.entries(seeds))localStorage.setItem(k,v);return "seeded"})()')
+    # Chromium localStorage commits to disk asynchronously. Freeze JS, not storage IO,
+    # so the baseline cannot rewrite the injected fixture before it is durable.
+    send('Debugger.enable');send('Debugger.pause')
+    time.sleep(8)
+    send('Debugger.resume')
     actual=ev('Object.fromEntries(Object.keys(localStorage).map(k=>[k,localStorage.getItem(k)]))')
+    check(len(json.loads(actual.get('podmix-catalog-v1','[]'))[0]['episodes'])==104,'baseline seeded catalogue still104 before force-stop')
     open(OUT+'/baseline-local.json','w').write(json.dumps(actual))
     open(OUT+'/baseline-download.json','w').write(json.dumps(state))
     open(OUT+'/fresh-feed.json','w').write(json.dumps(dict(source,episodes=fresh)))
@@ -99,7 +105,11 @@ else:
         time.sleep(1)
     time.sleep(5)
     after=ev('Object.fromEntries(Object.keys(localStorage).map(k=>[k,localStorage.getItem(k)]))')
-    catalog=json.loads(after['podmix-catalog-v1']);episodes=catalog[0]['episodes']
+    open(OUT+'/candidate-startup-local.json','w').write(json.dumps(after))
+    shot('candidate-startup')
+    catalog=json.loads(after['podmix-catalog-v1'])
+    check(bool(catalog),'candidate catalogue nonempty after upgrade')
+    episodes=catalog[0]['episodes']
     check(len(episodes)==104,'over-limit catalogue retains 4 protected plus100 recent')
     oldids=['qa-favorite','qa-position','qa-download','qa-annotation']
     for id in oldids:check(any(e['id']==id for e in episodes),'referenced episode '+id)
