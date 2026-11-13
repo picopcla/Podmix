@@ -127,8 +127,8 @@ else:
     if not refresh:
         ev('document.querySelector(".home-source-card")?.click()')
     time.sleep(1)
-    refreshed=ev('(()=>{const b=[...document.querySelectorAll("button")].find(b=>(b.textContent||"").includes("Actualiser"));if(b)b.click();return !!b})()')
-    check(refreshed,'refresh button clicked')
+    refreshed=ev('(()=>{const b=[...document.querySelectorAll(".source-actions button")].find(b=>(b.textContent||"").trim()==="Actualiser");if(b)b.click();return !!b})()')
+    check(refreshed,'source feed refresh button clicked (not analysis)')
     time.sleep(5)
     after=ev('Object.fromEntries(Object.keys(localStorage).map(k=>[k,localStorage.getItem(k)]))')
     episodes=json.loads(after['podmix-catalog-v1'])[0]['episodes']
