@@ -1,0 +1,290 @@
+name: qa-full-persistence-231-upgrade
+on:
+  workflow_dispatch:
+  push:
+    branches: [fix/231-update-nag-and-home-grid]
+    paths: [.github/workflows/qa-full-persistence-upgrade.yml]
+permissions:
+  contents: read
+concurrency:
+  group: qa-full-persistence-231-upgrade
+  cancel-in-progress: true
+jobs:
+  qa:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+        with:
+          ref: 467fc300b583d4e01e8986934928aecb55a2aa3c
+          path: baseline
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+      - name: Baseline231 and committed completed-persistence candidate debug with source fingerprints
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/qa-out
+          git rev-parse HEAD | tee /tmp/qa-out/source-head.txt
+          # Test-only patch in isolated runner. No repository-write permission, publication or phone access.
+          echo ZGlmZiAtLWdpdCBhL3NyYy9BcHAudHN4IGIvc3JjL0FwcC50c3gKaW5kZXggNDU4MDQxNC4uMTkzNjI3NyAxMDA2NDQKLS0tIGEvc3JjL0FwcC50c3gKKysrIGIvc3JjL0FwcC50c3gKQEAgLTI2LDYgKzI2LDcgQEAgaW1wb3J0IHBvZG1peEluZmluaXR5TG9nbyBmcm9tICcuL2Fzc2V0cy9wb2RtaXgtbG9nby1yYWRpby1jLnBuZycKIGltcG9ydCAnLi9BcHAuY3NzJwogaW1wb3J0ICcuL2lkZW50aWZpY2F0aW9uLmNzcycKIGltcG9ydCB7IHNhZmVTZXRJdGVtLCB1c2VTdG9yYWdlRmFpbHVyZXMgfSBmcm9tICcuL3NhZmVTdG9yYWdlJworaW1wb3J0IHsgZHVyYWJsZVN0b3JhZ2VEaWFnbm9zdGljcyB9IGZyb20gJy4vZHVyYWJsZVN0b3JhZ2UnCiAKIGNvbnN0IGluaXRpYWxUcmFja3M6IFRyYWNrW10gPSBbXQogCkBAIC0xMDI0LDcgKzEwMjUsNyBAQCBmdW5jdGlvbiBBcHAoKSB7CiAgIGNvbnN0IFtzdHVkaW9FcGlzb2RlLCBzZXRTdHVkaW9FcGlzb2RlXSA9IHVzZVN0YXRlPHsgc291cmNlSWQ6IHN0cmluZzsgZXBpc29kZUlkOiBzdHJpbmcgfT4oKQogICBjb25zdCBzdHVkaW9FcGlzb2RlUmVmID0gdXNlUmVmPHsgc291cmNlSWQ6IHN0cmluZzsgZXBpc29kZUlkOiBzdHJpbmcgfSB8IHVuZGVmaW5lZD4odW5kZWZpbmVkKQogICBjb25zdCBbcHVibGlzaE1lc3NhZ2UsIHNldFB1Ymxpc2hNZXNzYWdlXSA9IHVzZVN0YXRlKCcnKQotICBjb25zdCBbLCBzZXRTdG9yYWdlXSA9IHVzZVN0YXRlKHsgZG93bmxvYWRlZEJ5dGVzOiAwLCBhdmFpbGFibGVCeXRlczogMCwgdG90YWxCeXRlczogMCB9KQorICBjb25zdCBbc3RvcmFnZU1ldHJpY3MsIHNldFN0b3JhZ2VdID0gdXNlU3RhdGUoeyBkb3dubG9hZGVkQnl0ZXM6IDAsIGF2YWlsYWJsZUJ5dGVzOiAwLCB0b3RhbEJ5dGVzOiAwIH0pCiAgIGNvbnN0IFthdmFpbGFibGVVcGRhdGUsIHNldEF2YWlsYWJsZVVwZGF0ZV0gPSB1c2VTdGF0ZTxVcGRhdGVNYW5pZmVzdCB8IG51bGw+KG51bGwpCiAgIGNvbnN0IFthcHBJbmZvLCBzZXRBcHBJbmZvXSA9IHVzZVN0YXRlPHsgdmVyc2lvbk5hbWU6IHN0cmluZzsgdmVyc2lvbkNvZGU6IG51bWJlcjsgbGFzdFVwZGF0ZVRpbWU6IG51bWJlciB9Pih7CiAgICAgdmVyc2lvbk5hbWU6IGN1cnJlbnRWZXJzaW9uLApAQCAtNDU2NSw5ICs0NTY2LDExIEBAIGZ1bmN0aW9uIEFwcCgpIHsKICAgICAgIGZhdm9yaXRlVHJhY2tJZHMsCiAgICAgICBoaXN0b3J5LAogICAgICAgbGlzdGVuaW5nU2Vzc2lvbnMsCisgICAgICBjb21wbGV0ZWRFcGlzb2RlSWRzLAogICAgICAgb2ZmbGluZUVwaXNvZGVzLAogICAgICAgc2V0dGluZ3MsCiAgICAgICBzdHVkaW86IHsgYXVkaW9OYW1lLCB0cmFja3MgfSwKKyAgICAgIHN0b3JhZ2VEaWFnbm9zdGljczogeyByZWNvcmRzOiBkdXJhYmxlU3RvcmFnZURpYWdub3N0aWNzKCksIGRldmljZUF2YWlsYWJsZUJ5dGVzOiBzdG9yYWdlTWV0cmljcy5hdmFpbGFibGVCeXRlcywgZGV2aWNlVG90YWxCeXRlczogc3RvcmFnZU1ldHJpY3MudG90YWxCeXRlcyB9LAogICAgIH0KICAgICBjb25zdCB1cmwgPSBVUkwuY3JlYXRlT2JqZWN0VVJMKG5ldyBCbG9iKFtKU09OLnN0cmluZ2lmeShwYXlsb2FkLCBudWxsLCAyKV0sIHsgdHlwZTogJ2FwcGxpY2F0aW9uL2pzb24nIH0pKQogICAgIGNvbnN0IGFuY2hvciA9IGRvY3VtZW50LmNyZWF0ZUVsZW1lbnQoJ2EnKQpAQCAtNDU4NCw3ICs0NTg3LDcgQEAgZnVuY3Rpb24gQXBwKCkgewogICAgIHRyeSB7CiAgICAgICBjb25zdCBwYXlsb2FkID0gSlNPTi5wYXJzZShhd2FpdCBmaWxlLnRleHQoKSkgYXMgewogICAgICAgICBmb3JtYXQ/OiBzdHJpbmc7IGNhdGFsb2c/OiBDYXRhbG9nU291cmNlW107IGZhdm9yaXRlU291cmNlSWRzPzogc3RyaW5nW107IGZhdm9yaXRlVHJhY2tJZHM/OiBBcnJheTxzdHJpbmcgfCBudW1iZXI+Ci0gICAgICAgIGhpc3Rvcnk/OiBIaXN0b3J5SXRlbVtdOyBsaXN0ZW5pbmdTZXNzaW9ucz86IExpc3RlbmluZ1Nlc3Npb25bXTsgb2ZmbGluZUVwaXNvZGVzPzogT2ZmbGluZUVwaXNvZGVbXTsgc2V0dGluZ3M/OiBBcHBTZXR0aW5ncworICAgICAgICBoaXN0b3J5PzogSGlzdG9yeUl0ZW1bXTsgbGlzdGVuaW5nU2Vzc2lvbnM/OiBMaXN0ZW5pbmdTZXNzaW9uW107IGNvbXBsZXRlZEVwaXNvZGVJZHM/OiBzdHJpbmdbXTsgb2ZmbGluZUVwaXNvZGVzPzogT2ZmbGluZUVwaXNvZGVbXTsgc2V0dGluZ3M/OiBBcHBTZXR0aW5ncwogICAgICAgICBzdHVkaW8/OiB7IGF1ZGlvTmFtZT86IHN0cmluZzsgdHJhY2tzPzogVHJhY2tbXSB9CiAgICAgICB9CiAgICAgICBpZiAocGF5bG9hZC5mb3JtYXQgIT09ICdwb2RtaXgtbmV4dC1iYWNrdXAnIHx8ICFBcnJheS5pc0FycmF5KHBheWxvYWQuY2F0YWxvZykpIHRocm93IG5ldyBFcnJvcignRm9ybWF0IGRlIHNhdXZlZ2FyZGUgaW52YWxpZGUnKQpAQCAtNDU5Miw2ICs0NTk1LDcgQEAgZnVuY3Rpb24gQXBwKCkgewogICAgICAgc2V0RmF2b3JpdGVUcmFja0lkcygocGF5bG9hZC5mYXZvcml0ZVRyYWNrSWRzID8/IFtdKS5tYXAoU3RyaW5nKSkKICAgICAgIHNldEhpc3RvcnkocGF5bG9hZC5oaXN0b3J5ID8/IFtdKQogICAgICAgc2V0TGlzdGVuaW5nU2Vzc2lvbnMocGF5bG9hZC5saXN0ZW5pbmdTZXNzaW9ucyA/PyBbXSkKKyAgICAgIGlmIChBcnJheS5pc0FycmF5KHBheWxvYWQuY29tcGxldGVkRXBpc29kZUlkcykpIHNldENvbXBsZXRlZEVwaXNvZGVJZHMoaWRzID0+IFsuLi5uZXcgU2V0KFsuLi5pZHMsIC4uLnBheWxvYWQuY29tcGxldGVkRXBpc29kZUlkcyEuZmlsdGVyKGlkID0+IHR5cGVvZiBpZCA9PT0gJ3N0cmluZycgJiYgaWQubGVuZ3RoID4gMCldKV0uc2xpY2UoMCwgMl8wMDApKQogICAgICAgc2V0T2ZmbGluZUVwaXNvZGVzKHBheWxvYWQub2ZmbGluZUVwaXNvZGVzID8/IFtdKQogICAgICAgaWYgKHBheWxvYWQuc2V0dGluZ3MpIHNldFNldHRpbmdzKHBheWxvYWQuc2V0dGluZ3MpCiAgICAgICBpZiAocGF5bG9hZC5zdHVkaW8/LnRyYWNrcz8ubGVuZ3RoKSB7CkBAIC01MDg5LDcgKzUwOTMsNyBAQCBmdW5jdGlvbiBBcHAoKSB7CiAgICAgICAgICAgICA8YnV0dG9uIGFyaWEtbGFiZWw9IlLDqWdsYWdlcyIgY2xhc3NOYW1lPXthY3RpdmVWaWV3ID09PSAnc2V0dGluZ3MnID8gJ2FjdGl2ZScgOiAnJ30gb25DbGljaz17KCkgPT4gbmF2aWdhdGVUbyhhY3RpdmVWaWV3ID09PSAnc2V0dGluZ3MnID8gJ2hvbWUnIDogJ3NldHRpbmdzJyl9PjxTZXR0aW5nczIgc2l6ZT17MTh9IC8+PC9idXR0b24+CiAgICAgICAgICAgPC9kaXY+CiAgICAgICAgIDwvaGVhZGVyPgotICAgICAgICB7c3RvcmFnZUZhaWx1cmVzLmxlbmd0aCA+IDAgJiYgPGRpdiBjbGFzc05hbWU9InN0b3JhZ2Utd2FybmluZyIgcm9sZT0iYWxlcnQiPlN0b2NrYWdlIGludGVybmUgcGxlaW4gOiBsZXMgbW9kaWZpY2F0aW9ucyBkZSB7c3RvcmFnZUZhaWx1cmVzLmpvaW4oJywgJyl9IG5lIHNvbnQgcGFzIGVucmVnaXN0csOpZXMuIEzigJlhcHBsaWNhdGlvbiBu4oCZYSByaWVuIHN1cHByaW3DqS48L2Rpdj59CisgICAgICAgIHtzdG9yYWdlRmFpbHVyZXMubGVuZ3RoID4gMCAmJiA8ZGl2IGNsYXNzTmFtZT0ic3RvcmFnZS13YXJuaW5nIiByb2xlPSJhbGVydCI+U2F1dmVnYXJkZSBpbXBvc3NpYmxlIDogbGVzIG1vZGlmaWNhdGlvbnMgZGUge3N0b3JhZ2VGYWlsdXJlcy5qb2luKCcsICcpfSBuZSBzb250IHBhcyBlbnJlZ2lzdHLDqWVzLiBMZXMgZG9ubsOpZXMgZMOpasOgIGVucmVnaXN0csOpZXMgbuKAmW9udCBwYXMgw6l0w6kgZWZmYWPDqWVzLjwvZGl2Pn0KIAogICAgICAgICB7YWN0aXZlVmlldyAhPT0gJ3N0dWRpbycgJiYgPHNlY3Rpb24gY2xhc3NOYW1lPSJ3b3Jrc3BhY2UgY2F0YWxvZy12aWV3Ij4KICAgICAgICAgICB7IXNlbGVjdGVkU291cmNlICYmIGFjdGl2ZVZpZXcgIT09ICdob21lJyAmJiBhY3RpdmVWaWV3ICE9PSAncmVzdW1lJyAmJiBhY3RpdmVWaWV3ICE9PSAnZmF2b3JpdGVzJyAmJiBhY3RpdmVWaWV3ICE9PSAnbGl2ZVNldHMnICYmIGFjdGl2ZVZpZXcgIT09ICdkakxpYnJhcnknICYmIDxkaXYgY2xhc3NOYW1lPSJjYXRhbG9nLWhlcm8iPgpkaWZmIC0tZ2l0IGEvc3JjL2hpc3RvcnkudHMgYi9zcmMvaGlzdG9yeS50cwppbmRleCAwMjdjNjc1Li5jMzY1OGVlIDEwMDY0NAotLS0gYS9zcmMvaGlzdG9yeS50cworKysgYi9zcmMvaGlzdG9yeS50cwpAQCAtMSwzICsxLDQgQEAKK2ltcG9ydCB7IHJlYWREdXJhYmxlSXRlbSwgc2F2ZUR1cmFibGVJdGVtLCBpc0R1cmFibGVTdG9yYWdlQWN0aXZlLCB0eXBlIER1cmFibGVLZXkgfSBmcm9tICcuL2R1cmFibGVTdG9yYWdlJwogaW1wb3J0IHsgZGVjb2RlVGV4dEVudGl0aWVzIH0gZnJvbSAnLi90ZXh0JwogCiBleHBvcnQgY29uc3QgUExBWUJBQ0tfSElTVE9SWV9LRVkgPSAncG9kbWl4LWhpc3RvcnktdjEnCkBAIC00Myw3ICs0NCw3IEBAIGV4cG9ydCBmdW5jdGlvbiBub3JtYWxpemVIaXN0b3J5SXRlbSh2YWx1ZTogdW5rbm93bik6IFBsYXliYWNrSGlzdG9yeUl0ZW0gfCB1bmRlCiAKIGZ1bmN0aW9uIHJlYWRBcnJheShrZXk6IHN0cmluZyk6IHVua25vd25bXSB7CiAgIHRyeSB7Ci0gICAgY29uc3QgcGFyc2VkOiB1bmtub3duID0gSlNPTi5wYXJzZShsb2NhbFN0b3JhZ2UuZ2V0SXRlbShrZXkpID8/ICdbXScpCisgICAgY29uc3QgcGFyc2VkOiB1bmtub3duID0gSlNPTi5wYXJzZSgoa2V5ID09PSBQTEFZQkFDS19ISVNUT1JZX0tFWSB8fCBrZXkgPT09IExJU1RFTklOR19TRVNTSU9OU19LRVkgPyByZWFkRHVyYWJsZUl0ZW0oa2V5IGFzIER1cmFibGVLZXkpIDogbG9jYWxTdG9yYWdlLmdldEl0ZW0oa2V5KSkgPz8gJ1tdJykKICAgICByZXR1cm4gQXJyYXkuaXNBcnJheShwYXJzZWQpID8gcGFyc2VkIDogW10KICAgfSBjYXRjaCB7CiAgICAgcmV0dXJuIFtdCkBAIC02MSw3ICs2Miw5IEBAIGV4cG9ydCBmdW5jdGlvbiBsb2FkUGxheWJhY2tIaXN0b3J5KCk6IFBsYXliYWNrSGlzdG9yeUl0ZW1bXSB7CiB9CiAKIGV4cG9ydCBmdW5jdGlvbiBzYXZlUGxheWJhY2tIaXN0b3J5KGl0ZW1zOiBQbGF5YmFja0hpc3RvcnlJdGVtW10pIHsKLSAgc2FmZVNldEl0ZW0oUExBWUJBQ0tfSElTVE9SWV9LRVksIEpTT04uc3RyaW5naWZ5KGl0ZW1zLnNsaWNlKDAsIDFfMDAwKSkpCisgIGNvbnN0IHZhbHVlID0gSlNPTi5zdHJpbmdpZnkoaXRlbXMuc2xpY2UoMCwgMV8wMDApKQorICBpZiAoaXNEdXJhYmxlU3RvcmFnZUFjdGl2ZSgpKSB2b2lkIHNhdmVEdXJhYmxlSXRlbShQTEFZQkFDS19ISVNUT1JZX0tFWSwgdmFsdWUpCisgIGVsc2Ugc2FmZVNldEl0ZW0oUExBWUJBQ0tfSElTVE9SWV9LRVksIHZhbHVlKQogfQogCiAvKiogTGVzIMOpbMOpbWVudHMgdGVybWluw6lzIG5lIGZvbnQgcGFzIHBhcnRpZSBkZSDCqyBSZXByZW5kcmUgwrsuICovCkBAIC0xMDUsNyArMTA4LDkgQEAgZXhwb3J0IGZ1bmN0aW9uIHVwZGF0ZUxpc3RlbmluZ1Nlc3Npb25zKHNlc3Npb25zOiBMaXN0ZW5pbmdTZXNzaW9uW10sIGl0ZW06IFBsYXkKIH0KIAogZXhwb3J0IGZ1bmN0aW9uIHNhdmVMaXN0ZW5pbmdTZXNzaW9ucyhzZXNzaW9uczogTGlzdGVuaW5nU2Vzc2lvbltdKSB7Ci0gIHNhZmVTZXRJdGVtKExJU1RFTklOR19TRVNTSU9OU19LRVksIEpTT04uc3RyaW5naWZ5KHNlc3Npb25zLnNsaWNlKDAsIDJfMDAwKSkpCisgIGNvbnN0IHZhbHVlID0gSlNPTi5zdHJpbmdpZnkoc2Vzc2lvbnMuc2xpY2UoMCwgMl8wMDApKQorICBpZiAoaXNEdXJhYmxlU3RvcmFnZUFjdGl2ZSgpKSB2b2lkIHNhdmVEdXJhYmxlSXRlbShMSVNURU5JTkdfU0VTU0lPTlNfS0VZLCB2YWx1ZSkKKyAgZWxzZSBzYWZlU2V0SXRlbShMSVNURU5JTkdfU0VTU0lPTlNfS0VZLCB2YWx1ZSkKIH0KIAogZXhwb3J0IGZ1bmN0aW9uIHNlYXJjaExpc3RlbmluZ1Nlc3Npb25zKHNlc3Npb25zOiBMaXN0ZW5pbmdTZXNzaW9uW10sIHF1ZXJ5OiBzdHJpbmcpIHsKZGlmZiAtLWdpdCBhL3NyYy9tYWluLnRzeCBiL3NyYy9tYWluLnRzeAppbmRleCA2MTZlZWRlLi42NDg4YTU4IDEwMDY0NAotLS0gYS9zcmMvbWFpbi50c3gKKysrIGIvc3JjL21haW4udHN4CkBAIC00LDYgKzQsNyBAQCBpbXBvcnQgeyBjcmVhdGVSb290IH0gZnJvbSAncmVhY3QtZG9tL2NsaWVudCcKIGltcG9ydCB7IENhcGFjaXRvciB9IGZyb20gJ0BjYXBhY2l0b3IvY29yZScKIGltcG9ydCAnLi9pbmRleC5jc3MnCiBpbXBvcnQgQXBwIGZyb20gJy4vQXBwLnRzeCcKK2ltcG9ydCB7IGluaXRpYWxpemVEdXJhYmxlU3RvcmFnZSB9IGZyb20gJy4vZHVyYWJsZVN0b3JhZ2UnCiAKIGNsYXNzIFN0YXJ0dXBFcnJvckJvdW5kYXJ5IGV4dGVuZHMgQ29tcG9uZW50PHsgY2hpbGRyZW46IFJlYWN0Tm9kZSB9LCB7IGVycm9yPzogRXJyb3IgfT4gewogICBzdGF0ZTogeyBlcnJvcj86IEVycm9yIH0gPSB7fQpAQCAtNTEsNiArNTIsNyBAQCBhc3luYyBmdW5jdGlvbiBzdGFydCgpIHsKICAgICAgIHZvaWQgbmF2aWdhdG9yLnNlcnZpY2VXb3JrZXIucmVnaXN0ZXIoJy9zdy5qcycpCiAgICAgfSkKICAgfQorICBhd2FpdCBpbml0aWFsaXplRHVyYWJsZVN0b3JhZ2UoKQogICByZW5kZXJBcHAoKQogfQogCmRpZmYgLS1naXQgYS9zcmMvc3RvcmFnZS50cyBiL3NyYy9zdG9yYWdlLnRzCmluZGV4IGNiYmY4MTMuLmQ0ZDM0MjYgMTAwNjQ0Ci0tLSBhL3NyYy9zdG9yYWdlLnRzCisrKyBiL3NyYy9zdG9yYWdlLnRzCkBAIC0xLDUgKzEsNiBAQAogaW1wb3J0IHR5cGUgeyBDYXRhbG9nU291cmNlLCBPZmZsaW5lRXBpc29kZSwgVHJhY2sgfSBmcm9tICcuL2RvbWFpbicKIGltcG9ydCB7IHJlcG9ydFN0b3JhZ2VGYWlsdXJlLCBzYWZlU2V0SXRlbSB9IGZyb20gJy4vc2FmZVN0b3JhZ2UnCitpbXBvcnQgeyByZWFkRHVyYWJsZUl0ZW0sIHNhdmVEdXJhYmxlSXRlbSwgaXNEdXJhYmxlU3RvcmFnZUFjdGl2ZSB9IGZyb20gJy4vZHVyYWJsZVN0b3JhZ2UnCiAKIGNvbnN0IERBVEFCQVNFID0gJ3BvZG1peC1zdHVkaW8nCiBjb25zdCBTVE9SRSA9ICdzZXNzaW9ucycKQEAgLTQ4LDcgKzQ5LDcgQEAgZXhwb3J0IGFzeW5jIGZ1bmN0aW9uIHNhdmVTZXNzaW9uKGF1ZGlvTmFtZTogc3RyaW5nLCB0cmFja3M6IFRyYWNrW10pIHsKIAogZXhwb3J0IGZ1bmN0aW9uIGxvYWRDYXRhbG9nKCk6IENhdGFsb2dTb3VyY2VbXSB7CiAgIHRyeSB7Ci0gICAgY29uc3Qgc291cmNlcyA9IEpTT04ucGFyc2UobG9jYWxTdG9yYWdlLmdldEl0ZW0oQ0FUQUxPR19LRVkpID8/ICdbXScpIGFzIENhdGFsb2dTb3VyY2VbXQorICAgIGNvbnN0IHNvdXJjZXMgPSBKU09OLnBhcnNlKHJlYWREdXJhYmxlSXRlbShDQVRBTE9HX0tFWSkgPz8gJ1tdJykgYXMgQ2F0YWxvZ1NvdXJjZVtdCiAgICAgLy8gMS4wLjExIGNvdWxkIGtlZXAgdGhlIGRlZmF1bHQgInBvZGNhc3QiIHR5cGUgd2hlbiBBZGQgd2FzIG9wZW5lZCBmcm9tCiAgICAgLy8gdGhlIEVtaXNzaW9ucyBmaWx0ZXIuIFByZXNlcnZlIHRoZSBpbXBvcnRlZCBlcGlzb2RlcyB3aGlsZSBjb3JyZWN0aW5nCiAgICAgLy8gdGhlIHNvdXJjZSByZXBvcnRlZCBieSB0aGUgYWZmZWN0ZWQgaW5zdGFsbGF0aW9uLgpAQCAtNzQsNyArNzUsNyBAQCBleHBvcnQgZnVuY3Rpb24gbG9hZENhdGFsb2coKTogQ2F0YWxvZ1NvdXJjZVtdIHsKICAqIHZlcnNpb24gc3RvY2tlZSBlc3QgY29uc2VydmVlIHRlbGxlIHF1ZWxsZSAoYXVjdW4gcmVwbGkgcmVkdWl0IHF1aSBlY3Jhc2VyYWl0CiAgKiBkZXMgZG9ubmVlcykgZXQgbCdlY2hlYyBlc3Qgc2lnbmFsZSBhIGwnaW50ZXJmYWNlLiBSZW52b2llIHRydWUgc2kgZW5yZWdpc3RyZS4KICAqLwotZXhwb3J0IGZ1bmN0aW9uIHNhdmVDYXRhbG9nKHNvdXJjZXM6IENhdGFsb2dTb3VyY2VbXSk6IGJvb2xlYW4geworZXhwb3J0IGZ1bmN0aW9uIHNhdmVDYXRhbG9nKHNvdXJjZXM6IENhdGFsb2dTb3VyY2VbXSk6IGJvb2xlYW4gfCBQcm9taXNlPGJvb2xlYW4+IHsKICAgY29uc3QgY29tcGFjdCA9IHNvdXJjZXMubWFwKChzb3VyY2UpID0+ICh7CiAgICAgLi4uc291cmNlLAogICAgIGRlc2NyaXB0aW9uOiBzb3VyY2UuZGVzY3JpcHRpb24uc2xpY2UoMCwgMl8wMDApLApAQCAtOTIsNyArOTMsOSBAQCBleHBvcnQgZnVuY3Rpb24gc2F2ZUNhdGFsb2coc291cmNlczogQ2F0YWxvZ1NvdXJjZVtdKTogYm9vbGVhbiB7CiAgICAgfSkpLAogICB9KSkKICAgdHJ5IHsKLSAgICByZXR1cm4gc2FmZVNldEl0ZW0oQ0FUQUxPR19LRVksIEpTT04uc3RyaW5naWZ5KGNvbXBhY3QpKQorICAgIHJldHVybiBpc0R1cmFibGVTdG9yYWdlQWN0aXZlKCkKKyAgICAgID8gc2F2ZUR1cmFibGVJdGVtKENBVEFMT0dfS0VZLCBKU09OLnN0cmluZ2lmeShjb21wYWN0KSkKKyAgICAgIDogc2FmZVNldEl0ZW0oQ0FUQUxPR19LRVksIEpTT04uc3RyaW5naWZ5KGNvbXBhY3QpKQogICB9IGNhdGNoIHsKICAgICAvLyBFcnJldXIgYXV0cmUgcXVlIGxlIHF1b3RhIDogbGEgc2F1dmVnYXJkZSBuJ2EgcGFzIGV1IGxpZXUsIG9uIGxlIHNpZ25hbGUgYXVzc2kuCiAgICAgcmVwb3J0U3RvcmFnZUZhaWx1cmUoQ0FUQUxPR19LRVkpCmRpZmYgLS1naXQgYS9zcmMvZHVyYWJsZVN0b3JhZ2UudHMgYi9zcmMvZHVyYWJsZVN0b3JhZ2UudHMKbmV3IGZpbGUgbW9kZSAxMDA2NDQKLS0tIC9kZXYvbnVsbAorKysgYi9zcmMvZHVyYWJsZVN0b3JhZ2UudHMKQEAgLTAsMCArMSwxMjIgQEAKK2ltcG9ydCB7IHJlcG9ydFN0b3JhZ2VGYWlsdXJlLCByZXBvcnRTdG9yYWdlU3VjY2VzcyB9IGZyb20gJy4vc2FmZVN0b3JhZ2UnCisKK2V4cG9ydCBjb25zdCBEVVJBQkxFX0tFWVMgPSBbJ3BvZG1peC1jYXRhbG9nLXYxJywgJ3BvZG1peC1oaXN0b3J5LXYxJywgJ3BvZG1peC1saXN0ZW5pbmctc2Vzc2lvbnMtdjEnXSBhcyBjb25zdAorZXhwb3J0IHR5cGUgRHVyYWJsZUtleSA9IHR5cGVvZiBEVVJBQkxFX0tFWVNbbnVtYmVyXQorZXhwb3J0IHR5cGUgRHVyYWJsZVN0b3JlID0geyByZWFkKGtleTogc3RyaW5nKTogUHJvbWlzZTx1bmtub3duPjsgd3JpdGUoa2V5OiBzdHJpbmcsIHZhbHVlOiBzdHJpbmcpOiBQcm9taXNlPHZvaWQ+IH0KKworZXhwb3J0IGZ1bmN0aW9uIGluZGV4ZWREYkR1cmFibGVTdG9yZSgpOiBEdXJhYmxlU3RvcmUgeworICBjb25zdCBvcGVuID0gKCkgPT4gbmV3IFByb21pc2U8SURCRGF0YWJhc2U+KChyZXNvbHZlLCByZWplY3QpID0+IHsKKyAgICBsZXQgYmxvY2tlZCA9IGZhbHNlCisgICAgY29uc3QgcmVxdWVzdCA9IGluZGV4ZWREQi5vcGVuKCdwb2RtaXgtbGlicmFyeS1oaXN0b3J5JywgMSkKKyAgICByZXF1ZXN0Lm9udXBncmFkZW5lZWRlZCA9ICgpID0+IHJlcXVlc3QucmVzdWx0LmNyZWF0ZU9iamVjdFN0b3JlKCdyZWNvcmRzJykKKyAgICByZXF1ZXN0Lm9uc3VjY2VzcyA9ICgpID0+IHsgaWYgKGJsb2NrZWQpIHJlcXVlc3QucmVzdWx0LmNsb3NlKCk7IGVsc2UgcmVzb2x2ZShyZXF1ZXN0LnJlc3VsdCkgfQorICAgIHJlcXVlc3Qub25lcnJvciA9ICgpID0+IHJlamVjdChyZXF1ZXN0LmVycm9yKQorICAgIHJlcXVlc3Qub25ibG9ja2VkID0gKCkgPT4geyBibG9ja2VkID0gdHJ1ZTsgcmVqZWN0KG5ldyBFcnJvcignSW5kZXhlZERCIGJsb2NrZWQnKSkgfQorICB9KQorICByZXR1cm4geworICAgIGFzeW5jIHJlYWQoa2V5KSB7CisgICAgICBjb25zdCBkYiA9IGF3YWl0IG9wZW4oKQorICAgICAgcmV0dXJuIG5ldyBQcm9taXNlKChyZXNvbHZlLCByZWplY3QpID0+IHsKKyAgICAgICAgY29uc3QgdHggPSBkYi50cmFuc2FjdGlvbigncmVjb3JkcycsICdyZWFkb25seScpCisgICAgICAgIGNvbnN0IHJlcXVlc3QgPSB0eC5vYmplY3RTdG9yZSgncmVjb3JkcycpLmdldChrZXkpCisgICAgICAgIHR4Lm9uY29tcGxldGUgPSAoKSA9PiB7IGRiLmNsb3NlKCk7IHJlc29sdmUocmVxdWVzdC5yZXN1bHQpIH0KKyAgICAgICAgdHgub25hYm9ydCA9IHR4Lm9uZXJyb3IgPSAoKSA9PiB7IGRiLmNsb3NlKCk7IHJlamVjdCh0eC5lcnJvciA/PyByZXF1ZXN0LmVycm9yKSB9CisgICAgICB9KQorICAgIH0sCisgICAgYXN5bmMgd3JpdGUoa2V5LCB2YWx1ZSkgeworICAgICAgY29uc3QgZGIgPSBhd2FpdCBvcGVuKCkKKyAgICAgIHJldHVybiBuZXcgUHJvbWlzZTx2b2lkPigocmVzb2x2ZSwgcmVqZWN0KSA9PiB7CisgICAgICAgIGNvbnN0IHR4ID0gZGIudHJhbnNhY3Rpb24oJ3JlY29yZHMnLCAncmVhZHdyaXRlJykKKyAgICAgICAgdHgub2JqZWN0U3RvcmUoJ3JlY29yZHMnKS5wdXQodmFsdWUsIGtleSkKKyAgICAgICAgdHgub25jb21wbGV0ZSA9ICgpID0+IHsgZGIuY2xvc2UoKTsgcmVzb2x2ZSgpIH0KKyAgICAgICAgdHgub25hYm9ydCA9IHR4Lm9uZXJyb3IgPSAoKSA9PiB7IGRiLmNsb3NlKCk7IHJlamVjdCh0eC5lcnJvcikgfQorICAgICAgfSkKKyAgICB9LAorICB9Cit9CisKK2NvbnN0IHZhbGlkID0gKHZhbHVlOiB1bmtub3duKTogdmFsdWUgaXMgc3RyaW5nID0+IHsKKyAgaWYgKHR5cGVvZiB2YWx1ZSAhPT0gJ3N0cmluZycpIHJldHVybiBmYWxzZQorICB0cnkgeyByZXR1cm4gQXJyYXkuaXNBcnJheShKU09OLnBhcnNlKHZhbHVlKSkgfSBjYXRjaCB7IHJldHVybiBmYWxzZSB9Cit9CisKK2V4cG9ydCBmdW5jdGlvbiBjcmVhdGVEdXJhYmxlUmVwb3NpdG9yeShzdG9yZTogRHVyYWJsZVN0b3JlKSB7CisgIGNvbnN0IGNhY2hlID0gbmV3IE1hcDxEdXJhYmxlS2V5LCBzdHJpbmc+KCkKKyAgY29uc3QgcmVhZGFibGUgPSBuZXcgU2V0PER1cmFibGVLZXk+KCkKKyAgY29uc3QgdGFpbHMgPSBuZXcgTWFwPER1cmFibGVLZXksIFByb21pc2U8dW5rbm93bj4+KCkKKyAgY29uc3QgZXJyb3JzID0gbmV3IE1hcDxEdXJhYmxlS2V5LCBzdHJpbmc+KCkKKyAgY29uc3QgdW5zYWZlID0gbmV3IFNldDxEdXJhYmxlS2V5PigpCisgIGNvbnN0IGxlZ2FjeVJlYWQgPSAoa2V5OiBEdXJhYmxlS2V5KSA9PiB7IHRyeSB7IHJldHVybiBsb2NhbFN0b3JhZ2UuZ2V0SXRlbShrZXkpIH0gY2F0Y2ggeyByZXR1cm4gbnVsbCB9IH0KKyAgbGV0IGluaXRpYWxpemluZzogUHJvbWlzZTx2b2lkPiB8IHVuZGVmaW5lZAorICBjb25zdCBxdWV1ZSA9IDxUPihrZXk6IER1cmFibGVLZXksIHdvcms6ICgpID0+IFByb21pc2U8VD4pID0+IHsKKyAgICBjb25zdCBuZXh0ID0gKHRhaWxzLmdldChrZXkpID8/IFByb21pc2UucmVzb2x2ZSgpKS50aGVuKHdvcmssIHdvcmspCisgICAgdGFpbHMuc2V0KGtleSwgbmV4dC5jYXRjaCgoKSA9PiB1bmRlZmluZWQpKQorICAgIHJldHVybiBuZXh0CisgIH0KKyAgY29uc3QgZmFpbHVyZSA9IChrZXk6IER1cmFibGVLZXksIGVycm9yOiB1bmtub3duKSA9PiB7CisgICAgZXJyb3JzLnNldChrZXksIGVycm9yIGluc3RhbmNlb2YgRXJyb3IgPyBlcnJvci5uYW1lIDogJ1N0b3JhZ2VFcnJvcicpCisgICAgcmVwb3J0U3RvcmFnZUZhaWx1cmUoa2V5KQorICB9CisgIGNvbnN0IGNvbW1pdCA9IGFzeW5jIChrZXk6IER1cmFibGVLZXksIHZhbHVlOiBzdHJpbmcpID0+IHsKKyAgICBhd2FpdCBzdG9yZS53cml0ZShrZXksIHZhbHVlKQorICAgIGlmIChhd2FpdCBzdG9yZS5yZWFkKGtleSkgIT09IHZhbHVlKSB0aHJvdyBuZXcgRXJyb3IoJ0luZGV4ZWREQiB2ZXJpZmljYXRpb24gZmFpbGVkJykKKyAgICBlcnJvcnMuZGVsZXRlKGtleSkKKyAgICByZXBvcnRTdG9yYWdlU3VjY2VzcyhrZXkpCisgIH0KKyAgcmV0dXJuIHsKKyAgICBpbml0aWFsaXplKCkgeworICAgICAgLy8gQ2FsbGVkIGJlZm9yZSBSZWFjdCBtb3VudHMsIHNvIG5vIGluaXRpYWwgZW1wdHkgc3RhdGUgY2FuIG92ZXJ3cml0ZSBzYXZlZCBkYXRhLgorICAgICAgaW5pdGlhbGl6aW5nID8/PSBQcm9taXNlLmFsbChEVVJBQkxFX0tFWVMubWFwKGtleSA9PiBxdWV1ZShrZXksIGFzeW5jICgpID0+IHsKKyAgICAgICAgY29uc3QgbGVnYWN5ID0gbGVnYWN5UmVhZChrZXkpCisgICAgICAgIGlmIChsZWdhY3kgIT09IG51bGwpIGNhY2hlLnNldChrZXksIGxlZ2FjeSkKKyAgICAgICAgdHJ5IHsKKyAgICAgICAgICBjb25zdCBzdG9yZWQgPSBhd2FpdCBzdG9yZS5yZWFkKGtleSkKKyAgICAgICAgICBpZiAoc3RvcmVkICE9PSB1bmRlZmluZWQgJiYgIXZhbGlkKHN0b3JlZCkpIHRocm93IG5ldyBFcnJvcignSW52YWxpZCBJbmRleGVkREIgcmVjb3JkJykKKyAgICAgICAgICBpZiAoc3RvcmVkICE9PSB1bmRlZmluZWQpIGNhY2hlLnNldChrZXksIHN0b3JlZCkKKyAgICAgICAgICBlbHNlIHsKKyAgICAgICAgICAgIGNvbnN0IHZhbHVlID0gbGVnYWN5ID8/ICdbXScKKyAgICAgICAgICAgIGlmICghdmFsaWQodmFsdWUpKSB0aHJvdyBuZXcgRXJyb3IoJ0ludmFsaWQgbGVnYWN5IHJlY29yZCcpCisgICAgICAgICAgICBhd2FpdCBjb21taXQoa2V5LCB2YWx1ZSkKKyAgICAgICAgICAgIGNhY2hlLnNldChrZXksIHZhbHVlKQorICAgICAgICAgIH0KKyAgICAgICAgICByZWFkYWJsZS5hZGQoa2V5KQorICAgICAgICB9IGNhdGNoIChlcnJvcikgeyB1bnNhZmUuYWRkKGtleSk7IGZhaWx1cmUoa2V5LCBlcnJvcikgfQorICAgICAgfSkpKS50aGVuKCgpID0+IHVuZGVmaW5lZCkKKyAgICAgIHJldHVybiBpbml0aWFsaXppbmcKKyAgICB9LAorICAgIHJlYWQoa2V5OiBEdXJhYmxlS2V5KTogc3RyaW5nIHwgbnVsbCB7CisgICAgICByZXR1cm4gY2FjaGUuZ2V0KGtleSkgPz8gbGVnYWN5UmVhZChrZXkpCisgICAgfSwKKyAgICBzYXZlKGtleTogRHVyYWJsZUtleSwgdmFsdWU6IHN0cmluZyk6IFByb21pc2U8Ym9vbGVhbj4geworICAgICAgLy8gU25hcHNob3QgdGhlIHZhbHVlIG5vdywgYmVmb3JlIGFzeW5jaHJvbm91cyB3b3JrLiBLZWVwIGZhaWxlZCB1cGRhdGVzIGluIG1lbW9yeS4KKyAgICAgIGNhY2hlLnNldChrZXksIHZhbHVlKQorICAgICAgcmV0dXJuIHF1ZXVlKGtleSwgYXN5bmMgKCkgPT4geworICAgICAgICB0cnkgeworICAgICAgICAgIGlmICh1bnNhZmUuaGFzKGtleSkpIHRocm93IG5ldyBFcnJvcignU3RhcnR1cCBzdG9yYWdlIGNoZWNrIGZhaWxlZDsgcHJlc2VydmVkIGNvcGllcyBhcmUgcmVhZC1vbmx5IHVudGlsIHJlc3RhcnQnKQorICAgICAgICAgIGlmICghdmFsaWQodmFsdWUpKSB0aHJvdyBuZXcgRXJyb3IoJ0ludmFsaWQgc2F2ZSBwYXlsb2FkJykKKyAgICAgICAgICBpZiAoIXJlYWRhYmxlLmhhcyhrZXkpKSB7CisgICAgICAgICAgICAvLyBBIGZhaWxlZCByZWFkIGlzIG5ldmVyIHBlcm1pc3Npb24gdG8gb3ZlcndyaXRlIGFuIHVua25vd24gc2F2ZWQgcmVjb3JkLgorICAgICAgICAgICAgY29uc3Qgc3RvcmVkID0gYXdhaXQgc3RvcmUucmVhZChrZXkpCisgICAgICAgICAgICBpZiAoc3RvcmVkICE9PSB1bmRlZmluZWQpIHRocm93IG5ldyBFcnJvcignUmVjb3ZlcnkgcmVxdWlyZWQgYmVmb3JlIG92ZXJ3cml0aW5nIHVucmVhZCBzdGF0ZScpCisgICAgICAgICAgICByZWFkYWJsZS5hZGQoa2V5KQorICAgICAgICAgIH0KKyAgICAgICAgICBhd2FpdCBjb21taXQoa2V5LCB2YWx1ZSkKKyAgICAgICAgICAvLyBQcmVzZXJ2ZSB0aGUgb3JpZ2luYWwgbG9jYWxTdG9yYWdlIGNvcHksIGluY2x1ZGluZyB3aGVuIElEQiBzdWNjZWVkcy4KKyAgICAgICAgICAvLyBObyBldmljdGlvbiwgdHJpbW1pbmcgb3IgYXVkaW8gZGVsZXRpb24gaXMgdXNlZCB0byBnZXQgbW9yZSByb29tLgorICAgICAgICAgIHJldHVybiB0cnVlCisgICAgICAgIH0gY2F0Y2ggKGVycm9yKSB7IGZhaWx1cmUoa2V5LCBlcnJvcik7IHJldHVybiBmYWxzZSB9CisgICAgICB9KQorICAgIH0sCisgICAgZGlhZ25vc3RpY3MoKSB7CisgICAgICByZXR1cm4gRFVSQUJMRV9LRVlTLm1hcChrZXkgPT4gKHsga2V5LCBjaGFyYWN0ZXJzOiAoY2FjaGUuZ2V0KGtleSkgPz8gbGVnYWN5UmVhZChrZXkpID8/ICcnKS5sZW5ndGgsCisgICAgICAgIHJlYWRhYmxlOiByZWFkYWJsZS5oYXMoa2V5KSwgZXJyb3I6IGVycm9ycy5nZXQoa2V5KSA/PyBudWxsIH0pKQorICAgIH0sCisgIH0KK30KK2NvbnN0IHJlcG9zaXRvcnkgPSBjcmVhdGVEdXJhYmxlUmVwb3NpdG9yeShpbmRleGVkRGJEdXJhYmxlU3RvcmUoKSkKK2xldCBhY3RpdmUgPSBmYWxzZQorZXhwb3J0IGNvbnN0IGlzRHVyYWJsZVN0b3JhZ2VBY3RpdmUgPSAoKSA9PiBhY3RpdmUKK2V4cG9ydCBmdW5jdGlvbiBpbml0aWFsaXplRHVyYWJsZVN0b3JhZ2UoKSB7IGFjdGl2ZSA9IHRydWU7IHJldHVybiByZXBvc2l0b3J5LmluaXRpYWxpemUoKSB9CitleHBvcnQgY29uc3QgcmVhZER1cmFibGVJdGVtID0gcmVwb3NpdG9yeS5yZWFkCitleHBvcnQgY29uc3Qgc2F2ZUR1cmFibGVJdGVtID0gcmVwb3NpdG9yeS5zYXZlCitleHBvcnQgY29uc3QgZHVyYWJsZVN0b3JhZ2VEaWFnbm9zdGljcyA9IHJlcG9zaXRvcnkuZGlhZ25vc3RpY3MKZGlmZiAtLWdpdCBhL3Rlc3RzL3VuaXQvZHVyYWJsZVN0b3JhZ2UudGVzdC50cyBiL3Rlc3RzL3VuaXQvZHVyYWJsZVN0b3JhZ2UudGVzdC50cwpuZXcgZmlsZSBtb2RlIDEwMDY0NAotLS0gL2Rldi9udWxsCisrKyBiL3Rlc3RzL3VuaXQvZHVyYWJsZVN0b3JhZ2UudGVzdC50cwpAQCAtMCwwICsxLDUwIEBACisvLyBAdml0ZXN0LWVudmlyb25tZW50IGpzZG9tCitpbXBvcnQgeyBiZWZvcmVFYWNoLCBkZXNjcmliZSwgZXhwZWN0LCBpdCB9IGZyb20gJ3ZpdGVzdCcKK2ltcG9ydCB7IGNyZWF0ZUR1cmFibGVSZXBvc2l0b3J5LCBEVVJBQkxFX0tFWVMsIHR5cGUgRHVyYWJsZVN0b3JlIH0gZnJvbSAnLi4vLi4vc3JjL2R1cmFibGVTdG9yYWdlJworaW1wb3J0IHsgZ2V0U3RvcmFnZUZhaWx1cmVzLCByZXBvcnRTdG9yYWdlU3VjY2VzcyB9IGZyb20gJy4uLy4uL3NyYy9zYWZlU3RvcmFnZScKK2NsYXNzIFN0b3JlIGltcGxlbWVudHMgRHVyYWJsZVN0b3JlIHsKKyB2YWx1ZXM9bmV3IE1hcDxzdHJpbmcsdW5rbm93bj4oKTtmYWlsUmVhZD1mYWxzZTtmYWlsV3JpdGU9ZmFsc2U7Y29ycnVwdD1mYWxzZTt3cml0ZXM6c3RyaW5nW109W10KKyBhc3luYyByZWFkKGtleTpzdHJpbmcpe2lmKHRoaXMuZmFpbFJlYWQpdGhyb3cgbmV3IERPTUV4Y2VwdGlvbignYmxvY2tlZCcsJ1Vua25vd25FcnJvcicpO3JldHVybiB0aGlzLnZhbHVlcy5nZXQoa2V5KX0KKyBhc3luYyB3cml0ZShrZXk6c3RyaW5nLHZhbHVlOnN0cmluZyl7aWYodGhpcy5mYWlsV3JpdGUpdGhyb3cgbmV3IERPTUV4Y2VwdGlvbigncXVvdGEnLCdRdW90YUV4Y2VlZGVkRXJyb3InKTt0aGlzLndyaXRlcy5wdXNoKGtleSk7dGhpcy52YWx1ZXMuc2V0KGtleSx0aGlzLmNvcnJ1cHQ/J1sid3JvbmciXSc6dmFsdWUpfQorfQorYmVmb3JlRWFjaCgoKT0+e2xvY2FsU3RvcmFnZS5jbGVhcigpO2Zvcihjb25zdCBrIG9mIERVUkFCTEVfS0VZUylyZXBvcnRTdG9yYWdlU3VjY2VzcyhrKX0pCitkZXNjcmliZSgnbGlicmFyeSBhbmQgbGlzdGVuaW5nIGhpc3RvcnkgZHVyYWJsZSBwZXJzaXN0ZW5jZScsKCk9PnsKKyBpdCgnY29waWVzIGVhY2ggbGVnYWN5IHZhbHVlIGV4YWN0bHkgd2l0aG91dCBjaGFuZ2luZyBpdHMgYnl0ZXMgb3IgdW5yZWxhdGVkIGRhdGEnLGFzeW5jKCk9PnsKKyAgY29uc3Qgcz1uZXcgU3RvcmUoKSxyPWNyZWF0ZUR1cmFibGVSZXBvc2l0b3J5KHMpO2Zvcihjb25zdCBrIG9mIERVUkFCTEVfS0VZUylsb2NhbFN0b3JhZ2Uuc2V0SXRlbShrLCdbIHsgImlkIjogIk9MRCIgfSBdJyk7bG9jYWxTdG9yYWdlLnNldEl0ZW0oJ2tlZXAnLCdLRUVQJyk7YXdhaXQgci5pbml0aWFsaXplKCk7CisgIGZvcihjb25zdCBrIG9mIERVUkFCTEVfS0VZUyl7ZXhwZWN0KHIucmVhZChrKSkudG9CZSgnWyB7ICJpZCI6ICJPTEQiIH0gXScpO2V4cGVjdChzLnZhbHVlcy5nZXQoaykpLnRvQmUoJ1sgeyAiaWQiOiAiT0xEIiB9IF0nKTtleHBlY3QobG9jYWxTdG9yYWdlLmdldEl0ZW0oaykpLnRvQmUoJ1sgeyAiaWQiOiAiT0xEIiB9IF0nKX07ZXhwZWN0KGxvY2FsU3RvcmFnZS5nZXRJdGVtKCdrZWVwJykpLnRvQmUoJ0tFRVAnKQorIH0pCisgaXQoJ3VzZXMgYXV0aG9yaXRhdGl2ZSBJREIgZGF0YSBvbiByZXN0YXJ0LCBuZXZlciBvdmVyd3JpdGVzIHdpdGggc3RhbGUgbGVnYWN5Jyxhc3luYygpPT57CisgIGNvbnN0IHM9bmV3IFN0b3JlKCk7cy52YWx1ZXMuc2V0KERVUkFCTEVfS0VZU1swXSwnW3siaWQiOiJORVcifV0nKTtsb2NhbFN0b3JhZ2Uuc2V0SXRlbShEVVJBQkxFX0tFWVNbMF0sJ1t7ImlkIjoiT0xEIn1dJyk7Y29uc3Qgcj1jcmVhdGVEdXJhYmxlUmVwb3NpdG9yeShzKTthd2FpdCByLmluaXRpYWxpemUoKTtleHBlY3Qoci5yZWFkKERVUkFCTEVfS0VZU1swXSkpLnRvQmUoJ1t7ImlkIjoiTkVXIn1dJyk7ZXhwZWN0KGxvY2FsU3RvcmFnZS5nZXRJdGVtKERVUkFCTEVfS0VZU1swXSkpLnRvQmUoJ1t7ImlkIjoiT0xEIn1dJyk7ZXhwZWN0KHMud3JpdGVzKS5ub3QudG9Db250YWluKERVUkFCTEVfS0VZU1swXSkKKyB9KQorIGl0KCdzZXJpYWxpemVzIHNhdmVzIG9uIGVhY2gga2V5LCBwcmVzZXJ2aW5nIHRoZSBsYXRlc3QgdXNlciB1cGRhdGUnLGFzeW5jKCk9PnsKKyAgY29uc3Qgcz1uZXcgU3RvcmUoKSxyPWNyZWF0ZUR1cmFibGVSZXBvc2l0b3J5KHMpO2F3YWl0IHIuaW5pdGlhbGl6ZSgpO2F3YWl0IFByb21pc2UuYWxsKFtyLnNhdmUoRFVSQUJMRV9LRVlTWzBdLCdbIkZJUlNUIl0nKSxyLnNhdmUoRFVSQUJMRV9LRVlTWzBdLCdbIkxBU1QiXScpXSk7ZXhwZWN0KHMudmFsdWVzLmdldChEVVJBQkxFX0tFWVNbMF0pKS50b0JlKCdbIkxBU1QiXScpO2V4cGVjdChyLnJlYWQoRFVSQUJMRV9LRVlTWzBdKSkudG9CZSgnWyJMQVNUIl0nKQorIH0pCisgaXQoJ3ByZXNlcnZlcyBmYWlsZWQgY2hhbmdlcyBpbiBtZW1vcnkgYW5kIG9sZCBkaXNrIGRhdGEgb24gSURCIHF1b3RhJyxhc3luYygpPT57CisgIGNvbnN0IHM9bmV3IFN0b3JlKCkscj1jcmVhdGVEdXJhYmxlUmVwb3NpdG9yeShzKTthd2FpdCByLmluaXRpYWxpemUoKTtzLmZhaWxXcml0ZT10cnVlO2V4cGVjdChhd2FpdCByLnNhdmUoRFVSQUJMRV9LRVlTWzBdLCdbIlVOU0FWRUQiXScpKS50b0JlKGZhbHNlKTtleHBlY3Qocy52YWx1ZXMuZ2V0KERVUkFCTEVfS0VZU1swXSkpLnRvQmUoJ1tdJyk7ZXhwZWN0KHIucmVhZChEVVJBQkxFX0tFWVNbMF0pKS50b0JlKCdbIlVOU0FWRUQiXScpO2V4cGVjdChnZXRTdG9yYWdlRmFpbHVyZXMoKSkudG9Db250YWluKCdiaWJsaW90aMOocXVlJyk7cy5mYWlsV3JpdGU9ZmFsc2U7ZXhwZWN0KGF3YWl0IHIuc2F2ZShEVVJBQkxFX0tFWVNbMF0sJ1siVU5TQVZFRCJdJykpLnRvQmUodHJ1ZSk7ZXhwZWN0KGdldFN0b3JhZ2VGYWlsdXJlcygpKS5ub3QudG9Db250YWluKCdiaWJsaW90aMOocXVlJykKKyB9KQorIGl0KCduZXZlciBvdmVyd3JpdGVzIGFuIHVucmVhZGFibGUgZXhpc3RpbmcgSURCIHJlY29yZCcsYXN5bmMoKT0+eworICBjb25zdCBzPW5ldyBTdG9yZSgpO3MudmFsdWVzLnNldChEVVJBQkxFX0tFWVNbMF0sJ1siS0VFUCJdJyk7cy5mYWlsUmVhZD10cnVlO2NvbnN0IHI9Y3JlYXRlRHVyYWJsZVJlcG9zaXRvcnkocyk7YXdhaXQgci5pbml0aWFsaXplKCk7ZXhwZWN0KGF3YWl0IHIuc2F2ZShEVVJBQkxFX0tFWVNbMF0sJ1siTkVXIl0nKSkudG9CZShmYWxzZSk7cy5mYWlsUmVhZD1mYWxzZTtleHBlY3QoYXdhaXQgci5zYXZlKERVUkFCTEVfS0VZU1swXSwnWyJORVciXScpKS50b0JlKGZhbHNlKTtleHBlY3Qocy52YWx1ZXMuZ2V0KERVUkFCTEVfS0VZU1swXSkpLnRvQmUoJ1siS0VFUCJdJyk7ZXhwZWN0KHMud3JpdGVzKS50b0VxdWFsKFtdKQorIH0pCisgaXQoJ3JlamVjdHMgbWFsZm9ybWVkIGR1cmFibGUgcmVjb3JkcyBhbmQga2VlcHMgbGVnYWN5IGF2YWlsYWJsZScsYXN5bmMoKT0+eworICBjb25zdCBzPW5ldyBTdG9yZSgpO3MudmFsdWVzLnNldChEVVJBQkxFX0tFWVNbMF0sJ3tiYWQnKTtsb2NhbFN0b3JhZ2Uuc2V0SXRlbShEVVJBQkxFX0tFWVNbMF0sJ1siTEVHQUNZIl0nKTtjb25zdCByPWNyZWF0ZUR1cmFibGVSZXBvc2l0b3J5KHMpO2F3YWl0IHIuaW5pdGlhbGl6ZSgpO2V4cGVjdChyLnJlYWQoRFVSQUJMRV9LRVlTWzBdKSkudG9CZSgnWyJMRUdBQ1kiXScpO2V4cGVjdChhd2FpdCByLnNhdmUoRFVSQUJMRV9LRVlTWzBdLCdbIk5FVyJdJykpLnRvQmUoZmFsc2UpO2V4cGVjdChzLnZhbHVlcy5nZXQoRFVSQUJMRV9LRVlTWzBdKSkudG9CZSgne2JhZCcpCisgfSkKKyBpdCgnZG9lcyBub3QgcmVwb3J0IHN1Y2Nlc3MgdW50aWwgZXhhY3QgcmVhZGJhY2sgcGFzc2VzJyxhc3luYygpPT57CisgIGNvbnN0IHM9bmV3IFN0b3JlKCkscj1jcmVhdGVEdXJhYmxlUmVwb3NpdG9yeShzKTthd2FpdCByLmluaXRpYWxpemUoKTtzLmNvcnJ1cHQ9dHJ1ZTtleHBlY3QoYXdhaXQgci5zYXZlKERVUkFCTEVfS0VZU1sxXSwnWyJISVNUT1JZIl0nKSkudG9CZShmYWxzZSk7ZXhwZWN0KGdldFN0b3JhZ2VGYWlsdXJlcygpKS50b0NvbnRhaW4oJ2hpc3RvcmlxdWUgZOKAmcOpY291dGUnKQorIH0pCisgaXQoJ2RvZXMgbm90IGNsZWFyIGEgZmFpbHVyZSBpbiBhbm90aGVyIHJlY29yZCcsYXN5bmMoKT0+eworICBjb25zdCBzPW5ldyBTdG9yZSgpLHI9Y3JlYXRlRHVyYWJsZVJlcG9zaXRvcnkocyk7YXdhaXQgci5pbml0aWFsaXplKCk7cy5mYWlsV3JpdGU9dHJ1ZTthd2FpdCByLnNhdmUoRFVSQUJMRV9LRVlTWzFdLCdbIkZBSUxFRCJdJyk7cy5mYWlsV3JpdGU9ZmFsc2U7YXdhaXQgci5zYXZlKERVUkFCTEVfS0VZU1swXSwnWyJPSyJdJyk7ZXhwZWN0KGdldFN0b3JhZ2VGYWlsdXJlcygpKS50b0NvbnRhaW4oJ2hpc3RvcmlxdWUgZOKAmcOpY291dGUnKQorIH0pCisgaXQoJ2RvZXMgbm90IHRyaW0gYSBsYXJnZSBjYXRhbG9ndWUgd2hlbiBpdCBleGNlZWRzIGxvY2FsU3RvcmFnZSBjYXBhY2l0eScsYXN5bmMoKT0+eworICBjb25zdCBzPW5ldyBTdG9yZSgpLHI9Y3JlYXRlRHVyYWJsZVJlcG9zaXRvcnkocyk7YXdhaXQgci5pbml0aWFsaXplKCk7Y29uc3QgdmFsdWU9SlNPTi5zdHJpbmdpZnkoW3tpZDonQklHJyxkZXNjcmlwdGlvbjoneCcucmVwZWF0KDYqMTAyNCoxMDI0KX1dKTtleHBlY3QoYXdhaXQgci5zYXZlKERVUkFCTEVfS0VZU1swXSx2YWx1ZSkpLnRvQmUodHJ1ZSk7ZXhwZWN0KHMudmFsdWVzLmdldChEVVJBQkxFX0tFWVNbMF0pKS50b0JlKHZhbHVlKQorIH0pCisgaXQoJ25ldmVyIHJlcGxhY2VzIG1hbGZvcm1lZCBsZWdhY3kgd2l0aCBlbXB0eSBVSSBzdGF0ZSBhZnRlciBmYWlsZWQgbWlncmF0aW9uJyxhc3luYygpPT57CisgIGNvbnN0IHM9bmV3IFN0b3JlKCk7bG9jYWxTdG9yYWdlLnNldEl0ZW0oRFVSQUJMRV9LRVlTWzBdLCd7YnJva2VuLWJ1dC1yZWNvdmVyYWJsZScpO2NvbnN0IHI9Y3JlYXRlRHVyYWJsZVJlcG9zaXRvcnkocyk7YXdhaXQgci5pbml0aWFsaXplKCk7ZXhwZWN0KGF3YWl0IHIuc2F2ZShEVVJBQkxFX0tFWVNbMF0sJ1tdJykpLnRvQmUoZmFsc2UpO2V4cGVjdChsb2NhbFN0b3JhZ2UuZ2V0SXRlbShEVVJBQkxFX0tFWVNbMF0pKS50b0JlKCd7YnJva2VuLWJ1dC1yZWNvdmVyYWJsZScpO2V4cGVjdChzLnZhbHVlcy5oYXMoRFVSQUJMRV9LRVlTWzBdKSkudG9CZShmYWxzZSkKKyB9KQorIGl0KCdrZWVwcyBsZWdhY3kgcmVhZGFibGUgYW5kIHVud3JpdGFibGUgd2hlbiBJbmRleGVkREIgaXMgdW5hdmFpbGFibGUnLGFzeW5jKCk9PnsKKyAgY29uc3Qgcz1uZXcgU3RvcmUoKTtzLmZhaWxSZWFkPXRydWU7bG9jYWxTdG9yYWdlLnNldEl0ZW0oRFVSQUJMRV9LRVlTWzFdLCdbIkxFR0FDWS1ISVNUT1JZIl0nKTtjb25zdCByPWNyZWF0ZUR1cmFibGVSZXBvc2l0b3J5KHMpO2F3YWl0IHIuaW5pdGlhbGl6ZSgpO2V4cGVjdChyLnJlYWQoRFVSQUJMRV9LRVlTWzFdKSkudG9CZSgnWyJMRUdBQ1ktSElTVE9SWSJdJyk7ZXhwZWN0KGF3YWl0IHIuc2F2ZShEVVJBQkxFX0tFWVNbMV0sJ1tdJykpLnRvQmUoZmFsc2UpO2V4cGVjdChsb2NhbFN0b3JhZ2UuZ2V0SXRlbShEVVJBQkxFX0tFWVNbMV0pKS50b0JlKCdbIkxFR0FDWS1ISVNUT1JZIl0nKTtleHBlY3Qocy53cml0ZXMpLnRvRXF1YWwoW10pCisgfSkKKyBpdCgncmVlbnRyYW50IGluaXRpYWxpemF0aW9uIGNvcGllcyBldmVyeSBsZWdhY3kgcmVjb3JkIG9ubHkgb25jZScsYXN5bmMoKT0+eworICBjb25zdCBzPW5ldyBTdG9yZSgpLHI9Y3JlYXRlRHVyYWJsZVJlcG9zaXRvcnkocyk7Zm9yKGNvbnN0IGsgb2YgRFVSQUJMRV9LRVlTKWxvY2FsU3RvcmFnZS5zZXRJdGVtKGssJ1siS0VFUCJdJyk7YXdhaXQgUHJvbWlzZS5hbGwoW3IuaW5pdGlhbGl6ZSgpLHIuaW5pdGlhbGl6ZSgpXSk7ZXhwZWN0KHMud3JpdGVzLmxlbmd0aCkudG9CZSgzKTtmb3IoY29uc3QgayBvZiBEVVJBQkxFX0tFWVMpZXhwZWN0KHMudmFsdWVzLmdldChrKSkudG9CZSgnWyJLRUVQIl0nKQorIH0pCisKK30pCg== | base64 -d > /tmp/full-storage.patch
+          git apply --check /tmp/full-storage.patch
+          git apply /tmp/full-storage.patch
+          sha256sum src/App.tsx src/history.ts src/main.tsx src/storage.ts src/durableStorage.ts tests/unit/durableStorage.test.ts | tee /tmp/qa-out/tested-files.txt
+          npm ci
+          npm run test:unit
+          npx vitest run tests/unit/completedEpisodeStorage.test.ts tests/unit/catalogRetention.test.ts tests/unit/durableStorage.test.ts
+          for dir in baseline .; do
+            cd "$GITHUB_WORKSPACE/$dir"
+            if [ "$dir" = baseline ]; then version=1.0.231; npm ci; else version=1.0.232; fi
+            sed -i "s|\"version\": \"[^\"]*\"|\"version\": \"$version\"|" package.json
+            npm run version:sync
+            # Historical baseline's sync script is broken: pin native version explicitly for this QA build.
+            if [ "$dir" = baseline ]; then
+              sed -i 's/versionCode [0-9]*/versionCode 10231/;s/versionName "[^"]*"/versionName "1.0.231"/' android/app/build.gradle
+            fi
+            printf 'VITE_API_URL=http://localhost:8099\nVITE_UPDATE_MANIFEST_URL=http://localhost:8099/podmix/update.json\nVITE_APP_VERSION=1.0.225\n' > .env.production
+            npm run build
+            npx cap sync android
+            cd android && ./gradlew assembleNgDebug
+          done
+          cd "$GITHUB_WORKSPACE"
+          sha256sum baseline/android/app/build/outputs/apk/ng/debug/app-ng-debug.apk android/app/build/outputs/apk/ng/debug/app-ng-debug.apk | tee /tmp/qa-out/apks-sha256.txt
+          # CI debug signing must be equal for an in-place update. Stop otherwise.
+          APKSIGNER=$(find "$ANDROID_HOME/build-tools" -name apksigner | sort -V | tail -1)
+          "$APKSIGNER" verify --print-certs baseline/android/app/build/outputs/apk/ng/debug/app-ng-debug.apk > /tmp/qa-out/baseline-cert.txt
+          "$APKSIGNER" verify --print-certs android/app/build/outputs/apk/ng/debug/app-ng-debug.apk > /tmp/qa-out/candidate-cert.txt
+          diff <(grep 'certificate SHA-256 digest' /tmp/qa-out/baseline-cert.txt) <(grep 'certificate SHA-256 digest' /tmp/qa-out/candidate-cert.txt)
+      - name: Write isolated mock and emulator sequencer
+        run: |
+          cat > /tmp/mock_upgrade.py <<'PY'
+          import io,json,os,time,wave
+          from http.server import BaseHTTPRequestHandler,HTTPServer
+          class H(BaseHTTPRequestHandler):
+            def log_message(self,*args):pass
+            def send(self,data,ctype='application/json',code=200):
+              self.send_response(code);self.send_header('Content-Type',ctype);self.send_header('Access-Control-Allow-Origin','*');self.send_header('Content-Length',str(len(data)));self.end_headers();self.wfile.write(data)
+            def do_OPTIONS(self):
+              self.send_response(204);self.send_header('Access-Control-Allow-Origin','*');self.send_header('Access-Control-Allow-Methods','GET, POST, OPTIONS');self.send_header('Access-Control-Allow-Headers','Content-Type');self.end_headers()
+            def do_GET(self):
+              if self.path.endswith('.wav'):
+                out=io.BytesIO()
+                with wave.open(out,'wb') as w:w.setnchannels(1);w.setsampwidth(2);w.setframerate(8000);w.writeframes(b'\0\0'*8000)
+                self.send(out.getvalue(),'audio/wav');return
+              if self.path.startswith('/podmix/update.json'):
+                self.send(json.dumps(dict(versionCode=10229,versionName='1.0.229-ng',minimumVersionCode=1,apkUrl='http://localhost:8099/never.apk',publishedAt='2026-11-10T00:00:00Z',notes=[])).encode());return
+              self.send(b'{}')
+            def do_POST(self):
+              if self.path=='/v1/catalog/rss' and os.path.exists('/tmp/qa-out/fresh-feed.json'):
+                with open('/tmp/qa-out/refresh.log','a') as f:f.write('RSS_REFRESH\n')
+                self.send(open('/tmp/qa-out/fresh-feed.json','rb').read());return
+              self.send(b'{"message":"QA unknown route"}',code=404)
+          HTTPServer(('127.0.0.1',8099),H).serve_forever()
+          PY
+          cat > /tmp/qa-completed-upgrade.py <<'PY'
+          # Isolated emulator QA, never user data. Run 'seed' on baseline 230, 'verify' on candidate 231.
+          import base64, hashlib, json, os, subprocess, sys, threading, time, urllib.request
+          MODE=sys.argv[1]
+          OUT='/tmp/qa-out'
+          os.makedirs(OUT,exist_ok=True)
+          def adb(*args):
+              r=subprocess.run(['adb',*args],capture_output=True,text=True,timeout=60)
+              if r.returncode: raise RuntimeError(r.stderr)
+              return r.stdout.strip()
+          def log(s): print('UPGRADE_QA '+s,flush=True)
+          pid=adb('shell','pidof','com.podmix.next.ng')
+          if not pid: raise RuntimeError('app not running')
+          adb('forward','tcp:9222','localabstract:webview_devtools_remote_'+pid)
+          page=None
+          for _ in range(30):
+              try:
+                  targets=json.load(urllib.request.urlopen('http://127.0.0.1:9222/json/list',timeout=3))
+                  page=next(t for t in targets if t.get('type')=='page' and 'localhost' in t.get('url',''));break
+              except Exception:time.sleep(1)
+          if not page:raise RuntimeError('no WebView')
+          import websocket
+          ws=websocket.create_connection(page['webSocketDebuggerUrl'],timeout=30)
+          ws.settimeout(60); seq=0; pending={};lock=threading.Lock()
+          def reader():
+              while True:
+                  try:m=json.loads(ws.recv())
+                  except Exception:return
+                  if 'id' in m:
+                      with lock:pending[m['id']]=m
+          threading.Thread(target=reader,daemon=True).start()
+          def send(method,params=None):
+              global seq
+              seq+=1;i=seq;ws.send(json.dumps({'id':i,'method':method,'params':params or {}}));end=time.time()+60
+              while time.time()<end:
+                  with lock:
+                      if i in pending:return pending.pop(i)
+                  time.sleep(.05)
+              raise RuntimeError('CDP timeout '+method)
+          def ev(script):
+              r=send('Runtime.evaluate',{'expression':script,'awaitPromise':True,'returnByValue':True})
+              if 'exceptionDetails' in r.get('result',{}):raise RuntimeError(str(r))
+              return r.get('result',{}).get('result',{}).get('value')
+          def native(method,args=None):
+              return ev('Capacitor.nativePromise("PodmixPlayer",'+json.dumps(method)+','+json.dumps(args or {})+')')
+          def check(ok,name):
+              log(('PASS ' if ok else 'FAIL ')+name)
+              if not ok:raise AssertionError(name)
+          def shot(name):
+              data=send('Page.captureScreenshot',{'format':'jpeg','quality':55}).get('result',{}).get('data')
+              check(bool(data),'capture '+name)
+              open(OUT+'/'+name+'.jpg','wb').write(base64.b64decode(data))
+              for i in range(0,len(data),1900):print('B64IMG '+name+' '+data[i:i+1900],flush=True)
+          send('Runtime.enable');send('Page.enable')
+          for _ in range(30):
+              if ev('!!document.querySelector("button[aria-label]")'):break
+              time.sleep(1)
+          info=native('getAppInfo');log('APPINFO '+json.dumps(info))
+          check(info.get('versionCode')==(10231 if MODE=='seed' else 10232),'native version '+MODE)
+          if MODE=='seed':
+              # A real generated WAV download, not fabricated metadata or a placeholder file.
+              native('download',{'id':'qa-download','url':'http://localhost:8099/qa.wav','title':'QA DOWNLOAD'})
+              state=None
+              for _ in range(60):
+                  state=native('getDownload',{'id':'qa-download'})
+                  if state.get('status')=='completed':break
+                  if state.get('status')=='failed':raise RuntimeError(str(state))
+                  time.sleep(1)
+              check(state.get('status')=='completed','baseline real download completed')
+              def episode(id,date='2026-11-12'):
+                  return dict(id=id,title=id,description='QA synthetic only',publishedAt=date,duration='45:00',audioUrl='http://localhost:8099/'+id+'.wav',artworkUrl='')
+              old=[episode(id,'2020-01-01') for id in ['qa-favorite','qa-position','qa-download','qa-annotation','qa-idb-only']]
+              track=dict(id=1,time=12,artist='QA ARTIST',title='QA FAVORITE TRACK',confidence=1,source='manual',evidence=['QA annotation retained'])
+              old[0]['tracks']=[track];old[3]['tracks']=[dict(track,id=2,title='QA MANUAL NOTE')]
+              fresh=[episode('qa-recent-'+str(i)) for i in range(100)]
+              source=dict(id='qa-source',kind='podcast',title='QA PRESERVATION',description='Synthetic test only',artworkUrl='',episodes=old+fresh)
+              history=[dict(id='qa-position',title='qa-position',artist=source['title'],url=old[1]['audioUrl'],position=1234,duration=2700,playedAt='2026-11-13T07:00:00Z')]
+              offline=[dict(id='qa-download',title='qa-download',artist=source['title'],remoteUrl=old[2]['audioUrl'],localUri=state.get('localUri'),status='completed',bytesDownloaded=state.get('bytesDownloaded'),totalBytes=state.get('totalBytes'),addedAt='2026-11-12T12:00:00Z')]
+              session=[dict(history[0],sessionId='qa-session',startedAt=history[0]['playedAt'],updatedAt=history[0]['playedAt']),dict(id='qa-recent-1',title='qa-recent-1',artist=source['title'],url=fresh[1]['audioUrl'],position=2700,duration=2700,playedAt='2026-11-13T09:00:00Z',sessionId='qa-finished-session',startedAt='2026-11-13T08:00:00Z',updatedAt='2026-11-13T09:00:00Z')]
+              settings=json.loads(ev('localStorage.getItem("podmix-settings-v1")') or '{}')
+              settings.update(automaticAnalysis=False,continuousPlayback=True,musicBrainzValidation=False,mobileDataSaver=False,maxPodcastEpisodes=100,maxShowEpisodes=100,maxDjEpisodes=100)
+              seeds={'podmix-api-url':'http://localhost:8099','podmix-catalog-v1':json.dumps([source]),'podmix-history-v1':json.dumps(history),'podmix-offline-v1':json.dumps(offline),'podmix-track-favorites-v1':json.dumps(['qa-favorite::track::1::0']),'podmix-listening-sessions-v1':json.dumps(session),'podmix-completed-episodes-v1':json.dumps(['qa-position']),'podmix-settings-v1':json.dumps(settings),'podmix-last-feed-refresh':'0'}
+              # Force-stop JS before it can apply old 230's unsafe pruning to the oversized seed.
+              # The write is one synchronous turn; React state is not changed or reloaded on baseline.
+              native('syncFavorites',{'ids':['qa-favorite::track::1::0']})
+              ev('(()=>{const seeds='+json.dumps(seeds)+';for(const [k,v] of Object.entries(seeds)){let c=v;try{c=JSON.stringify(JSON.parse(v))}catch{}localStorage.setItem(k,c)};return "seeded"})()')
+              # Synthetic existing IndexedDB from the older migration; no legacy key contains this ID.
+              check(ev('''(async()=>{const db=await new Promise((res,rej)=>{const r=indexedDB.open('podmix-completed-episodes',1);r.onupgradeneeded=()=>r.result.createObjectStore('completed-episodes');r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)});await new Promise((res,rej)=>{const t=db.transaction('completed-episodes','readwrite');t.objectStore('completed-episodes').put(['qa-idb-only'],'ids');t.oncomplete=res;t.onerror=()=>rej(t.error)});db.close();return true})()'''),'seed existing IDB-only completed episode')
+              quota=ev('''(()=>{let lo=0,hi=12*1024*1024;while(lo<hi){const mid=Math.ceil((lo+hi)/2);try{localStorage.setItem('qa-synthetic-quota-filler','x'.repeat(mid));lo=mid}catch(e){if(e.name!=='QuotaExceededError')throw e;hi=mid-1}}let error;try{localStorage.setItem('podmix-completed-episodes-v1',JSON.stringify(['qa-recent-1','qa-position']))}catch(e){error=e.name}return {fillerCharacters:lo,error,legacy:localStorage.getItem('podmix-completed-episodes-v1')}})()''')
+              check(quota.get('error')=='QuotaExceededError','real WebView localStorage quota refuses new completion')
+              open(OUT+'/quota-before.json','w').write(json.dumps(quota));log('QUOTA '+json.dumps(quota))
+              # Chromium localStorage commits to disk asynchronously. Freeze JS, not storage IO,
+              # so the baseline cannot rewrite the injected fixture before it is durable.
+              send('Debugger.enable');send('Debugger.pause')
+              time.sleep(8)
+              send('Debugger.resume')
+              actual=ev('Object.fromEntries(Object.keys(localStorage).map(k=>[k,localStorage.getItem(k)]))')
+              check(len(json.loads(actual.get('podmix-catalog-v1','[]'))[0]['episodes'])==105,'baseline seeded catalogue still105 before force-stop')
+              actual.pop('qa-synthetic-quota-filler',None)
+              open(OUT+'/baseline-local.json','w').write(json.dumps(actual))
+              open(OUT+'/baseline-download.json','w').write(json.dumps(state))
+              open(OUT+'/fresh-feed.json','w').write(json.dumps(dict(source,episodes=fresh)))
+              # No reload or React state update on old version after oversized seed.
+              adb('shell','am','force-stop','com.podmix.next.ng')
+              log('BASELINE_READY data persisted, app stopped, no uninstall/clear')
+          else:
+              before=json.load(open(OUT+'/baseline-local.json'))
+              def read_ids():
+                  return ev("""(async()=>{const db=await new Promise((res,rej)=>{const r=indexedDB.open('podmix-completed-episodes',1);r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)});return await new Promise((res,rej)=>{const t=db.transaction('completed-episodes','readonly');const r=t.objectStore('completed-episodes').get('ids');t.oncomplete=()=>{db.close();res(r.result)};t.onerror=()=>rej(t.error)})})()""")
+              for _ in range(40):
+                  ids=read_ids()
+                  if 'qa-recent-1' in ids and 'qa-position' in ids:break
+                  time.sleep(.5)
+              check(all(i in ids for i in ['qa-position','qa-idb-only','qa-recent-1']),'IDB keeps legacy, IDB-only and new recovered completion')
+              after=ev('Object.fromEntries(Object.keys(localStorage).filter(k=>k!=="qa-synthetic-quota-filler").map(k=>[k,localStorage.getItem(k)]))')
+              open(OUT+'/candidate-before-assertions-'+MODE+'.json','w').write(json.dumps(after))
+              check(ev('localStorage.getItem("qa-synthetic-quota-filler").length')==json.load(open(OUT+'/quota-before.json'))['fillerCharacters'],'quota filler unchanged, nothing freed')
+              check(after['podmix-completed-episodes-v1']==before['podmix-completed-episodes-v1'],'legacy completed copy untouched under quota')
+              for key in ['podmix-history-v1','podmix-listening-sessions-v1','podmix-track-favorites-v1','podmix-settings-v1','podmix-offline-v1']:
+                  expected=json.loads(before[key]);observed=json.loads(after[key])
+                  if key=='podmix-listening-sessions-v1':
+                      expected=sorted(expected,key=lambda x:x['sessionId']);observed=sorted(observed,key=lambda x:x['sessionId'])
+                  check(observed==expected,'preserved '+key)
+              episodes=json.loads(after['podmix-catalog-v1'])[0]['episodes']
+              check(len(episodes)==105,'all105 episodes retained including IDB-only reference')
+              for id in ['qa-favorite','qa-position','qa-download','qa-annotation','qa-idb-only']:
+                  check(any(e['id']==id for e in episodes),'referenced '+id)
+              check(not ev('!!document.querySelector(".storage-warning")'),'no storage warning after verified IDB save')
+              download=native('getDownload',{'id':'qa-download'});baseline=json.load(open(OUT+'/baseline-download.json'))
+              check(download.get('status')=='completed' and download.get('localUri')==baseline.get('localUri'),'native download still completed same URI')
+              open(OUT+'/candidate-local-'+MODE+'.json','w').write(json.dumps(after))
+              open(OUT+'/completed-ids-'+MODE+'.json','w').write(json.dumps(ids))
+              # Exercise actual UI import -> React save effects -> IDB, not direct database writes.
+              def durable():
+                  return ev("""(async()=>{const db=await new Promise((res,rej)=>{const r=indexedDB.open('podmix-library-history',1);r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)});const out={};for(const k of ['podmix-catalog-v1','podmix-history-v1','podmix-listening-sessions-v1'])out[k]=await new Promise((res,rej)=>{const t=db.transaction('records','readonly'),r=t.objectStore('records').get(k);t.oncomplete=()=>res(JSON.parse(r.result));t.onerror=()=>rej(t.error)});db.close();return out})()""")
+              records=durable()
+              if MODE=='verify':
+                  payload=dict(format='podmix-next-backup',catalog=records['podmix-catalog-v1'],history=records['podmix-history-v1'],listeningSessions=records['podmix-listening-sessions-v1'],favoriteTrackIds=json.loads(before['podmix-track-favorites-v1']),offlineEpisodes=json.loads(before['podmix-offline-v1']),settings=json.loads(before['podmix-settings-v1']),completedEpisodeIds=['qa-new-import-completed'])
+                  payload['catalog'][0]['title']='QA DURABLE UPDATED UNDER QUOTA'
+                  payload['history'][0]['position']=2345
+                  payload['listeningSessions'][0]['position']=2345
+                  ev('document.querySelector("button[aria-label=Réglages]").click()')
+                  time.sleep(1)
+                  ev('(()=>{const input=document.querySelector("input[accept=\\"application/json,.json\\"]"),dt=new DataTransfer();dt.items.add(new File(['+json.dumps(json.dumps(payload))+'],"qa.json",{type:"application/json"}));input.files=dt.files;input.dispatchEvent(new Event("change",{bubbles:true}));return true})()')
+                  for _ in range(40):
+                      records=durable()
+                      if records['podmix-history-v1'][0]['position']==2345:break
+                      time.sleep(.25)
+              check(records['podmix-catalog-v1'][0]['title']=='QA DURABLE UPDATED UNDER QUOTA','durable catalogue UI change survives '+MODE)
+              check(records['podmix-history-v1'][0]['position']==2345,'durable history UI change survives '+MODE)
+              check(records['podmix-listening-sessions-v1'][0]['position']==2345,'durable session UI change survives '+MODE)
+              check('qa-new-import-completed' in read_ids(),'durable completed UI change survives '+MODE)
+              check(not ev('!!document.querySelector(".storage-warning")'),'no warning after all durable writes '+MODE)
+              open(OUT+'/durable-'+MODE+'.json','w').write(json.dumps(records))
+              shot('completed-'+MODE)
+              log('COMPLETED_PERSISTENCE_SUCCESS '+MODE+' with real localStorage quota, legacy and all references preserved')
+          PY
+          cat > /tmp/run_upgrade.sh <<'SH'
+          set -euo pipefail
+          python3 /tmp/mock_upgrade.py > /tmp/qa-out/mock.log 2>&1 &
+          mock=$!
+          trap 'kill $mock || true' EXIT
+          pip3 install --user websocket-client
+          adb reverse tcp:8099 tcp:8099
+          adb install -r baseline/android/app/build/outputs/apk/ng/debug/app-ng-debug.apk
+          adb shell am start -n com.podmix.next.ng/com.podmix.next.MainActivity
+          sleep 8
+          python3 /tmp/qa-completed-upgrade.py seed
+          adb shell sha256sum /sdcard/Android/data/com.podmix.next.ng/files/Podcasts/podmix/qa-download.offline | tee /tmp/qa-out/download-before.sha256
+          # No uninstall, no clear, no backup restore. Real same-package install -r.
+          adb install -r android/app/build/outputs/apk/ng/debug/app-ng-debug.apk
+          adb shell am start -n com.podmix.next.ng/com.podmix.next.MainActivity
+          sleep 8
+          python3 /tmp/qa-completed-upgrade.py verify
+          adb shell am force-stop com.podmix.next.ng
+          adb shell am start -n com.podmix.next.ng/com.podmix.next.MainActivity
+          sleep 8
+          python3 /tmp/qa-completed-upgrade.py restart
+          adb shell sha256sum /sdcard/Android/data/com.podmix.next.ng/files/Podcasts/podmix/qa-download.offline | tee /tmp/qa-out/download-after.sha256
+          diff /tmp/qa-out/download-before.sha256 /tmp/qa-out/download-after.sha256
+          echo 'UPGRADE_QA PASS physical downloaded file SHA256 unchanged'
+          SH
+          python3 -m py_compile /tmp/mock_upgrade.py /tmp/qa-completed-upgrade.py
+      - name: KVM
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+          sudo chmod 666 /dev/kvm
+      - uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 33
+          arch: x86_64
+          profile: pixel_2
+          emulator-options: -no-snapshot -no-window -noaudio -no-boot-anim -gpu swiftshader_indirect -camera-back none
+          script: bash /tmp/run_upgrade.sh
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: qa-full-persistence-upgrade-evidence
+          path: /tmp/qa-out
+          retention-days: 14
