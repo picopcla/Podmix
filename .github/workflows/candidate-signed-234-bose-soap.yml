@@ -1,0 +1,384 @@
+name: candidate-signed-234-bose-soap
+on:
+  workflow_dispatch:
+  push:
+    branches: [fix/231-update-nag-and-home-grid]
+    paths: [.github/workflows/candidate-signed-234-bose-soap.yml, qa-read-release-storage.py]
+permissions:
+  contents: read
+concurrency:
+  group: candidate-signed-234-bose-soap
+  cancel-in-progress: true
+jobs:
+  signed-qa:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+        with:
+          ref: 467fc300b583d4e01e8986934928aecb55a2aa3c
+          path: baseline
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+      - name: Build production web234 and isolated synthetic baseline231
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p out /tmp/qa-out
+          git rev-parse HEAD | tee /tmp/qa-out/source-head.txt
+          sha256sum -c <<'HASHES'
+          c1800a12c63eaa00cc6d7f1acadd8602b8dffec5de32e5d29e25c493e9de4e35  src/App.tsx
+          2e0d255e0f0a6c938cf9ab358ef43f8ccaeb582c729100602d1c6c2a50470b5b  src/history.ts
+          d2977ae2947233330d334a7582cfa083149ad9263fa50e15b7e113c38fa70f15  src/main.tsx
+          d06a2a36bde66b7eeeeab0c4cfbf359f131280f25e6bcb31158226a1727e486c  src/storage.ts
+          a40f7947f5453c00d32c7e71bdaca72c99f6d5e4661cd5a309e0873ea940da84  src/durableStorage.ts
+          068dfddb99dde5c4b428550b1ddaa54274ff02581e3db572846bc6008a44a68e  src/completedEpisodeStorage.ts
+          a394cac8284842dc83faf09526665e27348d682ad5341a147c29491a42a865ef  src/text.ts
+          9300715adb6e0d50be65befe091a55ae44de086d37d90a05763f76a40401814b  src/credits.ts
+          0a3607ebef7d1e2dd9ef9de19a946d350c2625380038638355b01bf88f0a1ed2  src/api.ts
+          62bee20bb8df19d8972aa9414359ebc06cb468907b80dd3b009a11131220c44c  src/catalogMerge.ts
+          ce60baa5e2c47eea767191633f2ade8b4310bf2a118d04de8ecde9542601b223  src/App.css
+          5848b24ab766e513846e0f023ecd1c4aa2a568d641901eec689477c9fc948714  android/app/src/main/java/com/podmix/next/player/BoseAvTransport.java
+          ce1246adc0251813d1efc2a51acbb402de9e46c58ed55386440de543881f2837  android/app/src/test/java/com/podmix/next/player/BoseAvTransportTest.java
+          HASHES
+          npm ci
+          npx vitest run tests/unit/*.test.ts
+          node --experimental-strip-types tests/unit/text-entities.test.mjs
+          node --experimental-strip-types tests/unit/player-state-order.test.mjs
+          node -e "const fs=require('fs');let p=JSON.parse(fs.readFileSync('package.json'));p.version='1.0.234';fs.writeFileSync('package.json',JSON.stringify(p,null,2))"
+          npm run version:sync
+          grep -Fx 'VITE_API_URL=https://podmix.mb4.fr/podmix-api' .env.production
+          grep -Fx 'VITE_APP_VERSION=1.0.234' .env.production
+          npm run build
+          npx cap sync android
+          cd baseline
+          npm ci
+          sed -i 's/versionCode [0-9]*/versionCode 10231/;s/versionName "[^"]*"/versionName "1.0.231"/' android/app/build.gradle
+          printf 'VITE_API_URL=http://localhost:8099\nVITE_APP_VERSION=1.0.231\n' > .env.production
+          npm run build
+          npx cap sync android
+      - name: Build using existing approved distribution key
+        env:
+          KS_B64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          KS_PASS: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          KEY_PASS: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          trap 'rm -f android/podmix-release.keystore android/release-signing.properties baseline/android/podmix-release.keystore baseline/android/release-signing.properties' EXIT
+          for value in KS_B64 KS_PASS KEY_ALIAS KEY_PASS; do test -n "${!value}"; done
+          for dir in android baseline/android; do
+            printf '%s' "$KS_B64" | base64 -d > "$dir/podmix-release.keystore"
+            printf 'storeFile=podmix-release.keystore\nstorePassword=%s\nkeyAlias=%s\nkeyPassword=%s\n' "$KS_PASS" "$KEY_ALIAS" "$KEY_PASS" > "$dir/release-signing.properties"
+          done
+          (cd android && ./gradlew testNgDebugUnitTest assembleNgRelease assembleNgDebug)
+          (cd baseline/android && ./gradlew assembleNgDebug)
+          cp android/app/build/outputs/apk/ng/release/app-ng-release.apk out/app-ng-candidate-signed.apk
+          cp android/app/build/outputs/apk/ng/debug/app-ng-debug.apk out/app-ng-verification-twin.apk
+          sha256sum out/app-ng-candidate-signed.apk | tee out/app-ng-candidate-signed.apk.sha256
+      - name: Verify candidate and published233 identity and certificate
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          gh release download v1.0.232-ng-full-persistence -R "$GITHUB_REPOSITORY" -p app-ng-release.apk -O out/published232.apk
+          echo 'bbb9e26bc18253031006d3d864a279a7c294f91650299906b6b62f29adb82974  out/published232.apk' | sha256sum -c -
+          gh release download v1.0.231-ng-preservation -R "$GITHUB_REPOSITORY" -p app-ng-release.apk -O out/published231.apk
+          echo '88bdc0f018d6294f5d02f413bf3d2939cfd09a61ccdee470b8ea11c43a68007e  out/published231.apk' | sha256sum -c -
+          BT=$(find "$ANDROID_HOME/build-tools" -mindepth 1 -maxdepth 1 -type d | sort -V | tail -1)
+          gh release download v1.0.233-ng-regressions -R "$GITHUB_REPOSITORY" -p app-ng-release.apk -O out/published233.apk
+          echo '9861b51d93a288c62ed97f1c0198a4e3ec1bf5f7108275e439a94c1db60b8170  out/published233.apk' | sha256sum -c -
+          for file in out/published233.apk out/app-ng-candidate-signed.apk out/app-ng-verification-twin.apk out/published232.apk out/published231.apk baseline/android/app/build/outputs/apk/ng/debug/app-ng-debug.apk; do
+            "$BT/apksigner" verify --print-certs "$file" | tee -a /tmp/qa-out/certificates.txt
+            cert=$("$BT/apksigner" verify --print-certs "$file" | sed -n 's/.*certificate SHA-256 digest: //p' | head -1)
+            test "$cert" = b27d46c092c63432e7e274d227c0e465cf91ab4656f67c1a0b511402505c8b8c
+            "$BT/aapt2" dump badging "$file" | sed -n '1p' | tee -a /tmp/qa-out/package-identities.txt
+          done
+          "$BT/aapt2" dump badging out/app-ng-candidate-signed.apk > /tmp/qa-out/candidate-badging.txt
+          grep -Fq "name='com.podmix.next.ng' versionCode='10234' versionName='1.0.234-ng'" /tmp/qa-out/candidate-badging.txt
+          if grep -q application-debuggable /tmp/qa-out/candidate-badging.txt; then echo 'Candidate must not be debuggable'; exit 1; fi
+      - name: Prepare isolated offline release upgrade test
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq libleveldb-dev
+          pip3 install --user plyvel websocket-client
+          python3 -m py_compile qa-read-release-storage.py qa/qa/qa-upgrade-retention.py
+          cat > /tmp/qa-completed-seed.py <<'PY'
+          # Isolated emulator QA, never user data. Run 'seed' on baseline 230, 'verify' on candidate 231.
+          import base64, hashlib, json, os, subprocess, sys, threading, time, urllib.request
+          MODE=sys.argv[1]
+          OUT='/tmp/qa-out'
+          os.makedirs(OUT,exist_ok=True)
+          def adb(*args):
+              r=subprocess.run(['adb',*args],capture_output=True,text=True,timeout=60)
+              if r.returncode: raise RuntimeError(r.stderr)
+              return r.stdout.strip()
+          def log(s): print('UPGRADE_QA '+s,flush=True)
+          pid=adb('shell','pidof','com.podmix.next.ng')
+          if not pid: raise RuntimeError('app not running')
+          adb('forward','tcp:9222','localabstract:webview_devtools_remote_'+pid)
+          page=None
+          for _ in range(30):
+              try:
+                  targets=json.load(urllib.request.urlopen('http://127.0.0.1:9222/json/list',timeout=3))
+                  page=next(t for t in targets if t.get('type')=='page' and 'localhost' in t.get('url',''));break
+              except Exception:time.sleep(1)
+          if not page:raise RuntimeError('no WebView')
+          import websocket
+          ws=websocket.create_connection(page['webSocketDebuggerUrl'],timeout=30)
+          ws.settimeout(60); seq=0; pending={};lock=threading.Lock()
+          def reader():
+              while True:
+                  try:m=json.loads(ws.recv())
+                  except Exception:return
+                  if 'id' in m:
+                      with lock:pending[m['id']]=m
+          threading.Thread(target=reader,daemon=True).start()
+          def send(method,params=None):
+              global seq
+              seq+=1;i=seq;ws.send(json.dumps({'id':i,'method':method,'params':params or {}}));end=time.time()+60
+              while time.time()<end:
+                  with lock:
+                      if i in pending:return pending.pop(i)
+                  time.sleep(.05)
+              raise RuntimeError('CDP timeout '+method)
+          def ev(script):
+              r=send('Runtime.evaluate',{'expression':script,'awaitPromise':True,'returnByValue':True})
+              if 'exceptionDetails' in r.get('result',{}):raise RuntimeError(str(r))
+              return r.get('result',{}).get('result',{}).get('value')
+          def native(method,args=None):
+              return ev('Capacitor.nativePromise("PodmixPlayer",'+json.dumps(method)+','+json.dumps(args or {})+')')
+          def check(ok,name):
+              log(('PASS ' if ok else 'FAIL ')+name)
+              if not ok:raise AssertionError(name)
+          def shot(name):
+              data=send('Page.captureScreenshot',{'format':'jpeg','quality':55}).get('result',{}).get('data')
+              check(bool(data),'capture '+name)
+              open(OUT+'/'+name+'.jpg','wb').write(base64.b64decode(data))
+              for i in range(0,len(data),1900):print('B64IMG '+name+' '+data[i:i+1900],flush=True)
+          send('Runtime.enable');send('Page.enable')
+          for _ in range(30):
+              if ev('!!document.querySelector("button[aria-label]")'):break
+              time.sleep(1)
+          info=native('getAppInfo');log('APPINFO '+json.dumps(info))
+          check(info.get('versionCode')==(10231 if MODE=='seed' else 10234),'native version '+MODE)
+          if MODE=='seed':
+              # A real generated WAV download, not fabricated metadata or a placeholder file.
+              native('download',{'id':'qa-download','url':'http://localhost:8099/qa.wav','title':'QA DOWNLOAD'})
+              state=None
+              for _ in range(60):
+                  state=native('getDownload',{'id':'qa-download'})
+                  if state.get('status')=='completed':break
+                  if state.get('status')=='failed':raise RuntimeError(str(state))
+                  time.sleep(1)
+              check(state.get('status')=='completed','baseline real download completed')
+              def episode(id,date='2026-11-12'):
+                  return dict(id=id,title=id,description='QA synthetic only',publishedAt=date,duration='45:00',audioUrl='http://localhost:8099/'+id+'.wav',artworkUrl='')
+              old=[episode(id,'2020-01-01') for id in ['qa-favorite','qa-position','qa-download','qa-annotation','qa-idb-only']]
+              track=dict(id=1,time=12,artist='QA ARTIST',title='QA FAVORITE TRACK',confidence=1,source='manual',evidence=['QA annotation retained'])
+              old[0]['tracks']=[track];old[3]['tracks']=[dict(track,id=2,title='QA MANUAL NOTE')]
+              fresh=[episode('qa-recent-'+str(i)) for i in range(100)]
+              source=dict(id='qa-source',kind='podcast',title='QA PRESERVATION',description='Synthetic test only',artworkUrl='',episodes=old+fresh)
+              history=[dict(id='qa-position',title='qa-position',artist=source['title'],url=old[1]['audioUrl'],position=1234,duration=2700,playedAt='2026-11-13T07:00:00Z')]
+              offline=[dict(id='qa-download',title='qa-download',artist=source['title'],remoteUrl=old[2]['audioUrl'],localUri=state.get('localUri'),status='completed',bytesDownloaded=state.get('bytesDownloaded'),totalBytes=state.get('totalBytes'),addedAt='2026-11-12T12:00:00Z')]
+              session=[dict(history[0],sessionId='qa-session',startedAt=history[0]['playedAt'],updatedAt=history[0]['playedAt']),dict(id='qa-recent-1',title='qa-recent-1',artist=source['title'],url=fresh[1]['audioUrl'],position=2700,duration=2700,playedAt='2026-11-13T09:00:00Z',sessionId='qa-finished-session',startedAt='2026-11-13T08:00:00Z',updatedAt='2026-11-13T09:00:00Z')]
+              settings=json.loads(ev('localStorage.getItem("podmix-settings-v1")') or '{}')
+              settings.update(automaticAnalysis=False,continuousPlayback=True,musicBrainzValidation=False,mobileDataSaver=False,maxPodcastEpisodes=100,maxShowEpisodes=100,maxDjEpisodes=100)
+              seeds={'podmix-api-url':'http://localhost:8099','podmix-catalog-v1':json.dumps([source]),'podmix-history-v1':json.dumps(history),'podmix-offline-v1':json.dumps(offline),'podmix-track-favorites-v1':json.dumps(['qa-favorite::track::1::0']),'podmix-listening-sessions-v1':json.dumps(session),'podmix-completed-episodes-v1':json.dumps(['qa-position']),'podmix-settings-v1':json.dumps(settings),'podmix-last-feed-refresh':'0'}
+              # Force-stop JS before it can apply old 230's unsafe pruning to the oversized seed.
+              # The write is one synchronous turn; React state is not changed or reloaded on baseline.
+              native('syncFavorites',{'ids':['qa-favorite::track::1::0']})
+              ev('(()=>{const seeds='+json.dumps(seeds)+';for(const [k,v] of Object.entries(seeds)){let c=v;try{c=JSON.stringify(JSON.parse(v))}catch{}localStorage.setItem(k,c)};return "seeded"})()')
+              # Synthetic existing IndexedDB from the older migration; no legacy key contains this ID.
+              check(ev('''(async()=>{const db=await new Promise((res,rej)=>{const r=indexedDB.open('podmix-completed-episodes',1);r.onupgradeneeded=()=>r.result.createObjectStore('completed-episodes');r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)});await new Promise((res,rej)=>{const t=db.transaction('completed-episodes','readwrite');t.objectStore('completed-episodes').put(['qa-idb-only'],'ids');t.oncomplete=res;t.onerror=()=>rej(t.error)});db.close();return true})()'''),'seed existing IDB-only completed episode')
+              quota=ev('''(()=>{let lo=0,hi=12*1024*1024;while(lo<hi){const mid=Math.ceil((lo+hi)/2);try{localStorage.setItem('qa-synthetic-quota-filler','x'.repeat(mid));lo=mid}catch(e){if(e.name!=='QuotaExceededError')throw e;hi=mid-1}}let error;try{localStorage.setItem('podmix-completed-episodes-v1',JSON.stringify(['qa-recent-1','qa-position']))}catch(e){error=e.name}return {fillerCharacters:lo,error,legacy:localStorage.getItem('podmix-completed-episodes-v1')}})()''')
+              check(quota.get('error')=='QuotaExceededError','real WebView localStorage quota refuses new completion')
+              open(OUT+'/quota-before.json','w').write(json.dumps(quota));log('QUOTA '+json.dumps(quota))
+              # Chromium localStorage commits to disk asynchronously. Freeze JS, not storage IO,
+              # so the baseline cannot rewrite the injected fixture before it is durable.
+              send('Debugger.enable');send('Debugger.pause')
+              time.sleep(8)
+              send('Debugger.resume')
+              actual=ev('Object.fromEntries(Object.keys(localStorage).map(k=>[k,localStorage.getItem(k)]))')
+              check(len(json.loads(actual.get('podmix-catalog-v1','[]'))[0]['episodes'])==105,'baseline seeded catalogue still105 before force-stop')
+              actual.pop('qa-synthetic-quota-filler',None)
+              open(OUT+'/baseline-local.json','w').write(json.dumps(actual))
+              open(OUT+'/baseline-download.json','w').write(json.dumps(state))
+              open(OUT+'/fresh-feed.json','w').write(json.dumps(dict(source,episodes=fresh)))
+              # No reload or React state update on old version after oversized seed.
+              adb('shell','am','force-stop','com.podmix.next.ng')
+              log('BASELINE_READY data persisted, app stopped, no uninstall/clear')
+          else:
+              rows=ev("""(async()=>{const db=await new Promise((res,rej)=>{const r=indexedDB.open('podmix-library-history',1);r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)});const values={};for(const key of ['podmix-catalog-v1','podmix-history-v1','podmix-listening-sessions-v1','podmix-offline-v1']){values[key]=await new Promise((res,rej)=>{const tx=db.transaction('records');const r=tx.objectStore('records').get(key);tx.oncomplete=()=>res(JSON.parse(r.result));tx.onerror=()=>rej(tx.error)})}db.close();return values})()""")
+              before=json.load(open(OUT+'/baseline-local.json'))
+              old=json.loads(before['podmix-catalog-v1'])[0];new=rows['podmix-catalog-v1'][0]
+              check(len(new['episodes'])==105,'durable all105 episodes preserved across233to234')
+              check(new==old,'durable full synthetic catalogue exact: IDs URLs titles tracks annotations')
+              for key in ['podmix-history-v1','podmix-offline-v1']:
+                  check(rows[key]==json.loads(before[key]),'durable preserved '+key)
+              expected=sorted(json.loads(before['podmix-listening-sessions-v1']),key=lambda x:x['sessionId'])
+              actual=sorted(rows['podmix-listening-sessions-v1'],key=lambda x:x['sessionId'])
+              check(actual==expected,'durable listening sessions retained')
+              check(not ev("!!document.querySelector('.storage-warning')"),'no storage warning in loaded upgraded library')
+              shot('production234-durable-library-inspection')
+              json.dump(rows,open(OUT+'/durable-after-upgrade.json','w'),ensure_ascii=False,indent=2)
+          PY
+          cat > /tmp/qa-release-completed.py <<'PY'
+          # Reads only isolated emulator fixtures, never user data.
+          import json,os,sys
+          import plyvel
+          root=sys.argv[1];out=sys.argv[2]
+          path=os.path.join(root,'app_webview','Default','Local Storage','leveldb')
+          if not os.path.isdir(path):
+              raise RuntimeError('WebView localStorage database not found: '+path)
+          db=plyvel.DB(path,create_if_missing=False)
+          def decode(v):
+              if v[:1]==b'\x01':return v[1:].decode('latin1')
+              if v[:1]==b'\x00':return v[1:].decode('utf-16-le')
+              raise RuntimeError('Unknown Chromium string encoding')
+          result={}
+          for k,v in db:
+              if not k.startswith(b'_'):continue
+              pos=k.find(b'\x00')
+              if pos<0:continue
+              try:key=decode(k[pos+1:])
+              except (UnicodeError,RuntimeError):continue
+              if key.startswith('podmix-'):result[key]=decode(v)
+          db.close()
+          json.dump(result,open(out,'w'),ensure_ascii=False,indent=2)
+          print('RELEASE_QA persisted keys',len(result))
+          
+          before=json.load(open(sys.argv[3]))
+          for key in ['podmix-history-v1','podmix-listening-sessions-v1','podmix-completed-episodes-v1','podmix-track-favorites-v1','podmix-settings-v1','podmix-offline-v1']:
+              a=json.loads(result[key]);b=json.loads(before[key])
+              if key=='podmix-listening-sessions-v1':a=sorted(a,key=lambda x:x['sessionId']);b=sorted(b,key=lambda x:x['sessionId'])
+              assert a==b,key
+              print('RELEASE_QA PASS preserved',key)
+          old=json.loads(before['podmix-catalog-v1'])[0];new=json.loads(result['podmix-catalog-v1'])[0]
+          assert len(new['episodes'])==105
+          for id in ['qa-favorite','qa-position','qa-download','qa-annotation','qa-idb-only']:
+              assert next(x for x in old['episodes'] if x['id']==id)==next(x for x in new['episodes'] if x['id']==id)
+          print('RELEASE_QA PASS all105 episodes and references unchanged')
+          import xml.etree.ElementTree as ET
+          prefs=ET.parse(os.path.join(root,'shared_prefs','podmix-completed-episodes.xml')).getroot()
+          ids={x.attrib['name'] for x in prefs if x.tag=='boolean' and x.attrib.get('value')=='true'}
+          assert {'qa-position','qa-idb-only','qa-recent-1'}<=ids,ids
+          print('RELEASE_QA PASS IDB-only, legacy and newly recovered completed IDs loaded and synced native')
+          xml=open('/tmp/qa-out/release234-ui.xml').read()
+          assert 'Stockage interne plein' not in xml
+          assert 'Sauvegarde impossible' not in xml
+          print('RELEASE_QA PASS no warning in exact non-debuggable candidate launch')
+          PY
+          cat > /tmp/mock_upgrade.py <<'PY'
+          import io,wave
+          from http.server import BaseHTTPRequestHandler,HTTPServer
+          class H(BaseHTTPRequestHandler):
+            def log_message(self,*args):pass
+            def do_GET(self):
+              out=io.BytesIO()
+              with wave.open(out,'wb') as w:w.setnchannels(1);w.setsampwidth(2);w.setframerate(8000);w.writeframes(b'\0\0'*8000)
+              data=out.getvalue();self.send_response(200);self.send_header('Content-Type','audio/wav');self.send_header('Content-Length',str(len(data)));self.end_headers();self.wfile.write(data)
+          HTTPServer(('127.0.0.1',8099),H).serve_forever()
+          PY
+          cat > /tmp/release-upgrade.sh <<'SH'
+          set -euo pipefail
+          python3 /tmp/mock_upgrade.py > /tmp/qa-out/mock.log 2>&1 &
+          mock=$!
+          trap 'kill $mock || true' EXIT
+          adb root
+          adb wait-for-device
+          adb reverse tcp:8099 tcp:8099
+          adb install -r baseline/android/app/build/outputs/apk/ng/debug/app-ng-debug.apk
+          adb shell am start -n com.podmix.next.ng/com.podmix.next.MainActivity
+          sleep 10
+          python3 /tmp/qa-completed-seed.py seed
+          adb shell svc wifi disable
+          adb shell svc data disable
+          adb install -r out/published231.apk
+          adb shell dumpsys package com.podmix.next.ng | grep -E 'versionCode=|versionName=' | tee /tmp/qa-out/baseline-package.txt
+          grep -q versionCode=10231 /tmp/qa-out/baseline-package.txt
+          adb pull /data/data/com.podmix.next.ng /tmp/release-before
+          python3 qa-read-release-storage.py /tmp/release-before /tmp/qa-out/release230-local.json
+          adb shell sha256sum /sdcard/Android/data/com.podmix.next.ng/files/Podcasts/podmix/qa-download.offline > /tmp/qa-out/release-download-before.sha256
+          # Establish a real 232 baseline before upgrading to 233. No uninstall/clear.
+          adb install -r out/published232.apk
+          adb shell am start -n com.podmix.next.ng/com.podmix.next.MainActivity
+          sleep 15
+          adb shell am force-stop com.podmix.next.ng
+          adb shell dumpsys package com.podmix.next.ng | grep -E 'versionCode=|versionName=' | tee /tmp/qa-out/published232-package.txt
+          grep -q versionCode=10232 /tmp/qa-out/published232-package.txt
+          adb pull /data/data/com.podmix.next.ng /tmp/published232-before-upgrade
+          adb install -r out/published233.apk
+          adb shell am start -n com.podmix.next.ng/com.podmix.next.MainActivity
+          sleep 12
+          adb shell am force-stop com.podmix.next.ng
+          adb shell dumpsys package com.podmix.next.ng | grep -E 'versionCode=|versionName=' | tee /tmp/qa-out/published233-package.txt
+          grep -q versionCode=10233 /tmp/qa-out/published233-package.txt
+          adb install -r out/app-ng-candidate-signed.apk
+          adb shell am start -n com.podmix.next.ng/com.podmix.next.MainActivity
+          sleep 15
+          adb shell dumpsys package com.podmix.next.ng | grep -E 'versionCode=|versionName=' | tee /tmp/qa-out/release234-package.txt
+          grep -q versionCode=10234 /tmp/qa-out/release234-package.txt
+          adb shell pidof com.podmix.next.ng
+          adb shell uiautomator dump /sdcard/qa-ui.xml
+          adb pull /sdcard/qa-ui.xml /tmp/qa-out/release234-ui.xml
+          adb exec-out screencap -p > /tmp/qa-out/release234-launch.png
+          python3 - <<'SCREEN'
+          import base64
+          s=base64.b64encode(open('/tmp/qa-out/release234-launch.png','rb').read()).decode()
+          for i in range(0,len(s),1900):print('RELEASEPNG '+s[i:i+1900],flush=True)
+          SCREEN
+          adb shell am force-stop com.podmix.next.ng
+          adb shell am start -n com.podmix.next.ng/com.podmix.next.MainActivity
+          sleep 10
+          adb shell am force-stop com.podmix.next.ng
+          adb pull /data/data/com.podmix.next.ng /tmp/release-after
+          python3 /tmp/qa-release-completed.py /tmp/release-after /tmp/qa-out/release234-local.json /tmp/qa-out/release230-local.json
+          adb shell sha256sum /sdcard/Android/data/com.podmix.next.ng/files/Podcasts/podmix/qa-download.offline > /tmp/qa-out/release-download-after.sha256
+          diff /tmp/qa-out/release-download-before.sha256 /tmp/qa-out/release-download-after.sha256
+          echo 'RELEASE_QA PASS published233 to exact non-debuggable production candidate234, no wipe/uninstall, physical download unchanged'
+          # Same signed source/web/version, debug-only inspection twin. Installed only AFTER exact release234 restart.
+          adb install -r out/app-ng-verification-twin.apk
+          adb shell am start -n com.podmix.next.ng/com.podmix.next.MainActivity
+          sleep 10
+          python3 /tmp/qa-completed-seed.py verify
+          adb shell sha256sum /sdcard/Android/data/com.podmix.next.ng/files/Podcasts/podmix/qa-download.offline > /tmp/qa-out/twin-download-after.sha256
+          diff /tmp/qa-out/release-download-before.sha256 /tmp/qa-out/twin-download-after.sha256
+          SH
+      - name: KVM
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+          sudo chmod 666 /dev/kvm
+      - uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 33
+          arch: x86_64
+          profile: pixel_2
+          emulator-options: -no-snapshot -no-window -noaudio -no-boot-anim -gpu swiftshader_indirect -camera-back none
+          script: bash /tmp/release-upgrade.sh
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: signed234-completed-release-qa-evidence
+          path: /tmp/qa-out
+          retention-days: 14
+      - uses: actions/upload-artifact@v4
+        with:
+          name: podmix234-full-persistence-candidate-signed-apk
+          path: |
+            out/app-ng-candidate-signed.apk
+            out/app-ng-candidate-signed.apk.sha256
+          retention-days: 14
