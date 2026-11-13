@@ -1,3 +1,4 @@
+import { normalizeCatalogSourceText } from './text'
 import type { CatalogSource, Episode } from './domain'
 
 export function mergeEpisode(previous: Episode | undefined, fresh: Episode): Episode {
@@ -33,10 +34,10 @@ export function newEpisodesFromFeed(previous: CatalogSource, fresh: CatalogSourc
 }
 
 export function mergeCatalogSource(previous: CatalogSource, fresh: CatalogSource): CatalogSource {
-  return {
+  return normalizeCatalogSourceText({
     ...previous,
     ...fresh,
     id: previous.id,
     episodes: fresh.episodes.map((episode) => mergeEpisode(matchingPreviousEpisode(previous.episodes, episode), episode)),
-  }
+  })
 }
