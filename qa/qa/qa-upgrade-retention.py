@@ -76,7 +76,8 @@ if MODE=='seed':
     history=[dict(id='qa-position',title='qa-position',artist=source['title'],url=old[1]['audioUrl'],position=1234,duration=2700,playedAt='2026-11-13T07:00:00Z')]
     offline=[dict(id='qa-download',title='qa-download',artist=source['title'],remoteUrl=old[2]['audioUrl'],localUri=state.get('localUri'),status='completed',bytesDownloaded=state.get('bytesDownloaded'),totalBytes=state.get('totalBytes'),addedAt='2026-11-12T12:00:00Z')]
     session=[dict(history[0],sessionId='qa-session',startedAt=history[0]['playedAt'],updatedAt=history[0]['playedAt'])]
-    settings=dict(automaticAnalysis=False,continuousPlayback=True,musicBrainzValidation=False,mobileDataSaver=False,maxPodcastEpisodes=100,maxShowEpisodes=100,maxDjEpisodes=100)
+    settings=json.loads(ev('localStorage.getItem("podmix-settings-v1")') or '{}')
+    settings.update(automaticAnalysis=False,continuousPlayback=True,musicBrainzValidation=False,mobileDataSaver=False,maxPodcastEpisodes=100,maxShowEpisodes=100,maxDjEpisodes=100)
     seeds={'podmix-api-url':'http://localhost:8099','podmix-catalog-v1':json.dumps([source]),'podmix-history-v1':json.dumps(history),'podmix-offline-v1':json.dumps(offline),'podmix-track-favorites-v1':json.dumps(['qa-favorite::track::1::0']),'podmix-listening-sessions-v1':json.dumps(session),'podmix-completed-episodes-v1':json.dumps(['qa-position']),'podmix-settings-v1':json.dumps(settings),'podmix-last-feed-refresh':'0'}
     # Force-stop JS before it can apply old 230's unsafe pruning to the oversized seed.
     # The write is one synchronous turn; React state is not changed or reloaded on baseline.
