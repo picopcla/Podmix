@@ -1,0 +1,555 @@
+name: podmix-complete-checks
+
+# Validation web/serveur/Android et controle SoundTouch simule, sans publication.
+# - build DEBUG ng sans URL serveur prod (.env.production neutralise)
+# - aucun APK publie, aucune mutation prod, aucune donnee reelle
+# - serveur mock local au runner + fausse SoundTouch HTTP
+# - capture: console WebView, reseau, etat DOM horodate, logcat, captures
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [fix/231-update-nag-and-home-grid]
+    paths: ['.github/workflows/podmix-complete-checks.yml']
+
+concurrency:
+  group: podmix-complete-checks
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  web-server:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: npm ci --no-audit --no-fund
+      - name: All Node assertion scripts and all TypeScript unit tests
+        run: |
+          set -euo pipefail
+          for file in tests/unit/*.test.mjs; do node --experimental-strip-types "$file"; done
+          npx vitest run tests/unit/*.test.ts
+      - name: Lint and production build
+        run: |
+          npm run lint
+          npm run build
+      - name: Complete server tests including experimental landmarks
+        run: |
+          python -m pip install -r server/requirements.txt scipy
+          python -m unittest discover -s server/tests -v
+  repro:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+      - name: Neutraliser l URL serveur prod pour ce build de test
+        run: |
+          set -euo pipefail
+          sed -i 's|^VITE_API_URL=.*|VITE_API_URL=|' .env.production
+          sed -i 's|^VITE_UPDATE_MANIFEST_URL=.*|VITE_UPDATE_MANIFEST_URL=|' .env.production
+          grep -c 'podmix.mb4.fr' .env.production && { echo 'URL prod encore presente'; exit 1; } || echo 'aucune URL prod dans le build'
+      - run: npm ci
+      - name: Android JVM unit tests (real exit status)
+        run: |
+          npm run build
+          npx cap sync android
+          cd android
+          ./gradlew testNgDebugUnitTest
+      - name: Construire l APK ng debug (non distribue)
+        run: |
+          set -euo pipefail
+          npm run version:sync
+          npm run build
+          npx cap sync android
+          cd android && ./gradlew assembleNgDebug
+          ls -l app/build/outputs/apk/ng/debug/
+      - name: Ecrire le serveur mock (API 8099 + SoundTouch 8090/8091)
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/repro-out
+          cat > /tmp/mock_podmix.py <<'MOCKPY'
+          import json, re, threading, time
+          from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+
+          STATE = {"url": "", "title": "", "volume": 25, "playing": False}
+
+          def log(msg):
+              print(f"[MOCK {time.strftime('%H:%M:%S')}.{int(time.time()*1000)%1000:03d}] {msg}", flush=True)
+
+          RADIO = {
+              "id": "radio-rmc-mock",
+              "kind": "radio",
+              "title": "RMC Info Talk Sport",
+              "description": "Radio en direct (mock investigation)",
+              "artworkUrl": "",
+              "streamUrl": "https://audio.bfmtv.com/rmcradio_128.mp3",
+              "streamContentType": "audio/mpeg",
+              "episodes": [],
+          }
+
+          def send(h, code, body, ctype="application/json"):
+              data = body.encode() if isinstance(body, str) else body
+              h.send_response(code)
+              h.send_header("Content-Type", ctype)
+              h.send_header("Content-Length", str(len(data)))
+              h.send_header("Access-Control-Allow-Origin", "*")
+              h.end_headers()
+              h.wfile.write(data)
+
+          class Api(BaseHTTPRequestHandler):
+              def log_message(self, *a): pass
+              def _body(self):
+                  n = int(self.headers.get("Content-Length") or 0)
+                  return self.rfile.read(n).decode("utf-8", "replace") if n else ""
+              def do_GET(self):
+                  log(f"8099 GET {self.path}")
+                  if self.path.startswith("/qa-state"):
+                      send(self, 200, json.dumps(STATE))
+                  elif self.path.startswith("/health"):
+                      send(self, 200, json.dumps({"status": "ok", "service": "podmix-mock", "mode": "repro"}))
+                  elif self.path.startswith("/v1/catalog/radios"):
+                      send(self, 200, json.dumps({"items": [RADIO]}))
+                  elif self.path.startswith("/relay/"):
+                      send(self, 200, b"ID3\x04\x00\x00\x00\x00\x00\x00" + b"\xff\xfb\x90\x00" * 64, "audio/mpeg")
+                  else:
+                      send(self, 404, json.dumps({"message": "mock: route inconnue"}))
+              def do_POST(self):
+                  body = self._body()
+                  log(f"8099 POST {self.path} BODY={body[:600]}")
+                  if self.path.startswith("/v1/cast/sessions"):
+                      sid = f"mock-{int(time.time())}"
+                      send(self, 201, json.dumps({
+                          "id": sid,
+                          "relayUrl": f"http://10.0.2.2:8099/relay/{sid}",
+                          "lanRelayUrl": f"http://10.0.2.2:8099/relay/{sid}",
+                          "expiresAt": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime(time.time() + 7200)),
+                          "startSeconds": 0,
+                      }))
+                  else:
+                      send(self, 404, json.dumps({"message": "mock: route inconnue"}))
+              def do_OPTIONS(self):
+                  send(self, 204, "")
+
+          class SoundTouch(BaseHTTPRequestHandler):
+              def log_message(self, *a): pass
+              def _body(self):
+                  n = int(self.headers.get("Content-Length") or 0)
+                  return self.rfile.read(n).decode("utf-8", "replace") if n else ""
+              def do_GET(self):
+                  log(f"8090 GET {self.path}")
+                  if self.path.startswith("/info"):
+                      send(self, 200, '<info deviceID="MOCKBOSE001"><name>Bose Mock Repro</name><type>SoundTouch 20</type><mfg>Bose Corporation</mfg></info>', "text/xml")
+                  elif self.path.startswith("/now_playing"):
+                      url = STATE["url"] or "http://10.0.2.2:8099/relay/idle"
+                      title = STATE["title"] or "Podmix"
+                      body = ('<nowPlaying deviceID="MOCKBOSE001" source="INTERNET_RADIO">'
+                              f'<ContentItem source="INTERNET_RADIO" location="{url}" sourceAccount="" isPresetable="false">'
+                              f'<itemName>{title}</itemName></ContentItem>'
+                              f'<track>{title}</track><artist>Mock</artist><album></album>'
+                              '<stationName>RMC</stationName><art artImageStatus="IMAGE_PRESENT" />'
+                              '<time total="0">3</time><skipEnabled>false</skipEnabled>'
+                              f'<playStatus>{"PLAY_STATE" if STATE["playing"] else "STOP_STATE"}</playStatus>'
+                              '<shuffleSetting>SHUFFLE_OFF</shuffleSetting><repeatSetting>REPEAT_OFF</repeatSetting>'
+                              '<streamType>TRACK_STREAMING</streamType></nowPlaying>')
+                      send(self, 200, body, "text/xml")
+                  elif self.path.startswith("/volume"):
+                      send(self, 200, f'<volume deviceID="MOCKBOSE001"><targetvolume>{STATE["volume"]}</targetvolume><actualvolume>{STATE["volume"]}</actualvolume><muteenabled>false</muteenabled></volume>', "text/xml")
+                  else:
+                      send(self, 404, "<error>mock</error>", "text/xml")
+              def do_POST(self):
+                  body = self._body()
+                  log(f"8090 POST {self.path} BODY={body[:300]}")
+                  if self.path.startswith("/volume"):
+                      m = re.search(r"<volume>(\d+)</volume>", body)
+                      if m: STATE["volume"] = int(m.group(1))
+                  send(self, 200, "<status>ok</status>", "text/xml")
+
+          class Upnp(BaseHTTPRequestHandler):
+              def log_message(self, *a): pass
+              def do_POST(self):
+                  n = int(self.headers.get("Content-Length") or 0)
+                  body = self.rfile.read(n).decode("utf-8", "replace") if n else ""
+                  action = self.headers.get("SOAPACTION", "")
+                  log(f"8091 POST {self.path} SOAP={action} BODY={body[:500]}")
+                  if "#Stop" in action: STATE["playing"] = False
+                  if "#Play" in action: STATE["playing"] = bool(STATE["url"])
+                  if "SetAVTransportURI" in body:
+                      m = re.search(r"<CurrentURI>([^<]+)</CurrentURI>", body)
+                      t = re.search(r"<dc:title>([^<]+)</dc:title>", body)
+                      if m: STATE["url"] = m.group(1).replace("&amp;", "&")
+                      if t: STATE["title"] = t.group(1)
+                      log(f"8091 CAPTURE url={STATE['url']} title={STATE['title']}")
+                  resp = ('<?xml version="1.0"?><s:Envelope xmlns:s="http://schemas.xmlsoap.org/soap/envelope/" '
+                          's:encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"><s:Body/></s:Envelope>')
+                  send(self, 200, resp, 'text/xml; charset="utf-8"')
+
+          for port, handler in ((8099, Api), (8090, SoundTouch), (8091, Upnp)):
+              srv = ThreadingHTTPServer(("0.0.0.0", port), handler)
+              threading.Thread(target=srv.serve_forever, daemon=True).start()
+              log(f"ecoute sur {port}")
+          while True:
+              time.sleep(3600)
+          MOCKPY
+          python3 -c "import ast; ast.parse(open('/tmp/mock_podmix.py').read()); print('mock syntaxe OK')"
+      - name: Ecrire le pilote WebView (CDP)
+        run: |
+          set -euo pipefail
+          cat > /tmp/drive_webview.py <<'DRVPY'
+          import base64, json, subprocess, sys, threading, time, urllib.request
+
+          OUT = "/tmp/repro-out"
+          def log(msg):
+              print(f"[DRV {time.strftime('%H:%M:%S')}.{int(time.time()*1000)%1000:03d}] {msg}", flush=True)
+
+          def adb(*args):
+              return subprocess.run(["adb", *args], capture_output=True, text=True, timeout=60).stdout.strip()
+
+          # --- connexion CDP au WebView de l'app ---
+          pid = None
+          for _ in range(30):
+              pid = adb("shell", "pidof", "com.podmix.next.ng")
+              if pid: break
+              time.sleep(2)
+          if not pid:
+              log("FAIL: app non lancee"); sys.exit(2)
+          log(f"pid app = {pid}")
+          adb("forward", "tcp:9222", f"localabstract:webview_devtools_remote_{pid}")
+          targets = None
+          for _ in range(40):
+              try:
+                  targets = json.load(urllib.request.urlopen("http://127.0.0.1:9222/json/list", timeout=3))
+                  page = [t for t in targets if t.get("type") == "page" and "localhost" in t.get("url", "")]
+                  if page: break
+              except Exception as e:
+                  log(f"attente webview... {e}")
+              time.sleep(3)
+          else:
+              log(f"FAIL: pas de cible page, targets={targets}"); sys.exit(2)
+          ws_url = page[0]["webSocketDebuggerUrl"]
+          log(f"cible: {page[0].get('url')} {page[0].get('title')}")
+
+          import websocket
+          ws = websocket.create_connection(ws_url, timeout=30)
+          ws.settimeout(60)
+          _id = [0]
+          _lock = threading.Lock()
+          events = []
+          pend = {}
+
+          def reader():
+              while True:
+                  try:
+                      msg = json.loads(ws.recv())
+                  except Exception:
+                      return
+                  if "id" in msg:
+                      with _lock: pend[msg["id"]] = msg
+                  else:
+                      m = msg.get("method", "")
+                      if m in ("Runtime.consoleAPICalled", "Log.entryAdded", "Network.requestWillBeSent", "Network.responseReceived", "Network.loadingFailed"):
+                          events.append({"t": time.time(), "msg": msg})
+
+          threading.Thread(target=reader, daemon=True).start()
+
+          def send(method, params=None, wait=60):
+              with _lock:
+                  _id[0] += 1
+                  mid = _id[0]
+              ws.send(json.dumps({"id": mid, "method": method, "params": params or {}}))
+              t0 = time.time()
+              while time.time() - t0 < wait:
+                  with _lock:
+                      if mid in pend: return pend.pop(mid)
+                  time.sleep(0.05)
+              raise TimeoutError(method)
+
+          def ev(expr, wait=30):
+              r = send("Runtime.evaluate", {"expression": expr, "awaitPromise": True, "returnByValue": True}, wait)
+              res = r.get("result", {})
+              if "exceptionDetails" in res or "exceptionDetails" in r.get("result", {}):
+                  return {"__error": json.dumps(r)[:500]}
+              return res.get("result", {}).get("value")
+
+          send("Runtime.enable"); send("Log.enable"); send("Network.enable"); send("Page.enable")
+
+          SNAP = """(() => {
+            const q = (s) => document.querySelector(s);
+            const txt = (el) => el ? el.textContent.replace(/\\s+/g, ' ').trim().slice(0, 90) : null;
+            return {
+              url: location.href,
+              modal: !!q('.output-backdrop'),
+              searching: !!q('.output-searching'),
+              message: txt(q('.output-message')),
+              devices: [...document.querySelectorAll('.output-device')].map(b => ({
+                name: txt(b.querySelector('strong')),
+                spinning: !!b.querySelector('.spinning'),
+                disabled: b.disabled,
+                active: b.classList.contains('active')
+              })),
+              manual: !!q('.output-manual-bose'),
+              mini: txt(q('.mini-player')),
+              buttons: [...document.querySelectorAll('button[aria-label]')].slice(0, 40).map(b => b.getAttribute('aria-label'))
+            };
+          })()"""
+
+          def shot(name):
+              try:
+                  r = send("Page.captureScreenshot", {"format": "png"}, 30)
+                  data = r.get("result", {}).get("data")
+                  if data:
+                      open(f"{OUT}/{name}.png", "wb").write(base64.b64decode(data))
+                      log(f"capture {name}.png")
+              except Exception as e:
+                  log(f"capture {name} impossible: {e}")
+
+          def stage(ok, name):
+              log(f"[STAGE {'OK  ' if ok else 'FAIL'}] {name}")
+              return ok
+
+          def clicktext(sel, needle, desc):
+              return ev(f"""(() => {{
+                const els = [...document.querySelectorAll({json.dumps(sel)})];
+                const el = els.find(e => (e.textContent || '').toLowerCase().includes({json.dumps(needle.lower())})
+                  || (e.getAttribute('aria-label') || '').toLowerCase().includes({json.dumps(needle.lower())}));
+                if (!el) return false;
+                el.scrollIntoView({{block: 'center'}}); el.click(); return true;
+              }})()""") and stage(True, f"clic {desc}") or stage(False, f"clic {desc} INTROUVABLE")
+
+          SETVAL = """(el, value) => {
+            const proto = el.tagName === 'TEXTAREA' ? HTMLTextAreaElement.prototype : HTMLInputElement.prototype;
+            Object.getOwnPropertyDescriptor(proto, 'value').set.call(el, value);
+            el.dispatchEvent(new Event('input', {bubbles: true}));
+            el.dispatchEvent(new Event('change', {bubbles: true}));
+          }"""
+
+          fails = 0
+
+          # S1 - attendre l'accueil
+          ok = False
+          for _ in range(40):
+              s = ev(SNAP)
+              if isinstance(s, dict) and s.get("buttons"):
+                  ok = True; break
+              time.sleep(2)
+          stage(ok, "accueil rendu"); fails += 0 if ok else 1
+          log("SNAP accueil: " + json.dumps(ev(SNAP), ensure_ascii=False)[:1500])
+          shot("s1-accueil")
+
+          # S1b - pointer l'app vers le mock via le reglage serveur de l'app (localhost = origine fiable, pas de mixed content)
+          probed = ev("(async()=>{try{const r=await fetch('http://localhost:8099/health');return 'sonde-ok '+(await r.text()).slice(0,60)}catch(e){return 'sonde-fail '+e}})()")
+          log("fetch http://localhost:8099/health: " + str(probed))
+          if not (isinstance(probed, str) and probed.startswith('sonde-ok')):
+              log('[FATAL] mock localhost:8099 inaccessible depuis la WebView - harnais invalide')
+              sys.exit(3)
+          ev("localStorage.setItem('podmix-api-url','http://localhost:8099'); location.reload(); 'ok'")
+          time.sleep(8)
+          ok = False
+          for _ in range(40):
+              s = ev(SNAP)
+              if isinstance(s, dict) and s.get("buttons"):
+                  ok = True; break
+              time.sleep(2)
+          stage(ok, "accueil rendu apres rechargement"); fails += 0 if ok else 1
+          log("SNAP accueil2: " + json.dumps(ev(SNAP), ensure_ascii=False)[:1500])
+
+          # S2 - ajouter RMC via la modale Ajouter une source
+          if not clicktext("button", "Ajouter une source", "ouvrir ajout source"):
+              fails += 1
+          time.sleep(1.5)
+          clicktext("button", "radio", "onglet mode radio")
+          time.sleep(1.0)
+          typed = ev(f"""(() => {{
+            const inputs = [...document.querySelectorAll('input')].filter(i => i.offsetParent);
+            const el = inputs.find(i => /radio|rmc|france/i.test(i.placeholder || '')) || inputs[inputs.length - 1];
+            if (!el) return false;
+            ({SETVAL})(el, 'rmc');
+            return el.placeholder || el.name || 'input';
+          }})()""")
+          stage(bool(typed), f"saisie recherche radio ({typed})")
+          time.sleep(2.5)
+          if not clicktext(".radio-results button", "RMC", "resultat RMC"):
+              fails += 1
+              log("SNAP modale source: " + json.dumps(ev(SNAP), ensure_ascii=False)[:1500])
+          time.sleep(2)
+          shot("s2-apres-ajout")
+
+          # S3 - lancer la lecture RMC depuis l'accueil
+          if not clicktext("[role='button'],button", "RMC", "carte RMC (lecture)"):
+              fails += 1
+          time.sleep(6)
+          st = ev("Capacitor.Plugins.PodmixPlayer.getState()")
+          log("PLAYER STATE apres clic RMC: " + json.dumps(st, ensure_ascii=False)[:600])
+          playing = isinstance(st, dict) and bool(st.get("url") or st.get("mediaId"))
+          stage(playing, "lecture RMC active (plugin getState)")
+          if not playing:
+              clicktext("button", "Lire", "bouton Lire")
+              time.sleep(5)
+              st = ev("Capacitor.Plugins.PodmixPlayer.getState()")
+              log("PLAYER STATE apres bouton Lire: " + json.dumps(st, ensure_ascii=False)[:600])
+              fails += 0 if (isinstance(st, dict) and (st.get("url") or st.get("mediaId"))) else 1
+          shot("s3-lecture")
+          if not (isinstance(st, dict) and (st.get("url") or st.get("mediaId"))):
+              log('[FATAL] RMC non en lecture - scenario non atteint')
+              sys.exit(3)
+
+          # S4 - ouvrir le picker de sortie
+          if not clicktext("button[aria-label^='Sortie audio']", "sortie audio", "ouvrir picker sortie"):
+              fails += 1
+          time.sleep(2)
+          # attendre la fin de la decouverte
+          for _ in range(30):
+              s = ev(SNAP)
+              if isinstance(s, dict) and s.get("modal") and not s.get("searching"):
+                  break
+              time.sleep(1)
+          log("SNAP picker: " + json.dumps(ev(SNAP), ensure_ascii=False)[:1500])
+          shot("s4-picker")
+
+          # S5 - renseigner l'IP manuelle si aucune ligne Bose, puis TAP BOSE
+          s = ev(SNAP)
+          bose_row = isinstance(s, dict) and any((d.get("name") or "").lower().find("bose") >= 0 for d in s.get("devices", []))
+          tapped = False
+          if not bose_row:
+              log("aucune ligne Bose: saisie IP manuelle 10.0.2.2")
+              ev(f"""(() => {{
+                const el = document.querySelector('.output-manual-bose input');
+                if (!el) return false;
+                ({SETVAL})(el, '10.0.2.2');
+                return true;
+              }})()""")
+              time.sleep(0.5)
+              tapped = bool(clicktext(".output-manual-bose button", "Tester et connecter", "Tester et connecter"))
+          t0 = time.time()
+          events.clear()
+          if bose_row:
+              tapped = bool(clicktext(".output-device", "Bose", "TAP ligne Bose"))
+          log(f"[TAP] t0={t0:.3f} executed={tapped}")
+          if not tapped:
+              log('[FATAL] tap Bose non execute - repro non aboutie')
+              sys.exit(3)
+
+          # S6 - fenetre d'observation 20 s, sondage ~120 ms
+          timeline = []
+          end = t0 + 20
+          marks = {0.5: None, 1: None, 2: None, 4: None, 8: None, 15: None}
+          while time.time() < end:
+              dt = time.time() - t0
+              s = ev(SNAP, 10)
+              timeline.append({"dt": round(dt, 2), "s": s})
+              for m in list(marks):
+                  if dt >= m and marks[m] is None:
+                      marks[m] = 1
+                      shot(f"s6-t{int(m*1000):05d}ms")
+              time.sleep(0.12)
+
+          # S7 - resultats
+          log("===== TIMELINE TAP BOSE =====")
+          for row in timeline:
+              s = row["s"] if isinstance(row["s"], dict) else {}
+              devs = "|".join(f"{d.get('name')}{'*SPIN*' if d.get('spinning') else ''}" for d in (s.get("devices") or []))
+              log(f"t+{row['dt']:6.2f}s modal={s.get('modal')} searching={s.get('searching')} msg={s.get('message')!r} devices=[{devs}]")
+          log("===== CONSOLE/LOG WEBVIEW =====")
+          for e in events:
+              m = e["msg"]
+              if m["method"] == "Runtime.consoleAPICalled":
+                  args = " ".join(str(a.get("value", a.get("description", "")))[:200] for a in m["params"].get("args", []))
+                  log(f"console.{m['params'].get('type')}: {args}")
+              elif m["method"] == "Log.entryAdded":
+                  en = m["params"]["entry"]
+                  log(f"log.{en.get('level')}: {en.get('text','')[:300]}")
+          log("===== RESEAU WEBVIEW =====")
+          for e in events:
+              m = e["msg"]
+              p = m["params"]
+              if m["method"] == "Network.requestWillBeSent":
+                  log(f"REQ {p['request'].get('method')} {p['request'].get('url','')[:200]}")
+              elif m["method"] == "Network.responseReceived":
+                  log(f"RESP {p['response'].get('status')} {p['response'].get('url','')[:200]}")
+              elif m["method"] == "Network.loadingFailed":
+                  log(f"FAILNET {p.get('errorText')} {p.get('blockedReason','')}")
+          st = ev("Capacitor.Plugins.PodmixPlayer.getState()")
+          log("PLAYER STATE final: " + json.dumps(st, ensure_ascii=False)[:600])
+          log("SNAP final: " + json.dumps(ev(SNAP), ensure_ascii=False)[:1500])
+          shot("s7-final")
+          final = ev(SNAP)
+          mock = json.load(urllib.request.urlopen('http://127.0.0.1:8099/qa-state', timeout=5))
+          transferred = (isinstance(final, dict) and not final.get('modal')
+              and any('Sortie audio' in b and 'Bose' in b for b in final.get('buttons', []))
+              and mock.get('playing') is True and '/relay/' in mock.get('url', ''))
+          stage(transferred, 'transfert confirme UI et commandes natives SetURI/Play, URL relais exacte')
+          fails += 0 if transferred else 1
+          log(f"MOCK FINAL: {mock}")
+          log(f"[RESULT] etapes_en_echec={fails} timeline_points={len(timeline)}")
+          sys.exit(0 if (fails == 0 and tapped and len(timeline) > 5) else 4)
+          DRVPY
+          python3 -c "import ast; ast.parse(open('/tmp/drive_webview.py').read()); print('pilote syntaxe OK')"
+      - name: Ecrire le script de sequencement
+        run: |
+          set -euo pipefail
+          cat > /tmp/run_repro.sh <<'RUNSH'
+          set -uo pipefail
+          mkdir -p /tmp/repro-out
+          echo "== demarrage mock =="
+          python3 /tmp/mock_podmix.py > /tmp/repro-out/mock.log 2>&1 &
+          MOCKPID=$!
+          sleep 1
+          curl -s --max-time 5 127.0.0.1:8099/health; echo
+          curl -s --max-time 5 127.0.0.1:8090/info; echo
+          echo "== installation APK debug =="
+          ls -l android/app/build/outputs/apk/ng/debug/ || true
+          adb install -r android/app/build/outputs/apk/ng/debug/app-ng-debug.apk
+          adb reverse tcp:8099 tcp:8099
+          adb reverse --list
+          adb logcat -c
+          adb shell am start -n com.podmix.next.ng/com.podmix.next.MainActivity
+          sleep 10
+          echo "== pilote CDP =="
+          pip3 install --quiet --user websocket-client 2>/dev/null || pip3 install --quiet websocket-client
+          python3 /tmp/drive_webview.py
+          RC=$?
+          echo "== logcat (podmix/bose/cast) =="
+          adb logcat -d > /tmp/repro-out/logcat.txt 2>&1
+          grep -i -E 'podmix|bose|cast|soundtouch' /tmp/repro-out/logcat.txt | tail -300
+          echo "== journal mock complet =="
+          cat /tmp/repro-out/mock.log
+          kill $MOCKPID 2>/dev/null
+          exit $RC
+          RUNSH
+          echo OK
+      - name: Preparer l emulateur accelere
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+          sudo chmod 666 /dev/kvm
+      - uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 33
+          arch: x86_64
+          profile: pixel_2
+          emulator-options: -no-snapshot -no-window -noaudio -no-boot-anim -gpu swiftshader_indirect -camera-back none
+          script: bash /tmp/run_repro.sh
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: podmix-complete-checks-soundtouch-evidence
+          path: /tmp/repro-out/
+          if-no-files-found: warn
+          retention-days: 14
