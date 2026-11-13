@@ -1,3 +1,4 @@
+import { normalizeCatalogSourceText } from './text'
 import { isPrivateLanUrl } from './lanRelay'
 import type { CatalogSource, DetectionJob, DjSearchResult, LiveSetDetails, LiveSetSearchResult, LiveSetTrack, PodcastSearchResult } from './domain'
 import { Capacitor } from '@capacitor/core'
@@ -112,7 +113,7 @@ export async function importRssFeed(url: string, kind: 'podcast' | 'show' = 'pod
   })
   const payload = await response.json()
   if (!response.ok) throw new Error(payload.message ?? 'Import du flux impossible')
-  return payload
+  return normalizeCatalogSourceText(payload)
 }
 
 export async function searchRadios(query: string): Promise<CatalogSource[]> {
