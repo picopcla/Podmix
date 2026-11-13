@@ -18,8 +18,9 @@ import { checkForUpdate, currentVersion, downloadAndUpdate } from './updates'
 import type { UpdateManifest, UpdateProgress } from './updates'
 import { mergeCatalogSource, mergeEpisode, newEpisodesFromFeed } from './catalogMerge'
 import { protectedEpisodeIds, retainSourceEpisodes, retainReferencedFeedEpisodes } from './catalogRetention'
-import { loadCompletedEpisodeIds, loadListeningSessions, loadPlaybackHistory, saveCompletedEpisodeIds, saveListeningSessions, savePlaybackHistory, searchListeningSessions, updateListeningSessions } from './history'
+import { loadCompletedEpisodeIds, loadListeningSessions, loadPlaybackHistory, saveListeningSessions, savePlaybackHistory, searchListeningSessions, updateListeningSessions } from './history'
 import type { ListeningSession, PlaybackHistoryItem } from './history'
+import { loadCompletedEpisodesPersistence, saveCompletedEpisodesPersistence } from './completedEpisodeStorage'
 import { decodeCredit, decodeCredits } from './credits'
 import podmixInfinityLogo from './assets/podmix-logo-radio-c.png'
 import './App.css'
@@ -780,6 +781,8 @@ function App() {
   const historyRef = useRef(history)
   const [completedEpisodeIds, setCompletedEpisodeIds] = useState<string[]>(loadCompletedEpisodeIds)
   const completedEpisodeIdsRef = useRef(completedEpisodeIds)
+  const [completedEpisodesReady, setCompletedEpisodesReady] = useState(false)
+  const [completedEpisodesLoaded, setCompletedEpisodesLoaded] = useState(false)
   const [listeningSessions, setListeningSessions] = useState<ListeningSession[]>(loadListeningSessions)
   const [historyQuery, setHistoryQuery] = useState('')
   const [offlineEpisodes, setOfflineEpisodes] = useState<OfflineEpisode[]>(loadOfflineEpisodes)
@@ -789,7 +792,7 @@ function App() {
   const retentionContext = {
     favoriteTrackIds, history, listeningSessions, offlineEpisodes, completedEpisodeIds,
     activeEpisodeIds: nowPlaying ? [nowPlaying.id] : [],
-    nativeReferencesReady: nativeDownloadsRestored && nativeFavoritesRestored,
+    nativeReferencesReady: nativeDownloadsRestored && nativeFavoritesRestored && completedEpisodesReady,
   }
   const retentionContextRef = useRef(retentionContext)
   retentionContextRef.current = retentionContext
@@ -1451,7 +1454,7 @@ function App() {
     setCatalog(limitedCatalog)
     // A catalogue limit is never permission to delete a downloaded file.
   }, [catalog, selectedEpisodeId, settings, favoriteTrackIds, history, listeningSessions, offlineEpisodes,
-    completedEpisodeIds, nowPlaying, nativeDownloadsRestored, nativeFavoritesRestored])
+    completedEpisodeIds, nowPlaying, nativeDownloadsRestored, nativeFavoritesRestored, completedEpisodesReady])
 
   useEffect(() => {
     // Older RSS imports could assign one ID to a whole podcast. Keep only a
@@ -1686,9 +1689,20 @@ function App() {
     savePlaybackHistory(history)
   }, [history])
   useEffect(() => {
+    let active = true
+    void loadCompletedEpisodesPersistence().then(({ ids, ready }) => {
+      if (!active) return
+      // Keep additions from sessions/native playback made while IndexedDB was loading.
+      setCompletedEpisodeIds(current => [...new Set([...current, ...ids])].slice(0, 2_000))
+      setCompletedEpisodesReady(ready)
+      setCompletedEpisodesLoaded(true)
+    })
+    return () => { active = false }
+  }, [])
+  useEffect(() => {
     completedEpisodeIdsRef.current = completedEpisodeIds
-    saveCompletedEpisodeIds(completedEpisodeIds)
-  }, [completedEpisodeIds])
+    if (completedEpisodesLoaded) void saveCompletedEpisodesPersistence(completedEpisodeIds).then(setCompletedEpisodesReady)
+  }, [completedEpisodeIds, completedEpisodesLoaded])
   useEffect(() => saveListeningSessions(listeningSessions), [listeningSessions])
 
   // Older completed plays may predate the dedicated completed-episodes list.
@@ -1715,7 +1729,6 @@ function App() {
     if (completedEpisodeIdsRef.current.includes(id)) return
     const next = [id, ...completedEpisodeIdsRef.current].slice(0, 2_000)
     completedEpisodeIdsRef.current = next
-    saveCompletedEpisodeIds(next)
     setCompletedEpisodeIds(next)
   }
 
