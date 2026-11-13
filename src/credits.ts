@@ -1,6 +1,9 @@
+import { decode } from 'html-entities'
+
 /** Decode one layer of HTML entities when a credit leaves application state. */
 export function decodeCredit(value: string): string {
-  return new DOMParser().parseFromString(value, 'text/html').body.textContent ?? value
+  // Do not parse credits as HTML: preserve literal tags and incomplete references.
+  return decode(value, { level: 'html5', scope: 'strict' })
 }
 
 export function decodeCredits<T extends { title?: string; artist?: string }>(value: T): T {
