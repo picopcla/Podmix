@@ -1,0 +1,341 @@
+name: qa-231-home-update
+
+# QA visuelle de la branche fix/231-update-nag-and-home-grid (INVESTIGATION, rien de publie).
+# Preuves attendues :
+#  1. accueil : 6 vignettes podcasts dans le DOM (cap slice(0,4) retire), carrousel
+#     defilant horizontalement jusqu'a la tuile KOROLOVA (captures avant/apres).
+#  2. reglages : « Version installee : 1.0.230 » + « Application a jour » malgre un
+#     manifeste mock a 10229 et une constante web volontairement perimee (1.0.225),
+#     ce qui reproduit la config exacte du telephone d'Emmanuel (230 livree avec .env 225).
+#  3. sync-version.mjs corrige : version:sync ecrit bien .env.production (grep dur).
+# Build debug non distribue, serveur mock local au runner, aucune mutation prod.
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [fix/231-update-nag-and-home-grid]
+
+concurrency:
+  group: qa-231-home-update
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  qa:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+      - name: Aligner la version de test sur la 230 et verifier le sync corrige
+        run: |
+          set -euo pipefail
+          sed -i 's|"version": "[^"]*"|"version": "1.0.230"|' package.json
+          npm run version:sync
+          grep -q '^VITE_APP_VERSION=1.0.230$' .env.production \
+            && echo 'SYNC-OK: .env.production ecrit par version:sync (fix sync-version.mjs prouve)' \
+            || { echo 'SYNC-FAIL: .env.production non synchronise'; exit 1; }
+          grep -q 'versionCode 10230' android/app/build.gradle || { echo 'SYNC-FAIL: gradle'; exit 1; }
+      - name: Reproduire la derive exacte du build 230 livre et viser le manifeste mock
+        run: |
+          set -euo pipefail
+          # Le build 230 livre embarquait VITE_APP_VERSION=1.0.225 (stale) : on reproduit.
+          sed -i 's|^VITE_APP_VERSION=.*|VITE_APP_VERSION=1.0.225|' .env.production
+          sed -i 's|^VITE_API_URL=.*|VITE_API_URL=|' .env.production
+          sed -i 's|^VITE_UPDATE_MANIFEST_URL=.*|VITE_UPDATE_MANIFEST_URL=http://localhost:8099/podmix/update.json|' .env.production
+          grep -c 'podmix.mb4.fr' .env.production && { echo 'URL prod encore presente'; exit 1; } || echo 'aucune URL prod dans le build'
+      - run: npm ci
+      - name: Tests unitaires (comparateur de versions inclus)
+        run: npm run test:unit
+      - name: Construire l APK ng debug (non distribue)
+        run: |
+          set -euo pipefail
+          npm run build
+          npx cap sync android
+          cd android && ./gradlew assembleNgDebug
+          ls -l app/build/outputs/apk/ng/debug/
+      - name: Ecrire le serveur mock (API 8099 + manifeste update 10229)
+        run: |
+          set -euo pipefail
+          cat > /tmp/mock_qa.py <<'MOCKPY'
+          import json, time
+          from http.server import BaseHTTPRequestHandler, HTTPServer
+
+          LOG = open('/tmp/qa-out/mock-requests.log', 'a', buffering=1)
+
+          class H(BaseHTTPRequestHandler):
+              def log_message(self, *a):
+                  pass
+              def _send(self, code, body, ctype='application/json'):
+                  data = body.encode()
+                  self.send_response(code)
+                  self.send_header('Content-Type', ctype)
+                  self.send_header('Access-Control-Allow-Origin', '*')
+                  self.send_header('Content-Length', str(len(data)))
+                  self.end_headers()
+                  self.wfile.write(data)
+              def do_GET(self):
+                  LOG.write(f"{time.strftime('%H:%M:%S')} GET {self.path}\n")
+                  if self.path.startswith('/health'):
+                      self._send(200, json.dumps({"status": "ok", "service": "podmix-mock", "mode": "qa-231"}))
+                  elif self.path.startswith('/podmix/update.json'):
+                      self._send(200, json.dumps({
+                          "versionCode": 10229,
+                          "versionName": "1.0.229-ng",
+                          "minimumVersionCode": 1,
+                          "apkUrl": "http://localhost:8099/podmix/podmix-1.0.229-ng.apk",
+                          "publishedAt": "2026-11-10T00:00:00Z",
+                          "sha256": "cc6542c8e37ef9a4a7c17b2ea6b9821c0e9aa6e018d729393cbee599629768f2",
+                          "notes": ["mock: manifeste reste a 229 comme en prod"]
+                      }))
+                  else:
+                      self._send(404, json.dumps({"message": "mock: route inconnue"}))
+              def do_POST(self):
+                  LOG.write(f"{time.strftime('%H:%M:%S')} POST {self.path}\n")
+                  self._send(404, json.dumps({"message": "mock: route inconnue"}))
+
+          HTTPServer(('127.0.0.1', 8099), H).serve_forever()
+          MOCKPY
+          python3 -c "import ast; ast.parse(open('/tmp/mock_qa.py').read()); print('mock syntaxe OK')"
+      - name: Ecrire le pilote CDP (seed catalogue, assertions, captures)
+        run: |
+          set -euo pipefail
+          cat > /tmp/drive_qa.py <<'DRVPY'
+          import base64, json, subprocess, sys, threading, time, urllib.request
+
+          OUT = "/tmp/qa-out"
+          def log(msg):
+              print(f"[DRV {time.strftime('%H:%M:%S')}.{int(time.time()*1000)%1000:03d}] {msg}", flush=True)
+
+          def adb(*args):
+              return subprocess.run(["adb", *args], capture_output=True, text=True, timeout=60).stdout.strip()
+
+          pid = None
+          for _ in range(30):
+              pid = adb("shell", "pidof", "com.podmix.next.ng")
+              if pid: break
+              time.sleep(2)
+          if not pid:
+              log("FAIL: app non lancee"); sys.exit(2)
+          adb("forward", "tcp:9222", f"localabstract:webview_devtools_remote_{pid}")
+          page = None
+          for _ in range(40):
+              try:
+                  targets = json.load(urllib.request.urlopen("http://127.0.0.1:9222/json/list", timeout=3))
+                  pages = [t for t in targets if t.get("type") == "page" and "localhost" in t.get("url", "")]
+                  if pages:
+                      page = pages[0]; break
+              except Exception as e:
+                  log(f"attente webview... {e}")
+              time.sleep(3)
+          if not page:
+              log("FAIL: pas de cible page"); sys.exit(2)
+          log(f"cible: {page.get('url')}")
+
+          import websocket
+          ws = websocket.create_connection(page["webSocketDebuggerUrl"], timeout=30)
+          ws.settimeout(60)
+          _id = [0]
+          _lock = threading.Lock()
+          pend = {}
+
+          def reader():
+              while True:
+                  try:
+                      msg = json.loads(ws.recv())
+                  except Exception:
+                      return
+                  if "id" in msg:
+                      with _lock: pend[msg["id"]] = msg
+
+          threading.Thread(target=reader, daemon=True).start()
+
+          def send(method, params=None, wait=60):
+              with _lock:
+                  _id[0] += 1
+                  mid = _id[0]
+              ws.send(json.dumps({"id": mid, "method": method, "params": params or {}}))
+              t0 = time.time()
+              while time.time() - t0 < wait:
+                  with _lock:
+                      if mid in pend: return pend.pop(mid)
+                  time.sleep(0.05)
+              raise TimeoutError(method)
+
+          def ev(expr, wait=30):
+              r = send("Runtime.evaluate", {"expression": expr, "awaitPromise": True, "returnByValue": True}, wait)
+              res = r.get("result", {})
+              if "exceptionDetails" in res or "exceptionDetails" in r.get("result", {}):
+                  return {"__error": json.dumps(r)[:400]}
+              return res.get("result", {}).get("value")
+
+          send("Runtime.enable"); send("Page.enable")
+
+          def shot(name):
+              try:
+                  r = send("Page.captureScreenshot", {"format": "jpeg", "quality": 45}, 30)
+                  data = r.get("result", {}).get("data")
+                  if data:
+                      open(f"{OUT}/{name}.jpg", "wb").write(base64.b64decode(data))
+                      log(f"B64IMG-BEGIN {name}")
+                      for i in range(0, len(data), 1900):
+                          print(f"B64IMG {name} {data[i:i+1900]}", flush=True)
+                      log(f"B64IMG-END {name}")
+              except Exception as e:
+                  log(f"capture {name} impossible: {e}")
+
+          def stage(ok, name):
+              log(f"[STAGE {'OK  ' if ok else 'FAIL'}] {name}")
+              return ok
+
+          fails = 0
+
+          HOME_READY = "(() => ({buttons: [...document.querySelectorAll('button[aria-label]')].map(b => b.getAttribute('aria-label')).slice(0, 30), tiles: document.querySelectorAll('.home-podcasts .home-source-card').length}))()"
+
+          # S1 - accueil rendu
+          ok = False
+          for _ in range(40):
+              s = ev(HOME_READY)
+              if isinstance(s, dict) and s.get("buttons"):
+                  ok = True; break
+              time.sleep(2)
+          stage(ok, "accueil rendu"); fails += 0 if ok else 1
+
+          # S2 - pointer l'app vers le mock + seed du catalogue (6 podcasts dont KOROLOVA)
+          probed = ev("(async()=>{try{const r=await fetch('http://localhost:8099/health');return 'ok '+(await r.text()).slice(0,50)}catch(e){return 'fail '+e}})()")
+          log("sonde mock: " + str(probed))
+          if not (isinstance(probed, str) and probed.startswith('ok ')):
+              log('[FATAL] mock inaccessible depuis la WebView'); sys.exit(3)
+          catalog = [{"id": f"pod-{i}", "kind": "podcast", "title": t, "artworkUrl": "",
+                      "episodes": [{"id": f"ep-{i}", "title": f"Episode {i}", "audioUrl": f"http://localhost:8099/audio/{i}.mp3"}]}
+                     for i, t in enumerate(["Alpha Cast", "Bravo Cast", "Charlie Cast", "Delta Cast", "Echo Cast", "KOROLOVA"], start=1)]
+          seed = "localStorage.setItem('podmix-api-url','http://localhost:8099'); localStorage.setItem('podmix-catalog-v1'," + json.dumps(json.dumps(catalog)) + "); location.reload(); 'ok'"
+          ev(seed)
+          time.sleep(8)
+          ok = False
+          for _ in range(40):
+              s = ev(HOME_READY)
+              if isinstance(s, dict) and s.get("tiles", 0) > 0:
+                  ok = True; break
+              time.sleep(2)
+          stage(ok, "accueil avec catalogue seede"); fails += 0 if ok else 1
+          time.sleep(4)  # laisser checkForUpdate se resoudre en arriere-plan
+
+          # S3 - grille : toutes les vignettes dans le DOM (cap retire)
+          tiles = ev("document.querySelectorAll('.home-podcasts .home-source-card').length")
+          log(f"vignettes podcasts dans le DOM: {tiles}")
+          stage(tiles == 6, "grille: 6 vignettes rendues (cap 4 retire)"); fails += 0 if tiles == 6 else 1
+          shot("g1-accueil-grille")
+
+          # S4 - defilement horizontal jusqu'a KOROLOVA
+          scroll = ev("""(() => {
+            const g = document.querySelector('.home-podcasts .home-catalog-grid');
+            if (!g) return {error: 'grille absente'};
+            const before = {scrollWidth: g.scrollWidth, clientWidth: g.clientWidth, scrollLeft: g.scrollLeft};
+            g.scrollTo({left: g.scrollWidth, behavior: 'auto'});
+            return before;
+          })()""")
+          log(f"grille avant scroll: {scroll}")
+          time.sleep(1.5)
+          kor = ev("""(() => {
+            const tiles = [...document.querySelectorAll('.home-podcasts .home-source-card')];
+            const k = tiles.find(t => (t.textContent || '').includes('KOROLOVA'));
+            if (!k) return {error: 'tuile KOROLOVA absente du DOM'};
+            k.scrollIntoView({inline: 'end', block: 'nearest'});
+            const r = k.getBoundingClientRect();
+            return {left: r.left, right: r.right, width: r.width, vw: window.innerWidth,
+                    visible: r.left >= -2 && r.right <= window.innerWidth + 2 && r.width > 0};
+          })()""")
+          log(f"tuile KOROLOVA apres defilement: {kor}")
+          ok = isinstance(scroll, dict) and scroll.get('scrollWidth', 0) > scroll.get('clientWidth', 0) + 10
+          stage(ok, "grille: defilement horizontal possible (scrollWidth > clientWidth)"); fails += 0 if ok else 1
+          ok = isinstance(kor, dict) and kor.get('visible') is True
+          stage(ok, "grille: KOROLOVA visible apres defilement"); fails += 0 if ok else 1
+          shot("g2-korolova-apres-defilement")
+
+          # S5 - Reglages : version 230 affichee + aucune proposition 229
+          ev("(() => { const b = document.querySelector('button[aria-label=\"Réglages\"]'); if (b) b.click(); return !!b; })()")
+          time.sleep(3)
+          maj = ev("""(() => {
+            const body = document.body.innerText;
+            const installBtn = [...document.querySelectorAll('button')].find(b => (b.textContent || '').includes('Installer la version'));
+            return {
+              version230: /Version installée[\\s\\S]{0,120}1\\.0\\.230/.test(body),
+              aJour: body.includes('Application à jour'),
+              proposition: installBtn ? installBtn.textContent.trim().slice(0, 80) : null,
+              extrait: body.slice(0, 400)
+            };
+          })()""")
+          log(f"reglages MAJ: {json.dumps(maj, ensure_ascii=False)}")
+          ok = isinstance(maj, dict) and maj.get('version230') is True
+          stage(ok, "reglages: version installee 1.0.230 affichee (marqueurs 230 preserves)"); fails += 0 if ok else 1
+          ok = isinstance(maj, dict) and maj.get('aJour') is True
+          stage(ok, "reglages: Application a jour malgre manifeste 10229 + constante web 1.0.225"); fails += 0 if ok else 1
+          ok = isinstance(maj, dict) and maj.get('proposition') is None
+          stage(ok, "reglages: aucun bouton Installer une version"); fails += 0 if ok else 1
+          shot("g3-reglages-maj")
+
+          log(f"RESULTAT QA: {'SUCCES' if fails == 0 else str(fails) + ' ECHEC(S)'}")
+          sys.exit(0 if fails == 0 else 4)
+          DRVPY
+          python3 -c "import ast; ast.parse(open('/tmp/drive_qa.py').read()); print('pilote syntaxe OK')"
+      - name: Ecrire le script de sequencement
+        run: |
+          set -euo pipefail
+          cat > /tmp/run_qa.sh <<'RUNSH'
+          set -uo pipefail
+          mkdir -p /tmp/qa-out
+          echo "== demarrage mock =="
+          python3 /tmp/mock_qa.py > /tmp/qa-out/mock.log 2>&1 &
+          MOCKPID=$!
+          sleep 1
+          curl -s --max-time 5 127.0.0.1:8099/health; echo
+          curl -s --max-time 5 127.0.0.1:8099/podmix/update.json; echo
+          echo "== installation APK debug =="
+          adb install -r android/app/build/outputs/apk/ng/debug/app-ng-debug.apk
+          adb reverse tcp:8099 tcp:8099
+          adb reverse --list
+          adb logcat -c
+          adb shell am start -n com.podmix.next.ng/com.podmix.next.MainActivity
+          sleep 10
+          echo "== pilote CDP =="
+          pip3 install --quiet --user websocket-client 2>/dev/null || pip3 install --quiet websocket-client
+          python3 /tmp/drive_qa.py
+          RC=$?
+          echo "== logcat (podmix) =="
+          adb logcat -d 2>/dev/null | grep -i -E 'podmix|chromium.*(error|update)' | tail -120
+          echo "== requetes mock =="
+          cat /tmp/qa-out/mock-requests.log 2>/dev/null || true
+          kill $MOCKPID 2>/dev/null
+          exit $RC
+          RUNSH
+          echo OK
+      - name: Preparer l emulateur accelere
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+          sudo chmod 666 /dev/kvm
+      - uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 33
+          arch: x86_64
+          profile: pixel_2
+          emulator-options: -no-snapshot -no-window -noaudio -no-boot-anim -gpu swiftshader_indirect -camera-back none
+          script: bash /tmp/run_qa.sh
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: qa-231-home-update-evidence
+          path: /tmp/qa-out/
+          if-no-files-found: warn
+          retention-days: 14
