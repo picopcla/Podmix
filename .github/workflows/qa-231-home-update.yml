@@ -221,8 +221,42 @@ jobs:
                                     "publishedAt": "2026-11-12T20:00:00Z", "duration": "45:00",
                                     "audioUrl": f"http://localhost:8099/audio/{i}.mp3", "artworkUrl": ""}]}
                      for i, t in enumerate(["Alpha Cast", "Bravo Cast", "Charlie Cast", "Delta Cast", "Echo Cast", "KOROLOVA"], start=1)]
-          seed = "localStorage.setItem('podmix-api-url','http://localhost:8099'); localStorage.setItem('podmix-catalog-v1'," + json.dumps(json.dumps(catalog)) + "); location.reload(); 'ok'"
-          ev(seed)
+          # The app initializes IndexedDB before React; localStorage alone is now
+          # a preserved migration copy, not the active library after first launch.
+          # Seed both copies in this disposable emulator, then verify IDB readback.
+          payload = json.dumps(json.dumps(catalog))
+          seed = """(async () => {
+            const value = __PAYLOAD__;
+            localStorage.setItem('podmix-api-url', 'http://localhost:8099');
+            localStorage.setItem('podmix-catalog-v1', value);
+            const db = await new Promise((resolve, reject) => {
+              const r = indexedDB.open('podmix-library-history', 1);
+              r.onupgradeneeded = () => r.result.createObjectStore('records');
+              r.onsuccess = () => resolve(r.result);
+              r.onerror = () => reject(r.error);
+              r.onblocked = () => reject(new Error('QA IndexedDB blocked'));
+            });
+            try {
+              await new Promise((resolve, reject) => {
+                const tx = db.transaction('records', 'readwrite');
+                tx.objectStore('records').put(value, 'podmix-catalog-v1');
+                tx.oncomplete = resolve;
+                tx.onerror = tx.onabort = () => reject(tx.error);
+              });
+              const actual = await new Promise((resolve, reject) => {
+                const tx = db.transaction('records', 'readonly');
+                const r = tx.objectStore('records').get('podmix-catalog-v1');
+                tx.oncomplete = () => resolve(r.result);
+                tx.onerror = tx.onabort = () => reject(tx.error);
+              });
+              return {verified: actual === value, sources: JSON.parse(actual).length};
+            } finally { db.close(); }
+          })()""".replace('__PAYLOAD__', payload)
+          seeded = ev(seed)
+          log(f"catalogue QA IndexedDB: {seeded}")
+          if not (isinstance(seeded, dict) and seeded.get('verified') is True and seeded.get('sources') == 6):
+              log('[FATAL] catalogue de test non verifie dans IndexedDB'); sys.exit(5)
+          ev("location.reload(); 'ok'")
           time.sleep(8)
           ok = False
           for _ in range(40):
