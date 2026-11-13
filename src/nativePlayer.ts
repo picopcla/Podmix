@@ -3,6 +3,7 @@ import { Capacitor, registerPlugin } from '@capacitor/core'
 import type { PluginListenerHandle } from '@capacitor/core'
 import { decodeCredits } from './credits'
 import { safeSetItem } from './safeStorage'
+import { awaitCastState } from './castState'
 import { decodeTextEntities } from './text'
 
 export type PlayerState = {
@@ -531,7 +532,7 @@ export const podmixPlayer = {
   },
   async getCastState() {
     if (!Capacitor.isNativePlatform()) return { connected: false }
-    return NativePlayer.getCastState()
+    return awaitCastState(() => NativePlayer.getCastState())
   },
   async setCastVolume(options: { volume: number }) {
     if (!Capacitor.isNativePlatform()) throw new Error('Google Cast nécessite l\'application Android')
