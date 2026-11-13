@@ -1,3 +1,4 @@
+import { normalizeCatalogSourceText } from './text'
 import type { CatalogSource, OfflineEpisode, Track } from './domain'
 import { reportStorageFailure, safeSetItem } from './safeStorage'
 import { readDurableItem, saveDurableItem, isDurableStorageActive } from './durableStorage'
@@ -53,7 +54,7 @@ export function loadCatalog(): CatalogSource[] {
     // 1.0.11 could keep the default "podcast" type when Add was opened from
     // the Emissions filter. Preserve the imported episodes while correcting
     // the source reported by the affected installation.
-    return sources.map((source) => {
+    return sources.map(normalizeCatalogSourceText).map((source) => {
       if (source.kind === 'podcast' && source.title.trim().toLocaleLowerCase('fr') === 'legend') {
         return { ...source, kind: 'show', musical: false }
       }
