@@ -21,19 +21,28 @@ export type UpdateProgress = {
 export type UpdateProgressCallback = (progress: UpdateProgress) => void
 
 export const currentVersion = import.meta.env.VITE_APP_VERSION ?? '1.0.0'
-const manifestUrl = import.meta.env.VITE_UPDATE_MANIFEST_URL ?? ''
+
+function manifestUrl(): string {
+  return import.meta.env.VITE_UPDATE_MANIFEST_URL ?? ''
+}
 
 function versionCode(version: string): number {
   const [major = 0, minor = 0, patch = 0] = version.split('.').map(Number)
   return major * 10000 + minor * 100 + patch
 }
 
-export async function checkForUpdate(): Promise<UpdateManifest | null> {
-  if (!manifestUrl) return null
-  const response = await fetch(`${manifestUrl}?t=${Date.now()}`, { cache: 'no-store' })
+// Compare avec le versionCode natif réellement installé quand il est connu :
+// la constante VITE_APP_VERSION est figée au build web et peut être périmée
+// (ex. build 230 embarquant 1.0.225), ce qui proposait une « mise à jour »
+// vers une version plus ancienne que celle installée.
+export async function checkForUpdate(installedVersionCode?: number): Promise<UpdateManifest | null> {
+  const url = manifestUrl()
+  if (!url) return null
+  const response = await fetch(`${url}?t=${Date.now()}`, { cache: 'no-store' })
   if (!response.ok) throw new Error(`Service de mise à jour indisponible (${response.status})`)
   const update = await response.json() as UpdateManifest
-  return update.versionCode > versionCode(currentVersion) ? update : null
+  const currentCode = installedVersionCode && installedVersionCode > 0 ? installedVersionCode : versionCode(currentVersion)
+  return update.versionCode > currentCode ? update : null
 }
 
 export async function downloadAndUpdate(
