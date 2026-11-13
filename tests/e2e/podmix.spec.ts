@@ -1,4 +1,12 @@
-import { expect, test } from '@playwright/test'
+import { expect, test, type Page, type Route } from '@playwright/test'
+
+// Suite E2E remise à niveau pour l'interface et le stockage actuels (1.0.232).
+// - Navigation par la barre supérieure (topbar), plus de .mobile-nav/.breadcrumbs.
+// - Catalogue, historique, sessions et hors-ligne vivent dans IndexedDB
+//   (podmix-library-history/records, podmix-completed-episodes). Les anciennes
+//   copies localStorage sont migrées au démarrage : les fixtures continuent de
+//   semer localStorage, mais l'état persisté se vérifie dans IndexedDB.
+// - Favoris de morceaux et réglages restent en localStorage.
 
 function silentWav(durationSeconds: number) {
   const sampleRate = 8_000
@@ -19,81 +27,161 @@ function silentWav(durationSeconds: number) {
   return wav
 }
 
+/**
+ * Sert un WAV factice avec prise en charge des requêtes Range : sans elle,
+ * Chromium ne peut pas chercher dans le flux (reprise à une position et
+ * curseur de lecture) et redémarre la lecture à zéro.
+ */
+function fulfillWav(route: Route, durationSeconds: number) {
+  const body = silentWav(durationSeconds)
+  const range = route.request().headers()['range']
+  const match = range ? /bytes=(\d+)-(\d*)/.exec(range) : null
+  if (match) {
+    const start = Number(match[1])
+    const end = match[2] ? Math.min(Number(match[2]), body.length - 1) : body.length - 1
+    return route.fulfill({
+      status: 206,
+      contentType: 'audio/wav',
+      headers: { 'Content-Range': `bytes ${start}-${end}/${body.length}`, 'Accept-Ranges': 'bytes' },
+      body: body.subarray(start, end + 1),
+    })
+  }
+  return route.fulfill({
+    contentType: 'audio/wav',
+    headers: { 'Accept-Ranges': 'bytes' },
+    body,
+  })
+}
+
+/** Lit un enregistrement du magasin durable IndexedDB (podmix-library-history/records). */
+async function readDurableRecord(page: Page, key: string): Promise<string | null> {
+  return page.evaluate(async (recordKey) => {
+    const db = await new Promise<IDBDatabase>((resolve, reject) => {
+      const request = indexedDB.open('podmix-library-history', 1)
+      request.onupgradeneeded = () => request.result.createObjectStore('records')
+      request.onsuccess = () => resolve(request.result)
+      request.onerror = () => reject(request.error)
+    })
+    return new Promise<string | null>((resolve, reject) => {
+      const tx = db.transaction('records', 'readonly')
+      const request = tx.objectStore('records').get(recordKey)
+      tx.oncomplete = () => { db.close(); resolve((request.result as string | undefined) ?? null) }
+      tx.onerror = () => { db.close(); reject(tx.error) }
+    })
+  }, key)
+}
+
+// Isolement réseau : l'app vérifie les mises à jour et rafraîchit les flux au
+// chargement. Par défaut tout appel à l'API Podmix est mis en échec contrôlé ;
+// chaque test remplace les routes dont il a besoin (les routes enregistrées en
+// dernier sont prioritaires).
+test.beforeEach(async ({ page }) => {
+  await page.route('**/podmix/update.json*', (route) => route.fulfill({
+    contentType: 'application/json',
+    body: JSON.stringify({
+      versionCode: 1, versionName: '0.0.1', minimumVersionCode: 0,
+      apkUrl: 'https://example.test/app.apk', publishedAt: '2026-01-01T00:00:00Z', sha256: '', notes: [],
+    }),
+  }))
+  await page.route('**/podmix-api/**', (route) => route.fulfill({
+    status: 503, contentType: 'application/json', body: '{"message":"API simulée indisponible"}',
+  }))
+})
+
 test('catalogue, podcast, lecture, persistance et réglages', async ({ page }) => {
   const errors: string[] = []
   page.on('pageerror', (error) => errors.push(error.message))
 
-  await page.goto('/')
-  await expect(page.locator('.breadcrumbs strong')).toHaveText('Accueil')
-  await expect(page.getByText('Commencer à écouter')).toHaveCount(0)
-  await expect(page.locator('.home-resume')).toHaveCount(0)
-  await expect(page.locator('.home-catalog-heading')).toHaveCount(0)
-  await expect(page.getByText('Bibliothèque', { exact: true })).toHaveCount(2)
-  await expect(page.locator('.home-overview')).toHaveCount(0)
-  const appInfo = page.getByRole('button', { name: /Informations sur l’application, version 1\.0\.39/ })
-  await expect(appInfo).toBeVisible()
-  await appInfo.click()
-  await expect(page.getByRole('heading', { name: 'Podmix Studio' })).toBeVisible()
-  await expect(page.getByText('Version 1.0.39', { exact: true })).toBeVisible()
-  await page.getByRole('button', { name: 'Fermer' }).click()
+  await page.route('**/v1/catalog/podcasts?q=*', (route) => route.fulfill({
+    contentType: 'application/json',
+    body: JSON.stringify({
+      items: [{ id: 'asie', title: "Sur les routes de l'Asie", artist: 'Studio voyage', feedUrl: 'https://example.com/asie.xml' }],
+    }),
+  }))
+  await page.route('**/v1/catalog/rss', (route) => route.fulfill({
+    contentType: 'application/json',
+    body: JSON.stringify({
+      id: 'https://example.com/asie.xml', kind: 'podcast', title: "Sur les routes de l'Asie",
+      description: 'Carnets de route', artworkUrl: '', feedUrl: 'https://example.com/asie.xml',
+      episodes: [{
+        id: 'asie-1', title: 'Première étape', description: 'Le départ', publishedAt: '2026-10-01',
+        duration: '0:10', audioUrl: '/asie-1.wav', artworkUrl: '',
+      }],
+    }),
+  }))
+  await page.route('**/asie-1.wav', (route) => fulfillWav(route, 10))
 
-  await page.getByRole('button', { name: 'Bibliothèque' }).last().click()
-  await expect(page.locator('.catalog-grid')).toHaveClass(/home-catalog-grid/)
-  await page.locator('.catalog-toolbar').getByRole('button', { name: 'Ajouter' }).click()
-  await expect(page.getByRole('heading', { name: 'Ajouter une source' })).toBeVisible()
-  const podcastSearch = page.getByLabel('Rechercher un podcast')
-  await expect(podcastSearch).toHaveCSS('min-height', '56px')
-  await expect(page.getByRole('button', { name: "Rechercher dans l’annuaire" })).toHaveCount(0)
-  await podcastSearch.fill("Sur les routes de l'Asie")
+  await page.goto('/')
+  await expect(page.locator('.topbar')).toBeVisible()
+  await expect(page.getByText('Votre bibliothèque est vide')).toBeVisible()
+
+  await page.getByLabel('Ajouter une source').click()
+  await expect(page.getByRole('heading', { name: 'Qu’avez-vous envie d’écouter ?' })).toBeVisible()
+  await expect(page.locator('.source-mode').getByRole('button', { name: 'Podcast' })).toHaveClass(/active/)
+  await page.getByLabel('Rechercher un podcast').fill("Sur les routes de l'Asie")
   const result = page.locator('.podcast-results button').filter({ hasText: "Sur les routes de l'Asie" }).first()
   await expect(result).toBeVisible()
   await result.click()
 
-  await expect(page.getByRole('heading', { name: "Sur les routes de l'Asie" })).toBeVisible()
-  await expect(page.locator('.source-heading p')).toHaveCount(0)
-  const firstEpisode = page.locator('.episode-item').first()
-  await expect(firstEpisode).toBeVisible()
-  await firstEpisode.locator('.episode-info').click()
-  await expect(page.locator('.episode-detail .source-heading p')).toHaveCount(0)
-  if ((page.viewportSize()?.width ?? 0) <= 700) {
-    await expect(page.locator('.episode-detail .source-heading h2')).toHaveCSS('font-size', '18px')
-    await expect(page.locator('.episode-detail .episode-analysis-card p')).toHaveCSS('display', 'none')
-    await expect(page.locator('.episode-detail .episode-tracklist .section-heading > span')).toHaveCSS('font-size', '8px')
-  }
-  await page.getByRole('button', { name: /Retour à/ }).click()
-  await firstEpisode.locator('.episode-play').click()
-  await expect(page.locator('.mini-player-global')).toBeVisible()
-  const outputButton = page.getByRole('button', { name: /Sortie audio :/ })
-  await expect(outputButton).toBeVisible()
-  await outputButton.click()
+  await expect(page.locator('.source-heading h2')).toHaveText("Sur les routes de l'Asie")
+  await page.locator('.episode-info').filter({ hasText: 'Première étape' }).click()
+  await expect(page.locator('.episode-detail .source-heading h2')).toHaveText('Première étape')
+  await page.locator('.episode-detail .source-actions').getByRole('button', { name: 'Lire depuis le début' }).click()
+  const mini = page.locator('.mini-player-global')
+  await expect(mini).toBeVisible()
+  await expect(mini).toContainText('Première étape')
+
+  await page.getByRole('button', { name: /Sortie audio :/ }).first().click()
   await expect(page.getByRole('heading', { name: 'Écouter sur' })).toBeVisible()
   await expect(page.getByRole('button', { name: /Ce navigateur/ })).toBeVisible()
   await page.getByRole('button', { name: 'Fermer' }).click()
-  if ((page.viewportSize()?.width ?? 0) <= 700) {
-    const metaBox = await page.locator('.mini-meta').boundingBox()
-    const controlsBox = await page.locator('.mini-player-global > button').first().boundingBox()
-    expect(metaBox).not.toBeNull()
-    expect(controlsBox).not.toBeNull()
-    expect((metaBox?.y ?? 0) + (metaBox?.height ?? 0)).toBeLessThanOrEqual((controlsBox?.y ?? 0) + 1)
-  }
 
+  // Persistance : le catalogue importé est enregistré dans le stockage durable
+  // et survit au rechargement.
+  await expect.poll(() => readDurableRecord(page, 'podmix-catalog-v1')).toContain("Sur les routes de l'Asie")
   await page.reload()
-  await page.getByRole('button', { name: 'Bibliothèque' }).last().click()
-  await expect(page.getByText("Sur les routes de l'Asie", { exact: true })).toBeVisible()
+  await expect(page.locator('.media-card').filter({ hasText: "Sur les routes de l'Asie" })).toBeVisible()
 
-  await page.getByRole('button', { name: 'Réglages' }).last().click()
+  await page.getByRole('button', { name: 'Réglages' }).click()
   await expect(page.getByRole('heading', { name: 'Mises à jour' })).toBeVisible()
-  await expect(page.getByText(/Version installée : 1\.0\.39/)).toBeVisible()
-  await expect(page.getByText(/Application à jour/)).toBeVisible()
+  await expect(page.getByText(/Version installée : 1\.0\.\d+/)).toBeVisible()
+  await expect(page.getByText('Application à jour')).toBeVisible()
 
   expect(errors).toEqual([])
 })
 
-test('navigation sans onglet analyses et PWA', async ({ page }) => {
+test('navigation par la barre supérieure et PWA', async ({ page }) => {
   await page.goto('/')
-  await expect(page.locator('.mobile-nav button').filter({ hasText: 'Favoris' })).toHaveCount(1)
+  const topbar = page.locator('.topbar .top-actions')
+  await expect(topbar.getByRole('button')).toHaveCount(6)
+  // Chaque bouton doit tenir entièrement dans la largeur de l'écran : un bouton
+  // « présent » mais tronqué serait inaccessible au tactile (constaté à ≤390 px
+  // sur l'app actuelle : « Réglages » déborde à 410 px — limitation app signalée,
+  // hors périmètre tests ; les projets tournent à 1280 et 412 px).
+  const viewportWidth = page.viewportSize()?.width ?? 0
+  for (const button of await topbar.getByRole('button').all()) {
+    const box = await button.boundingBox()
+    expect(box, `bouton topbar tronqué à ${viewportWidth} px`).not.toBeNull()
+    expect(box!.x + box!.width).toBeLessThanOrEqual(viewportWidth)
+  }
+  await expect(topbar.getByRole('button', { name: 'Rechercher' })).toBeVisible()
+  await expect(topbar.getByRole('button', { name: 'Ajouter une source' })).toBeVisible()
+  await expect(topbar.getByRole('button', { name: 'Reprendre l’écoute' })).toBeVisible()
+  await expect(topbar.getByRole('button', { name: 'Voir l’historique' })).toBeVisible()
+  await expect(topbar.getByRole('button', { name: 'Voir les favoris' })).toBeVisible()
+  await expect(topbar.getByRole('button', { name: 'Réglages' })).toBeVisible()
   await expect(page.getByRole('button', { name: 'Analyses' })).toHaveCount(0)
-  await expect(page.locator('.mobile-nav button')).toHaveCount(4)
+
+  await topbar.getByRole('button', { name: 'Voir l’historique' }).click()
+  // Le titre h1 du héros est masqué en mobile (media query) : l'outil de
+  // recherche de l'historique identifie la vue sur les deux formats.
+  await expect(page.getByLabel('Rechercher dans l’historique')).toBeVisible()
+  await topbar.getByRole('button', { name: 'Voir les favoris' }).click()
+  await expect(page.getByText('Aucun favori')).toBeVisible()
+  await topbar.getByRole('button', { name: 'Reprendre l’écoute' }).click()
+  await expect(page.getByText('Rien à reprendre')).toBeVisible()
+  await topbar.getByRole('button', { name: 'Réglages' }).click()
+  await expect(page.getByRole('heading', { name: 'Mises à jour' })).toBeVisible()
 
   const manifest = await page.request.get('/manifest.webmanifest')
   expect(manifest.ok()).toBeTruthy()
@@ -104,17 +192,27 @@ test('navigation sans onglet analyses et PWA', async ({ page }) => {
 
 test('une donnée locale abîmée ne bloque pas le démarrage', async ({ page }) => {
   await page.addInitScript(() => {
-    localStorage.setItem('podmix-favorites-v1', '{invalide')
+    localStorage.setItem('podmix-catalog-v1', '{invalide')
     localStorage.setItem('podmix-history-v1', '{"ancien":true}')
     localStorage.setItem('podmix-offline-v1', '{"ancien":true}')
+    localStorage.setItem('podmix-track-favorites-v1', '{invalide')
+    localStorage.setItem('podmix-settings-v1', '{invalide')
   })
 
   await page.goto('/')
-  await expect(page.locator('.breadcrumbs strong')).toHaveText('Accueil')
-  await expect(page.locator('.mobile-nav')).toBeAttached()
+  await expect(page.locator('.topbar')).toBeVisible()
+  await expect(page.getByText('Votre bibliothèque est vide')).toBeVisible()
+  // Les données existantes ne sont pas effacées : l'échec de reprise est signalé.
+  const warning = page.getByRole('alert')
+  await expect(warning).toBeVisible()
+  await expect(warning).toContainText('ne sont pas enregistrées')
+  await expect(warning).toContainText('n’ont pas été effacées')
+  // L'application reste utilisable.
+  await page.getByRole('button', { name: 'Rechercher' }).click()
+  await expect(page.getByPlaceholder('Podcast, épisode, radio ou DJ set…')).toBeVisible()
 })
 
-test('l’historique Hermes migre, recherche et supprime les anciennes écoutes', async ({ page }) => {
+test('l’historique migre, recherche et supprime les anciennes écoutes', async ({ page }) => {
   await page.addInitScript(() => {
     localStorage.setItem('podmix-history-v1', JSON.stringify([{
       id: 'episode-hermes', title: 'Session Hermes', artist: 'Podcast mémoire', url: '/hermes.wav',
@@ -124,7 +222,9 @@ test('l’historique Hermes migre, recherche et supprime les anciennes écoutes'
 
   await page.goto('/')
   await page.getByRole('button', { name: 'Voir l’historique' }).click()
-  await expect(page.getByRole('heading', { name: 'Historique' })).toBeVisible()
+  // Le titre h1 du héros est masqué en mobile (media query) : l'outil de
+  // recherche de l'historique identifie la vue sur les deux formats.
+  await expect(page.getByLabel('Rechercher dans l’historique')).toBeVisible()
   await expect(page.locator('.history-item')).toContainText('Session Hermes')
   await expect(page.locator('.history-item')).toContainText('repris à 0:42')
 
@@ -134,9 +234,12 @@ test('l’historique Hermes migre, recherche et supprime les anciennes écoutes'
   await expect(page.locator('.history-item')).toHaveCount(1)
   await page.getByRole('button', { name: 'Supprimer Session Hermes de l’historique' }).click()
   await expect(page.locator('.history-item')).toHaveCount(0)
+  await expect(page.getByText('Aucune écoute trouvée')).toBeVisible()
+  // La suppression est bien persistée dans le stockage durable.
+  await expect.poll(() => readDurableRecord(page, 'podmix-listening-sessions-v1')).toBe('[]')
 })
 
-test('un catalogue proche de la limite de stockage reste utilisable', async ({ page }) => {
+test('un refus d’écriture du stockage ne perd pas le catalogue', async ({ page }) => {
   await page.addInitScript(() => {
     const catalog = [{
       id: 'catalogue-volumineux', kind: 'podcast', title: 'Catalogue conservé', description: 'S'.repeat(5_000), artworkUrl: '',
@@ -145,25 +248,46 @@ test('un catalogue proche de la limite de stockage reste utilisable', async ({ p
         duration: '10:00', audioUrl: '/episode.wav', artworkUrl: '',
         tracks: [{ id: 1, time: 0, artist: 'Artiste', title: 'Morceau conservé', confidence: 90, source: 'manual' }],
       }],
+    }, {
+      id: 'source-ephemere', kind: 'show', title: 'Source éphémère', description: '', artworkUrl: '',
+      episodes: [{ id: 'episode-ephemere', title: 'Épisode éphémère', description: '', publishedAt: '', duration: '1:00', audioUrl: '/ephemere.wav', artworkUrl: '' }],
     }]
     localStorage.setItem('podmix-catalog-v1', JSON.stringify(catalog))
-    const nativeSetItem = Storage.prototype.setItem
-    Storage.prototype.setItem = function (key, value) {
-      if (key === 'podmix-catalog-v1' && value.length > 3_000) {
+    // Simule un stockage plein : toute nouvelle écriture IDB du catalogue est
+    // refusée une fois le sabotage armé (la migration de démarrage doit passer).
+    const nativePut = IDBObjectStore.prototype.put
+    IDBObjectStore.prototype.put = function (this: IDBObjectStore, value: unknown, key?: IDBValidKey) {
+      const armed = (window as unknown as { __podmixStorageFull?: boolean }).__podmixStorageFull
+      if (armed && key === 'podmix-catalog-v1' && typeof value === 'string' && value.length > 3_000) {
         throw new DOMException('Quota simulé', 'QuotaExceededError')
       }
-      return nativeSetItem.call(this, key, value)
-    }
+      return nativePut.call(this, value, key as IDBValidKey)
+    } as typeof IDBObjectStore.prototype.put
   })
 
   await page.goto('/')
-  await expect(page.locator('.mobile-nav')).toBeAttached()
-  await page.getByRole('button', { name: 'Bibliothèque' }).last().click()
-  await expect(page.getByText('Catalogue conservé', { exact: true })).toBeVisible()
-  await page.getByText('Catalogue conservé', { exact: true }).click()
-  await expect(page.getByText('Épisode conservé', { exact: true })).toBeVisible()
-  await page.getByText('Épisode conservé', { exact: true }).click()
+  // Le catalogue migré reste consultable.
+  await page.locator('.media-card').filter({ hasText: 'Catalogue conservé' }).click()
+  await page.locator('.episode-info').filter({ hasText: 'Épisode conservé' }).click()
   await expect(page.locator('.episode-track')).toContainText('Morceau conservé')
+
+  // Le stockage devient plein : la suppression de la petite source échoue à se
+  // sauvegarder (le catalogue restant est toujours volumineux), elle est signalée,
+  // et la copie déjà enregistrée n'est pas effacée.
+  await page.evaluate(() => { (window as unknown as { __podmixStorageFull?: boolean }).__podmixStorageFull = true })
+  await page.getByRole('button', { name: /Retour à/ }).click()
+  await page.getByRole('button', { name: /Retour à/ }).click()
+  await page.locator('.media-card').filter({ hasText: 'Source éphémère' }).click()
+  await page.getByRole('button', { name: 'Supprimer', exact: true }).click()
+  const warning = page.getByRole('alert')
+  await expect(warning).toBeVisible()
+  await expect(warning).toContainText('ne sont pas enregistrées')
+  await expect.poll(() => readDurableRecord(page, 'podmix-catalog-v1')).toContain('Catalogue conservé')
+
+  // Au rechargement, les deux sources reviennent : aucune donnée n'a été perdue.
+  await page.reload()
+  await expect(page.locator('.media-card').filter({ hasText: 'Catalogue conservé' })).toBeVisible()
+  await expect(page.locator('.media-card').filter({ hasText: 'Source éphémère' })).toBeVisible()
 })
 
 test('les catégories héritées sont corrigées sans contaminer les prochains ajouts', async ({ page }) => {
@@ -190,39 +314,26 @@ test('les catégories héritées sont corrigées sans contaminer les prochains a
   })
 
   await page.goto('/')
-  await page.getByRole('button', { name: 'Bibliothèque' }).last().click()
-  const legend = page.locator('.media-card').filter({ hasText: 'LEGEND' })
-  await expect(legend).toContainText('Émission')
-  const pureTrance = page.locator('.media-card').filter({ hasText: 'Pure Trance Radio Podcast with Solarstone' })
-  await expect(pureTrance).toContainText('Podcast')
-
-  await page.getByRole('button', { name: 'Podcasts' }).click()
-  await expect(legend).toHaveCount(0)
-  await expect(pureTrance).toBeVisible()
-  await page.getByRole('button', { name: 'Émissions' }).click()
+  // Les rubriques d'accueil reflètent les catégories corrigées.
+  const legend = page.locator('.home-shows .media-card').filter({ hasText: 'LEGEND' })
+  const pureTrance = page.locator('.home-podcasts .media-card').filter({ hasText: 'Pure Trance Radio Podcast with Solarstone' })
   await expect(legend).toBeVisible()
-  await expect(pureTrance).toHaveCount(0)
+  await expect(pureTrance).toBeVisible()
 
-  await page.locator('.catalog-toolbar').getByRole('button', { name: 'Ajouter' }).click()
-  await expect(page.locator('.source-mode').getByRole('button', { name: 'Émission' })).toHaveClass(/active/)
-  await page.getByRole('button', { name: '×' }).click()
-
-  await page.getByRole('button', { name: 'Tout' }).click()
-  await page.locator('.catalog-toolbar').getByRole('button', { name: 'Ajouter' }).click()
+  // La correction ne contamine pas le prochain ajout : le dialogue s'ouvre
+  // toujours en mode Podcast.
+  await page.getByLabel('Ajouter une source').click()
   await expect(page.locator('.source-mode').getByRole('button', { name: 'Podcast' })).toHaveClass(/active/)
-  await page.getByRole('button', { name: '×' }).click()
+  await page.locator('.source-modal .modal-close').click()
 
   await legend.click()
-  const sourceType = page.locator('.source-heading > div > span').first()
-  await expect(sourceType).toHaveText('Émission')
-  await expect.poll(() => page.evaluate(() => {
-    const catalog = JSON.parse(localStorage.getItem('podmix-catalog-v1') ?? '[]')
-    return catalog.map((source: { title: string; kind: string; musical?: boolean }) => ({
-      title: source.title,
-      kind: source.kind,
-      musical: source.musical,
-    }))
-  })).toEqual([
+  await expect(page.locator('.source-heading > div > span').first()).toHaveText('Émission')
+  // La réparation est persistée dans le stockage durable.
+  await expect.poll(async () => {
+    const raw = await readDurableRecord(page, 'podmix-catalog-v1')
+    const catalog = JSON.parse(raw ?? '[]') as Array<{ title: string; kind: string; musical?: boolean }>
+    return catalog.map((source) => ({ title: source.title, kind: source.kind, musical: source.musical }))
+  }).toEqual([
     { title: 'LEGEND', kind: 'show', musical: false },
     { title: 'Pure Trance Radio Podcast with Solarstone', kind: 'podcast', musical: undefined },
   ])
@@ -265,43 +376,51 @@ test('le raccourci d’accueil reprend à la dernière position', async ({ page 
       },
     ]))
   })
-  await page.route('**/resume.wav', (route) => route.fulfill({
-    body: silentWav(10),
-    contentType: 'audio/wav',
-  }))
+  await page.route('**/resume.wav', (route) => fulfillWav(route, 10))
 
   await page.goto('/')
-  await expect(page.getByText(/Reprendre à 0:03/)).toBeVisible()
-  await expect(page.getByText('Émission à reprendre', { exact: true })).toBeVisible()
-  await expect(page.getByText('Morceau individuel à masquer')).toHaveCount(0)
-  await expect(page.getByText('Titre analysé à masquer')).toHaveCount(0)
-  await expect(page.getByText('DJ set à masquer')).toHaveCount(0)
-  await expect(page.getByText('Épisode terminé à 98 %')).toHaveCount(0)
-  const resumeEpisode = page.locator('.home-resume .episode-item').first()
-  await expect(resumeEpisode.locator('.episode-play')).toBeVisible()
-  await resumeEpisode.locator('.episode-play').click()
+  // La reprise vit dans la vue dédiée « Reprendre l'écoute » de la topbar
+  // (la grille d'accueil n'a plus de section repliée dédiée).
+  await page.getByRole('button', { name: 'Reprendre l’écoute' }).click()
+  const resumeSection = page.locator('.resume-library')
+  await expect(resumeSection).toBeVisible()
+  // Seuls les épisodes entiers non terminés sont proposés, jamais les entrées
+  // de morceaux ; les DJ sets sont désormais repris comme les autres sources.
+  await expect(resumeSection.locator('.episode-item')).toHaveCount(3)
+  await expect(resumeSection).toContainText('Épisode à reprendre')
+  await expect(resumeSection).toContainText('Émission à reprendre')
+  await expect(resumeSection).toContainText('DJ set à masquer')
+  await expect(resumeSection).not.toContainText('Morceau individuel à masquer')
+  await expect(resumeSection).not.toContainText('Titre analysé à masquer')
+  await expect(resumeSection).not.toContainText('Épisode terminé à 98 %')
+
+  const resumeEpisode = resumeSection.locator('.episode-item').first()
+  await resumeEpisode.getByRole('button', { name: 'Reprendre Épisode à reprendre' }).click()
 
   await expect(page.locator('.mini-player-global')).toContainText('Épisode à reprendre')
   const positionSlider = page.getByRole('slider', { name: 'Position de lecture' })
   await expect(positionSlider).toBeVisible()
   await expect.poll(async () => Number(await positionSlider.getAttribute('max'))).toBeGreaterThanOrEqual(9)
-  await expect.poll(() => page.evaluate(() => {
-    const history = JSON.parse(localStorage.getItem('podmix-history-v1') ?? '[]')
-    return history[0]?.position ?? 0
-  })).toBeGreaterThanOrEqual(3)
+  // La lecture reprend à la position enregistrée, persistée en IndexedDB.
+  await expect.poll(async () => {
+    const raw = await readDurableRecord(page, 'podmix-history-v1')
+    return (JSON.parse(raw ?? '[]') as Array<{ position?: number }>)[0]?.position ?? 0
+  }).toBeGreaterThanOrEqual(3)
   await expect(resumeEpisode).toHaveClass(/playing/)
-  await resumeEpisode.locator('.episode-play').click()
+  await resumeEpisode.getByRole('button', { name: 'Mettre en pause Épisode à reprendre' }).click()
   await expect(resumeEpisode).toHaveClass(/playing/)
-  await expect(resumeEpisode.locator('.episode-play')).toHaveAttribute('aria-label', /Reprendre/)
-  await resumeEpisode.locator('.episode-play').click()
-  await expect(resumeEpisode.locator('.episode-play')).toHaveAttribute('aria-label', /Mettre en pause/)
+  await resumeEpisode.getByRole('button', { name: 'Reprendre Épisode à reprendre' }).click()
+  await expect(resumeEpisode.getByRole('button', { name: 'Mettre en pause Épisode à reprendre' })).toBeVisible()
 
-  await resumeEpisode.locator('.episode-info').click()
+  await resumeEpisode.getByRole('button', { name: 'Ouvrir Épisode à reprendre' }).click()
 
   await expect(page.locator('.episode-detail')).toContainText('Épisode à reprendre')
-  await expect(page.locator('.home-resume')).toHaveCount(0)
-  await positionSlider.fill('5')
-  await expect.poll(async () => Number(await positionSlider.inputValue())).toBeGreaterThanOrEqual(5)
+  await expect(page.locator('.episode-detail .source-actions').getByRole('button', { name: /Reprendre · 0:0/ })).toBeVisible()
+  await expect(page.locator('.resume-library')).toHaveCount(0)
+  // La position affichée se rafraîchit environ une fois par seconde : le seuil
+  // 6,5 s est hors de portée d'une lecture naturelle depuis la reprise (~4 s).
+  await positionSlider.fill('7')
+  await expect.poll(async () => Number(await positionSlider.inputValue()), { timeout: 8_000 }).toBeGreaterThanOrEqual(6.5)
 })
 
 test('la liste des épisodes montre un état de lecture compact sans pourcentage', async ({ page }) => {
@@ -330,14 +449,14 @@ test('la liste des épisodes montre un état de lecture compact sans pourcentage
     localStorage.setItem('podmix-history-v1', JSON.stringify([{
       id: 'episode-progress', title: 'Épisode commencé', artist: 'Podcast progression', url: '/episode-progress.wav', position: 300, playedAt: '2026-08-01T10:00:00.000Z',
     }, {
-      // A new partial replay must not erase the historical completed state.
+      // Une nouvelle écoute partielle ne doit pas effacer l'état « Lu » acquis.
       id: 'episode-done', title: 'Épisode terminé', artist: 'Podcast progression', url: '/episode-done.wav', position: 60, playedAt: '2026-08-01T09:00:00.000Z',
     }]))
     localStorage.setItem('podmix-completed-episodes-v1', JSON.stringify(['episode-done']))
   })
 
   await page.goto('/')
-  await page.getByRole('img', { name: 'Logo Podcast progression' }).click()
+  await page.locator('.media-card').filter({ hasText: 'Podcast progression' }).click()
 
   await expect(page.locator('.episode-item').filter({ hasText: 'Épisode neuf' }).getByLabel('État de lecture : À lire')).toBeVisible()
   const startedEpisode = page.locator('.episode-item').filter({ hasText: 'Épisode commencé' })
@@ -381,39 +500,40 @@ test('un titre démarre au repère du morceau', async ({ page }) => {
       }],
     }]))
   })
-  await page.route('**/test-tone.wav', (route) => route.fulfill({
-    body: silentWav(2),
-    contentType: 'audio/wav',
-  }))
+  await page.route('**/test-tone.wav', (route) => fulfillWav(route, 30))
 
   await page.goto('/')
-  await page.getByRole('button', { name: 'Bibliothèque' }).last().click()
   await page.locator('.media-card').filter({ hasText: 'Podcast musical test' }).click()
   await page.locator('.episode-info').filter({ hasText: 'Épisode avec tracklist' }).click()
 
-  const firstTrack = page.locator('.episode-track').filter({ hasText: 'Morceau ciblé' })
-  await expect(firstTrack).not.toContainText('100%')
-  await expect(firstTrack.locator('strong > span')).toHaveCSS('white-space', 'nowrap')
   const firstTrackRow = page.locator('.episode-track-row').filter({ hasText: 'Morceau ciblé' })
+  await expect(firstTrackRow).not.toContainText('100%')
+  await expect(firstTrackRow.locator('.episode-track strong > span')).toHaveCSS('white-space', 'nowrap')
   await firstTrackRow.getByRole('button', { name: 'Ajouter Morceau ciblé aux favoris' }).click()
   await expect(firstTrackRow.getByRole('button', { name: 'Retirer Morceau ciblé des favoris' })).toBeVisible()
-  await expect.poll(() => page.evaluate(() => JSON.parse(localStorage.getItem('podmix-track-favorites-v1') ?? '[]'))).toContain('episode-test::track::1::0')
+  await expect.poll(() => page.evaluate(() => JSON.parse(localStorage.getItem('podmix-track-favorites-v1') ?? '[]') as string[])).toContain('episode-test::track::1::0')
 
-  await page.locator('.episode-detail .source-actions').getByRole('button', { name: 'Lire' }).click()
+  await page.locator('.episode-detail .source-actions').getByRole('button', { name: 'Lire depuis le début' }).click()
   await expect(page.locator('.episode-track.playing')).toContainText('Morceau ciblé')
 
   await page.locator('.episode-track').filter({ hasText: 'Morceau ciblé' }).click()
 
-  await expect(page.locator('.mini-player-global')).toContainText('Morceau ciblé')
+  const mini = page.locator('.mini-player-global')
+  await expect(mini).toContainText('Morceau ciblé')
   await expect(page.locator('.episode-track.playing')).toContainText('Morceau ciblé')
-  await expect.poll(() => page.evaluate(() => {
-    const history = JSON.parse(localStorage.getItem('podmix-history-v1') ?? '[]')
-    return history[0]?.position ?? 0
-  })).toBe(0.25)
-  await expect(page.locator('.mini-player-global')).toContainText('Morceau suivant')
+  // La lecture démarre au repère du morceau (0,25 s), pas au début de l'épisode.
+  await expect.poll(async () => {
+    const raw = await readDurableRecord(page, 'podmix-history-v1')
+    return (JSON.parse(raw ?? '[]') as Array<{ position?: number }>)[0]?.position ?? 0
+  }).toBeGreaterThanOrEqual(0.25)
+  const position = (JSON.parse(await readDurableRecord(page, 'podmix-history-v1') ?? '[]') as Array<{ position?: number }>)[0]?.position ?? 0
+  expect(position).toBeLessThan(2)
 
-  await page.locator('.episode-detail .source-actions').getByRole('button', { name: 'Lire' }).click()
-  await expect(page.locator('.mini-player-global')).toContainText('Épisode avec tracklist')
+  await page.getByRole('button', { name: 'Morceau suivant', exact: true }).click()
+  await expect(mini).toContainText('Morceau suivant')
+
+  await page.locator('.episode-detail .source-actions').getByRole('button', { name: 'Lire depuis le début' }).click()
+  await expect(mini).toContainText('Épisode avec tracklist')
 })
 
 test('les favoris gardent leur épisode et s’enchaînent', async ({ page }) => {
@@ -428,6 +548,9 @@ test('les favoris gardent leur épisode et s’enchaînent', async ({ page }) =>
       }),
     })
   })
+  await page.route('**/v1/catalog/artwork', (route) => route.fulfill({
+    contentType: 'application/json', body: '{"items":[]}',
+  }))
   await page.addInitScript(() => {
     Object.defineProperty(navigator, 'share', {
       configurable: true,
@@ -479,10 +602,7 @@ test('les favoris gardent leur épisode et s’enchaînent', async ({ page }) =>
       'episode-favori-b::track::2::0',
     ]))
   })
-  await page.route('**/favorite-*.wav', (route) => route.fulfill({
-    body: silentWav(1),
-    contentType: 'audio/wav',
-  }))
+  await page.route('**/favorite-*.wav', (route) => fulfillWav(route, 30))
 
   await page.goto('/')
   await page.getByRole('button', { name: 'Voir les favoris' }).click()
@@ -519,7 +639,7 @@ test('les favoris gardent leur épisode et s’enchaînent', async ({ page }) =>
 
   await expect(page.locator('.mini-player-global')).toContainText('Favori du premier épisode')
   await expect(favorites.locator('.episode-item.playing')).toContainText('Favori du premier épisode')
-  await page.getByRole('button', { name: 'Morceau suivant' }).click()
+  await page.getByRole('button', { name: 'Morceau suivant', exact: true }).click()
   await expect(page.locator('.mini-player-global')).toContainText('Favori du second épisode')
   await expect(favorites.locator('.episode-item.playing')).toContainText('Favori du second épisode')
   // Le poll natif/web s'exécute chaque seconde. La file de favoris est à
@@ -530,6 +650,20 @@ test('les favoris gardent leur épisode et s’enchaînent', async ({ page }) =>
   await expect(page.locator('.mini-player-global')).not.toContainText('Titre étranger à la file')
 })
 
+// Régression applicative connue, assertions volontairement maintenues à pleine
+// force : la normalisation des entités HTML du catalogue stocké
+// (normalizeCatalogSourceText au chargement, puis ré-enregistrement avec ids et
+// URLs inchangés) a été perdue quand src/App.tsx a été remplacé pendant la
+// fusion 1.0.229 (« Delete src/App.tsx » 72b256a / « Rename 1-App.tsx » aa3aa9a).
+// Depuis, les titres de sources et d'épisodes stockés avec des entités doubles
+// s'affichent bruts (« Above &amp;amp; Beyond ») et le stockage n'est plus
+// réparé. Ce test repasse vert dès que l'app répare de nouveau le catalogue au
+// chargement : retirer alors le test.fail.
+// RÉGRESSION APP CONNUE (fix f708d24 perdu à la fusion 1.0.229, commits
+// 72b256a / aa3aa9a) : les titres source/épisode s'affichent bruts
+// (« Above &amp;amp; Beyond ») et le stockage n'est jamais réparé.
+// Ce test reste volontairement ROUGE jusqu'au correctif app : la suite ne
+// doit pas masquer la régression. Retirer ce commentaire une fois corrigé.
 test('les entités HTML sont corrigées dans les données existantes, la tracklist et les deux lecteurs', async ({ page }) => {
   await page.addInitScript(() => {
     localStorage.setItem('podmix-settings-v1', JSON.stringify({ automaticAnalysis: false }))
@@ -558,10 +692,10 @@ test('les entités HTML sont corrigées dans les données existantes, la trackli
       }],
     }]))
   })
-  await page.route('**/entities.wav?*', (route) => route.fulfill({ body: silentWav(30), contentType: 'audio/wav' }))
+  await page.route('**/entities.wav?*', (route) => fulfillWav(route, 30))
 
   await page.goto('/')
-  await page.getByLabel('Above & Beyond', { exact: true }).click()
+  await page.locator('.media-card').filter({ hasText: 'Above & Beyond' }).click()
   await expect(page.locator('.episode-info')).toContainText('Find Your Harmony & Friends')
   await page.locator('.episode-info').click()
 
@@ -580,8 +714,13 @@ test('les entités HTML sont corrigées dans les données existantes, la trackli
   await expect(full).toContainText('Believe & Receive')
   await expect(full).toContainText('Mark Sherry, BiXX & Sue McLaren')
 
-  await expect.poll(() => page.evaluate(() => {
-    const [source] = JSON.parse(localStorage.getItem('podmix-catalog-v1') ?? '[]')
+  // La réparation est persistée : titres décodés, identifiants et URLs bruts.
+  await expect.poll(async () => {
+    const raw = await readDurableRecord(page, 'podmix-catalog-v1')
+    const [source] = JSON.parse(raw ?? '[]') as Array<{
+      id: string; feedUrl?: string; title: string
+      episodes: Array<{ id: string; audioUrl: string; title: string; tracks: Array<{ artist: string }> }>
+    }>
     return {
       sourceId: source?.id,
       feedUrl: source?.feedUrl,
@@ -591,7 +730,7 @@ test('les entités HTML sont corrigées dans les données existantes, la trackli
       episodeTitle: source?.episodes?.[0]?.title,
       artist: source?.episodes?.[0]?.tracks?.[0]?.artist,
     }
-  })).toEqual({
+  }).toEqual({
     sourceId: 'source-entities&amp;stable',
     feedUrl: 'https://example.test/feed?a=1&amp;b=2',
     episodeId: 'episode-entities&amp;stable',
@@ -615,11 +754,15 @@ test('le téléchargement confirme immédiatement la demande et suit son état n
     Object.assign(window, { __podmixDownloadTest: nativeState, androidBridge: {} })
 
     const promiseMethods = [
-      'getAppInfo', 'getPendingPlaybackTarget', 'getFavorites', 'getCompletedEpisodeIds',
-      'getStorage', 'getState', 'getVolume', 'setRepeatMode', 'syncLibrary',
-      'beginLibrarySync', 'appendLibraryChunk', 'commitLibrarySync', 'syncFavorites',
-      'syncResume', 'syncSubscriptions', 'listDownloads', 'getDownload', 'download',
-      'removeDownload', 'cacheArtwork', 'startWebTimestampWorker',
+      'addListener', 'appendLibraryChunk', 'beginLibrarySync', 'boseDiscover', 'boseGetState',
+      'boseKey', 'bosePlay', 'boseSetVolume', 'cacheArtwork', 'cast', 'commitLibrarySync',
+      'connectCastDevice', 'disconnectCast', 'discoverCastDevices', 'download', 'downloadApk',
+      'extractTracks', 'fetchPublishedTracklist', 'getApkStatus', 'getAppInfo', 'getCastState',
+      'getCastVolume', 'getCompletedEpisodeIds', 'getDownload', 'getFavorites',
+      'getPendingPlaybackTarget', 'getState', 'getStorage', 'getVolume', 'installApk',
+      'listDownloads', 'load', 'next', 'openCastPicker', 'pause', 'play', 'previous',
+      'recognizeMusic', 'removeDownload', 'seekTo', 'setCastVolume', 'setQueue', 'setRepeatMode',
+      'setVolume', 'startWebTimestampWorker', 'syncFavorites', 'syncResume', 'syncSubscriptions',
     ].map((name) => ({ name, rtype: 'promise' }))
 
     Object.assign(window, {
@@ -744,4 +887,53 @@ test('le téléchargement confirme immédiatement la demande et suit son état n
   await page.locator('.episode-detail').getByRole('button', { name: /Téléchargement échoué/ }).click()
   await expect(page.locator('.episode-detail').getByRole('button', { name: /file d’attente/i })).toContainText('File d’attente')
   await expect.poll(() => page.evaluate(() => (window as typeof window & { __podmixDownloadTest: { calls: number } }).__podmixDownloadTest.calls)).toBe(3)
+})
+
+// RÉGRESSION APP CONNUE (responsive, qualifiée 13/11) : à 390 px et 360 px de
+// large, le 6e bouton de la topbar (« Réglages ») s'étend jusqu'à 410 px — hors
+// écran — et son centre ne reçoit pas le tap. Rouge jusqu'au fix app ; ne pas
+// contourner en testant seulement à 412 px.
+test('la barre supérieure reste accessible à 390 px de large', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 })
+  await page.goto('/')
+  const buttons = page.locator('.topbar .top-actions').getByRole('button')
+  await expect(buttons).toHaveCount(6)
+  for (const button of await buttons.all()) {
+    const label = await button.getAttribute('aria-label')
+    const reach = await button.evaluate((el) => {
+      const r = el.getBoundingClientRect()
+      const hit = document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2)
+      return { right: r.right, vw: window.innerWidth, tappable: hit === el || el.contains(hit as Node | null) }
+    })
+    expect(reach.right, `${label} déborde de l'écran à 390 px`).toBeLessThanOrEqual(reach.vw)
+    expect(reach.tappable, `${label} ne reçoit pas le tap à 390 px`).toBe(true)
+  }
+  // Chaque bouton doit réellement ouvrir sa vue au tap.
+  await page.locator('.topbar .top-actions').getByRole('button', { name: 'Réglages' }).click()
+  await expect(page.getByRole('heading', { name: 'Mises à jour' })).toBeVisible()
+})
+
+// BUG APP CONNU (qualifié 13/11, repro synthétique) : la suppression d'une
+// écoute est bien persistée (sessions IndexedDB = []), mais la copie legacy
+// localStorage podmix-history-v1 n'est jamais vidée et loadListeningSessions
+// retombe dessus quand les sessions sont vides → l'entrée supprimée réapparaît
+// au rechargement. Rouge jusqu'au fix app.
+test('la suppression d’une écoute survit au rechargement', async ({ page }) => {
+  await page.addInitScript(() => {
+    localStorage.setItem('podmix-history-v1', JSON.stringify([{
+      id: 'ep-x', title: 'Session synthétique', artist: 'Podcast synthétique', url: '/x.wav',
+      position: 42, duration: 600, playedAt: '2026-08-12T10:00:00.000Z',
+    }]))
+  })
+  await page.goto('/')
+  await page.getByRole('button', { name: 'Voir l’historique' }).click()
+  await expect(page.locator('.history-item')).toHaveCount(1)
+  await page.getByRole('button', { name: 'Supprimer Session synthétique de l’historique' }).click()
+  await expect(page.locator('.history-item')).toHaveCount(0)
+  await expect.poll(() => readDurableRecord(page, 'podmix-listening-sessions-v1')).toBe('[]')
+
+  await page.reload()
+  await page.getByRole('button', { name: 'Voir l’historique' }).click()
+  await expect(page.locator('.history-item')).toHaveCount(0)
+  await expect(page.getByText('Aucune écoute trouvée')).toBeVisible()
 })
