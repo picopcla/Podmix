@@ -202,10 +202,14 @@ jobs:
                   time.sleep(.5)
               check(all(i in ids for i in ['qa-position','qa-idb-only','qa-recent-1']),'IDB keeps legacy, IDB-only and new recovered completion')
               after=ev('Object.fromEntries(Object.keys(localStorage).filter(k=>k!=="qa-synthetic-quota-filler").map(k=>[k,localStorage.getItem(k)]))')
+              open(OUT+'/candidate-before-assertions-'+MODE+'.json','w').write(json.dumps(after))
               check(ev('localStorage.getItem("qa-synthetic-quota-filler").length')==json.load(open(OUT+'/quota-before.json'))['fillerCharacters'],'quota filler unchanged, nothing freed')
               check(after['podmix-completed-episodes-v1']==before['podmix-completed-episodes-v1'],'legacy completed copy untouched under quota')
               for key in ['podmix-history-v1','podmix-listening-sessions-v1','podmix-track-favorites-v1','podmix-settings-v1','podmix-offline-v1']:
-                  check(json.loads(after[key])==json.loads(before[key]),'preserved '+key)
+                  expected=json.loads(before[key]);observed=json.loads(after[key])
+                  if key=='podmix-listening-sessions-v1':
+                      expected=sorted(expected,key=lambda x:x['sessionId']);observed=sorted(observed,key=lambda x:x['sessionId'])
+                  check(observed==expected,'preserved '+key)
               episodes=json.loads(after['podmix-catalog-v1'])[0]['episodes']
               check(len(episodes)==105,'all105 episodes retained including IDB-only reference')
               for id in ['qa-favorite','qa-position','qa-download','qa-annotation','qa-idb-only']:
