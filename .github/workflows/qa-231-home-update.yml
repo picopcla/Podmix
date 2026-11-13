@@ -215,8 +215,11 @@ jobs:
           log("sonde mock: " + str(probed))
           if not (isinstance(probed, str) and probed.startswith('ok ')):
               log('[FATAL] mock inaccessible depuis la WebView'); sys.exit(3)
-          catalog = [{"id": f"pod-{i}", "kind": "podcast", "title": t, "artworkUrl": "",
-                      "episodes": [{"id": f"ep-{i}", "title": f"Episode {i}", "audioUrl": f"http://localhost:8099/audio/{i}.mp3"}]}
+          catalog = [{"id": f"pod-{i}", "kind": "podcast", "title": t, "description": f"Podcast de test {t}",
+                      "artworkUrl": "", "newEpisodeIds": [], "unseenEpisodeIds": [],
+                      "episodes": [{"id": f"ep-{i}", "title": f"Episode {i}", "description": "Episode de test",
+                                    "publishedAt": "2026-11-12T20:00:00Z", "duration": "45:00",
+                                    "audioUrl": f"http://localhost:8099/audio/{i}.mp3", "artworkUrl": ""}]}
                      for i, t in enumerate(["Alpha Cast", "Bravo Cast", "Charlie Cast", "Delta Cast", "Echo Cast", "KOROLOVA"], start=1)]
           seed = "localStorage.setItem('podmix-api-url','http://localhost:8099'); localStorage.setItem('podmix-catalog-v1'," + json.dumps(json.dumps(catalog)) + "); location.reload(); 'ok'"
           ev(seed)
