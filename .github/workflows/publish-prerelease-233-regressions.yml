@@ -1,0 +1,71 @@
+name: publish-prerelease-233-regressions
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [fix/231-update-nag-and-home-grid]
+    paths: ['.github/workflows/publish-prerelease-233-regressions.yml']
+
+permissions:
+  contents: write
+  actions: read
+
+concurrency:
+  group: publish-prerelease-233-regressions
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      GH_TOKEN: ${{ github.token }}
+      TAG: v1.0.233-ng-regressions
+      SRC_RUN: '43506769064'
+      SRC_SHA: 9b59445b8d8cc042b8fb311613c0ff30fa017343
+      EXPECT_SHA256: 9861b51d93a288c62ed97f1c0198a4e3ec1bf5f7108275e439a94c1db60b8170
+    steps:
+      - name: Telecharger l'APK deja teste (run 43506769064)
+        run: |
+          set -euo pipefail
+          mkdir -p out
+          test "$(gh api "repos/${{ github.repository }}/actions/runs/$SRC_RUN" --jq '.conclusion')" = success
+          test "$(gh api "repos/${{ github.repository }}/actions/runs/$SRC_RUN" --jq '.head_sha')" = "$SRC_SHA"
+          gh run download "$SRC_RUN" -R "${{ github.repository }}" -n podmix233-full-persistence-candidate-signed-apk -D out
+          ls -l out
+      - name: Verifier empreinte, identite et certificat
+        run: |
+          set -euo pipefail
+          GOT=$(sha256sum out/app-ng-candidate-signed.apk | cut -d' ' -f1)
+          echo "sha256: $GOT"
+          test "$GOT" = "$EXPECT_SHA256"
+          BT=$(find "$ANDROID_HOME/build-tools" -mindepth 1 -maxdepth 1 -type d | sort -V | tail -1)
+          "$BT/aapt2" dump badging out/app-ng-candidate-signed.apk > out/badging.txt
+          if grep -q application-debuggable out/badging.txt; then exit 1; fi
+          BADGING=$("$BT/aapt2" dump badging out/app-ng-candidate-signed.apk | sed -n '1p')
+          echo "$BADGING"
+          grep -Fq "name='com.podmix.next.ng'" <<<"$BADGING"
+          grep -Fq "versionCode='10233'" <<<"$BADGING"
+          grep -Fq "versionName='1.0.233-ng'" <<<"$BADGING"
+          "$BT/apksigner" verify out/app-ng-candidate-signed.apk
+          CERT=$("$BT/apksigner" verify --print-certs out/app-ng-candidate-signed.apk | sed -n 's/.*certificate SHA-256 digest: //p' | head -1 | tr '[:upper:]' '[:lower:]')
+          echo "cert: $CERT"
+          test "$CERT" = "b27d46c092c63432e7e274d227c0e465cf91ab4656f67c1a0b511402505c8b8c"
+      - name: Publier la pre-release (nouveau tag, rien d'existant modifie)
+        run: |
+          set -euo pipefail
+          if gh release view "$TAG" -R "${{ github.repository }}" >/dev/null 2>&1; then
+            echo "release $TAG existe deja: arret, aucune ecriture"; exit 1
+          fi
+          cp out/app-ng-candidate-signed.apk out/app-ng-release.apk
+          cat > out/release-notes.txt <<'NOTES'
+          Corrige l'affichage des caractères spéciaux, la navigation sur petit écran et un cas de migration de l'historique. Vérifications automatiques renforcées. Mise à jour signée, à installer sans désinstaller. Le transfert Bose est vérifié en simulation ; le fonctionnement sur votre enceinte physique reste à confirmer.
+          NOTES
+          gh release create "$TAG" out/app-ng-release.apk --prerelease -R "${{ github.repository }}" --target "$SRC_SHA" \
+            --title "Podmix 1.0.233-ng - corrections et tests" \
+            --notes-file out/release-notes.txt
+          {
+            echo "## Pre-release publiee: $TAG"
+            echo "- sha256 asset: $EXPECT_SHA256"
+            echo "- commit source: $SRC_SHA"
+          } >> "$GITHUB_STEP_SUMMARY"
