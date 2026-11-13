@@ -1,4 +1,4 @@
-name: qa-231-upgrade-retention-patch
+name: qa-231-upgrade-retention-source
 on:
   workflow_dispatch:
   push:
@@ -7,7 +7,7 @@ on:
 permissions:
   contents: read
 concurrency:
-  group: qa-231-upgrade-retention-patch
+  group: qa-231-upgrade-retention-source
   cancel-in-progress: true
 jobs:
   qa:
@@ -26,7 +26,7 @@ jobs:
         with:
           distribution: temurin
           java-version: 21
-      - name: Baseline230 and candidate231 with explicit patch fingerprint
+      - name: Baseline230 and committed candidate231 with exact source fingerprints
         run: |
           set -euo pipefail
           mkdir -p /tmp/qa-out
@@ -34,9 +34,12 @@ jobs:
           sha256sum qa/qa/retention.patch | tee /tmp/qa-out/patch-sha256.txt
           echo "3a3bebcf4a34b3155c62c0edd288afcc9219b2d5c79f0c2cc389381e4a556ea6  qa/qa/retention.patch" | sha256sum -c -
           git rev-parse HEAD:src/App.tsx | tee /tmp/qa-out/app-source-blob.txt
-          # Ephemeral patch application only. No writes to GitHub and no release.
-          git apply --check qa/qa/retention.patch
-          git apply qa/qa/retention.patch
+          # Test committed source directly. Never apply the patch in this workflow.
+          sha256sum -c <<'HASHES'
+          81cb8893186cb3d3e86c66ab5a022207446eb022ee630fe1274cc14b384e5a3b  src/App.tsx
+          43abf7b194403971643bc971af1af606b86d08632d108aac98960d4cf4d9de80  src/catalogRetention.ts
+          973aaa99da778cb4fc4e99c70bdfceb3c54ec248e3f7f136e6a3ef094cd95550  tests/unit/catalogRetention.test.ts
+          HASHES
           npm ci
           npx vitest run tests/unit/catalogRetention.test.ts tests/unit/castState.test.ts tests/unit/safeStorage.test.ts tests/unit/updates.test.ts
           for dir in baseline .; do
@@ -126,6 +129,6 @@ jobs:
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: qa-230-to231-retention-patch-evidence
+          name: qa-230-to231-retention-source-evidence
           path: /tmp/qa-out
           retention-days: 14
