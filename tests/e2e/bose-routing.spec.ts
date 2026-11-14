@@ -69,7 +69,7 @@ test('Bose picker remains usable after native getState never resolves',async({pa
   await page.locator('.full-player-output').click()
   await expect(page.locator('.output-modal')).toBeVisible()
   await expect(page.locator('.output-device').filter({hasText:'Bose QA'})).toBeEnabled()
-  await page.screenshot({path:'test-results/bose-retry-picker-fixed.png'})
+  await page.screenshot({path:'/downloads/bose-retry-picker-fixed.png'})
 })
 
 test('late radio-A native event must not pair A title with radio-B URL',async({page})=>{
@@ -102,4 +102,16 @@ test('failed transfer keeps picker usable and next attempt creates a new relay s
   await expect(page.locator('.output-modal')).not.toBeVisible()
   expect(sessions).toHaveLength(2)
   expect(sessions.every(x=>x.url==='https://origin.example/A.mp3')).toBe(true)
+})
+
+test('actual live HTTPS plus CGNAT payload is refused before any Bose command',async({page})=>{
+  await setup(page,'https')
+  await page.route('**/v1/cast/sessions',(r)=>r.fulfill({status:201,json:{id:'07ebd766dc4b4b4ca31b7452b70fb555',relayUrl:'https://podmix.mb4.fr/podmix-cast/v1/cast/07ebd766dc4b4b4ca31b7452b70fb555',lanRelayUrl:'http://100.116.28.23:8099/v1/cast/07ebd766dc4b4b4ca31b7452b70fb555',expiresAt:'2026-11-15T06:56:36Z',startSeconds:0}}))
+  await page.locator('.media-card').filter({hasText:'Station A'}).locator('.radio-art').click()
+  await page.locator('.mini-output').click()
+  const bose=page.locator('.output-device').filter({hasText:'Bose QA'})
+  await bose.click()
+  await expect(page.locator('.output-message')).toContainText('Aucun relais HTTP compatible SoundTouch')
+  await expect(bose).toBeEnabled()
+  expect(await page.evaluate(()=>(window as any).__boseQA.commands)).toEqual([])
 })
