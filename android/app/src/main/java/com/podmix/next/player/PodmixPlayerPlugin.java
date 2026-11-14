@@ -2781,27 +2781,12 @@ public class PodmixPlayerPlugin extends Plugin implements Player.Listener {
             OutputStream output = socket.getOutputStream();
             String headers = method + " " + path + " HTTP/1.1\r\nHost: " + ip +
                 ":" + port + "\r\nConnection: close\r\nContent-Type: text/xml; charset=\"utf-8\"\r\n" +
-                (soapAction == null ? "" : "SOAPACTION: \"" + soapAction + "\"\r\n") +
+                (soapAction == null ? "" : "SOAPAction: \"" + soapAction + "\"\r\n") +
                 "Content-Length: " + payload.length + "\r\n\r\n";
             output.write(headers.getBytes(StandardCharsets.US_ASCII));
             if (payload.length > 0) output.write(payload);
             output.flush();
-            BufferedReader reader = new BufferedReader(new InputStreamReader(socket.getInputStream(), StandardCharsets.UTF_8));
-            String status = reader.readLine();
-            if (status == null) throw new IOException("Aucune réponse HTTP SoundTouch");
-            StringBuilder response = new StringBuilder();
-            String line;
-            boolean bodyStarted = false;
-            while ((line = reader.readLine()) != null) {
-                if (bodyStarted) response.append(line).append('\n');
-                else if (line.isEmpty()) bodyStarted = true;
-            }
-            if (!status.contains(" 200 ") && !status.contains(" 201 ")) {
-                String detail = response.toString().replaceAll("<[^>]+>", " ").replaceAll("\\s+", " ").trim();
-                if (detail.length() > 500) detail = detail.substring(0, 500);
-                throw new IOException("Réponse SoundTouch " + status + (detail.isEmpty() ? "" : " : " + detail));
-            }
-            return response.toString();
+            return BoseRendererContract.readHttpResponse(socket.getInputStream());
         }
     }
 
