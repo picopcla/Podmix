@@ -196,7 +196,8 @@ jobs:
               def do_GET(self):
                   log(f"8090 GET {self.path}")
                   if self.path.startswith("/info"):
-                      send(self, 200, '<info deviceID="MOCKBOSE001"><name>Bose Mock Repro</name><type>SoundTouch 20</type><mfg>Bose Corporation</mfg></info>', "text/xml")
+                      host = self.headers.get("Host", "").split(":")[0]
+                      send(self, 200, '<info deviceID="MOCKBOSE001"><name>Bose Mock Repro ' + host + '</name><type>SoundTouch 20</type><mfg>Bose Corporation</mfg></info>', "text/xml")
                   elif self.path.startswith("/now_playing"):
                       url = STATE["url"] or "http://10.0.2.2:8099/relay/idle"
                       title = STATE["title"] or "Podmix"
