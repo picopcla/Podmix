@@ -69,7 +69,7 @@ test('Bose picker remains usable after native getState never resolves',async({pa
   await page.locator('.full-player-output').click()
   await expect(page.locator('.output-modal')).toBeVisible()
   await expect(page.locator('.output-device').filter({hasText:'Bose QA'})).toBeEnabled()
-  await page.screenshot({path:'/downloads/bose-retry-picker-fixed.png'})
+  await page.screenshot({path:'test-results/bose-retry-picker-fixed.png'})
 })
 
 test('late radio-A native event must not pair A title with radio-B URL',async({page})=>{
