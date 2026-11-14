@@ -1,0 +1,40 @@
+name: bose-radio-regressions
+on:
+  workflow_dispatch:
+  push:
+    branches: [fix/231-update-nag-and-home-grid]
+    paths: [.github/workflows/bose-radio-regressions.yml]
+permissions:
+  contents: read
+jobs:
+  strict-web-and-relay-content:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - name: Unit tests and production build
+        run: |
+          npx vitest run tests/unit/*.test.ts
+          npm run build
+      - name: Relay-only routing, source identity, stalled reads and retry
+        run: npx playwright test tests/e2e/bose-routing.spec.ts
+      - name: Actual HTTP relay with decoded distinct MP3 sources and stale-content negative
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq ffmpeg
+          python -m pip install -r server/requirements.txt
+          python qa/bose-relay-content-identity.py
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: bose-radio-regression-evidence
+          path: test-results/
+          retention-days: 14
