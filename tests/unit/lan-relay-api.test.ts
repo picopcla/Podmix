@@ -22,12 +22,16 @@ describe('createBoseCastSession (fetch mocké, aucun service réel)', () => {
     localStorage.clear()
   })
 
-  it('écarte un lanRelayUrl Tailscale 100.64/10 : repli relais public', async () => {
+  it('refuse le faux relais LAN Tailscale et le repli HTTPS incompatible', async () => {
     setApiUrl('http://serveur.test:8099')
     mockFetch(sessionPayload('http://100.116.28.23:8099/v1/cast/tok'))
-    const session = await createBoseCastSession('https://example.com/a.mp3', 't')
-    expect(session.lanRelayUrl).toBeUndefined()
-    expect(session.relayUrl).toBe('https://podmix.mb4.fr/podmix-cast/v1/cast/tok')
+    await expect(createBoseCastSession('https://example.com/a.mp3', 't')).rejects.toThrow('HTTP')
+  })
+
+  it('refuse aussi un relais LAN HTTPS plutôt que de le transmettre au natif', async () => {
+    setApiUrl('http://serveur.test:8099')
+    mockFetch(sessionPayload('https://192.168.1.50:8099/v1/cast/tok'))
+    await expect(createBoseCastSession('https://example.com/a.mp3', 't')).rejects.toThrow('HTTP')
   })
 
   it('conserve un lanRelayUrl RFC 1918 (vrai LAN domestique)', async () => {
