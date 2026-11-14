@@ -80,6 +80,41 @@ jobs:
           npx cap sync android
           cd android && ./gradlew assembleNgDebug
           ls -l app/build/outputs/apk/ng/debug/
+      - name: Build isolated emulator SSDP fixture (not part of the app)
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/bose-network/classes /tmp/bose-network/dex
+          cat > /tmp/bose-network/BoseEmulatorNetwork.java <<'NETWORKJAVA'
+          package qa;
+          import java.net.*;import java.io.*;import java.nio.charset.StandardCharsets;
+          /** Test infrastructure only: SSDP responder on the emulator side of its NAT.
+           * HTTP passes unchanged to the independent host fixture; no application hook.
+           */
+          public final class BoseEmulatorNetwork {
+           static void copy(Socket from,Socket to) {new Thread(()->{try{byte[] b=new byte[8192];int n;while((n=from.getInputStream().read(b))!=-1){to.getOutputStream().write(b,0,n);to.getOutputStream().flush();}to.shutdownOutput();}catch(Exception ignored){} }).start();}
+           static void proxy(int port) {new Thread(()->{try(ServerSocket server=new ServerSocket(port)){for(;;){Socket client=server.accept();Socket host=new Socket("10.0.2.2",port);copy(client,host);copy(host,client);}}catch(Exception e){e.printStackTrace();}}).start();}
+           public static void main(String[] args) throws Exception {
+            proxy(8090);proxy(8091);
+            try(MulticastSocket socket=new MulticastSocket(1900)) {
+             socket.joinGroup(InetAddress.getByName("239.255.255.250"));
+             System.out.println("EMULATOR_SSDP_READY");
+             for(;;) {
+              DatagramPacket p=new DatagramPacket(new byte[8192],8192);socket.receive(p);
+              String request=new String(p.getData(),0,p.getLength(),StandardCharsets.US_ASCII);
+              if(!request.startsWith("M-SEARCH") || !request.contains("MediaRenderer:1"))continue;
+              byte[] response=("HTTP/1.1 200 OK\r\nCACHE-CONTROL: max-age=1800\r\nST: urn:schemas-upnp-org:device:MediaRenderer:1\r\nUSN: uuid:qa-soundtouch::urn:schemas-upnp-org:device:MediaRenderer:1\r\nLOCATION: http://10.0.2.15:8091/device-description.xml\r\n\r\n").getBytes(StandardCharsets.US_ASCII);
+              socket.send(new DatagramPacket(response,response.length,p.getAddress(),p.getPort()));
+              System.out.println("EMULATOR_SSDP_REPLY "+p.getAddress());
+             }
+            }
+           }
+          }
+          NETWORKJAVA
+          javac --release 8 -d /tmp/bose-network/classes /tmp/bose-network/BoseEmulatorNetwork.java
+          jar cf /tmp/bose-network/fixture.jar -C /tmp/bose-network/classes .
+          D8=$(find "$ANDROID_HOME/build-tools" -name d8 -type f | sort -V | tail -1)
+          test -n "$D8"
+          "$D8" --min-api 26 --output /tmp/bose-network/dex /tmp/bose-network/fixture.jar
       - name: Ecrire le serveur mock (API 8099 + SoundTouch 8090/8091)
         run: |
           set -euo pipefail
@@ -137,6 +172,7 @@ jobs:
                   log(f"8099 POST {self.path} BODY={body[:600]}")
                   if self.path.startswith("/v1/cast/sessions"):
                       sid = f"mock-{int(time.time())}"
+                      STATE["title"] = json.loads(body).get("title", "Podmix")
                       send(self, 201, json.dumps({
                           "id": sid,
                           "relayUrl": f"http://10.0.2.2:8099/relay/{sid}",
@@ -183,8 +219,21 @@ jobs:
                       if m: STATE["volume"] = int(m.group(1))
                   send(self, 200, "<status>ok</status>", "text/xml")
 
+          DESCRIPTION = '<?xml version="1.0" encoding="utf-8"?>\n<root xmlns="urn:schemas-upnp-org:device-1-0">\n    <specVersion>\n        <major>1</major>\n        <minor>0</minor>\n    </specVersion>\n    <device>\n        <deviceType>urn:schemas-upnp-org:device:MediaRenderer:1</deviceType>\n        <friendlyName>Living Room SoundTouch</friendlyName>\n        <qq:X_QPlay_SoftwareCapability xmlns:qq="http://www.tencent.com">QPlay:2</qq:X_QPlay_SoftwareCapability>\n        <manufacturer>Bose Corporation</manufacturer>\n        <manufacturerURL>http://www.bose.com</manufacturerURL>\n        <modelName>SoundTouch 10</modelName>\n        <modelNumber></modelNumber>\n        <modelDescription>Bose SoundTouch Wireless Streaming Audio Device</modelDescription>\n        <modelURL>http://www.bose.com</modelURL>\n        <serialNumber>AABBCCDDEEFF</serialNumber>\n        <UDN>uuid:BO5EBO5E-F00D-F00D-FEED-AABBCCDDEEFF</UDN>\n        <serviceList>\n            <service>\n                <serviceType>urn:schemas-upnp-org:service:AVTransport:1</serviceType>\n                <serviceId>urn:upnp-org:serviceId:AVTransport</serviceId>\n                <SCPDURL>/Xml/AVTransport3.xml</SCPDURL>\n                <controlURL>/AVTransport/Control</controlURL>\n                <eventSubURL>/AVTransport/Event</eventSubURL>\n            </service>\n            <service>\n                <serviceType>urn:schemas-upnp-org:service:ConnectionManager:1</serviceType>\n                <serviceId>urn:upnp-org:serviceId:ConnectionManager</serviceId>\n                <SCPDURL>/Xml/ConnectionManager3.xml</SCPDURL>\n                <controlURL>/ConnectionManager/Control</controlURL>\n                <eventSubURL>/ConnectionManager/Event</eventSubURL>\n            </service>\n            <service>\n                <serviceType>urn:schemas-upnp-org:service:RenderingControl:1</serviceType>\n                <serviceId>urn:upnp-org:serviceId:RenderingControl</serviceId>\n                <SCPDURL>/Xml/RenderingControl3.xml</SCPDURL>\n                <controlURL>/RenderingControl/Control</controlURL>\n                <eventSubURL>/RenderingControl/Event</eventSubURL>\n            </service>\n            <service>\n                <serviceType>urn:schemas-tencent-com:service:QPlay:2</serviceType>\n                <serviceId>urn:tencent-com:serviceId:QPlay</serviceId>\n                <controlURL>/QPlay/Control</controlURL>\n                <eventSubURL>/QPlay/Event</eventSubURL>\n                <SCPDURL>/Xml/QPlay.xml</SCPDURL>\n            </service>\n        </serviceList>\n    </device>\n</root>'
           class Upnp(BaseHTTPRequestHandler):
               def log_message(self, *a): pass
+              def do_GET(self):
+                  if self.path == "/device-description.xml":
+                      send(self, 200, DESCRIPTION, "text/xml")
+                  elif self.path == "/Xml/AVTransport3.xml":
+                      names = ["SetAVTransportURI", "Play", "Stop", "Seek", "GetTransportInfo", "GetMediaInfo"]
+                      def action(name):
+                          args = {"SetAVTransportURI": ["InstanceID", "CurrentURI", "CurrentURIMetaData"], "Play": ["InstanceID", "Speed"]}.get(name, [])
+                          return "<action><name>" + name + "</name><argumentList>" + "".join("<argument><name>" + arg + "</name><direction>in</direction></argument>" for arg in args) + "</argumentList></action>"
+                      xml = "<scpd xmlns='urn:schemas-upnp-org:service-1-0'><actionList>" + "".join(action(n) for n in names) + "</actionList></scpd>"
+                      send(self, 200, xml, "text/xml")
+                  else:
+                      send(self, 404, "<error/>", "text/xml")
               def do_POST(self):
                   n = int(self.headers.get("Content-Length") or 0)
                   body = self.rfile.read(n).decode("utf-8", "replace") if n else ""
@@ -215,6 +264,14 @@ jobs:
                       if m: STATE["url"] = m.group(1).replace("&amp;", "&")
                       if t: STATE["title"] = t.group(1)
                       log(f"8091 CAPTURE url={STATE['url']} title={STATE['title']}")
+                  if "#GetTransportInfo" in action:
+                      state = "PLAYING" if STATE["playing"] else "STOPPED"
+                      send(self, 200, f"<r><CurrentTransportState>{state}</CurrentTransportState></r>", "text/xml")
+                      return
+                  if "#GetMediaInfo" in action:
+                      from xml.sax.saxutils import escape
+                      send(self, 200, "<r><CurrentURI>" + escape(STATE["url"]) + "</CurrentURI></r>", "text/xml")
+                      return
                   resp = ('<?xml version="1.0"?><s:Envelope xmlns:s="http://schemas.xmlsoap.org/soap/envelope/" '
                           's:encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"><s:Body/></s:Envelope>')
                   send(self, 200, resp, 'text/xml; charset="utf-8"')
@@ -443,14 +500,14 @@ jobs:
 
           # S5 - renseigner l'IP manuelle si aucune ligne Bose, puis TAP BOSE
           s = ev(SNAP)
-          bose_row = isinstance(s, dict) and any((d.get("name") or "").lower().find("bose") >= 0 for d in s.get("devices", []))
+          bose_row = isinstance(s, dict) and any("10.0.2.15" in (d.get("name") or "") for d in s.get("devices", []))
           tapped = False
           if not bose_row:
-              log("aucune ligne Bose: saisie IP manuelle 10.0.2.2")
+              log("aucune ligne Bose: saisie IP manuelle 10.0.2.15")
               ev(f"""(() => {{
                 const el = document.querySelector('.output-manual-bose input');
                 if (!el) return false;
-                ({SETVAL})(el, '10.0.2.2');
+                ({SETVAL})(el, '10.0.2.15');
                 return true;
               }})()""")
               time.sleep(0.5)
@@ -458,7 +515,7 @@ jobs:
           t0 = time.time()
           events.clear()
           if bose_row:
-              tapped = bool(clicktext(".output-device", "Bose", "TAP ligne Bose"))
+              tapped = bool(clicktext(".output-device", "10.0.2.15", "TAP ligne Bose sur le reseau emulateur"))
           log(f"[TAP] t0={t0:.3f} executed={tapped}")
           if not tapped:
               log('[FATAL] tap Bose non execute - repro non aboutie')
@@ -531,6 +588,11 @@ jobs:
           sleep 1
           curl -s --max-time 5 127.0.0.1:8099/health; echo
           curl -s --max-time 5 127.0.0.1:8090/info; echo
+          echo "== fixture SSDP sur le reseau de l'emulateur =="
+          adb push /tmp/bose-network/dex/classes.dex /data/local/tmp/bose-network.dex
+          adb shell 'CLASSPATH=/data/local/tmp/bose-network.dex app_process /system/bin qa.BoseEmulatorNetwork > /data/local/tmp/bose-network.log 2>&1 &' 
+          sleep 1
+          adb shell cat /data/local/tmp/bose-network.log
           echo "== installation APK debug =="
           ls -l android/app/build/outputs/apk/ng/debug/ || true
           adb install -r android/app/build/outputs/apk/ng/debug/app-ng-debug.apk
@@ -546,6 +608,9 @@ jobs:
           echo "== logcat (podmix/bose/cast) =="
           adb logcat -d > /tmp/repro-out/logcat.txt 2>&1
           grep -i -E 'podmix|bose|cast|soundtouch' /tmp/repro-out/logcat.txt | tail -300
+          adb shell cat /data/local/tmp/bose-network.log > /tmp/repro-out/ssdp-emulator.log
+          grep -q EMULATOR_SSDP_REPLY /tmp/repro-out/ssdp-emulator.log || RC=4
+          grep -q 'Bose replace confirmed in PLAYING with exact CurrentURI' /tmp/repro-out/logcat.txt || RC=5
           echo "== journal mock complet =="
           cat /tmp/repro-out/mock.log
           kill $MOCKPID 2>/dev/null
