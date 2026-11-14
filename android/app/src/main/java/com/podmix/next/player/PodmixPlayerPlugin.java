@@ -2509,12 +2509,12 @@ public class PodmixPlayerPlugin extends Plugin implements Player.Listener {
             call.reject("url est obligatoire");
             return;
         }
-        if (!url.startsWith("http://") && !url.startsWith("https://")) {
-            call.reject("Le média Bose doit utiliser HTTP ou HTTPS");
-            return;
-        }
+        try { BoseRendererContract.requireHttpMedia(url); }
+        catch (IllegalArgumentException error) { call.reject(error.getMessage(), error); return; }
         BOSE_PLAYBACK_EXECUTOR.execute(() -> {
             try {
+                BoseRendererContract renderer = BoseRendererContract.discover(ip);
+                Log.i(TAG, "Bose renderer contract: " + renderer.control + " actions=" + renderer.actions);
                 Log.i(TAG, "Bose replace requested: " + title + " → " + url);
                 // On SoundTouch speakers, SetAVTransportURI while another
                 // network item is buffering is unreliable: the old item can
@@ -2523,21 +2523,21 @@ public class PodmixPlayerPlugin extends Plugin implements Player.Listener {
                 // the URI. This also makes same-URL track seeks deterministic.
                 try {
                     String stop = soapEnvelope("Stop", "<InstanceID>0</InstanceID>");
-                    boseRequest(ip, 8091, "POST", "/AVTransport/Control", stop,
+                    boseRequest(ip, renderer.control.getPort() < 0 ? 80 : renderer.control.getPort(), "POST", renderer.control.getRawPath() + (renderer.control.getRawQuery() == null ? "" : "?" + renderer.control.getRawQuery()), stop,
                         "urn:schemas-upnp-org:service:AVTransport:1#Stop");
                     Thread.sleep(300);
                 } catch (Exception ignored) {
                     // Some SoundTouch firmware accepts the URI replacement
                     // without a Stop. Continue with the normal load.
                 }
-                String setUri = BoseAvTransport.setUriEnvelope(url, boseDidl(url, title));
-                boseRequest(ip, 8091, "POST", "/AVTransport/Control", setUri,
+                String setUri = BoseAvTransport.setUriEnvelope(url, "");
+                boseRequest(ip, renderer.control.getPort() < 0 ? 80 : renderer.control.getPort(), "POST", renderer.control.getRawPath() + (renderer.control.getRawQuery() == null ? "" : "?" + renderer.control.getRawQuery()), setUri,
                     "urn:schemas-upnp-org:service:AVTransport:1#SetAVTransportURI");
                 Thread.sleep(450);
                 String play = soapEnvelope("Play", "<InstanceID>0</InstanceID><Speed>1</Speed>");
-                boseRequest(ip, 8091, "POST", "/AVTransport/Control", play,
+                boseRequest(ip, renderer.control.getPort() < 0 ? 80 : renderer.control.getPort(), "POST", renderer.control.getRawPath() + (renderer.control.getRawQuery() == null ? "" : "?" + renderer.control.getRawQuery()), play,
                     "urn:schemas-upnp-org:service:AVTransport:1#Play");
-                if (positionSeconds > 2) {
+                if (positionSeconds > 2 && renderer.actions.contains("Seek")) {
                     Thread.sleep(500);
                     String seek = soapEnvelope(
                         "Seek",
@@ -2545,13 +2545,13 @@ public class PodmixPlayerPlugin extends Plugin implements Player.Listener {
                         formatBoseTime(positionSeconds) + "</Target>"
                     );
                     try {
-                        boseRequest(ip, 8091, "POST", "/AVTransport/Control", seek,
+                        boseRequest(ip, renderer.control.getPort() < 0 ? 80 : renderer.control.getPort(), "POST", renderer.control.getRawPath() + (renderer.control.getRawQuery() == null ? "" : "?" + renderer.control.getRawQuery()), seek,
                             "urn:schemas-upnp-org:service:AVTransport:1#Seek");
                     } catch (Exception ignored) {
                         Log.w(TAG, "La reprise de position n'est pas prise en charge par ce flux Bose");
                     }
                 }
-                waitForBosePlayback(ip, title, url);
+                waitForBosePlayback(ip, title, url, renderer);
                 if (BOSE_TASK_REMOVED.get()) {
                     boseRequest(ip, "POST", "/key", "<key state=\"press\" sender=\"Gabbo\">STOP</key>");
                     boseRequest(ip, "POST", "/key", "<key state=\"release\" sender=\"Gabbo\">STOP</key>");
@@ -2562,32 +2562,34 @@ public class PodmixPlayerPlugin extends Plugin implements Player.Listener {
                 JSObject result = new JSObject(); result.put("ok", true); call.resolve(result);
             } catch (Exception error) {
                 Log.e(TAG, "Bose replacement failed for " + title, error);
-                call.reject("Diffusion Bose impossible", error);
+                call.reject("Diffusion Bose impossible : " + error.getMessage(), error);
             }
         });
     }
 
-    private void waitForBosePlayback(String ip, String title, String url) throws Exception {
+    private void waitForBosePlayback(String ip, String title, String url, BoseRendererContract renderer) throws Exception {
         String lastStatus = "";
         Exception lastError = null;
         for (int attempt = 0; attempt < 12; attempt++) {
             Thread.sleep(attempt == 0 ? 600 : 750);
             try {
-                String nowPlaying = boseRequest(ip, "GET", "/now_playing", "");
-                lastStatus = xmlValue(nowPlaying, "playStatus");
-                String currentTitle = xmlValue(nowPlaying, "track");
-                String location = xmlAttribute(nowPlaying, "ContentItem", "location");
-                Log.i(TAG, "Bose playback check " + (attempt + 1) + "/12: status="
-                    + lastStatus + ", title=" + currentTitle + ", location=" + location);
-                if (isBosePlayingStatus(lastStatus)) {
-                    Log.i(TAG, "Bose replace confirmed in PLAY_STATE: " + title);
+                String transportInfo = boseRequest(ip, renderer.control.getPort() < 0 ? 80 : renderer.control.getPort(), "POST", renderer.control.getRawPath() + (renderer.control.getRawQuery() == null ? "" : "?" + renderer.control.getRawQuery()),
+                    soapEnvelope("GetTransportInfo", "<InstanceID>0</InstanceID>"),
+                    "urn:schemas-upnp-org:service:AVTransport:1#GetTransportInfo");
+                String mediaInfo = boseRequest(ip, renderer.control.getPort() < 0 ? 80 : renderer.control.getPort(), "POST", renderer.control.getRawPath() + (renderer.control.getRawQuery() == null ? "" : "?" + renderer.control.getRawQuery()),
+                    soapEnvelope("GetMediaInfo", "<InstanceID>0</InstanceID>"),
+                    "urn:schemas-upnp-org:service:AVTransport:1#GetMediaInfo");
+                lastStatus = xmlValue(transportInfo, "CurrentTransportState");
+                Log.i(TAG, "Bose playback check " + (attempt + 1) + "/12: status=" + lastStatus);
+                if (BoseRendererContract.confirms(transportInfo, mediaInfo, url)) {
+                    Log.i(TAG, "Bose replace confirmed in PLAYING with exact CurrentURI: " + title);
                     return;
                 }
                 // Some firmware accepts the URI but loses the first Play while
                 // opening the stream. Retry an explicit Play, never a toggle.
                 if (attempt == 3 || attempt == 7) {
                     String play = soapEnvelope("Play", "<InstanceID>0</InstanceID><Speed>1</Speed>");
-                    boseRequest(ip, 8091, "POST", "/AVTransport/Control", play,
+                    boseRequest(ip, renderer.control.getPort() < 0 ? 80 : renderer.control.getPort(), "POST", renderer.control.getRawPath() + (renderer.control.getRawQuery() == null ? "" : "?" + renderer.control.getRawQuery()), play,
                         "urn:schemas-upnp-org:service:AVTransport:1#Play");
                 }
             } catch (Exception error) {
@@ -2786,15 +2788,18 @@ public class PodmixPlayerPlugin extends Plugin implements Player.Listener {
             output.flush();
             BufferedReader reader = new BufferedReader(new InputStreamReader(socket.getInputStream(), StandardCharsets.UTF_8));
             String status = reader.readLine();
-            if (status == null || (!status.contains(" 200 ") && !status.contains(" 201 "))) {
-                throw new IllegalStateException("Réponse SoundTouch invalide : " + status);
-            }
+            if (status == null) throw new IOException("Aucune réponse HTTP SoundTouch");
             StringBuilder response = new StringBuilder();
             String line;
             boolean bodyStarted = false;
             while ((line = reader.readLine()) != null) {
                 if (bodyStarted) response.append(line).append('\n');
                 else if (line.isEmpty()) bodyStarted = true;
+            }
+            if (!status.contains(" 200 ") && !status.contains(" 201 ")) {
+                String detail = response.toString().replaceAll("<[^>]+>", " ").replaceAll("\\s+", " ").trim();
+                if (detail.length() > 500) detail = detail.substring(0, 500);
+                throw new IOException("Réponse SoundTouch " + status + (detail.isEmpty() ? "" : " : " + detail));
             }
             return response.toString();
         }
