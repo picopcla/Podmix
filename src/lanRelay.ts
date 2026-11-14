@@ -23,9 +23,16 @@ export function isPrivateLanUrl(value: string | undefined | null): boolean {
   return false
 }
 
-// Préfère le relais LAN (HTTP simple, toléré par les anciennes SoundTouch)
-// uniquement quand il est réellement une adresse de LAN privé ; sinon repli
-// sur l'URL publique HTTPS.
+// Le mode UPnP SoundTouch exige HTTP, pas un repli HTTPS silencieux.
 export function selectBoseRelayUrl(relay: { relayUrl: string; lanRelayUrl?: string }): string {
-  return isPrivateLanUrl(relay.lanRelayUrl) ? (relay.lanRelayUrl as string) : relay.relayUrl
+  for (const candidate of [relay.lanRelayUrl, relay.relayUrl]) {
+    if (!candidate) continue
+    try {
+      const url = new URL(candidate)
+      if (url.protocol !== 'http:' || url.username || url.password || url.hash) continue
+      if (candidate === relay.lanRelayUrl && !isPrivateLanUrl(candidate)) continue
+      return candidate
+    } catch { /* Essayer l'autre adresse, sans convertir HTTPS en HTTP. */ }
+  }
+  throw new Error('Aucun relais HTTP compatible SoundTouch n’est disponible. Le relais HTTPS ne peut pas être lu par ce mode Bose.')
 }
