@@ -1,38 +1,27 @@
 import { describe, expect, it } from 'vitest'
 import { isPrivateLanUrl, selectBoseRelayUrl } from '../../src/lanRelay'
-
-describe('isPrivateLanUrl', () => {
-  it('accepte les adresses RFC 1918', () => {
-    expect(isPrivateLanUrl('http://192.168.1.50:8099/v1/cast/x')).toBe(true)
-    expect(isPrivateLanUrl('http://10.0.0.8:8099/x')).toBe(true)
-    expect(isPrivateLanUrl('http://172.16.0.2/x')).toBe(true)
-    expect(isPrivateLanUrl('http://172.31.255.255/x')).toBe(true)
+// Transport constraints from actual SoundTouch fw 27.0.6 reports, not app output.
+// https://github.com/gesellix/Bose-SoundTouch/pull/532
+const relayUrl = 'https://podmix.mb4.fr/podmix-cast/v1/cast/token'
+describe('SoundTouch UPnP relay transport', () => {
+  it('recognizes private LAN but not Tailscale', () => {
+    for (const host of ['192.168.1.50','10.0.0.8','172.16.0.2','172.31.255.255']) expect(isPrivateLanUrl(`http://${host}/audio`)).toBe(true)
+    for (const host of ['100.116.28.23','172.32.0.1','8.8.8.8']) expect(isPrivateLanUrl(`http://${host}/audio`)).toBe(false)
   })
-  it('rejette Tailscale CGNAT 100.64.0.0/10', () => {
-    expect(isPrivateLanUrl('http://100.116.28.23:8099/v1/cast/x')).toBe(false)
-    expect(isPrivateLanUrl('http://100.96.25.96/x')).toBe(false)
+  it('uses the actual HTTP LAN endpoint', () => {
+    const lanRelayUrl = 'http://192.168.1.50:8099/v1/cast/token'
+    expect(selectBoseRelayUrl({ relayUrl, lanRelayUrl })).toBe(lanRelayUrl)
   })
-  it('rejette les adresses publiques, hors plage 172.16/12 et invalides', () => {
-    expect(isPrivateLanUrl('http://172.32.0.1/x')).toBe(false)
-    expect(isPrivateLanUrl('https://podmix.mb4.fr/x')).toBe(false)
-    expect(isPrivateLanUrl('http://8.8.8.8/x')).toBe(false)
-    expect(isPrivateLanUrl('')).toBe(false)
-    expect(isPrivateLanUrl(undefined)).toBe(false)
-    expect(isPrivateLanUrl('pas une url')).toBe(false)
+  it('does not silently send HTTPS when LAN is absent, invalid or CGNAT', () => {
+    for (const lanRelayUrl of [undefined,'not a URL','http://100.116.28.23/audio','https://192.168.1.50/audio']) {
+      expect(() => selectBoseRelayUrl({ relayUrl, lanRelayUrl })).toThrow('HTTP')
+    }
   })
-})
-
-describe('selectBoseRelayUrl', () => {
-  const relayUrl = 'https://podmix.mb4.fr/podmix-cast/v1/cast/token'
-  it('préfère le relais LAN privé', () => {
-    expect(selectBoseRelayUrl({ relayUrl, lanRelayUrl: 'http://192.168.1.50:8099/v1/cast/token' }))
-      .toBe('http://192.168.1.50:8099/v1/cast/token')
+  it('can use an explicitly supplied public HTTP relay without rewriting TLS', () => {
+    expect(selectBoseRelayUrl({ relayUrl: 'http://audio.example.org/relay' })).toBe('http://audio.example.org/relay')
+    expect(() => selectBoseRelayUrl({ relayUrl })).toThrow('HTTPS')
   })
-  it('ignore un relais « LAN » en adresse Tailscale', () => {
-    expect(selectBoseRelayUrl({ relayUrl, lanRelayUrl: 'http://100.116.28.23:8099/v1/cast/token' }))
-      .toBe(relayUrl)
-  })
-  it('utilise le relais public sans lanRelayUrl', () => {
-    expect(selectBoseRelayUrl({ relayUrl })).toBe(relayUrl)
+  it('rejects credentials and fragments', () => {
+    for (const url of ['http://user:pass@host/audio','http://host/audio#x']) expect(() => selectBoseRelayUrl({ relayUrl: url })).toThrow()
   })
 })
