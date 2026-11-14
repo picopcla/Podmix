@@ -94,6 +94,7 @@ jobs:
            static void copy(Socket from,Socket to) {new Thread(()->{try{byte[] b=new byte[8192];int n;while((n=from.getInputStream().read(b))!=-1){to.getOutputStream().write(b,0,n);to.getOutputStream().flush();}to.shutdownOutput();}catch(Exception ignored){} }).start();}
            static void proxy(int port) {new Thread(()->{try(ServerSocket server=new ServerSocket(port)){for(;;){Socket client=server.accept();Socket host=new Socket("10.0.2.2",port);copy(client,host);copy(host,client);}}catch(Exception e){e.printStackTrace();}}).start();}
            public static void main(String[] args) throws Exception {
+            String ip=args[0];
             proxy(8090);proxy(8091);
             try(MulticastSocket socket=new MulticastSocket(1900)) {
              socket.joinGroup(InetAddress.getByName("239.255.255.250"));
@@ -102,7 +103,7 @@ jobs:
               DatagramPacket p=new DatagramPacket(new byte[8192],8192);socket.receive(p);
               String request=new String(p.getData(),0,p.getLength(),StandardCharsets.US_ASCII);
               if(!request.startsWith("M-SEARCH") || !request.contains("MediaRenderer:1"))continue;
-              byte[] response=("HTTP/1.1 200 OK\r\nCACHE-CONTROL: max-age=1800\r\nST: urn:schemas-upnp-org:device:MediaRenderer:1\r\nUSN: uuid:qa-soundtouch::urn:schemas-upnp-org:device:MediaRenderer:1\r\nLOCATION: http://10.0.2.15:8091/device-description.xml\r\n\r\n").getBytes(StandardCharsets.US_ASCII);
+              byte[] response=("HTTP/1.1 200 OK\r\nCACHE-CONTROL: max-age=1800\r\nST: urn:schemas-upnp-org:device:MediaRenderer:1\r\nUSN: uuid:qa-soundtouch::urn:schemas-upnp-org:device:MediaRenderer:1\r\nLOCATION: http://"+ip+":8091/device-description.xml\r\n\r\n").getBytes(StandardCharsets.US_ASCII);
               socket.send(new DatagramPacket(response,response.length,p.getAddress(),p.getPort()));
               System.out.println("EMULATOR_SSDP_REPLY "+p.getAddress());
              }
@@ -266,11 +267,11 @@ jobs:
                       log(f"8091 CAPTURE url={STATE['url']} title={STATE['title']}")
                   if "#GetTransportInfo" in action:
                       state = "PLAYING" if STATE["playing"] else "STOPPED"
-                      send(self, 200, f"<r><CurrentTransportState>{state}</CurrentTransportState></r>", "text/xml")
+                      send(self, 200, '<s:Envelope xmlns:s="http://schemas.xmlsoap.org/soap/envelope/"><s:Body><u:GetTransportInfoResponse xmlns:u="urn:schemas-upnp-org:service:AVTransport:1"><CurrentTransportState>' + state + '</CurrentTransportState></u:GetTransportInfoResponse></s:Body></s:Envelope>', "text/xml")
                       return
                   if "#GetMediaInfo" in action:
                       from xml.sax.saxutils import escape
-                      send(self, 200, "<r><CurrentURI>" + escape(STATE["url"]) + "</CurrentURI></r>", "text/xml")
+                      send(self, 200, '<s:Envelope xmlns:s="http://schemas.xmlsoap.org/soap/envelope/"><s:Body><u:GetMediaInfoResponse xmlns:u="urn:schemas-upnp-org:service:AVTransport:1"><CurrentURI>' + escape(STATE["url"]) + '</CurrentURI></u:GetMediaInfoResponse></s:Body></s:Envelope>', "text/xml")
                       return
                   resp = ('<?xml version="1.0"?><s:Envelope xmlns:s="http://schemas.xmlsoap.org/soap/envelope/" '
                           's:encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"><s:Body/></s:Envelope>')
@@ -289,6 +290,7 @@ jobs:
           set -euo pipefail
           cat > /tmp/drive_webview.py <<'DRVPY'
           import base64, json, subprocess, sys, threading, time, urllib.request
+          EMULATOR_BOSE_IP = open('/tmp/repro-out/emulator-speaker-ip.txt').read().strip()
 
           OUT = "/tmp/repro-out"
           def log(msg):
@@ -500,14 +502,14 @@ jobs:
 
           # S5 - renseigner l'IP manuelle si aucune ligne Bose, puis TAP BOSE
           s = ev(SNAP)
-          bose_row = isinstance(s, dict) and any("10.0.2.15" in (d.get("name") or "") for d in s.get("devices", []))
+          bose_row = isinstance(s, dict) and any(EMULATOR_BOSE_IP in (d.get("name") or "") for d in s.get("devices", []))
           tapped = False
           if not bose_row:
-              log("aucune ligne Bose: saisie IP manuelle 10.0.2.15")
+              log("aucune ligne Bose: saisie IP manuelle " + EMULATOR_BOSE_IP)
               ev(f"""(() => {{
                 const el = document.querySelector('.output-manual-bose input');
                 if (!el) return false;
-                ({SETVAL})(el, '10.0.2.15');
+                ({SETVAL})(el, {json.dumps(EMULATOR_BOSE_IP)});
                 return true;
               }})()""")
               time.sleep(0.5)
@@ -515,7 +517,7 @@ jobs:
           t0 = time.time()
           events.clear()
           if bose_row:
-              tapped = bool(clicktext(".output-device", "10.0.2.15", "TAP ligne Bose sur le reseau emulateur"))
+              tapped = bool(clicktext(".output-device", EMULATOR_BOSE_IP, "TAP ligne Bose sur le reseau emulateur"))
           log(f"[TAP] t0={t0:.3f} executed={tapped}")
           if not tapped:
               log('[FATAL] tap Bose non execute - repro non aboutie')
@@ -590,7 +592,10 @@ jobs:
           curl -s --max-time 5 127.0.0.1:8090/info; echo
           echo "== fixture SSDP sur le reseau de l'emulateur =="
           adb push /tmp/bose-network/dex/classes.dex /data/local/tmp/bose-network.dex
-          adb shell 'CLASSPATH=/data/local/tmp/bose-network.dex app_process /system/bin qa.BoseEmulatorNetwork > /data/local/tmp/bose-network.log 2>&1 &' 
+          EMU_IP=$(adb shell ip -4 addr show | sed -n 's/.*inet \(10\.0\.2\.[0-9]*\)\/.*/\1/p' | head -1 | tr -d '\r')
+          test -n "$EMU_IP"
+          printf '%s' "$EMU_IP" > /tmp/repro-out/emulator-speaker-ip.txt
+          adb shell "CLASSPATH=/data/local/tmp/bose-network.dex app_process /system/bin qa.BoseEmulatorNetwork $EMU_IP > /data/local/tmp/bose-network.log 2>&1 &"
           sleep 1
           adb shell cat /data/local/tmp/bose-network.log
           echo "== installation APK debug =="
