@@ -76,10 +76,75 @@ final class BoseRendererContract {
             throw new IOException("Le service annoncé ne permet pas de transférer et confirmer le média");
         return actions;
     }
+    static Element soapResponse(String value, String action) throws Exception {
+        Document doc = xml(value);
+        if (!"Envelope".equals(doc.getDocumentElement().getLocalName()) ||
+            !"http://schemas.xmlsoap.org/soap/envelope/".equals(doc.getDocumentElement().getNamespaceURI()))
+            throw new IOException("Réponse SOAP SoundTouch invalide");
+        NodeList bodies = doc.getElementsByTagNameNS("http://schemas.xmlsoap.org/soap/envelope/", "Body");
+        if (bodies.getLength() != 1) throw new IOException("Corps SOAP absent");
+        for (Node node = bodies.item(0).getFirstChild(); node != null; node = node.getNextSibling())
+            if (node instanceof Element && AV.equals(node.getNamespaceURI()) && (action + "Response").equals(node.getLocalName()))
+                return (Element)node;
+        throw new IOException("Réponse SOAP inattendue pour " + action);
+    }
     static boolean confirms(String transportInfo, String mediaInfo, String expectedUri) throws Exception {
-        String state = text(xml(transportInfo).getDocumentElement(), "CurrentTransportState");
-        String uri = text(xml(mediaInfo).getDocumentElement(), "CurrentURI");
+        String state = text(soapResponse(transportInfo, "GetTransportInfo"), "CurrentTransportState");
+        String uri = text(soapResponse(mediaInfo, "GetMediaInfo"), "CurrentURI");
         return "PLAYING".equals(state) && expectedUri.equals(uri);
+    }
+    private static String line(InputStream input) throws Exception {
+        ByteArrayOutputStream out = new ByteArrayOutputStream(); int value;
+        while ((value = input.read()) != -1) {
+            if (value == '\n') return new String(out.toByteArray(), StandardCharsets.US_ASCII).replaceFirst("\\r$", "");
+            if (out.size() >= 8192) throw new IOException("En-tête HTTP SoundTouch trop long");
+            out.write(value);
+        }
+        if (out.size() != 0) throw new EOFException("Ligne HTTP incomplète");
+        throw new EOFException("Réponse HTTP interrompue");
+    }
+    private static void bytes(InputStream input, ByteArrayOutputStream out, int length) throws Exception {
+        if (length < 0 || (long)out.size() + length > 1048576) throw new IOException("Réponse SoundTouch trop volumineuse");
+        byte[] buffer = new byte[4096];
+        while (length > 0) {
+            int n = input.read(buffer, 0, Math.min(length, buffer.length));
+            if (n < 0) throw new EOFException("Corps HTTP SoundTouch incomplet");
+            out.write(buffer, 0, n); length -= n;
+        }
+    }
+    static String readHttpResponse(InputStream input) throws Exception {
+        String status = line(input); Map<String,String> headers = new HashMap<>(); int total = 0;
+        for (;;) {
+            String value = line(input); total += value.length();
+            if (total > 65536) throw new IOException("En-têtes SoundTouch trop volumineux");
+            if (value.isEmpty()) break;
+            int colon = value.indexOf(':');
+            if (colon > 0) headers.put(value.substring(0, colon).trim().toLowerCase(Locale.ROOT), value.substring(colon + 1).trim());
+        }
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        if ("chunked".equalsIgnoreCase(headers.get("transfer-encoding"))) {
+            for (;;) {
+                int size = Integer.parseInt(line(input).split(";",2)[0].trim(),16);
+                if (size == 0) break;
+                bytes(input,out,size);
+                if (!line(input).isEmpty()) throw new IOException("Trame HTTP chunked SoundTouch invalide");
+            }
+        } else if (headers.containsKey("content-length")) {
+            bytes(input,out,Integer.parseInt(headers.get("content-length")));
+        } else {
+            byte[] buffer = new byte[4096]; int n;
+            while ((n = input.read(buffer)) != -1) {
+                if ((long)out.size() + n > 1048576) throw new IOException("Réponse SoundTouch trop volumineuse");
+                out.write(buffer,0,n);
+            }
+        }
+        String body = new String(out.toByteArray(),StandardCharsets.UTF_8);
+        if (!status.matches("HTTP/1\\.[01] (200|201)( .*)?")) {
+            String detail = body.replaceAll("<[^>]+>", " ").replaceAll("\\s+", " ").trim();
+            if (detail.length() > 500) detail = detail.substring(0,500);
+            throw new IOException("Réponse SoundTouch " + status + (detail.isEmpty() ? "" : " : " + detail));
+        }
+        return body;
     }
     static String location(String response, String ip) throws Exception {
         if (!response.startsWith("HTTP/1.1 200") && !response.startsWith("HTTP/1.0 200")) return "";
