@@ -34,11 +34,30 @@ public class BoseRendererContractTest {
         assertEquals(ROOT.toString(),BoseRendererContract.location("HTTP/1.1 200 OK\r\nLoCaTiOn: "+ROOT+"\r\n",IP));
         try{BoseRendererContract.location("HTTP/1.1 200 OK\r\nLOCATION: http://attacker.invalid/desc.xml\r\n",IP);fail();}catch(java.io.IOException expected){}
     }
+    static String soap(String action,String body) {
+        return "<s:Envelope xmlns:s='http://schemas.xmlsoap.org/soap/envelope/'><s:Body><u:"+action+"Response xmlns:u='"+BoseRendererContract.AV+"'>"+body+"</u:"+action+"Response></s:Body></s:Envelope>";
+    }
     @Test public void rejectsStalePlaybackEvenWhenPlaying() throws Exception {
-        String state="<r><CurrentTransportState>PLAYING</CurrentTransportState></r>";
-        assertFalse(BoseRendererContract.confirms(state,"<r><CurrentURI>http://host/old</CurrentURI></r>","http://host/new"));
-        assertTrue(BoseRendererContract.confirms(state,"<r><CurrentURI>http://host/new?a=1&amp;b=2</CurrentURI></r>","http://host/new?a=1&b=2"));
-        assertFalse(BoseRendererContract.confirms("<r><CurrentTransportState>TRANSITIONING</CurrentTransportState></r>","<r><CurrentURI>http://host/new</CurrentURI></r>","http://host/new"));
+        String state=soap("GetTransportInfo","<CurrentTransportState>PLAYING</CurrentTransportState>");
+        assertFalse(BoseRendererContract.confirms(state,soap("GetMediaInfo","<CurrentURI>http://host/old</CurrentURI>"),"http://host/new"));
+        assertTrue(BoseRendererContract.confirms(state,soap("GetMediaInfo","<CurrentURI>http://host/new?a=1&amp;b=2</CurrentURI>"),"http://host/new?a=1&b=2"));
+        assertFalse(BoseRendererContract.confirms(soap("GetTransportInfo","<CurrentTransportState>TRANSITIONING</CurrentTransportState>"),soap("GetMediaInfo","<CurrentURI>http://host/new</CurrentURI>"),"http://host/new"));
+    }
+    @Test public void doesNotAcceptPlainXmlOrWrongSoapAction() throws Exception {
+        for(String invalid:new String[]{"<r><CurrentTransportState>PLAYING</CurrentTransportState></r>",soap("WrongAction","<CurrentTransportState>PLAYING</CurrentTransportState>")})
+            try{BoseRendererContract.confirms(invalid,soap("GetMediaInfo","<CurrentURI>http://host/new</CurrentURI>"),"http://host/new");fail();}catch(java.io.IOException expected){}
+    }
+    @Test public void httpFramingAndUtf8AreDecoded() throws Exception {
+        String body="Été & test";byte[] data=body.getBytes(java.nio.charset.StandardCharsets.UTF_8);
+        java.io.ByteArrayOutputStream out=new java.io.ByteArrayOutputStream();
+        out.write(("HTTP/1.1 200 OK\r\nContent-Length: "+data.length+"\r\n\r\n").getBytes());out.write(data);
+        assertEquals(body,BoseRendererContract.readHttpResponse(new java.io.ByteArrayInputStream(out.toByteArray())));
+        out.reset();out.write(("HTTP/1.1 200 OK\r\nTransfer-Encoding: chunked\r\n\r\n"+Integer.toHexString(data.length)+";extra=x\r\n").getBytes());out.write(data);out.write("\r\n0\r\n\r\n".getBytes());
+        assertEquals(body,BoseRendererContract.readHttpResponse(new java.io.ByteArrayInputStream(out.toByteArray())));
+    }
+    @Test public void realFaultDetailsAreNotReplacedByGenericFailure() throws Exception {
+        String wire="HTTP/1.1 500 Internal Server Error\r\n\r\n<errorCode>402</errorCode><errorDescription>URI must start with http://</errorDescription>";
+        try{BoseRendererContract.readHttpResponse(new java.io.ByteArrayInputStream(wire.getBytes()));fail();}catch(java.io.IOException e){assertTrue(e.getMessage().contains("402"));assertTrue(e.getMessage().contains("URI must start with http://"));}
     }
     @Test public void scpdArgumentOrderIsCheckedBeforeSending() throws Exception {
         String setArgs="<argument><name>InstanceID</name><direction>in</direction></argument><argument><name>CurrentURI</name><direction>in</direction></argument><argument><name>CurrentURIMetaData</name><direction>in</direction></argument>";
