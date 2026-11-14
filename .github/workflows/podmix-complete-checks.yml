@@ -94,7 +94,9 @@ jobs:
            static void copy(Socket from,Socket to) {new Thread(()->{try{byte[] b=new byte[8192];int n;while((n=from.getInputStream().read(b))!=-1){to.getOutputStream().write(b,0,n);to.getOutputStream().flush();}to.shutdownOutput();}catch(Exception ignored){} }).start();}
            static void proxy(int port) {new Thread(()->{try(ServerSocket server=new ServerSocket(port)){for(;;){Socket client=server.accept();Socket host=new Socket("10.0.2.2",port);copy(client,host);copy(host,client);}}catch(Exception e){e.printStackTrace();}}).start();}
            public static void main(String[] args) throws Exception {
-            String ip=args[0];
+            String ip;
+            try(DatagramSocket route=new DatagramSocket()){route.connect(InetAddress.getByName("10.0.2.2"),1900);ip=route.getLocalAddress().getHostAddress();}
+            System.out.println("EMULATOR_IP="+ip);
             proxy(8090);proxy(8091);
             try(MulticastSocket socket=new MulticastSocket(1900)) {
              socket.joinGroup(InetAddress.getByName("239.255.255.250"));
@@ -291,6 +293,7 @@ jobs:
           cat > /tmp/drive_webview.py <<'DRVPY'
           import base64, json, subprocess, sys, threading, time, urllib.request
           EMULATOR_BOSE_IP = open('/tmp/repro-out/emulator-speaker-ip.txt').read().strip()
+          assert EMULATOR_BOSE_IP and EMULATOR_BOSE_IP.startswith('10.'), 'SSDP fixture IP missing or invalid'
 
           OUT = "/tmp/repro-out"
           def log(msg):
@@ -592,12 +595,18 @@ jobs:
           curl -s --max-time 5 127.0.0.1:8090/info; echo
           echo "== fixture SSDP sur le reseau de l'emulateur =="
           adb push /tmp/bose-network/dex/classes.dex /data/local/tmp/bose-network.dex
-          EMU_IP=$(adb shell ip -4 addr show | sed -n 's/.*inet \(10\.0\.2\.[0-9]*\)\/.*/\1/p' | head -1 | tr -d '\r')
-          test -n "$EMU_IP"
+          adb shell 'CLASSPATH=/data/local/tmp/bose-network.dex app_process /system/bin qa.BoseEmulatorNetwork' > /tmp/repro-out/ssdp-live.log 2>&1 &
+          NETWORK_PID=$!
+          for attempt in $(seq 1 30); do
+            if grep -q EMULATOR_SSDP_READY /tmp/repro-out/ssdp-live.log; then break; fi
+            if ! kill -0 "$NETWORK_PID" 2>/dev/null; then cat /tmp/repro-out/ssdp-live.log; exit 7; fi
+            sleep 1
+          done
+          cat /tmp/repro-out/ssdp-live.log
+          grep -q EMULATOR_SSDP_READY /tmp/repro-out/ssdp-live.log || exit 7
+          EMU_IP=$(sed -n 's/^EMULATOR_IP=//p' /tmp/repro-out/ssdp-live.log | head -1 | tr -d '\r')
+          test -n "$EMU_IP" || exit 7
           printf '%s' "$EMU_IP" > /tmp/repro-out/emulator-speaker-ip.txt
-          adb shell "CLASSPATH=/data/local/tmp/bose-network.dex app_process /system/bin qa.BoseEmulatorNetwork $EMU_IP > /data/local/tmp/bose-network.log 2>&1 &"
-          sleep 1
-          adb shell cat /data/local/tmp/bose-network.log
           echo "== installation APK debug =="
           ls -l android/app/build/outputs/apk/ng/debug/ || true
           adb install -r android/app/build/outputs/apk/ng/debug/app-ng-debug.apk
@@ -613,12 +622,14 @@ jobs:
           echo "== logcat (podmix/bose/cast) =="
           adb logcat -d > /tmp/repro-out/logcat.txt 2>&1
           grep -i -E 'podmix|bose|cast|soundtouch' /tmp/repro-out/logcat.txt | tail -300
-          adb shell cat /data/local/tmp/bose-network.log > /tmp/repro-out/ssdp-emulator.log
+          cp /tmp/repro-out/ssdp-live.log /tmp/repro-out/ssdp-emulator.log
+          cat /tmp/repro-out/ssdp-emulator.log
           grep -q EMULATOR_SSDP_REPLY /tmp/repro-out/ssdp-emulator.log || RC=4
           grep -q 'Bose replace confirmed in PLAYING with exact CurrentURI' /tmp/repro-out/logcat.txt || RC=5
           echo "== journal mock complet =="
           cat /tmp/repro-out/mock.log
-          kill $MOCKPID 2>/dev/null
+          kill $MOCKPID $NETWORK_PID 2>/dev/null
+          wait $NETWORK_PID 2>/dev/null || true
           exit $RC
           RUNSH
           echo OK
