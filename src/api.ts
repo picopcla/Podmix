@@ -1,5 +1,5 @@
 import { normalizeCatalogSourceText } from './text'
-import { isPrivateLanUrl } from './lanRelay'
+import { isPrivateLanUrl, selectBoseRelayUrl } from './lanRelay'
 import type { CatalogSource, DetectionJob, DjSearchResult, LiveSetDetails, LiveSetSearchResult, LiveSetTrack, PodcastSearchResult } from './domain'
 import { Capacitor } from '@capacitor/core'
 import { safeSetItem } from './safeStorage'
@@ -68,12 +68,13 @@ export async function createBoseCastSession(
   if (!response.ok || !payload.id || !payload.relayUrl || !payload.expiresAt) {
     throw new Error(payload.message ?? `Relais Bose indisponible (${response.status})`)
   }
+  const streamRelayUrl = selectBoseRelayUrl({ relayUrl: payload.relayUrl, lanRelayUrl: payload.lanRelayUrl })
   return {
     id: payload.id,
-    relayUrl: payload.relayUrl,
+    relayUrl: streamRelayUrl,
     // N'accepter le relais « LAN » que s'il pointe réellement un LAN privé
     // (une adresse Tailscale 100.64.0.0/10 est injoignable par l'enceinte).
-    lanRelayUrl: isPrivateLanUrl(payload.lanRelayUrl) ? payload.lanRelayUrl : undefined,
+    lanRelayUrl: isPrivateLanUrl(payload.lanRelayUrl) && payload.lanRelayUrl === streamRelayUrl ? payload.lanRelayUrl : undefined,
     expiresAt: payload.expiresAt,
     startSeconds: payload.startSeconds ?? 0,
   }
