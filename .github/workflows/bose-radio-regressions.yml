@@ -3,7 +3,7 @@ on:
   workflow_dispatch:
   push:
     branches: [fix/231-update-nag-and-home-grid]
-    paths: [.github/workflows/bose-radio-regressions.yml]
+    paths: [.github/workflows/bose-radio-regressions.yml, src/App.tsx, tests/e2e/bose-routing.spec.ts, qa/bose-relay-content-identity.py]
 permissions:
   contents: read
 jobs:
