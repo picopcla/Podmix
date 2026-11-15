@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-project_dir=/home/debian/projects/podmix
+project_dir=/home/fmsa/projects/podmix
 deploy_dir="$project_dir/deploy"
 
 apt-get update
@@ -30,8 +30,8 @@ install -m 0644 "$deploy_dir/podmix-minipc.caddy" /etc/caddy/Caddyfile
 caddy validate --config /etc/caddy/Caddyfile --adapter caddyfile
 systemctl reload caddy
 
-install -m 0600 "$deploy_dir/podmix-minipc-cloudflared.yml" /home/debian/.cloudflared/podmix-minipc.yml
-chown debian:debian /home/debian/.cloudflared/podmix-minipc.yml
+install -m 0600 "$deploy_dir/podmix-minipc-cloudflared.yml" /home/fmsa/.cloudflared/podmix-minipc.yml
+chown debian:debian /home/fmsa/.cloudflared/podmix-minipc.yml
 install -m 0644 "$deploy_dir/podmix-minipc-tunnel.service" /etc/systemd/system/podmix-minipc-tunnel.service
 systemctl daemon-reload
 sudo -u debian cloudflared tunnel route dns --overwrite-dns podmix-minipc podmix.mb4.fr

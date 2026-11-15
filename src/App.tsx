@@ -17,16 +17,14 @@ import type { BoseDevice, CastDevice, LibraryItem } from './nativePlayer'
 import { checkForUpdate, currentVersion, downloadAndUpdate } from './updates'
 import type { UpdateManifest, UpdateProgress } from './updates'
 import { mergeCatalogSource, mergeEpisode, newEpisodesFromFeed } from './catalogMerge'
-import { protectedEpisodeIds, retainSourceEpisodes, retainReferencedFeedEpisodes } from './catalogRetention'
-import { loadCompletedEpisodeIds, loadListeningSessions, loadPlaybackHistory, saveListeningSessions, savePlaybackHistory, searchListeningSessions, updateListeningSessions } from './history'
+import { loadCompletedEpisodeIds, loadListeningSessions, loadPlaybackHistory, saveCompletedEpisodeIds, saveListeningSessions, savePlaybackHistory, searchListeningSessions, updateListeningSessions } from './history'
 import type { ListeningSession, PlaybackHistoryItem } from './history'
-import { loadCompletedEpisodesPersistence, saveCompletedEpisodesPersistence } from './completedEpisodeStorage'
 import { decodeCredit, decodeCredits } from './credits'
 import podmixInfinityLogo from './assets/podmix-logo-radio-c.png'
 import './App.css'
 import './identification.css'
 import { safeSetItem, useStorageFailures } from './safeStorage'
-import { durableStorageDiagnostics } from './durableStorage'
+import { nativeEpisodeId, resolveTrackIndexForPlaybackState } from './playbackIdentity'
 
 const initialTracks: Track[] = []
 
@@ -114,6 +112,16 @@ function episodeLimitFor(source: CatalogSource, settings: AppSettings) {
   return Number.POSITIVE_INFINITY
 }
 
+function trimSourceToEpisodeLimit(source: CatalogSource, settings: AppSettings) {
+  const limit = episodeLimitFor(source, settings)
+  if (source.episodes.length <= limit) return source
+  const episodes = source.episodes
+    .map((episode, index) => ({ episode, index }))
+    .sort((left, right) => publishedTimestamp(right.episode.publishedAt) - publishedTimestamp(left.episode.publishedAt) || left.index - right.index)
+    .slice(0, limit)
+    .map(({ episode }) => episode)
+  return { ...source, episodes }
+}
 
 function stripShowTimestamping(source: CatalogSource): CatalogSource {
   if (source.kind !== 'show') return source
@@ -549,12 +557,13 @@ function App() {
     return entries.find((entry) => entry.key === state.mediaId)
   }
 
-  function resolveActiveMediaId(state: { mediaId: string; queueIndex: number }) {
+  function resolveActiveMediaId(state: { mediaId: string; queueIndex: number; positionSeconds: number }) {
     const favoriteItem = favoriteQueueEntryForState(state)
     if (favoriteItem) return favoriteItem.key
     const trackQueue = trackQueueRef.current
-    if (trackQueue && state.queueIndex >= 0 && state.queueIndex < trackQueue.mediaIds.length) {
-      return trackQueue.mediaIds[state.queueIndex]
+    const trackIndex = resolveTrackIndexForPlaybackState(trackQueue, state)
+    if (trackQueue && trackIndex >= 0) {
+      return trackQueue.mediaIds[trackIndex]
     }
     return state.mediaId
   }
@@ -672,13 +681,26 @@ function App() {
     }
   }, [dragSection])
 
-  const [catalog, setCatalog] = useState<CatalogSource[]>(loadCatalog)
+  const [catalog, setCatalog] = useState<CatalogSource[]>([])
+  const [catalogReady, setCatalogReady] = useState(false)
+  const [catalogRetry, setCatalogRetry] = useState(0)
   const [cachedHomeArtwork, setCachedHomeArtwork] = useState<Record<string, string>>({})
   const [linkLookupRefresh, setLinkLookupRefresh] = useState(0)
   const catalogRef = useRef(catalog)
   const nativeLibrarySignatureRef = useRef('')
 
-  function restoreTrackQueueForMediaId(mediaId: string) {
+  useEffect(() => {
+    let active = true
+    void loadCatalog().then((stored) => {
+      if (!active) return
+      catalogRef.current = stored
+      setCatalog(stored)
+      setCatalogReady(true)
+    })
+    return () => { active = false }
+  }, [])
+
+  function restoreTrackQueueForMediaId(mediaId: string, positionSeconds = 0) {
     // Favorite items deliberately reuse the track ids from their episodes,
     // but their queue order is the favorites order. Rebuilding an episode
     // queue here makes index N point to an entirely different title.
@@ -687,15 +709,15 @@ function App() {
       return undefined
     }
     const currentQueue = trackQueueRef.current
-    const currentIndex = currentQueue?.mediaIds.indexOf(mediaId) ?? -1
+    const currentIndex = resolveTrackIndexForPlaybackState(currentQueue, { mediaId, queueIndex: -1, positionSeconds })
     if (currentQueue && currentIndex >= 0) {
       return { queue: currentQueue, trackIndex: currentIndex }
     }
     for (const source of catalogRef.current) {
       for (const episode of source.episodes) {
         const tracks = episode.tracks ?? []
-        const trackIndex = tracks.findIndex((track, index) => favoriteTrackKey(episode.id, track, index) === mediaId)
-        if (trackIndex < 0) continue
+        const requestedTrackIndex = tracks.findIndex((track, index) => favoriteTrackKey(episode.id, track, index) === mediaId)
+        if (requestedTrackIndex < 0 && nativeEpisodeId(mediaId) !== episode.id) continue
         const queue = {
           episodeId: episode.id,
           episodeTitle: episode.title,
@@ -705,6 +727,7 @@ function App() {
           mediaIds: tracks.map((track, index) => favoriteTrackKey(episode.id, track, index)),
           artworkUrls: tracks.map((track) => trackArtwork(track, episode, source)),
         }
+        const trackIndex = resolveTrackIndexForPlaybackState(queue, { mediaId, queueIndex: -1, positionSeconds })
         trackQueueRef.current = queue
         return { queue, trackIndex }
       }
@@ -782,22 +805,10 @@ function App() {
   const historyRef = useRef(history)
   const [completedEpisodeIds, setCompletedEpisodeIds] = useState<string[]>(loadCompletedEpisodeIds)
   const completedEpisodeIdsRef = useRef(completedEpisodeIds)
-  const [completedEpisodesReady, setCompletedEpisodesReady] = useState(false)
-  const [completedEpisodesLoaded, setCompletedEpisodesLoaded] = useState(false)
   const [listeningSessions, setListeningSessions] = useState<ListeningSession[]>(loadListeningSessions)
   const [historyQuery, setHistoryQuery] = useState('')
   const [offlineEpisodes, setOfflineEpisodes] = useState<OfflineEpisode[]>(loadOfflineEpisodes)
   const offlineEpisodesRef = useRef(offlineEpisodes)
-  const [nativeDownloadsRestored, setNativeDownloadsRestored] = useState(!podmixPlayer.isNative)
-  const [nativeFavoritesRestored, setNativeFavoritesRestored] = useState(!podmixPlayer.isNative)
-  const retentionContext = {
-    favoriteTrackIds, history, listeningSessions, offlineEpisodes, completedEpisodeIds,
-    activeEpisodeIds: nowPlaying ? [nowPlaying.id] : [],
-    nativeReferencesReady: nativeDownloadsRestored && nativeFavoritesRestored && completedEpisodesReady,
-  }
-  const retentionContextRef = useRef(retentionContext)
-  retentionContextRef.current = retentionContext
-
   const pendingDownloadIdsRef = useRef(new Set<string>())
   const [showSearch, setShowSearch] = useState(false)
   const [globalQuery, setGlobalQuery] = useState('')
@@ -1025,7 +1036,7 @@ function App() {
   const [studioEpisode, setStudioEpisode] = useState<{ sourceId: string; episodeId: string }>()
   const studioEpisodeRef = useRef<{ sourceId: string; episodeId: string } | undefined>(undefined)
   const [publishMessage, setPublishMessage] = useState('')
-  const [storageMetrics, setStorage] = useState({ downloadedBytes: 0, availableBytes: 0, totalBytes: 0 })
+  const [, setStorage] = useState({ downloadedBytes: 0, availableBytes: 0, totalBytes: 0 })
   const [availableUpdate, setAvailableUpdate] = useState<UpdateManifest | null>(null)
   const [appInfo, setAppInfo] = useState<{ versionName: string; versionCode: number; lastUpdateTime: number }>({
     versionName: currentVersion,
@@ -1115,17 +1126,12 @@ function App() {
     return () => { void listener.then((handle) => handle.remove()).catch(() => undefined) }
   }, [boseIp])
   useEffect(() => {
-    let cancelled = false
-    void podmixPlayer.getAppInfo()
-      .catch(() => null)
-      .then((info) => checkForUpdate(info?.versionCode))
+    checkForUpdate()
       .then((update) => {
-        if (cancelled) return
         setAvailableUpdate(update)
         setUpdateMessage(update ? `Version ${update.versionName} disponible` : 'Application à jour')
       })
-      .catch(() => { if (!cancelled) setUpdateMessage('Vérification impossible hors connexion') })
-    return () => { cancelled = true }
+      .catch(() => setUpdateMessage('Vérification impossible hors connexion'))
   }, [])
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
@@ -1423,8 +1429,20 @@ function App() {
   }, [audioName, tracks])
   useEffect(() => {
     catalogRef.current = catalog
-    saveCatalog(catalog)
-  }, [catalog])
+    if (!catalogReady) return
+    let stopped = false
+    let retryTimer: number | undefined
+    void saveCatalog(catalog).then((saved) => {
+      if (saved || stopped) return
+      retryTimer = window.setTimeout(() => {
+        if (!stopped) setCatalogRetry((attempt) => attempt + 1)
+      }, 5_000)
+    })
+    return () => {
+      stopped = true
+      if (retryTimer !== undefined) window.clearTimeout(retryTimer)
+    }
+  }, [catalog, catalogReady, catalogRetry])
   useEffect(() => {
     if (!podmixPlayer.isNative) return
     let active = true
@@ -1448,15 +1466,20 @@ function App() {
     return () => { active = false }
   }, [catalog])
   useEffect(() => {
-    const protectedIds = protectedEpisodeIds(catalog, retentionContextRef.current)
-    if (selectedEpisodeId) protectedIds.add(selectedEpisodeId)
-    const limitedCatalog = catalog.map(source => retainSourceEpisodes(source, episodeLimitFor(source, settings), protectedIds))
-    if (limitedCatalog.every((source,index) => source === catalog[index])) return
-    setCatalog(limitedCatalog)
-    // A catalogue limit is never permission to delete a downloaded file.
-  }, [catalog, selectedEpisodeId, settings, favoriteTrackIds, history, listeningSessions, offlineEpisodes,
-    completedEpisodeIds, nowPlaying, nativeDownloadsRestored, nativeFavoritesRestored, completedEpisodesReady])
+    const limitedCatalog = catalog.map((source) => trimSourceToEpisodeLimit(source, settings))
+    const removedEpisodeIds = new Set(catalog.flatMap((source, index) => {
+      const kept = new Set(limitedCatalog[index].episodes.map((episode) => episode.id))
+      return source.episodes.filter((episode) => !kept.has(episode.id)).map((episode) => episode.id)
+    }))
+    if (!removedEpisodeIds.size) return
 
+    setCatalog(limitedCatalog)
+    setOfflineEpisodes((items) => items.filter((episode) => !removedEpisodeIds.has(episode.id)))
+    if (selectedEpisodeId && removedEpisodeIds.has(selectedEpisodeId)) setSelectedEpisodeId('')
+    if (podmixPlayer.isNative) {
+      void Promise.all([...removedEpisodeIds].map((id) => podmixPlayer.removeDownload(id).catch(() => undefined)))
+    }
+  }, [catalog, selectedEpisodeId, settings])
   useEffect(() => {
     // Older RSS imports could assign one ID to a whole podcast. Keep only a
     // history record that identifies its episode by audio URL/title; the
@@ -1581,8 +1604,7 @@ function App() {
             }
           }
           establishRssBaseline(source.id)
-          const latestSource = catalogRef.current.find(item => item.id === source.id) ?? source
-          const merged = retainReferencedFeedEpisodes(latestSource, mergeCatalogSource(latestSource, next), protectedEpisodeIds(catalogRef.current, retentionContextRef.current))
+          const merged = mergeCatalogSource(source, next)
           if (!newlyArrived.length) return merged
           const newIds = newlyArrived.map((episode) => episode.id)
           const visibleEpisodeIds = new Set(merged.episodes.map((episode) => episode.id))
@@ -1649,7 +1671,6 @@ function App() {
       try {
         const native = await podmixPlayer.getFavorites()
         if (active && native.initialized) setFavoriteTrackIds(native.ids)
-        if (active) setNativeFavoritesRestored(true)
       } finally {
         if (active) setNativeFavoritesReady(true)
       }
@@ -1690,20 +1711,9 @@ function App() {
     savePlaybackHistory(history)
   }, [history])
   useEffect(() => {
-    let active = true
-    void loadCompletedEpisodesPersistence().then(({ ids, ready }) => {
-      if (!active) return
-      // Keep additions from sessions/native playback made while IndexedDB was loading.
-      setCompletedEpisodeIds(current => [...new Set([...current, ...ids])].slice(0, 2_000))
-      setCompletedEpisodesReady(ready)
-      setCompletedEpisodesLoaded(true)
-    })
-    return () => { active = false }
-  }, [])
-  useEffect(() => {
     completedEpisodeIdsRef.current = completedEpisodeIds
-    if (completedEpisodesLoaded) void saveCompletedEpisodesPersistence(completedEpisodeIds).then(setCompletedEpisodesReady)
-  }, [completedEpisodeIds, completedEpisodesLoaded])
+    saveCompletedEpisodeIds(completedEpisodeIds)
+  }, [completedEpisodeIds])
   useEffect(() => saveListeningSessions(listeningSessions), [listeningSessions])
 
   // Older completed plays may predate the dedicated completed-episodes list.
@@ -1730,6 +1740,7 @@ function App() {
     if (completedEpisodeIdsRef.current.includes(id)) return
     const next = [id, ...completedEpisodeIdsRef.current].slice(0, 2_000)
     completedEpisodeIdsRef.current = next
+    saveCompletedEpisodeIds(next)
     setCompletedEpisodeIds(next)
   }
 
@@ -2015,10 +2026,10 @@ function App() {
       // d'épisode : cela écrasait, après quelques secondes, le titre favori
       // du mini-lecteur par un titre de l'épisode.
       if (favoriteQueueRef.current?.some((entry) => entry.key === state.mediaId)) return
-      const restored = restoreTrackQueueForMediaId(state.mediaId)
+      const restored = restoreTrackQueueForMediaId(state.mediaId, state.positionSeconds)
       if (!restored) return
       const activeTrack = restored.queue.tracks[restored.trackIndex]
-      setActiveMediaId(state.mediaId)
+      setActiveMediaId(resolveActiveMediaId(state))
       setGlobalPosition(Math.max(0, state.positionSeconds))
       setGlobalDuration(Math.max(0, state.durationSeconds))
       setGlobalPlaying(playbackIntentActive(state))
@@ -2112,11 +2123,12 @@ function App() {
         setGlobalDuration(Math.max(0, state.durationSeconds))
         setCanSkipNext(state.hasNext)
         setCanSkipPrevious(state.hasPrevious)
-        restoreTrackQueueForMediaId(state.mediaId)
+        restoreTrackQueueForMediaId(state.mediaId, state.positionSeconds)
         setActiveMediaId(resolveActiveMediaId(state))
         const trackQueue = trackQueueRef.current
         const favoriteItem = favoriteQueueEntryForState(state)
-        const activeTrack = trackQueue && state.queueIndex >= 0 && state.queueIndex < trackQueue.mediaIds.length ? trackQueue.tracks[state.queueIndex] : undefined
+        const activeTrackIndex = resolveTrackIndexForPlaybackState(trackQueue, state)
+        const activeTrack = trackQueue && activeTrackIndex >= 0 ? trackQueue.tracks[activeTrackIndex] : undefined
         if (favoriteItem) {
           const nextPlaying: NowPlayingItem = {
             id: favoriteItem.episode.id,
@@ -2135,7 +2147,7 @@ function App() {
             artist: activeTrack.artist || trackQueue.sourceTitle,
             url: trackQueue.audioUrl,
             scope: episodePlaybackRef.current === trackQueue.episodeId ? 'episode' : 'track',
-            artworkUrl: trackQueue.artworkUrls[state.queueIndex],
+            artworkUrl: activeTrackIndex >= 0 ? trackQueue.artworkUrls[activeTrackIndex] : undefined,
           }
           setNowPlaying((current) => sameNowPlaying(current, nextPlaying) ? current : nextPlaying)
         }
@@ -2251,7 +2263,6 @@ function App() {
         }
         return [...byId.values()]
       })
-      setNativeDownloadsRestored(true)
     }).catch(() => undefined)
     return () => { cancelled = true }
   }, [catalog])
@@ -3764,7 +3775,7 @@ function App() {
     setSkipPendingDirection(direction)
     try {
       const state = direction === 'next' ? await podmixPlayer.next() : await podmixPlayer.previous()
-      restoreTrackQueueForMediaId(state.mediaId)
+      restoreTrackQueueForMediaId(state.mediaId, state.positionSeconds)
       setActiveMediaId(resolveActiveMediaId(state))
       setGlobalPlaying(playbackIntentActive(state))
       setGlobalPosition(Math.max(0, state.positionSeconds))
@@ -3774,7 +3785,8 @@ function App() {
       if (state.title) {
         const favoriteItem = favoriteQueueEntryForState(state)
         const trackQueue = trackQueueRef.current
-        const activeTrack = trackQueue && state.queueIndex >= 0 && state.queueIndex < trackQueue.mediaIds.length ? trackQueue.tracks[state.queueIndex] : undefined
+        const activeTrackIndex = resolveTrackIndexForPlaybackState(trackQueue, state)
+        const activeTrack = trackQueue && activeTrackIndex >= 0 ? trackQueue.tracks[activeTrackIndex] : undefined
         const queued = catalog.flatMap((source) => source.episodes.map((episode) => ({ ...episode, artist: source.title }))).find((episode) => episode.id === state.mediaId)
         const nextPlaying = {
           id: favoriteItem?.episode.id ?? (activeTrack ? trackQueue!.episodeId : state.mediaId) ?? queued?.id ?? `${state.artist}:${state.title}`,
@@ -3787,7 +3799,7 @@ function App() {
           artworkUrl: favoriteItem
             ? trackArtwork(favoriteItem.track, favoriteItem.episode, favoriteItem.source)
             : activeTrack
-              ? trackQueue?.artworkUrls[state.queueIndex]
+              ? trackQueue?.artworkUrls[activeTrackIndex]
               : queued?.artworkUrl,
         }
         setNowPlaying(nextPlaying)
@@ -4566,11 +4578,9 @@ function App() {
       favoriteTrackIds,
       history,
       listeningSessions,
-      completedEpisodeIds,
       offlineEpisodes,
       settings,
       studio: { audioName, tracks },
-      storageDiagnostics: { records: durableStorageDiagnostics(), deviceAvailableBytes: storageMetrics.totalBytes > 0 ? storageMetrics.availableBytes : null, deviceTotalBytes: storageMetrics.totalBytes > 0 ? storageMetrics.totalBytes : null },
     }
     const url = URL.createObjectURL(new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' }))
     const anchor = document.createElement('a')
@@ -4587,7 +4597,7 @@ function App() {
     try {
       const payload = JSON.parse(await file.text()) as {
         format?: string; catalog?: CatalogSource[]; favoriteSourceIds?: string[]; favoriteTrackIds?: Array<string | number>
-        history?: HistoryItem[]; listeningSessions?: ListeningSession[]; completedEpisodeIds?: string[]; offlineEpisodes?: OfflineEpisode[]; settings?: AppSettings
+        history?: HistoryItem[]; listeningSessions?: ListeningSession[]; offlineEpisodes?: OfflineEpisode[]; settings?: AppSettings
         studio?: { audioName?: string; tracks?: Track[] }
       }
       if (payload.format !== 'podmix-next-backup' || !Array.isArray(payload.catalog)) throw new Error('Format de sauvegarde invalide')
@@ -4595,7 +4605,6 @@ function App() {
       setFavoriteTrackIds((payload.favoriteTrackIds ?? []).map(String))
       setHistory(payload.history ?? [])
       setListeningSessions(payload.listeningSessions ?? [])
-      if (Array.isArray(payload.completedEpisodeIds)) setCompletedEpisodeIds(ids => [...new Set([...ids, ...payload.completedEpisodeIds!.filter(id => typeof id === 'string' && id.length > 0)])].slice(0, 2_000))
       setOfflineEpisodes(payload.offlineEpisodes ?? [])
       if (payload.settings) setSettings(payload.settings)
       if (payload.studio?.tracks?.length) {
@@ -4647,8 +4656,7 @@ function App() {
       try {
         const refreshed = await importRssFeed(selectedSource.feedUrl, selectedSource.kind === 'show' ? 'show' : 'podcast', selectedSource.kind === 'show' ? settings.maxShowEpisodes : settings.maxPodcastEpisodes)
         const newlyArrived = newEpisodesFromFeed(selectedSource, refreshed)
-        const latestSource = catalogRef.current.find(item => item.id === selectedSource.id) ?? selectedSource
-        const merged = retainReferencedFeedEpisodes(latestSource, mergeCatalogSource(latestSource, refreshed), protectedEpisodeIds(catalogRef.current, retentionContextRef.current))
+        const merged = mergeCatalogSource(selectedSource, refreshed)
         const visibleEpisodeIds = new Set(merged.episodes.map((episode) => episode.id))
         refreshedSource = newlyArrived.length
           ? { ...merged, newEpisodeIds: [...new Set([...(merged.newEpisodeIds ?? []), ...newlyArrived.map((episode) => episode.id)])].filter((id) => visibleEpisodeIds.has(id)) }
@@ -5027,7 +5035,7 @@ function App() {
         <button className="dj-home-library-link" type="button" onClick={() => navigateTo('djLibrary')} aria-label={`Ouvrir les ${sources.length} DJ sets`}>
           <Disc3 size={16} /><span><strong>Tous les DJ sets</strong><small>{sources.length} disponible{sources.length > 1 ? 's' : ''}</small></span><ChevronRight size={17} />
         </button>
-      </> : <div className="catalog-grid home-catalog-grid">{sources.map((source) => {
+      </> : <div className="catalog-grid home-catalog-grid">{sources.slice(0, 4).map((source) => {
         const SourceIcon = source.kind === 'radio' ? Radio : source.kind === 'dj' ? Disc3 : source.kind === 'show' ? AudioLines : Mic2
         const color = source.kind === 'radio' ? '#9bb8dc' : source.kind === 'show' ? '#a8d7bd' : source.kind === 'dj' ? '#edcf92' : '#e99a72'
         const firstEpisode = source.episodes.find((episode) => episode.audioUrl)
@@ -5093,7 +5101,7 @@ function App() {
             <button aria-label="Réglages" className={activeView === 'settings' ? 'active' : ''} onClick={() => navigateTo(activeView === 'settings' ? 'home' : 'settings')}><Settings2 size={18} /></button>
           </div>
         </header>
-        {storageFailures.length > 0 && <div className="storage-warning" role="alert">Sauvegarde impossible : les modifications de {storageFailures.join(', ')} ne sont pas enregistrées. Les données déjà enregistrées n’ont pas été effacées.</div>}
+        {storageFailures.length > 0 && <div className="storage-warning" role="alert">Stockage interne plein : les modifications de {storageFailures.join(', ')} ne sont pas enregistrées. L’application n’a rien supprimé.</div>}
 
         {activeView !== 'studio' && <section className="workspace catalog-view">
           {!selectedSource && activeView !== 'home' && activeView !== 'resume' && activeView !== 'favorites' && activeView !== 'liveSets' && activeView !== 'djLibrary' && <div className="catalog-hero">

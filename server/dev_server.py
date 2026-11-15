@@ -549,6 +549,37 @@ def complete_web_timestamp_job(job_id: str, payload: dict) -> dict:
     return get_job(job_id) or {}
 
 
+def youtube_timestamp_fallback(job: dict, context: dict) -> dict | None:
+    """Resolve a YouTube description/comments tracklist after Android's 1001 pass."""
+
+    title = str(context.get("title") or "").strip()
+    known_tracks = job.get("tracks") or context.get("rssTracks") or []
+    if not title or len(known_tracks) < 2:
+        return None
+    reference = context.get("referenceFirstTrack") or known_tracks[0]
+    duration = float(job.get("duration") or 0)
+    try:
+        results = search_episode_tracklist_candidates(title, known_tracks, limit=8)
+    except Exception:
+        return None
+    for result in results:
+        url = str(result.get("url") or "").strip()
+        domain = str(result.get("domain") or "").casefold()
+        if domain not in {"youtube.com", "youtu.be", "www.youtube.com"}:
+            continue
+        try:
+            discovery = discover_tracklist(url)
+        except Exception:
+            continue
+        candidates = discovery.get("candidates") or []
+        if _authoritative_external_candidates(candidates, reference, duration):
+            return {
+                "sourceUrl": str(discovery.get("sourceUrl") or url),
+                "candidates": candidates,
+            }
+    return None
+
+
 def fail_web_timestamp_job(job_id: str, message: str) -> dict:
     job = get_job(job_id)
     if not job:
@@ -557,6 +588,10 @@ def fail_web_timestamp_job(job_id: str, message: str) -> dict:
     if len(clean_message) > 500:
         clean_message = clean_message[:497] + "..."
     context = get_job_context(job_id)
+    if context.get("webQueue"):
+        youtube = youtube_timestamp_fallback(job, context)
+        if youtube:
+            return complete_web_timestamp_job(job_id, youtube)
     known_tracks = job.get("tracks") or context.get("rssTracks") or []
     fallback_source = audio_fallback_source_url(context)
     audio_fallback_allowed = (

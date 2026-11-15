@@ -6,7 +6,7 @@
 	bind 127.0.0.1
 
 	handle_path /podmix/* {
-		root * /home/debian/projects/podmix/deploy
+		root * /home/fmsa/projects/podmix/deploy
 		header Cache-Control "no-cache"
 		header Access-Control-Allow-Origin "*"
 		file_server

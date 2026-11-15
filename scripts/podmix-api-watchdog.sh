@@ -3,7 +3,7 @@
 # renewal.  This script is installed as a root-owned systemd service.
 set -euo pipefail
 
-project_dir=/home/debian/projects/podmix
+project_dir=/home/fmsa/projects/podmix
 lan_interface=${PODMIX_LAN_INTERFACE:-enp3s0}
 interval_seconds=${PODMIX_WATCHDOG_INTERVAL:-10}
 state_file=/run/podmix-api-watchdog.ip

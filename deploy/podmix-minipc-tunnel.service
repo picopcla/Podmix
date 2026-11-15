@@ -6,7 +6,7 @@ Wants=network-online.target
 [Service]
 Type=simple
 User=debian
-ExecStart=/usr/bin/cloudflared --config /home/debian/.cloudflared/podmix-minipc.yml tunnel run
+ExecStart=/usr/bin/cloudflared --config /home/fmsa/.cloudflared/podmix-minipc.yml tunnel run
 Restart=always
 RestartSec=5s
 

@@ -1,5 +1,5 @@
 tunnel: 82a8e0ac-9dcd-4216-92fe-a76c052967ab
-credentials-file: /home/debian/.cloudflared/82a8e0ac-9dcd-4216-92fe-a76c052967ab.json
+credentials-file: /home/fmsa/.cloudflared/82a8e0ac-9dcd-4216-92fe-a76c052967ab.json
 
 ingress:
   - hostname: podmix.mb4.fr

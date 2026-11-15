@@ -8,13 +8,13 @@ Pour toute compilation ou installation APK, la procédure de référence est
 celle du workspace, pas une commande improvisée dans ce sous-projet :
 
 ```bash
-cd /home/debian/projects
+cd /home/fmsa/projects
 ./android-ops/android-release build podmix
 ./android-ops/android-release deploy podmix 100.109.85.100:5555
 ```
 
 Le second appel compile, archive et installe la variante `ng` de Podmix sur le
-Samsung. Le SDK est `/home/debian/Android/Sdk`; ne pas utiliser de chemin ou de
+Samsung. Le SDK est `/home/fmsa/Android/Sdk`; ne pas utiliser de chemin ou de
 numéro ADB Windows. Lire `CODEX_SHARED_MEMORY.md` avant d’agir sur le téléphone.
 
 ## First Run

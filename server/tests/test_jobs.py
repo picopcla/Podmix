@@ -338,6 +338,45 @@ class ResearchJobTests(unittest.TestCase):
         self.assertTrue(dev_server.get_job_context("job-1")["audioFallbackPending"])
         notify.assert_called_once()
 
+    def test_web_failure_uses_youtube_before_audio_fallback(self):
+        self.insert_job(status="web_pending", context={
+            "automaticTracklist": True,
+            "webQueue": True,
+            "title": "Find Your Harmony 507",
+            "referenceFirstTrack": {"artist": "Artist A", "title": "Opening"},
+            "audioUrl": "https://cdn.example/mix.mp3",
+            "rssTracks": [
+                {"artist": "Artist A", "title": "Opening"},
+                {"artist": "Artist B", "title": "Second"},
+            ],
+        }, duration=600)
+        dev_server.update_job("job-1", tracks=[
+            {"artist": "Artist A", "title": "Opening", "time": None, "timestampStatus": "pending"},
+            {"artist": "Artist B", "title": "Second", "time": None, "timestampStatus": "pending"},
+        ])
+        youtube_url = "https://www.youtube.com/watch?v=fixture"
+        with (
+            patch("dev_server.search_episode_tracklist_candidates", return_value=[{
+                "url": youtube_url, "domain": "youtube.com", "title": "Find Your Harmony 507",
+            }]),
+            patch("dev_server.discover_tracklist", return_value={
+                "sourceUrl": youtube_url,
+                "candidates": [
+                    {"artist": "Artist A", "title": "Opening", "providedTime": 0},
+                    {"artist": "Artist B", "title": "Second", "providedTime": 240},
+                ],
+            }),
+            patch("dev_server.AUDIO_FALLBACK_ENABLED", True),
+            patch("dev_server.notify_worker") as notify,
+        ):
+            job = dev_server.fail_web_timestamp_job("job-1", "1001 indisponible")
+
+        self.assertEqual("completed", job["status"])
+        self.assertEqual([0, 240], [track["time"] for track in job["tracks"]])
+        self.assertTrue(all(track["timestampSource"] == "youtube" for track in job["tracks"]))
+        self.assertFalse(dev_server.get_job_context("job-1").get("audioFallbackPending"))
+        notify.assert_not_called()
+
     def test_audio_fallback_uses_published_media_when_rss_audio_is_missing(self):
         self.assertEqual(
             "https://soundcloud.com/trance-empire/set-436",
