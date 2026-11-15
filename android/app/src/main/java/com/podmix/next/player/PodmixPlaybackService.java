@@ -689,19 +689,23 @@ public class PodmixPlaybackService extends MediaLibraryService {
                 // musical programmes for which Podmix exposes timestamps and
                 // tracklists; shows are regular spoken-audio programmes.
                 // Android Auto exposes four root categories comfortably.
-                if (hasSourceKind(allEntries, "podcast")) {
+                // Android Auto shows at most four root tabs: Favoris first
+                // (only when at least one favorite track is in the library),
+                // then Podcasts (which also lists the spoken-audio shows),
+                // DJ sets and Radios.
+                if (hasFavoriteEntries(allEntries)) {
+                    rootItems.add(collectionItem(
+                        FAVORITES_ID,
+                        "Favoris",
+                        "Vos morceaux favoris",
+                        MediaConstants.EXTRAS_VALUE_CONTENT_STYLE_LIST_ITEM
+                    ));
+                }
+                if (hasSourceKind(allEntries, "podcast") || hasSourceKind(allEntries, "show")) {
                     rootItems.add(collectionItem(
                         PODCASTS_ID,
                         "Podcasts",
-                        "Tracklists et timestamps",
-                        MediaConstants.EXTRAS_VALUE_CONTENT_STYLE_GRID_ITEM
-                    ));
-                }
-                if (hasSourceKind(allEntries, "show")) {
-                    rootItems.add(collectionItem(
-                        SHOWS_ID,
-                        "Émissions",
-                        "Interviews et programmes audio",
+                        "Podcasts et émissions",
                         MediaConstants.EXTRAS_VALUE_CONTENT_STYLE_GRID_ITEM
                     ));
                 }
@@ -729,7 +733,9 @@ public class PodmixPlaybackService extends MediaLibraryService {
             }
             // Catégories par type
             if (PODCASTS_ID.equals(parentId)) {
-                return Futures.immediateFuture(LibraryResult.ofItemList(sourcesByKind("podcast"), params));
+                List<MediaItem> podcastsAndShows = new ArrayList<>(sourcesByKind("podcast"));
+                podcastsAndShows.addAll(sourcesByKind("show"));
+                return Futures.immediateFuture(LibraryResult.ofItemList(podcastsAndShows, params));
             }
             if (SHOWS_ID.equals(parentId)) {
                 return Futures.immediateFuture(LibraryResult.ofItemList(sourcesByKind("show"), params));
@@ -1850,13 +1856,14 @@ public class PodmixPlaybackService extends MediaLibraryService {
                 childCounts.put(entry.parentId, childCounts.getOrDefault(entry.parentId, 0) + 1);
             }
             int rootCollectionCount = 0;
-            if (service.hasSourceKind(entries, "podcast")) rootCollectionCount++;
-            if (service.hasSourceKind(entries, "show")) rootCollectionCount++;
+            if (hasFavoriteEntries(entries)) rootCollectionCount++;
+            if (service.hasSourceKind(entries, "podcast") || service.hasSourceKind(entries, "show")) rootCollectionCount++;
             if (service.hasSourceKind(entries, "dj")) rootCollectionCount++;
             if (service.hasSourceKind(entries, "radio")) rootCollectionCount++;
             service.mediaSession.notifyChildrenChanged(ROOT_ID, rootCollectionCount, null);
             service.mediaSession.notifyChildrenChanged(PODCASTS_ID, service.sourcesByKind("podcast").size(), null);
             service.mediaSession.notifyChildrenChanged(SHOWS_ID, service.sourcesByKind("show").size(), null);
+            service.mediaSession.notifyChildrenChanged(FAVORITES_ID, childCounts.getOrDefault(FAVORITES_ID, 0), null);
             service.mediaSession.notifyChildrenChanged(DJ_SETS_ID, service.djSetItems().size(), null);
             service.mediaSession.notifyChildrenChanged(RADIOS_ID, service.sourcesByKind("radio").size(), null);
             for (Map.Entry<String, Integer> child : childCounts.entrySet()) {
@@ -1913,6 +1920,13 @@ public class PodmixPlaybackService extends MediaLibraryService {
             player = null;
         }
         super.onDestroy();
+    }
+
+    private static boolean hasFavoriteEntries(List<LibraryEntry> entries) {
+        for (LibraryEntry entry : entries) {
+            if (FAVORITES_ID.equals(entry.parentId)) return true;
+        }
+        return false;
     }
 
     private List<MediaItem> resumeItems() {
