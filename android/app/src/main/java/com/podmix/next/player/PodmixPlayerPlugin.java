@@ -942,6 +942,9 @@ public class PodmixPlayerPlugin extends Plugin implements Player.Listener {
             .putBoolean("initialized", true)
             .putLong("version", System.currentTimeMillis())
             .apply();
+        // Android Auto builds its "Favoris" folder from the library snapshot:
+        // rebuild it and notify the car so a favorite marked in the app shows up.
+        PodmixPlaybackService.invalidateCache();
         JSObject result = new JSObject();
         result.put("count", ids.length());
         call.resolve(result);
