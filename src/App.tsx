@@ -26,7 +26,7 @@ import podmixInfinityLogo from './assets/podmix-logo-radio-c.png'
 import './App.css'
 import './identification.css'
 import { safeSetItem, useStorageFailures } from './safeStorage'
-import { durableStorageDiagnostics } from './durableStorage'
+import { durableStorageDiagnostics, readDurableItem, saveStateItem } from './durableStorage'
 
 // Bound a read before starting a transfer. This does not cancel native writes.
 async function readBeforeBoseTransfer<T>(request: Promise<T>): Promise<T> {
@@ -470,7 +470,7 @@ function favoriteServiceControl(service: FavoriteService, url?: string, artist =
 
 function loadFavoriteTrackIds() {
   try {
-    const stored = JSON.parse(localStorage.getItem('podmix-track-favorites-v1') ?? '[]')
+    const stored = JSON.parse(readDurableItem('podmix-track-favorites-v1') ?? '[]')
     return Array.isArray(stored) ? stored.map(String) : []
   } catch {
     return []
@@ -615,7 +615,7 @@ function App() {
   const [offlineExpanded, setOfflineExpanded] = useState(false)
   const [homeSectionOrder, setHomeSectionOrder] = useState<HomeSectionId[]>(() => {
     try {
-      const stored = JSON.parse(localStorage.getItem('podmix-home-section-order-v1') ?? 'null')
+      const stored = JSON.parse(readDurableItem('podmix-home-section-order-v1') ?? 'null')
       const allowed = ['podcasts', 'shows', 'radios', 'djSets']
       if (Array.isArray(stored) && stored.every((id) => allowed.includes(id))) {
         return [...stored, ...allowed.filter((id) => !stored.includes(id))] as HomeSectionId[]
@@ -648,14 +648,14 @@ function App() {
       order.splice(currentIndex, 1)
       order.splice(newIndex, 0, dragSection)
       setHomeSectionOrder(order)
-      safeSetItem('podmix-home-section-order-v1', JSON.stringify(order))
+      saveStateItem('podmix-home-section-order-v1', JSON.stringify(order))
       dragStartY.current = clientY
     } else if (deltaY < -threshold && currentIndex > 0) {
       const newIndex = currentIndex - 1
       order.splice(currentIndex, 1)
       order.splice(newIndex, 0, dragSection)
       setHomeSectionOrder(order)
-      safeSetItem('podmix-home-section-order-v1', JSON.stringify(order))
+      saveStateItem('podmix-home-section-order-v1', JSON.stringify(order))
       dragStartY.current = clientY
     }
   }
@@ -1028,7 +1028,7 @@ function App() {
   }, [activeView, selectedEpisodeId, selectedSourceId, showAddSource, showOutputPicker, showSearch])
   const [settings, setSettings] = useState<AppSettings>(() => {
     try {
-      return { ...defaultSettings, ...JSON.parse(localStorage.getItem('podmix-settings-v1') ?? '') } as AppSettings
+      return { ...defaultSettings, ...JSON.parse(readDurableItem('podmix-settings-v1') ?? '') } as AppSettings
     } catch {
       return defaultSettings
     }
@@ -1656,7 +1656,7 @@ function App() {
     safeSetItem('podmix-active-timestamp-source-v1', source.id)
     void scheduleNextTimestamping([source, ...catalogRef.current.filter((item) => item.id !== source.id)])
   }, [selectedSourceId, settings.automaticAnalysis])
-  useEffect(() => { safeSetItem('podmix-track-favorites-v1', JSON.stringify(favoriteTrackIds)) }, [favoriteTrackIds])
+  useEffect(() => { saveStateItem('podmix-track-favorites-v1', JSON.stringify(favoriteTrackIds)) }, [favoriteTrackIds])
   useEffect(() => {
     if (!podmixPlayer.isNative) return
     let active = true
@@ -1788,7 +1788,7 @@ function App() {
     // Sinon la sortie locale reste le comportement de base.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
-  useEffect(() => { safeSetItem('podmix-settings-v1', JSON.stringify(settings)) }, [settings])
+  useEffect(() => { saveStateItem('podmix-settings-v1', JSON.stringify(settings)) }, [settings])
   useEffect(() => {
     offlineEpisodesRef.current = offlineEpisodes
     saveOfflineEpisodes(offlineEpisodes)
