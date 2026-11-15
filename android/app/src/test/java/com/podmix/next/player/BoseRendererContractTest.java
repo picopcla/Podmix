@@ -43,6 +43,47 @@ public class BoseRendererContractTest {
         assertTrue(BoseRendererContract.confirms(state,soap("GetMediaInfo","<CurrentURI>http://host/new?a=1&amp;b=2</CurrentURI>"),"http://host/new?a=1&b=2"));
         assertFalse(BoseRendererContract.confirms(soap("GetTransportInfo","<CurrentTransportState>TRANSITIONING</CurrentTransportState>"),soap("GetMediaInfo","<CurrentURI>http://host/new</CurrentURI>"),"http://host/new"));
     }
+    // SoundTouch 30 fw 27.0.6 (mesure reelle, 15/11/2026) : CurrentURI vide pendant la lecture,
+    // l'URL lue est rapportee par /now_playing (port 8090).
+    static String nowPlaying(String source,String itemSource,String location,String status) {
+        return "<nowPlaying deviceID=\"000000000000\" source=\""+source+"\"><ContentItem source=\""+itemSource+"\" location=\""+location+"\" sourceAccount=\"UPnPUserName\" isPresetable=\"true\" /><playStatus>"+status+"</playStatus></nowPlaying>";
+    }
+    @Test public void confirmsViaNowPlayingWhenCurrentUriIsEmpty() throws Exception {
+        String url="http://podmix.mb4.fr/podmix-cast/v1/cast/0123456789abcdef0123456789abcdef";
+        String state=soap("GetTransportInfo","<CurrentTransportState>PLAYING</CurrentTransportState>");
+        String emptyUri=soap("GetMediaInfo","<CurrentURI></CurrentURI>");
+        assertTrue(BoseRendererContract.confirms(state,emptyUri,nowPlaying("UPNP","UPNP",url,"PLAY_STATE"),url));
+    }
+    @Test public void nowPlayingFallbackKeepsStrictIdentityAndState() throws Exception {
+        String url="http://podmix.mb4.fr/podmix-cast/v1/cast/0123456789abcdef0123456789abcdef";
+        String state=soap("GetTransportInfo","<CurrentTransportState>PLAYING</CurrentTransportState>");
+        String emptyUri=soap("GetMediaInfo","<CurrentURI></CurrentURI>");
+        // autre flux que celui demande (le symptome « autre radio que choisie »)
+        assertFalse(BoseRendererContract.confirms(state,emptyUri,nowPlaying("UPNP","UPNP","http://direct.franceinfo.fr/live/franceinfo-midfi.mp3","PLAY_STATE"),url));
+        // pas en lecture, mauvaise source, pas de now_playing
+        assertFalse(BoseRendererContract.confirms(state,emptyUri,nowPlaying("UPNP","UPNP",url,"BUFFERING_STATE"),url));
+        assertFalse(BoseRendererContract.confirms(state,emptyUri,nowPlaying("STANDBY","STANDBY",url,"PLAY_STATE"),url));
+        assertFalse(BoseRendererContract.confirms(state,emptyUri,"",url));
+        assertFalse(BoseRendererContract.confirms(state,emptyUri,null,url));
+        // etat AVTransport non PLAYING
+        assertFalse(BoseRendererContract.confirms(soap("GetTransportInfo","<CurrentTransportState>TRANSITIONING</CurrentTransportState>"),emptyUri,nowPlaying("UPNP","UPNP",url,"PLAY_STATE"),url));
+        // URL a peine differente (pas de comparaison approximative)
+        assertFalse(BoseRendererContract.confirms(state,emptyUri,nowPlaying("UPNP","UPNP",url+"x","PLAY_STATE"),url));
+    }
+    @Test public void staleNonEmptyCurrentUriIsNeverRescuedByNowPlaying() throws Exception {
+        String url="http://podmix.mb4.fr/podmix-cast/v1/cast/0123456789abcdef0123456789abcdef";
+        String state=soap("GetTransportInfo","<CurrentTransportState>PLAYING</CurrentTransportState>");
+        assertFalse(BoseRendererContract.confirms(state,soap("GetMediaInfo","<CurrentURI>http://host/old</CurrentURI>"),nowPlaying("UPNP","UPNP",url,"PLAY_STATE"),url));
+        assertTrue(BoseRendererContract.confirms(state,soap("GetMediaInfo","<CurrentURI>"+url+"</CurrentURI>"),"",url));
+    }
+    @Test public void malformedNowPlayingIsRejectedNotTrusted() throws Exception {
+        String url="http://podmix.mb4.fr/podmix-cast/v1/cast/0123456789abcdef0123456789abcdef";
+        String state=soap("GetTransportInfo","<CurrentTransportState>PLAYING</CurrentTransportState>");
+        String emptyUri=soap("GetMediaInfo","<CurrentURI></CurrentURI>");
+        String two="<nowPlaying source=\"UPNP\"><ContentItem source=\"UPNP\" location=\""+url+"\"/><ContentItem source=\"UPNP\" location=\"http://x/y\"/><playStatus>PLAY_STATE</playStatus></nowPlaying>";
+        assertFalse(BoseRendererContract.confirms(state,emptyUri,two,url));
+        assertFalse(BoseRendererContract.confirms(state,emptyUri,"<other source=\"UPNP\"/>",url));
+    }
     @Test public void doesNotAcceptPlainXmlOrWrongSoapAction() throws Exception {
         for(String invalid:new String[]{"<r><CurrentTransportState>PLAYING</CurrentTransportState></r>",soap("WrongAction","<CurrentTransportState>PLAYING</CurrentTransportState>")})
             try{BoseRendererContract.confirms(invalid,soap("GetMediaInfo","<CurrentURI>http://host/new</CurrentURI>"),"http://host/new");fail();}catch(java.io.IOException expected){}
