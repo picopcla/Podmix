@@ -93,6 +93,33 @@ final class BoseRendererContract {
         String uri = text(soapResponse(mediaInfo, "GetMediaInfo"), "CurrentURI");
         return "PLAYING".equals(state) && expectedUri.equals(uri);
     }
+    /**
+     * Confirmation de lecture avec repli sur /now_playing (port 8090).
+     *
+     * Mesure sur une SoundTouch 30 (firmware 27.0.6, 15/11/2026) : GetMediaInfo renvoie un
+     * CurrentURI VIDE alors que l'enceinte lit bien le flux, donc confirms() echouait toujours
+     * ("La Bose n'est pas passee en lecture (dernier etat: PLAYING)"). La meme enceinte rapporte
+     * l'URL reellement lue dans /now_playing (ContentItem location, egale a l'URL envoyee).
+     *
+     * Regles conservees : l'etat AVTransport doit etre PLAYING ; un CurrentURI NON vide different
+     * de l'URL attendue (lecture perimee) est toujours refuse ; le repli ne s'applique que si
+     * CurrentURI est vide, et exige alors source UPNP, PLAY_STATE et une location STRICTEMENT egale.
+     */
+    static boolean confirms(String transportInfo, String mediaInfo, String nowPlaying, String expectedUri) throws Exception {
+        String state = text(soapResponse(transportInfo, "GetTransportInfo"), "CurrentTransportState");
+        if (!"PLAYING".equals(state)) return false;
+        String uri = text(soapResponse(mediaInfo, "GetMediaInfo"), "CurrentURI");
+        if (expectedUri.equals(uri)) return true;
+        if (uri != null && !uri.isEmpty()) return false;
+        if (nowPlaying == null || nowPlaying.isBlank()) return false;
+        Element root = xml(nowPlaying).getDocumentElement();
+        if (!"nowPlaying".equals(root.getTagName()) || !"UPNP".equals(root.getAttribute("source"))) return false;
+        if (!"PLAY_STATE".equals(text(root, "playStatus"))) return false;
+        NodeList items = root.getElementsByTagName("ContentItem");
+        if (items.getLength() != 1) return false;
+        Element item = (Element) items.item(0);
+        return "UPNP".equals(item.getAttribute("source")) && expectedUri.equals(item.getAttribute("location"));
+    }
     private static String line(InputStream input) throws Exception {
         ByteArrayOutputStream out = new ByteArrayOutputStream(); int value;
         while ((value = input.read()) != -1) {

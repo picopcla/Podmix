@@ -2581,7 +2581,11 @@ public class PodmixPlayerPlugin extends Plugin implements Player.Listener {
                     "urn:schemas-upnp-org:service:AVTransport:1#GetMediaInfo");
                 lastStatus = xmlValue(transportInfo, "CurrentTransportState");
                 Log.i(TAG, "Bose playback check " + (attempt + 1) + "/12: status=" + lastStatus);
-                if (BoseRendererContract.confirms(transportInfo, mediaInfo, url)) {
+                // CurrentURI peut etre vide sur certaines SoundTouch (SoundTouch 30 fw 27.0.6) : /now_playing
+                // (port 8090) rapporte alors l'URL reellement lue. Lecture seule, sans effet de bord.
+                String nowPlaying = "";
+                try { nowPlaying = boseRequest(ip, "GET", "/now_playing", ""); } catch (Exception ignored) { /* repli facultatif */ }
+                if (BoseRendererContract.confirms(transportInfo, mediaInfo, nowPlaying, url)) {
                     Log.i(TAG, "Bose replace confirmed in PLAYING with exact CurrentURI: " + title);
                     return;
                 }

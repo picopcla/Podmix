@@ -104,14 +104,19 @@ test('failed transfer keeps picker usable and next attempt creates a new relay s
   expect(sessions.every(x=>x.url==='https://origin.example/A.mp3')).toBe(true)
 })
 
-test('actual live HTTPS plus CGNAT payload is refused before any Bose command',async({page})=>{
+test('actual live HTTPS plus CGNAT payload is sent to the Bose as the public HTTP relay URL',async({page})=>{
+  // Charge utile reelle de production (15/11/2026) : relayUrl HTTPS public + lanRelayUrl Tailscale (injoignable
+  // depuis le LAN). Mesure sur SoundTouch 30 : l'URL HTTPS est refusee (HTTP 500), la meme URL en http:// est lue.
   await setup(page,'https')
   await page.route('**/v1/cast/sessions',(r)=>r.fulfill({status:201,json:{id:'07ebd766dc4b4b4ca31b7452b70fb555',relayUrl:'https://podmix.mb4.fr/podmix-cast/v1/cast/07ebd766dc4b4b4ca31b7452b70fb555',lanRelayUrl:'http://100.116.28.23:8099/v1/cast/07ebd766dc4b4b4ca31b7452b70fb555',expiresAt:'2026-11-15T06:56:36Z',startSeconds:0}}))
   await page.locator('.media-card').filter({hasText:'Station A'}).locator('.radio-art').click()
   await page.locator('.mini-output').click()
   const bose=page.locator('.output-device').filter({hasText:'Bose QA'})
   await bose.click()
-  await expect(page.locator('.output-message')).toContainText('Aucun relais HTTP compatible SoundTouch')
-  await expect(bose).toBeEnabled()
-  expect(await page.evaluate(()=>(window as any).__boseQA.commands)).toEqual([])
+  await expect(page.locator('.output-modal')).not.toBeVisible()
+  const commands=await page.evaluate(()=>(window as any).__boseQA.commands)
+  expect(commands).toHaveLength(1)
+  expect(commands[0].url).toBe('http://podmix.mb4.fr/podmix-cast/v1/cast/07ebd766dc4b4b4ca31b7452b70fb555')
+  expect(String(commands[0].url)).not.toContain('100.116.28.23')
+  expect(String(commands[0].url).startsWith('https://')).toBe(false)
 })
