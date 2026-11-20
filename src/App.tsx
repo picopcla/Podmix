@@ -13,7 +13,7 @@ import { loadCatalog, loadOfflineEpisodes, loadSession, saveCatalog, saveOffline
 // YouTube play-mark while the adjacent label makes the destination explicit.
 const Youtube = SquarePlay
 import { podmixPlayer } from './nativePlayer'
-import type { BoseDevice, CastDevice, LibraryItem } from './nativePlayer'
+import type { BoseDevice, CastDevice, DownloadState, LibraryItem } from './nativePlayer'
 import { checkForUpdate, currentVersion, downloadAndUpdate } from './updates'
 import type { UpdateManifest, UpdateProgress } from './updates'
 import { mergeCatalogSource, mergeEpisode, newEpisodesFromFeed } from './catalogMerge'
@@ -436,6 +436,23 @@ function trackArtwork(track: Track, episode: Episode, source: CatalogSource) {
 }
 
 type FavoriteService = 'deezer' | 'spotify' | 'youtube'
+
+function applyNativeDownloadState(item: OfflineEpisode, state: DownloadState | undefined): OfflineEpisode {
+  if (!state || state.status === 'unknown') return item
+  // Les anciennes versions pouvaient sauvegarder « 0 % » sans requête native :
+  // on le montre comme échec relançable plutôt que de le masquer.
+  const next: OfflineEpisode = state.status === 'not_found'
+    ? { ...item, status: 'failed', localUri: undefined, bytesDownloaded: 0, totalBytes: undefined }
+    : {
+      ...item,
+      status: state.status,
+      localUri: state.status === 'completed' ? state.localUri : undefined,
+      bytesDownloaded: state.bytesDownloaded,
+      totalBytes: state.totalBytes,
+    }
+  return next.status === item.status && next.localUri === item.localUri
+    && next.bytesDownloaded === item.bytesDownloaded && next.totalBytes === item.totalBytes ? item : next
+}
 
 function ServiceLogo({ service }: { service: FavoriteService }) {
   if (service === 'spotify') {
@@ -2197,33 +2214,17 @@ function App() {
       )
       const states = results.flatMap((result) => result.status === 'fulfilled' ? [result.value] : [])
       if (cancelled) return
-      setOfflineEpisodes((items) => items.map((item) => {
-        const state = states.find((candidate) => candidate.id === item.id)
-        if (!state || state.status === 'unknown') {
-          // One failed status query must not destroy a valid local entry.
-          return item
-        }
-        if (state.status === 'not_found') {
-          // Les anciennes versions pouvaient sauvegarder l'affichage « 0 % »
-          // sans conserver la requête DownloadManager. Ce n'est pas un
-          // téléchargement en cours : le montrer comme erreur relançable
-          // permet de repartir proprement, sans masquer le problème.
-          return {
-            ...item,
-            status: 'failed',
-            localUri: undefined,
-            bytesDownloaded: 0,
-            totalBytes: undefined,
-          }
-        }
-        return {
-          ...item,
-          status: state.status,
-          localUri: state.status === 'completed' ? state.localUri : undefined,
-          bytesDownloaded: state.bytesDownloaded,
-          totalBytes: state.totalBytes,
-        }
-      }))
+      setOfflineEpisodes((items) => {
+        // Même tableau et mêmes objets si l'état natif est identique : évite
+        // un re-rendu complet et une écriture disque toutes les 2 secondes.
+        let changed = false
+        const next = items.map((item) => {
+          const updated = applyNativeDownloadState(item, states.find((candidate) => candidate.id === item.id))
+          if (updated !== item) changed = true
+          return updated
+        })
+        return changed ? next : items
+      })
     }
     void refresh().catch(() => undefined)
     const timer = window.setInterval(() => { void refresh().catch(() => undefined) }, 2000)
