@@ -49,3 +49,7 @@ USER.md
 *.njsproj
 *.sln
 *.sw?
+
+# APK générés : à publier en release, pas dans Git
+*.apk
+signed-apk/
