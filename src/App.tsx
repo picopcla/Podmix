@@ -2055,9 +2055,14 @@ function App() {
       if (!restored) return
       const activeTrack = restored.queue.tracks[restored.trackIndex]
       setActiveMediaId(state.mediaId)
-      setGlobalPosition(Math.max(0, state.positionSeconds))
-      setGlobalDuration(Math.max(0, state.durationSeconds))
-      setGlobalPlaying(playbackIntentActive(state))
+      // While a Bose is the output the local player is paused on purpose:
+      // its state must not overwrite the speaker's play state, otherwise the
+      // play/pause button flickers each time the catalogue refreshes.
+      if (!isBoseOutputActive()) {
+        setGlobalPosition(Math.max(0, state.positionSeconds))
+        setGlobalDuration(Math.max(0, state.durationSeconds))
+        setGlobalPlaying(playbackIntentActive(state))
+      }
       setCanSkipNext(state.hasNext)
       setCanSkipPrevious(state.hasPrevious)
       setNowPlaying({
