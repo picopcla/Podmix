@@ -2738,29 +2738,23 @@ public class PodmixPlayerPlugin extends Plugin implements Player.Listener {
     }
 
     public static void markBoseAppSessionActive(Context context) {
-        if (!BOSE_TASK_REMOVED.getAndSet(false)) return;
-        context.getSharedPreferences(BOSE_OUTPUT_PREFERENCES, Context.MODE_PRIVATE)
-            .edit().remove(BOSE_ACTIVE_IP).apply();
+        // The remembered Bose stays: it keeps playing after the app is closed
+        // and the next launch re-attaches to it (see restoreOutputAfterLaunch).
+        BOSE_TASK_REMOVED.set(false);
+    }
+
+    /** True while a Bose started by Podmix is the remembered playback output. */
+    public static boolean hasActiveBose(Context context) {
+        String ip = context.getSharedPreferences(BOSE_OUTPUT_PREFERENCES, Context.MODE_PRIVATE)
+            .getString(BOSE_ACTIVE_IP, "");
+        return ip != null && !ip.isBlank();
     }
 
     public static void disconnectBoseOnTaskRemoval(Context context) {
+        // Closing the app no longer stops the Bose: the speaker keeps playing
+        // its relayed stream. Only a transfer still in flight is abandoned,
+        // because nothing would remain to confirm or monitor it.
         BOSE_TASK_REMOVED.set(true);
-        SharedPreferences preferences = context.getSharedPreferences(
-            BOSE_OUTPUT_PREFERENCES,
-            Context.MODE_PRIVATE
-        );
-        String ip = preferences.getString(BOSE_ACTIVE_IP, "");
-        preferences.edit().remove(BOSE_ACTIVE_IP).apply();
-        if (ip == null || ip.isBlank()) return;
-        BOSE_PLAYBACK_EXECUTOR.execute(() -> {
-            try {
-                Log.i(TAG, "Task removed: disconnecting remembered Bose at " + ip);
-                boseRequest(ip, "POST", "/key", "<key state=\"press\" sender=\"Gabbo\">STOP</key>");
-                boseRequest(ip, "POST", "/key", "<key state=\"release\" sender=\"Gabbo\">STOP</key>");
-            } catch (Exception error) {
-                Log.i(TAG, "Task removed: remembered Bose already unreachable");
-            }
-        });
     }
 
     private static String boseRequest(String ip, String method, String path, String body) throws Exception {

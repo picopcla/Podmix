@@ -1895,6 +1895,9 @@ public class PodmixPlaybackService extends MediaLibraryService {
     @Override
     public void onTaskRemoved(Intent rootIntent) {
         PodmixPlayerPlugin.disconnectBoseOnTaskRemoval(this);
+        // While a Bose is playing, the local player is paused on purpose.
+        // Media3's default would stop the service and drop the notification.
+        if (PodmixPlayerPlugin.hasActiveBose(this)) return;
         super.onTaskRemoved(rootIntent);
     }
 

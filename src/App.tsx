@@ -4216,8 +4216,33 @@ function App() {
 
   async function restoreOutputAfterLaunch() {
     const expectedPlaybackGeneration = playbackRequestRef.current
-    // SoundTouch does not expose a platform-owned cast session. Any saved
-    // route is therefore stale after a process relaunch and must be discarded.
+    // The speaker keeps playing after the app is closed. Re-attach to it when
+    // it is still playing the relayed stream; otherwise the saved route is
+    // stale and is discarded.
+    const savedBose = loadBoseSession()
+    if (savedBose && Date.now() - savedBose.savedAt < 24 * 3600 * 1000) {
+      try {
+        const state = await podmixPlayer.boseGetState(savedBose.ip)
+        if (state.playing && playbackRequestRef.current === expectedPlaybackGeneration) {
+          boseStartPositionRef.current = savedBose.streamStartSeconds
+          boseContentOffsetRef.current = savedBose.contentOffsetSeconds
+          bosePersistedAtRef.current = 0
+          bosePollFailuresRef.current = 0
+          resetBoseClock(savedBose.positionSeconds ?? 0, true)
+          const position = syncBoseClock(state.positionSeconds ?? 0, true)
+          if (state.volume !== undefined) setBoseVolume(state.volume)
+          setNowPlaying((current) => current ?? savedBose.item)
+          setGlobalDuration(savedBose.durationSeconds)
+          setGlobalPosition(position)
+          setGlobalPlaying(true)
+          selectBoseOutput(savedBose.ip, savedBose.name)
+          setBoseMessage(`Lecture en cours sur ${savedBose.name}`)
+          return
+        }
+      } catch {
+        // Unreachable speaker: fall through and use the phone.
+      }
+    }
     localStorage.removeItem('podmix-bose-session-v1')
     localStorage.removeItem(BOSE_OUTPUT_SELECTION_KEY)
     boseActiveRef.current = false
