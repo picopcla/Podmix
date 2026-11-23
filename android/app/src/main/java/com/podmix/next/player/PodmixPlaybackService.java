@@ -1359,6 +1359,10 @@ public class PodmixPlaybackService extends MediaLibraryService {
                 return entry.favoriteId;
             }
         }
+        // A track queued by the phone app carries its favorite key as media id
+        // (episodeId::track::trackId::index). Use it even when the Android Auto
+        // library has not been synced with that episode's tracklist yet.
+        if (mediaId.contains("::track::")) return mediaId;
         return null;
     }
 
